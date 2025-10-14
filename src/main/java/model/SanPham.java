@@ -40,9 +40,9 @@ public class SanPham {
     @Column(name = "soLuong")
     private Integer soLuong;
 
-    @OneToMany(mappedBy = "sanPham")
-    private List<HinhAnh> hinhAnhList;
-
-    @OneToMany(mappedBy = "sanPham")
-    private List<SanPhamChiTiet> sanPhamChiTietList;
+//    @OneToMany(mappedBy = "sanPham")
+//    private List<HinhAnh> hinhAnhList;
+//
+//    @OneToMany(mappedBy = "sanPham")
+//    private List<SanPhamChiTiet> sanPhamChiTietList;
 }
