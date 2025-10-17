@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="library/library :: library">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Quản lý Khách hàng</title>
+
+</head>
+<body>
+
+<div class="container-fluid mt-3">
+    <div class="row mb-3 p-3 border rounded bg-light">
+        <h5 class="mb-3 text-info"><i class="fas fa-filter"></i> Bộ lọc tìm kiếm</h5>
+
+        <form id="filterForm">
+            <div class="d-flex flex-wrap align-items-end gap-3">
+                <div class="form-group" style="min-width: 200px;">
+                    <label for="searchCodeName" class="form-label visually-hidden">Theo mã, tên</label>
+                    <input type="text" id="keyword" class="form-control form-control-sm" placeholder="Tìm theo mã, tên">
+                </div>
+
+                <div class="form-group" style="min-width: 200px;">
+                    <label for="searchPhone" class="form-label visually-hidden">Số điện thoại</label>
+                    <input type="text" id="sdt" class="form-control form-control-sm" placeholder="Số điện thoại">
+                </div>
+
+                <div class="form-group" style="min-width: 150px;">
+                    <label for="genderSelect" class="form-label visually-hidden">Giới tính</label>
+                    <select id="gioiTinh" class="form-select form-select-sm">
+                        <option value="">Chọn giới tính</option> <option value="true">Nam</option>       <option value="false">Nữ</option>      </select>
+                </div>
+
+                <div class="form-group d-flex gap-2">
+                    <button type="submit" class="btn btn-primary btn-sm">
+                        <i class="fas fa-search"></i> Lọc
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-sm" id="btnReset">
+                        <i class="fas fa-redo-alt"></i> Reset
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="row">
+        <div class="col-12 data-panel">
+            <h3 class="mb-3" >Khách hàng</h3>
+
+            <div class="d-flex justify-content-end mb-3">
+                <button class="btn btn-success btn-sm me-2" data-bs-toggle="modal"
+                        data-bs-target="#addKhachHangModal" ><i class="fas fa-user-plus"></i> Thêm Khách hàng</button>
+                <button class="btn btn-secondary btn-sm"><i class="fas fa-file-export"></i> Xuất file</button>
+            </div>
+
+            <div class="table-responsive" style="height: 250px" >
+                <table class="table table-bordered table-hover table-sm" >
+                    <thead class="thead-light">
+                    <tr>
+                        <th>Mã khách hàng</th>
+                        <th>Tên khách hàng</th>
+                        <th>Điện thoại</th>
+                        <th>Email</th>
+                        <th>Tuổi</th>
+                        <th>Giới tính</th>
+                        <th>Thao tác</th>
+                    </tr>
+                    </thead>
+                    <tbody id="khachHangTableBody">
+                    <tr><td colspan="7" class="text-center">Đang tải dữ liệu...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+
+            <div class="d-flex justify-content-between align-items-center mt-3 ">
+                <nav id="paginationNav">
+                </nav>
+            </div>
+
+            <ul class="nav nav-tabs mt-4">
+                <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#tabdiachi">Địa chỉ</a></li>
+            </ul>
+            <div class="tab-content border p-3 bg-white">
+                <div class="tab-pane fade show active" id="tabdiachi" role="tabpanel">
+                    <table class="table table-sm table-striped">
+                        <thead class="bg-light">
+                        <tr>
+                            <th>Họ tên</th>
+                            <th>Số điện thoại</th>
+                            <th>Địa chỉ cụ thể</th>
+                            <th>Xã</th>
+                            <th>Thành phố</th>
+                            <th>Loại địa chỉ</th>
+                            <th>Ghi chú</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr>
+                            <td>dc01</td>
+                            <td>07474574754</td>
+                            <td>Số 66</td>
+                            <td>Xã 01</td>
+                            <td>Hà nội</td>
+                            <td>Công ty</td>
+                            <td>ghi chú 1</td>
+                        </tr>
+                        <tr>
+                            <td>dc02</td>
+                            <td>04737377373</td>
+                            <td>Số 1</td>
+                            <td>Xã 02</td>
+                            <td>Hà nội</td>
+                            <td>Nhà riêng</td>
+                            <td>ghi chú 2</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="addKhachHangModal" tabindex="-1" aria-labelledby="addKhachHangModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="khachHangForm" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addKhachHangModalLabel"><i class="fas fa-user-plus"></i> Thêm Khách hàng Mới</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="newMaKhachHang" class="form-label">Mã Khách hàng (*)</label>
+                        <input type="text" class="form-control" id="newMaKhachHang" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="newTenKhachHang" class="form-label">Tên Khách hàng (*)</label>
+                        <input type="text" class="form-control" id="newTenKhachHang" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="newSoDienThoai" class="form-label">Số Điện thoại</label>
+                        <input type="text" class="form-control" id="newSoDienThoai">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="newEmail" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="newEmail">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="newNamSinh" class="form-label">Năm Sinh</label>
+                        <input type="number" class="form-control" id="newNamSinh">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Giới Tính</label><br>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="newGioiTinh" id="newGioiTinhNam" value="true">
+                            <label class="form-check-label" for="newGioiTinhNam">Nam</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="newGioiTinh" id="newGioiTinhNu" value="false">
+                            <label class="form-check-label" for="newGioiTinhNu">Nữ</label>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-primary">Lưu Khách hàng</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    $(document).ready(function() {
+        // Biến toàn cục để lưu trạng thái lọc và phân trang hiện tại
+        let currentFilter = {
+            pageNo: 1,
+            keyword: '',
+            sdt: '',
+            gioiTinh: ''
+        };
+
+        // ===================================
+        // HÀM TẢI DỮ LIỆU CHÍNH (LOAD, FILTER, PAGINATE)
+        // ===================================
+        function loadKhachHang() {
+            // Lấy các tham số từ biến toàn cục
+            let params = {
+                pageNo: currentFilter.pageNo,
+                keyword: currentFilter.keyword,
+                sdt: currentFilter.sdt,
+                // Chuyển string 'true'/'false' thành boolean hoặc null/rỗng nếu cần cho API
+                gioiTinh: currentFilter.gioiTinh === 'true' ? true : (currentFilter.gioiTinh === 'false' ? false : null)
+            };
+
+            $('#khachHangTableBody').html('<tr><td colspan="7" class="text-center"><i class="fas fa-spinner fa-spin"></i> Đang tải dữ liệu...</td></tr>');
+
+            $.ajax({
+                url: "/api/khach-hang", // API Endpoint đã tạo
+                type: "GET",
+                data: params,
+                dataType: "json",
+                success: function(response) {
+                    // response là đối tượng Page<Khachhang> từ Spring Data JPA
+                    renderTable(response.content);
+                    renderPagination(response.number + 1, response.totalPages);
+                },
+                error: function(error) {
+                    console.error("Lỗi khi tải dữ liệu:", error);
+                    $('#khachHangTableBody').html('<tr><td colspan="7" class="text-danger text-center">Lỗi: Không tải được dữ liệu khách hàng. Vui lòng kiểm tra API.</td></tr>');
+                }
+            });
+        }
+
+        // ===================================
+        // HÀM TẠO BẢNG
+        // ===================================
+        function renderTable(khachHangList) {
+            let html = '';
+            if (khachHangList.length === 0) {
+                html = '<tr><td colspan="7" class="text-center">Không tìm thấy khách hàng nào.</td></tr>';
+            } else {
+                khachHangList.forEach(function(kh) {
+                    // Dữ liệu tuổi và giới tính lấy từ Entity
+                    let gioiTinhText = kh.gioiTinh === true ? 'Nam' : (kh.gioiTinh === false ? 'Nữ' : 'N/A');
+                    let tuoi = kh.tuoi !== null ? kh.tuoi : 'N/A';
+
+                    html += '<tr>';
+                    html += '<td>' + kh.maKhachHang + '</td>';
+                    html += '<td>' + kh.tenKhachHang + '</td>';
+                    html += '<td>' + (kh.soDienThoai || '') + '</td>';
+                    html += '<td>' + (kh.email || '') + '</td>';
+                    // Sử dụng thuộc tính 'tuoi' đã được tính trong Khachhang Entity
+                    html += '<td>' + tuoi + '</td>';
+                    html += '<td>' + gioiTinhText + '</td>';
+                    html += '<td>';
+                    html += '<button class="btn btn-warning btn-sm me-2 btn-edit" data-id="' + kh.id + '">Sửa</button>';
+                    html += '<button class="btn btn-danger btn-sm btn-delete" data-id="' + kh.id + '">Xóa</button>';
+                    html += '</td>';
+                    html += '</tr>';
+                });
+            }
+            $('#khachHangTableBody').html(html);
+        }
+
+        // ===================================
+        // HÀM TẠO PHÂN TRANG
+        // ===================================
+        function renderPagination(currentPage, totalPages) {
+            let paginationHtml = '<ul class="pagination pagination-sm mb-0">';
+
+            // Nút Previous
+            let prevDisabled = currentPage === 1 ? 'disabled' : '';
+            paginationHtml += '<li class="page-item ' + prevDisabled + '"><a class="page-link" href="#" data-page="' + (currentPage - 1) + '">&laquo;</a></li>';
+
+            // Các nút trang (tối đa 5 nút)
+            let startPage = Math.max(1, currentPage - 2);
+            let endPage = Math.min(totalPages, currentPage + 2);
+
+            for (let i = startPage; i <= endPage; i++) {
+                let active = currentPage === i ? 'active' : '';
+                paginationHtml += '<li class="page-item ' + active + '"><a class="page-link" href="#" data-page="' + i + '">' + i + '</a></li>';
+            }
+
+            // Nút Next
+            let nextDisabled = currentPage === totalPages ? 'disabled' : '';
+            paginationHtml += '<li class="page-item ' + nextDisabled + '"><a class="page-link" href="#" data-page="' + (currentPage + 1) + '">&raquo;</a></li>';
+
+            paginationHtml += '</ul>';
+
+            $('#paginationNav').html(paginationHtml);
+
+            // Bắt sự kiện click trên nút phân trang
+            $('#paginationNav').off('click', 'a.page-link').on('click', 'a.page-link', function(e) {
+                e.preventDefault();
+                if ($(this).parent().hasClass('disabled')) return;
+
+                // Cập nhật trang hiện tại và tải lại dữ liệu
+                currentFilter.pageNo = $(this).data('page');
+                loadKhachHang();
+            });
+        }
+
+        // ===================================
+        // BẮT SỰ KIỆN LỌC (FORM SUBMIT)
+        // ===================================
+        $('#filterForm').on('submit', function(e) {
+            e.preventDefault(); // Ngăn form submit mặc định
+
+            // 1. Cập nhật trạng thái lọc từ các trường input
+            currentFilter.keyword = $('#keyword').val();
+            currentFilter.sdt = $('#sdt').val();
+            currentFilter.gioiTinh = $('#gioiTinh').val();
+            currentFilter.pageNo = 1; // Bắt đầu lại từ trang 1 khi lọc mới
+
+            // 2. Tải lại dữ liệu
+            loadKhachHang();
+        });
+        $('#btnReset').on('click', function() {
+            // 1. Reset các trường input trong form
+            $('#keyword').val('');
+            $('#sdt').val('');
+            $('#gioiTinh').val(''); // Đặt lại về option value=""
+
+            // 2. Reset biến lọc về trạng thái mặc định
+            currentFilter = {
+                pageNo: 1,
+                keyword: '',
+                sdt: '',
+                gioiTinh: ''
+
+            };
+
+            // 3. Tải lại dữ liệu (load full list từ trang 1)
+            loadKhachHang()
+        });
+        // Tải dữ liệu lần đầu khi trang load
+        loadKhachHang();
+    });
+
+
+</script>
+</body>
+</html>

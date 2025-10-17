@@ -1,4 +1,4 @@
-package model;
+package sd_04.datn_fstore.model;
 
 
 import jakarta.persistence.*;
