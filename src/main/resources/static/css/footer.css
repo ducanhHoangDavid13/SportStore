@@ -1,0 +1,111 @@
+/* ---- General Footer Styling ---- */
+.site-footer {
+    background-color: #26272b;
+    color: #a9a9a9;
+    padding: 45px 0 20px;
+    font-size: 15px;
+    line-height: 24px;
+}
+
+.site-footer .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 15px;
+}
+
+.footer-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 30px;
+}
+
+.footer-col {
+    padding: 0 10px;
+}
+
+.footer-logo svg {
+    margin-bottom: 20px;
+}
+
+.social-icons {
+    margin-bottom: 25px;
+}
+
+.social-icons a {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    line-height: 40px;
+    margin-right: 8px;
+    border-radius: 50%;
+    background-color: #33383d;
+    color: #ffffff;
+    text-align: center;
+    font-size: 16px;
+    transition: all 0.3s ease;
+}
+
+.social-icons a:hover {
+    background-color: #007bff;
+    color: #fff;
+}
+
+.footer-heading {
+    color: #fff;
+    font-size: 16px;
+    text-transform: uppercase;
+    margin-top: 5px;
+    margin-bottom: 20px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.site-footer a {
+    color: #a9a9a9;
+    text-decoration: none;
+}
+
+.site-footer a:hover {
+    color: #ffffff;
+    text-decoration: underline;
+}
+
+/* ---- Lists Styling ---- */
+.footer-links, .contact-info {
+    list-style: none;
+    padding-left: 0;
+}
+
+.footer-links li {
+    margin-bottom: 12px;
+}
+
+.contact-info li {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 15px;
+}
+
+.contact-info i {
+    color: #ffffff;
+    margin-right: 12px;
+    font-size: 16px;
+    margin-top: 4px;
+}
+
+.contact-info span a {
+    color: #ffffff; /* Make phone number stand out */
+    font-weight: bold;
+}
+
+/* ---- Map and Bottom Bar ---- */
+.map-container iframe {
+    border-radius: 8px;
+}
+
+.footer-bottom {
+    padding-top: 20px;
+    margin-top: 30px;
+    border-top: 1px solid #3a3a3a;
+    text-align: center;
+}
