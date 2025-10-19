@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<header class="main-header" th:fragment="header">
+    <div class="header-container">
+
+        <div class="header-left">
+            <a th:href="@{/}" class="header-logo">
+                <svg width="32" height="32" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="16" cy="16" r="12" fill="#111"/><circle cx="50" cy="16" r="12" fill="#111"/><circle cx="84" cy="16" r="12" fill="#111"/>
+                    <circle cx="16" cy="50" r="12" fill="#111"/><circle cx="50" cy="50" r="12" fill="#111"/><circle cx="84" cy="50" r="12" fill="#111"/>
+                    <circle cx="16" cy="84" r="12" fill="#111"/><circle cx="50" cy="84" r="12" fill="#111"/><circle cx="84" cy="84" r="12" fill="#111"/>
+                </svg>
+            </a>
+            <button class="menu-toggle" aria-label="Toggle navigation">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+
+        <div class="header-center">
+            <form th:action="@{/search}" method="get" class="search-form">
+                <button type="submit" class="search-button" aria-label="Search">
+                    <i class="fas fa-search"></i>
+                </button>
+                <input type="text" name="q" class="search-input" placeholder="Tìm kiếm sản phẩm...">
+            </form>
+        </div>
+
+        <div class="header-right">
+            <nav class="main-nav">
+                <ul>
+                    <li><a th:href="@{/}">TRANG CHỦ</a></li>
+                    <li><a th:href="@{/blog}">BLOG</a></li>
+                    <li><a th:href="@{/store}">CỬA HÀNG</a></li>
+                </ul>
+            </nav>
+            <a th:href="@{/cart}" class="cart-icon" aria-label="Giỏ hàng">
+                <i class="fas fa-shopping-cart"></i>
+            </a>
+            <div class="header-actions">
+                <a th:href="@{/login}" class="btn btn-outline">Tài khoản</a>
+                <a th:href="@{/support}" class="btn btn-dark">Trợ giúp</a>
+            </div>
+        </div>
+    </div>
+</header>
+
+</body>
+</html>
