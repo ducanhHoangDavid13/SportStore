@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service;
 import sd_04.datn_fstore.model.KhachHang;
 import sd_04.datn_fstore.repo.KhachHangRepo;
 
+import java.util.Optional;
+
 @Service
 public class KhachhangService {
     @Autowired
@@ -26,4 +28,32 @@ public class KhachhangService {
 
         return khachHangRepo.findFilteredKhachHang(searchKeyword, searchSdt, gioiTinh, pageable);
     }
+
+    public KhachHang save(KhachHang khachhang) {
+        // Nếu là thêm mới (id == null), thiết lập trạng thái mặc định là 1 (Hoạt động)
+        if (khachhang.getId() == null) {
+            khachhang.setTrangThai(1);
+            // Có thể thêm logic set vai trò mặc định nếu cần
+            // khachhang.setVaiTro("KHACH_HANG");
+        }
+        return khachHangRepo.save(khachhang);
+    }
+
+    public Optional<KhachHang> findById(Integer id) {
+        return khachHangRepo.findById(id);
+    }
+
+    public void softDeleteById(Integer id) {
+        Optional<KhachHang> khachhangOpt = khachHangRepo.findById(id);
+        if (khachhangOpt.isPresent()) {
+            KhachHang khachhang = khachhangOpt.get();
+            // CHỈ THAY ĐỔI TRẠNG THÁI
+            khachhang.setTrangThai(0); // Đặt trạng thái về 0 (Đã xóa/Không hoạt động)
+            khachHangRepo.save(khachhang);
+        } else {
+            // Ném lỗi nếu không tìm thấy, để Controller trả về 404
+            throw new RuntimeException("Không tìm thấy khách hàng với ID: " + id);
+        }
+    }
+
 }

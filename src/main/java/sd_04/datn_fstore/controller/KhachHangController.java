@@ -11,4 +11,8 @@ public class KhachHangController {
     public String hienThi() {
         return "view/khachhang"; // Trả về file HTML Thymeleaf
     }
+
+
+
+
 }

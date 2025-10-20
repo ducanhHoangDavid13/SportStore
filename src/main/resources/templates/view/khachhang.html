@@ -7,7 +7,6 @@
 
 </head>
 <body>
-
 <div class="container-fluid mt-3">
     <div class="row mb-3 p-3 border rounded bg-light">
         <h5 class="mb-3 text-info"><i class="fas fa-filter"></i> Bộ lọc tìm kiếm</h5>
@@ -121,60 +120,153 @@
     </div>
 </div>
 <div class="modal fade" id="addKhachHangModal" tabindex="-1" aria-labelledby="addKhachHangModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
             <form id="khachHangForm" method="post">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="addKhachHangModalLabel"><i class="fas fa-user-plus"></i> Thêm Khách hàng Mới</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <div class="modal-header bg-primary text-white"> <h5 class="modal-title" id="addKhachHangModalLabel"><i class="fas fa-user-plus me-2"></i> THÊM THÔNG TIN KHÁCH HÀNG</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="newMaKhachHang" class="form-label">Mã Khách hàng (*)</label>
-                        <input type="text" class="form-control" id="newMaKhachHang" required>
-                    </div>
+                    <div class="row">
 
-                    <div class="mb-3">
-                        <label for="newTenKhachHang" class="form-label">Tên Khách hàng (*)</label>
-                        <input type="text" class="form-control" id="newTenKhachHang" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="newSoDienThoai" class="form-label">Số Điện thoại</label>
-                        <input type="text" class="form-control" id="newSoDienThoai">
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="newEmail" class="form-label">Email</label>
-                        <input type="email" class="form-control" id="newEmail">
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="newNamSinh" class="form-label">Năm Sinh</label>
-                        <input type="number" class="form-control" id="newNamSinh">
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Giới Tính</label><br>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="newGioiTinh" id="newGioiTinhNam" value="true">
-                            <label class="form-check-label" for="newGioiTinhNam">Nam</label>
+                        <div class="col-md-6 mb-3">
+                            <label for="newMaKhachHang" class="form-label">Mã Khách hàng (*)</label>
+                            <input type="text" class="form-control" id="newMaKhachHang" placeholder="Ví dụ: KH001" required>
+                            <div class="form-text">Mã khách hàng phải là duy nhất.</div>
                         </div>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="newGioiTinh" id="newGioiTinhNu" value="false">
-                            <label class="form-check-label" for="newGioiTinhNu">Nữ</label>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="newTenKhachHang" class="form-label">Tên Khách hàng (*)</label>
+                            <input type="text" class="form-control" id="newTenKhachHang" placeholder="Nhập họ và tên đầy đủ" required>
                         </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="newSoDienThoai" class="form-label">Số Điện thoại</label>
+                            <input type="text" class="form-control" id="newSoDienThoai" placeholder="0XXXXXXXXX">
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="newEmail" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="newEmail" placeholder="vd: tenkhachhang@gmail.com">
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="newNamSinh" class="form-label">Năm Sinh</label>
+                            <input type="number" class="form-control" id="newNamSinh" min="1900" max="2025" placeholder="YYYY">
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Giới Tính</label><br>
+                            <div class="d-flex gap-4 pt-1"> <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="newGioiTinh" id="newGioiTinhNam" value="true">
+                                <label class="form-check-label" for="newGioiTinhNam">
+                                    <i class="fas fa-mars text-info"></i> Nam
+                                </label>
+                            </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="newGioiTinh" id="newGioiTinhNu" value="false">
+                                    <label class="form-check-label" for="newGioiTinhNu">
+                                        <i class="fas fa-venus text-danger"></i> Nữ
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info py-2 mt-3" role="alert">
+                        Các trường có dấu (*) là bắt buộc.
                     </div>
 
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                    <button type="submit" class="btn btn-primary">Lưu Khách hàng</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="fas fa-times me-1"></i> Đóng</button>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i> Lưu Khách hàng</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
+<div class="modal fade" id="editKhachHangModal" tabindex="-1" aria-labelledby="editKhachHangModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <form id="editKhachHangForm" method="post">
+
+                <input type="hidden" id="editKhachHangId" name="id">
+
+                <div class="modal-header bg-warning text-dark"> <h5 class="modal-title" id="editKhachHangModalLabel"><i class="fas fa-edit me-2"></i> CẬP NHẬT THÔNG TIN KHÁCH HÀNG</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+
+                        <div class="col-md-6 mb-3">
+                            <label for="editMaKhachHang" class="form-label">Mã Khách hàng (*)</label>
+                            <input type="text" class="form-control" id="editMaKhachHang" placeholder="Ví dụ: KH001" required>
+                            <div class="form-text">Mã khách hàng phải là duy nhất.</div>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="editTenKhachHang" class="form-label">Tên Khách hàng (*)</label>
+                            <input type="text" class="form-control" id="editTenKhachHang" placeholder="Nhập họ và tên đầy đủ" required>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="editSoDienThoai" class="form-label">Số Điện thoại</label>
+                            <input type="text" class="form-control" id="editSoDienThoai" placeholder="0XXXXXXXXX">
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="editEmail" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="editEmail" placeholder="vd: tenkhachhang@gmail.com">
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="editNamSinh" class="form-label">Năm Sinh</label>
+                            <input type="number" class="form-control" id="editNamSinh" min="1900" max="2025" placeholder="YYYY">
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Giới Tính</label><br>
+                            <div class="d-flex gap-4 pt-1">
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="editGioiTinh" id="editGioiTinhNam" value="true">
+                                    <label class="form-check-label" for="editGioiTinhNam">
+                                        <i class="fas fa-mars text-info"></i> Nam
+                                    </label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="editGioiTinh" id="editGioiTinhNu" value="false">
+                                    <label class="form-check-label" for="editGioiTinhNu">
+                                        <i class="fas fa-venus text-danger"></i> Nữ
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-warning py-2 mt-3" role="alert">
+                        Lưu ý: Bạn đang thay đổi thông tin của khách hàng hiện tại.
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="fas fa-times me-1"></i> Hủy</button>
+                    <button type="submit" class="btn btn-warning"><i class="fas fa-sync-alt me-1"></i> Cập nhật</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -189,28 +281,24 @@
             gioiTinh: ''
         };
 
-        // ===================================
+
         // HÀM TẢI DỮ LIỆU CHÍNH (LOAD, FILTER, PAGINATE)
-        // ===================================
         function loadKhachHang() {
-            // Lấy các tham số từ biến toàn cục
             let params = {
                 pageNo: currentFilter.pageNo,
                 keyword: currentFilter.keyword,
                 sdt: currentFilter.sdt,
-                // Chuyển string 'true'/'false' thành boolean hoặc null/rỗng nếu cần cho API
                 gioiTinh: currentFilter.gioiTinh === 'true' ? true : (currentFilter.gioiTinh === 'false' ? false : null)
             };
 
             $('#khachHangTableBody').html('<tr><td colspan="7" class="text-center"><i class="fas fa-spinner fa-spin"></i> Đang tải dữ liệu...</td></tr>');
 
             $.ajax({
-                url: "/api/khach-hang", // API Endpoint đã tạo
+                url: "/api/khach-hang", // API Endpoint
                 type: "GET",
                 data: params,
                 dataType: "json",
                 success: function(response) {
-                    // response là đối tượng Page<Khachhang> từ Spring Data JPA
                     renderTable(response.content);
                     renderPagination(response.number + 1, response.totalPages);
                 },
@@ -221,16 +309,13 @@
             });
         }
 
-        // ===================================
         // HÀM TẠO BẢNG
-        // ===================================
         function renderTable(khachHangList) {
             let html = '';
             if (khachHangList.length === 0) {
                 html = '<tr><td colspan="7" class="text-center">Không tìm thấy khách hàng nào.</td></tr>';
             } else {
                 khachHangList.forEach(function(kh) {
-                    // Dữ liệu tuổi và giới tính lấy từ Entity
                     let gioiTinhText = kh.gioiTinh === true ? 'Nam' : (kh.gioiTinh === false ? 'Nữ' : 'N/A');
                     let tuoi = kh.tuoi !== null ? kh.tuoi : 'N/A';
 
@@ -239,7 +324,6 @@
                     html += '<td>' + kh.tenKhachHang + '</td>';
                     html += '<td>' + (kh.soDienThoai || '') + '</td>';
                     html += '<td>' + (kh.email || '') + '</td>';
-                    // Sử dụng thuộc tính 'tuoi' đã được tính trong Khachhang Entity
                     html += '<td>' + tuoi + '</td>';
                     html += '<td>' + gioiTinhText + '</td>';
                     html += '<td>';
@@ -252,17 +336,18 @@
             $('#khachHangTableBody').html(html);
         }
 
-        // ===================================
-        // HÀM TẠO PHÂN TRANG
-        // ===================================
-        function renderPagination(currentPage, totalPages) {
-            let paginationHtml = '<ul class="pagination pagination-sm mb-0">';
 
-            // Nút Previous
+        // HÀM TẠO PHÂN TRANG
+        function renderPagination(currentPage, totalPages) {
+            if (totalPages <= 1) {
+                $('#paginationNav').empty();
+                return;
+            }
+
+            let paginationHtml = '<ul class="pagination pagination-sm mb-0">';
             let prevDisabled = currentPage === 1 ? 'disabled' : '';
             paginationHtml += '<li class="page-item ' + prevDisabled + '"><a class="page-link" href="#" data-page="' + (currentPage - 1) + '">&laquo;</a></li>';
 
-            // Các nút trang (tối đa 5 nút)
             let startPage = Math.max(1, currentPage - 2);
             let endPage = Math.min(totalPages, currentPage + 2);
 
@@ -271,7 +356,6 @@
                 paginationHtml += '<li class="page-item ' + active + '"><a class="page-link" href="#" data-page="' + i + '">' + i + '</a></li>';
             }
 
-            // Nút Next
             let nextDisabled = currentPage === totalPages ? 'disabled' : '';
             paginationHtml += '<li class="page-item ' + nextDisabled + '"><a class="page-link" href="#" data-page="' + (currentPage + 1) + '">&raquo;</a></li>';
 
@@ -279,55 +363,170 @@
 
             $('#paginationNav').html(paginationHtml);
 
-            // Bắt sự kiện click trên nút phân trang
             $('#paginationNav').off('click', 'a.page-link').on('click', 'a.page-link', function(e) {
                 e.preventDefault();
                 if ($(this).parent().hasClass('disabled')) return;
-
-                // Cập nhật trang hiện tại và tải lại dữ liệu
                 currentFilter.pageNo = $(this).data('page');
                 loadKhachHang();
             });
         }
 
-        // ===================================
-        // BẮT SỰ KIỆN LỌC (FORM SUBMIT)
-        // ===================================
+        // BẮT SỰ KIỆN: LỌC & RESET
         $('#filterForm').on('submit', function(e) {
-            e.preventDefault(); // Ngăn form submit mặc định
-
-            // 1. Cập nhật trạng thái lọc từ các trường input
+            e.preventDefault();
             currentFilter.keyword = $('#keyword').val();
             currentFilter.sdt = $('#sdt').val();
             currentFilter.gioiTinh = $('#gioiTinh').val();
-            currentFilter.pageNo = 1; // Bắt đầu lại từ trang 1 khi lọc mới
-
-            // 2. Tải lại dữ liệu
+            currentFilter.pageNo = 1;
             loadKhachHang();
         });
+
         $('#btnReset').on('click', function() {
-            // 1. Reset các trường input trong form
             $('#keyword').val('');
             $('#sdt').val('');
-            $('#gioiTinh').val(''); // Đặt lại về option value=""
-
-            // 2. Reset biến lọc về trạng thái mặc định
+            $('#gioiTinh').val('');
             currentFilter = {
-                pageNo: 1,
-                keyword: '',
-                sdt: '',
-                gioiTinh: ''
+                pageNo: 1, keyword: '', sdt: '', gioiTinh: ''
+            };
+            loadKhachHang();
+        });
 
+        // CRUD MỚI: THÊM, SỬA, XÓA
+        // 1. CHỨC NĂNG THÊM MỚI (POST /api/khach-hang)
+        $('#khachHangForm').on('submit', function(e) {
+            e.preventDefault();
+
+            let newKhachHang = {
+                maKhachHang: $('#newMaKhachHang').val(),
+                tenKhachHang: $('#newTenKhachHang').val(),
+                soDienThoai: $('#newSoDienThoai').val(),
+                email: $('#newEmail').val(),
+                // Chuyển sang số hoặc null
+                namSinh: $('#newNamSinh').val() ? parseInt($('#newNamSinh').val()) : null,
+                // Chuyển sang boolean
+                gioiTinh: $('input[name="newGioiTinh"]:checked').val() === 'true'
             };
 
-            // 3. Tải lại dữ liệu (load full list từ trang 1)
-            loadKhachHang()
+            $.ajax({
+                url: "/api/khach-hang",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify(newKhachHang),
+                success: function(response) {
+                    alert("Thêm khách hàng thành công!");
+
+                    $('#addKhachHangModal').modal('hide');
+
+                    setTimeout(function() {
+                        $('.modal-backdrop').remove();
+                        $('body').removeClass('modal-open');
+                    }, 500);
+
+                    // 3. Reset form và tải lại dữ liệu
+                    $('#khachHangForm')[0].reset();
+                    currentFilter.pageNo = 1;
+                    loadKhachHang();
+                },
+                error: function(error) {
+                    console.error("Lỗi khi thêm khách hàng:", error.responseText);
+                    alert("Lỗi: " + error.responseJSON.message || "Lỗi khi thêm khách hàng. Vui lòng kiểm tra console.");
+                }
+            });
         });
+
+        // 2. CHỨC NĂNG SỬA
+        $(document).on('click', '.btn-edit', function() {
+            let khachHangId = $(this).data('id');
+
+            $.ajax({
+                url: "/api/khach-hang/" + khachHangId,
+                type: "GET",
+                dataType: "json",
+                success: function(kh) {
+
+                    $('#editKhachHangId').val(kh.id);
+                    $('#editMaKhachHang').val(kh.maKhachHang);
+                    $('#editTenKhachHang').val(kh.tenKhachHang);
+                    $('#editSoDienThoai').val(kh.soDienThoai || '');
+                    $('#editEmail').val(kh.email || '');
+                    $('#editNamSinh').val(kh.namSinh || '');
+
+
+                    if (kh.gioiTinh === true) {
+                        $('#editGioiTinhNam').prop('checked', true);
+                    } else if (kh.gioiTinh === false) {
+                        $('#editGioiTinhNu').prop('checked', true);
+                    } else {
+                        $('input[name="editGioiTinh"]').prop('checked', false);
+                    }
+
+
+                    var editModal = new bootstrap.Modal(document.getElementById('editKhachHangModal'));
+                    editModal.show();
+                },
+                error: function(error) {
+                    console.error("Lỗi khi lấy chi tiết khách hàng:", error);
+                    alert("Không thể tải dữ liệu khách hàng.");
+                }
+            });
+        });
+
+        // 3. CHỨC NĂNG CẬP NHẬT
+        $('#editKhachHangForm').on('submit', function(e) {
+            e.preventDefault();
+
+            let khachHangId = $('#editKhachHangId').val();
+
+            let updatedKhachHang = {
+                id: khachHangId,
+                maKhachHang: $('#editMaKhachHang').val(),
+                tenKhachHang: $('#editTenKhachHang').val(),
+                soDienThoai: $('#editSoDienThoai').val(),
+                email: $('#editEmail').val(),
+                namSinh: $('#editNamSinh').val() ? parseInt($('#editNamSinh').val()) : null,
+                gioiTinh: $('input[name="editGioiTinh"]:checked').val() === 'true'
+            };
+
+            $.ajax({
+                url: "/api/khach-hang/" + khachHangId,
+                type: "PUT",
+                contentType: "application/json",
+                data: JSON.stringify(updatedKhachHang),
+                success: function(response) {
+                    alert("Cập nhật khách hàng thành công!");
+                    $('#editKhachHangModal').modal('hide');
+                    loadKhachHang();
+                },
+                error: function(error) {
+                    console.error("Lỗi khi cập nhật khách hàng:", error.responseText);
+                    alert("Lỗi: " + error.responseJSON.message || "Lỗi khi cập nhật khách hàng.");
+                }
+            });
+        });
+
+        // 4. CHỨC NĂNG XÓA
+        $(document).on('click', '.btn-delete', function() {
+            let idToDelete = $(this).data('id');
+
+            if (confirm("Bạn có chắc chắn muốn xóa khách hàng ID: " + idToDelete + " không?")) {
+                $.ajax({
+                    url: "/api/khach-hang/" + idToDelete,
+                    type: "DELETE",
+                    success: function() {
+                        alert("Xóa khách hàng thành công!");
+                        loadKhachHang();
+                    },
+                    error: function(error) {
+                        console.error("Lỗi khi xóa khách hàng:", error.responseText);
+                        alert("Lỗi khi xóa khách hàng.");
+                    }
+                });
+            }
+        });
+
         // Tải dữ liệu lần đầu khi trang load
         loadKhachHang();
     });
-
-
 </script>
 </body>
 </html>
