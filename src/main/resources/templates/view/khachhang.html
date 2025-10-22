@@ -91,37 +91,18 @@
                     </ul>
                     <div class="tab-content border p-3 bg-white">
                         <div class="tab-pane fade show active" id="tabdiachi" role="tabpanel">
-                            <table class="table table-sm table-striped">
-                                <thead class="bg-light">
-                                <tr>
-                                    <th>Họ tên</th>
-                                    <th>Số điện thoại</th>
-                                    <th>Địa chỉ cụ thể</th>
-                                    <th>Xã</th>
-                                    <th>Thành phố</th>
-                                    <th>Loại địa chỉ</th>
-                                    <th>Ghi chú</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                <tr>
-                                    <td>dc01</td>
-                                    <td>07474574754</td>
-                                    <td>Số 66</td>
-                                    <td>Xã 01</td>
-                                    <td>Hà nội</td>
-                                    <td>Công ty</td>
-                                    <td>ghi chú 1</td>
-                                </tr>
-                                <tr>
-                                    <td>dc02</td>
-                                    <td>04737377373</td>
-                                    <td>Số 1</td>
-                                    <td>Xã 02</td>
-                                    <td>Hà nội</td>
-                                    <td>Nhà riêng</td>
-                                    <td>ghi chú 2</td>
-                                </tr>
+                            <table class="table table-sm table-striped" id="diaChiTable"> <thead class="bg-light">
+                            <tr>
+                                <th>Họ tên</th>
+                                <th>Số điện thoại</th>
+                                <th>Địa chỉ cụ thể</th>
+                                <th>Xã</th>
+                                <th>Thành phố</th>
+                                <th>Loại địa chỉ</th>
+                                <th>Ghi chú</th>
+                            </tr>
+                            </thead>
+                                <tbody id="diaChiTableBody"> <tr><td colspan="7" class="text-center">Vui lòng chọn một khách hàng để xem địa chỉ.</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -288,264 +269,333 @@
 <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
 <script th:src="@{/js/my-custom-scripts.js}"></script>
 
-</body>
-</html>>
 <script>
-    $(document).ready(function() {
-        // Biến toàn cục để lưu trạng thái lọc và phân trang hiện tại
-        let currentFilter = {
-            pageNo: 1,
-            keyword: '',
-            sdt: '',
-            gioiTinh: ''
+$(document).ready(function() {
+    // Biến toàn cục để lưu trạng thái lọc và phân trang hiện tại
+    let currentFilter = {
+        pageNo: 1,
+        keyword: '',
+        sdt: '',
+        gioiTinh: ''
+    };
+
+    // ==========================================================
+    // KHỐI HÀM CHÍNH: KHÁCH HÀNG (LOAD, RENDER, CRUD)
+    // ==========================================================
+
+    function loadKhachHang() {
+        let params = {
+            pageNo: currentFilter.pageNo,
+            keyword: currentFilter.keyword,
+            sdt: currentFilter.sdt,
+            gioiTinh: currentFilter.gioiTinh === 'true' ? true : (currentFilter.gioiTinh === 'false' ? false : null)
         };
 
+        $('#khachHangTableBody').html('<tr><td colspan="7" class="text-center"><i class="fas fa-spinner fa-spin"></i> Đang tải dữ liệu...</td></tr>');
+        // Reset bảng địa chỉ khi tải lại danh sách khách hàng
+        renderDiaChiTable([]);
 
-        // HÀM TẢI DỮ LIỆU CHÍNH (LOAD, FILTER, PAGINATE)
-        function loadKhachHang() {
-            let params = {
-                pageNo: currentFilter.pageNo,
-                keyword: currentFilter.keyword,
-                sdt: currentFilter.sdt,
-                gioiTinh: currentFilter.gioiTinh === 'true' ? true : (currentFilter.gioiTinh === 'false' ? false : null)
-            };
+        $.ajax({
+            url: "/api/khach-hang", // API Endpoint
+            type: "GET",
+            data: params,
+            dataType: "json",
+            success: function(response) {
+                renderTable(response.content);
+                renderPagination(response.number + 1, response.totalPages);
+            },
+            error: function(error) {
+                console.error("Lỗi khi tải dữ liệu:", error);
+                $('#khachHangTableBody').html('<tr><td colspan="7" class="text-danger text-center">Lỗi: Không tải được dữ liệu khách hàng. Vui lòng kiểm tra API.</td></tr>');
+            }
+        });
+    }
 
-            $('#khachHangTableBody').html('<tr><td colspan="7" class="text-center"><i class="fas fa-spinner fa-spin"></i> Đang tải dữ liệu...</td></tr>');
+    // HÀM TẠO BẢNG KHÁCH HÀNG (ĐÃ THÊM data-id vào <tr>)
+    function renderTable(khachHangList) {
+        let html = '';
+        if (khachHangList.length === 0) {
+            html = '<tr><td colspan="7" class="text-center">Không tìm thấy khách hàng nào.</td></tr>';
+        } else {
+            khachHangList.forEach(function(kh) {
+                let gioiTinhText = kh.gioiTinh === true ? 'Nam' : (kh.gioiTinh === false ? 'Nữ' : 'N/A');
+                let tuoi = kh.tuoi !== null ? kh.tuoi : 'N/A';
 
-            $.ajax({
-                url: "/api/khach-hang", // API Endpoint
-                type: "GET",
-                data: params,
-                dataType: "json",
-                success: function(response) {
-                    renderTable(response.content);
-                    renderPagination(response.number + 1, response.totalPages);
-                },
-                error: function(error) {
-                    console.error("Lỗi khi tải dữ liệu:", error);
-                    $('#khachHangTableBody').html('<tr><td colspan="7" class="text-danger text-center">Lỗi: Không tải được dữ liệu khách hàng. Vui lòng kiểm tra API.</td></tr>');
-                }
+                // QUAN TRỌNG: Thêm data-id vào <tr>
+                html += '<tr data-id="' + kh.id + '">';
+                html += '<td>' + kh.maKhachHang + '</td>';
+                html += '<td>' + kh.tenKhachHang + '</td>';
+                html += '<td>' + (kh.soDienThoai || '') + '</td>';
+                html += '<td>' + (kh.email || '') + '</td>';
+                html += '<td>' + tuoi + '</td>';
+                html += '<td>' + gioiTinhText + '</td>';
+                html += '<td>';
+                html += '<button class="btn btn-warning btn-sm me-2 btn-edit" data-id="' + kh.id + '">Sửa</button>';
+                html += '<button class="btn btn-danger btn-sm btn-delete" data-id="' + kh.id + '">Xóa</button>';
+                html += '</td>';
+                html += '</tr>';
             });
         }
+        $('#khachHangTableBody').html(html);
+    }
 
-        // HÀM TẠO BẢNG
-        function renderTable(khachHangList) {
-            let html = '';
-            if (khachHangList.length === 0) {
-                html = '<tr><td colspan="7" class="text-center">Không tìm thấy khách hàng nào.</td></tr>';
-            } else {
-                khachHangList.forEach(function(kh) {
-                    let gioiTinhText = kh.gioiTinh === true ? 'Nam' : (kh.gioiTinh === false ? 'Nữ' : 'N/A');
-                    let tuoi = kh.tuoi !== null ? kh.tuoi : 'N/A';
-
-                    html += '<tr>';
-                    html += '<td>' + kh.maKhachHang + '</td>';
-                    html += '<td>' + kh.tenKhachHang + '</td>';
-                    html += '<td>' + (kh.soDienThoai || '') + '</td>';
-                    html += '<td>' + (kh.email || '') + '</td>';
-                    html += '<td>' + tuoi + '</td>';
-                    html += '<td>' + gioiTinhText + '</td>';
-                    html += '<td>';
-                    html += '<button class="btn btn-warning btn-sm me-2 btn-edit" data-id="' + kh.id + '">Sửa</button>';
-                    html += '<button class="btn btn-danger btn-sm btn-delete" data-id="' + kh.id + '">Xóa</button>';
-                    html += '</td>';
-                    html += '</tr>';
-                });
-            }
-            $('#khachHangTableBody').html(html);
+    // ... (Giữ nguyên hàm renderPagination) ...
+    function renderPagination(currentPage, totalPages) {
+        if (totalPages <= 1) {
+            $('#paginationNav').empty();
+            return;
         }
 
+        let paginationHtml = '<ul class="pagination pagination-sm mb-0">';
+        let prevDisabled = currentPage === 1 ? 'disabled' : '';
+        paginationHtml += '<li class="page-item ' + prevDisabled + '"><a class="page-link" href="#" data-page="' + (currentPage - 1) + '">&laquo;</a></li>';
 
-        // HÀM TẠO PHÂN TRANG
-        function renderPagination(currentPage, totalPages) {
-            if (totalPages <= 1) {
-                $('#paginationNav').empty();
-                return;
-            }
+        let startPage = Math.max(1, currentPage - 2);
+        let endPage = Math.min(totalPages, currentPage + 2);
 
-            let paginationHtml = '<ul class="pagination pagination-sm mb-0">';
-            let prevDisabled = currentPage === 1 ? 'disabled' : '';
-            paginationHtml += '<li class="page-item ' + prevDisabled + '"><a class="page-link" href="#" data-page="' + (currentPage - 1) + '">&laquo;</a></li>';
-
-            let startPage = Math.max(1, currentPage - 2);
-            let endPage = Math.min(totalPages, currentPage + 2);
-
-            for (let i = startPage; i <= endPage; i++) {
-                let active = currentPage === i ? 'active' : '';
-                paginationHtml += '<li class="page-item ' + active + '"><a class="page-link" href="#" data-page="' + i + '">' + i + '</a></li>';
-            }
-
-            let nextDisabled = currentPage === totalPages ? 'disabled' : '';
-            paginationHtml += '<li class="page-item ' + nextDisabled + '"><a class="page-link" href="#" data-page="' + (currentPage + 1) + '">&raquo;</a></li>';
-
-            paginationHtml += '</ul>';
-
-            $('#paginationNav').html(paginationHtml);
-
-            $('#paginationNav').off('click', 'a.page-link').on('click', 'a.page-link', function(e) {
-                e.preventDefault();
-                if ($(this).parent().hasClass('disabled')) return;
-                currentFilter.pageNo = $(this).data('page');
-                loadKhachHang();
-            });
+        for (let i = startPage; i <= endPage; i++) {
+            let active = currentPage === i ? 'active' : '';
+            paginationHtml += '<li class="page-item ' + active + '"><a class="page-link" href="#" data-page="' + i + '">' + i + '</a></li>';
         }
 
-        // BẮT SỰ KIỆN: LỌC & RESET
-        $('#filterForm').on('submit', function(e) {
+        let nextDisabled = currentPage === totalPages ? 'disabled' : '';
+        paginationHtml += '<li class="page-item ' + nextDisabled + '"><a class="page-link" href="#" data-page="' + (currentPage + 1) + '">&raquo;</a></li>';
+
+        paginationHtml += '</ul>';
+
+        $('#paginationNav').html(paginationHtml);
+
+        $('#paginationNav').off('click', 'a.page-link').on('click', 'a.page-link', function(e) {
             e.preventDefault();
-            currentFilter.keyword = $('#keyword').val();
-            currentFilter.sdt = $('#sdt').val();
-            currentFilter.gioiTinh = $('#gioiTinh').val();
-            currentFilter.pageNo = 1;
+            if ($(this).parent().hasClass('disabled')) return;
+            currentFilter.pageNo = $(this).data('page');
             loadKhachHang();
         });
+    }
 
-        $('#btnReset').on('click', function() {
-            $('#keyword').val('');
-            $('#sdt').val('');
-            $('#gioiTinh').val('');
-            currentFilter = {
-                pageNo: 1, keyword: '', sdt: '', gioiTinh: ''
-            };
-            loadKhachHang();
-        });
+    // ==========================================================
+    // KHỐI HÀM MỚI: ĐỊA CHỈ (LOAD & RENDER)
+    // ==========================================================
 
-        // CRUD MỚI: THÊM, SỬA, XÓA
-        // 1. CHỨC NĂNG THÊM MỚI (POST /api/khach-hang)
-        $('#khachHangForm').on('submit', function(e) {
-            e.preventDefault();
-
-            let newKhachHang = {
-                maKhachHang: $('#newMaKhachHang').val(),
-                tenKhachHang: $('#newTenKhachHang').val(),
-                soDienThoai: $('#newSoDienThoai').val(),
-                email: $('#newEmail').val(),
-                // Chuyển sang số hoặc null
-                namSinh: $('#newNamSinh').val() ? parseInt($('#newNamSinh').val()) : null,
-                // Chuyển sang boolean
-                gioiTinh: $('input[name="newGioiTinh"]:checked').val() === 'true'
-            };
-
-            $.ajax({
-                url: "/api/khach-hang",
-                type: "POST",
-                contentType: "application/json",
-                data: JSON.stringify(newKhachHang),
-                success: function(response) {
-                    alert("Thêm khách hàng thành công!");
-
-                    $('#addKhachHangModal').modal('hide');
-
-                    setTimeout(function() {
-                        $('.modal-backdrop').remove();
-                        $('body').removeClass('modal-open');
-                    }, 500);
-// 3. Reset form và tải lại dữ liệu
-                    $('#khachHangForm')[0].reset();
-                    currentFilter.pageNo = 1;
-                    loadKhachHang();
-                },
-                error: function(error) {
-                    console.error("Lỗi khi thêm khách hàng:", error.responseText);
-                    alert("Lỗi: " + error.responseJSON.message || "Lỗi khi thêm khách hàng. Vui lòng kiểm tra console.");
-                }
+    // HÀM TẠO BẢNG ĐỊA CHỈ
+    function renderDiaChiTable(diaChiList) {
+        let html = '';
+        if (diaChiList.length === 0) {
+            html = '<tr><td colspan="7" class="text-center">Khách hàng này chưa có địa chỉ hoạt động nào được lưu.</td></tr>';
+        } else {
+            diaChiList.forEach(function(dc) {
+                html += '<tr>';
+                html += '<td>' + (dc.hoTen || '') + '</td>';
+                html += '<td>' + (dc.soDienThoai || '') + '</td>';
+                html += '<td>' + (dc.diaChiCuThe || '') + '</td>';
+                html += '<td>' + (dc.xa || '') + '</td>';
+                html += '<td>' + (dc.thanhPho || '') + '</td>';
+                html += '<td>' + (dc.loaiDiaChi || '') + '</td>';
+                html += '<td>' + (dc.ghiChu || '') + '</td>';
+                // Thêm cột thao tác cho địa chỉ nếu cần (Sửa/Xóa địa chỉ)
+                // html += '<td><button class="btn btn-sm btn-info">Chi tiết</button></td>';
+                html += '</tr>';
             });
-        });
+        }
+        $('#diaChiTableBody').html(html);
+    }
 
-        // 2. CHỨC NĂNG SỬA
-        $(document).on('click', '.btn-edit', function() {
-            let khachHangId = $(this).data('id');
+    // HÀM GỌI API ĐỊA CHỈ
+    function loadDiaChiByKhachHangId(khachHangId) {
+        if (!khachHangId) {
+            $('#diaChiTableBody').html('<tr><td colspan="7" class="text-center">Vui lòng chọn một khách hàng để xem địa chỉ.</td></tr>');
+            return;
+        }
 
-            $.ajax({
-                url: "/api/khach-hang/" + khachHangId,
-                type: "GET",
-                dataType: "json",
-                success: function(kh) {
+        $('#diaChiTableBody').html('<tr><td colspan="7" class="text-center"><i class="fas fa-spinner fa-spin"></i> Đang tải địa chỉ...</td></tr>');
 
-                    $('#editKhachHangId').val(kh.id);
-                    $('#editMaKhachHang').val(kh.maKhachHang);
-                    $('#editTenKhachHang').val(kh.tenKhachHang);
-                    $('#editSoDienThoai').val(kh.soDienThoai || '');
-                    $('#editEmail').val(kh.email || '');
-                    $('#editNamSinh').val(kh.namSinh || '');
-
-
-                    if (kh.gioiTinh === true) {
-                        $('#editGioiTinhNam').prop('checked', true);
-                    } else if (kh.gioiTinh === false) {
-                        $('#editGioiTinhNu').prop('checked', true);
-                    } else {
-                        $('input[name="editGioiTinh"]').prop('checked', false);
-                    }
-
-
-                    var editModal = new bootstrap.Modal(document.getElementById('editKhachHangModal'));
-                    editModal.show();
-                },
-                error: function(error) {
-                    console.error("Lỗi khi lấy chi tiết khách hàng:", error);
-                    alert("Không thể tải dữ liệu khách hàng.");
-                }
-            });
-        });
-
-        // 3. CHỨC NĂNG CẬP NHẬT
-        $('#editKhachHangForm').on('submit', function(e) {
-            e.preventDefault();
-
-            let khachHangId = $('#editKhachHangId').val();
-
-            let updatedKhachHang = {
-                id: khachHangId,
-                maKhachHang: $('#editMaKhachHang').val(),
-                tenKhachHang: $('#editTenKhachHang').val(),
-                soDienThoai: $('#editSoDienThoai').val(),
-                email: $('#editEmail').val(),
-                namSinh: $('#editNamSinh').val() ? parseInt($('#editNamSinh').val()) : null,
-                gioiTinh: $('input[name="editGioiTinh"]:checked').val() === 'true'
-            };
-
-            $.ajax({
-                url: "/api/khach-hang/" + khachHangId,
-                type: "PUT",
-                contentType: "application/json",
-                data: JSON.stringify(updatedKhachHang),
-                success: function(response) {
-                    alert("Cập nhật khách hàng thành công!");
-                    $('#editKhachHangModal').modal('hide');
-                    loadKhachHang();
-                },
-                error: function(error) {
-                    console.error("Lỗi khi cập nhật khách hàng:", error.responseText);
-                    alert("Lỗi: " + error.responseJSON.message || "Lỗi khi cập nhật khách hàng.");
-                }
-            });
-        });
-
-        // 4. CHỨC NĂNG XÓA
-        $(document).on('click', '.btn-delete', function() {
-            let idToDelete = $(this).data('id');
-
-            if (confirm("Bạn có chắc chắn muốn xóa khách hàng ID: " + idToDelete + " không?")) {
-                $.ajax({
-                    url: "/api/khach-hang/" + idToDelete,
-                    type: "DELETE",
-                    success: function() {
-                        alert("Xóa khách hàng thành công!");
-                        loadKhachHang();
-                    },
-                    error: function(error) {
-                        console.error("Lỗi khi xóa khách hàng:", error.responseText);
-                        alert("Lỗi khi xóa khách hàng.");
-                    }
-                });
+        $.ajax({
+            // API đã tạo: GET /api/dia-chi/khach-hang/{idKhachHang}
+            url: "/api/dia-chi/khach-hang/" + khachHangId,
+            type: "GET",
+            dataType: "json",
+            success: function(response) {
+                renderDiaChiTable(response);
+            },
+            error: function(error) {
+                console.error("Lỗi khi tải địa chỉ:", error);
+                $('#diaChiTableBody').html('<tr><td colspan="7" class="text-danger text-center">Lỗi: Không tải được danh sách địa chỉ.</td></tr>');
             }
         });
+    }
 
-        // Tải dữ liệu lần đầu khi trang load
+    // ==========================================================
+    // SỰ KIỆN MỚI: CLICK VÀO HÀNG KHÁCH HÀNG (QUAN TRỌNG)
+    // ==========================================================
+
+    $(document).on('click', '#khachHangTableBody tr', function() {
+        // Lấy ID khách hàng từ thuộc tính data-id của <tr>
+        let khachHangId = $(this).data('id');
+
+        if (khachHangId) {
+            // 1. Cập nhật trạng thái chọn (Highlight hàng)
+            $('#khachHangTableBody tr').removeClass('table-active'); // Xóa highlight cũ
+            $(this).addClass('table-active'); // Highlight hàng được chọn
+
+            // 2. Tải và hiển thị địa chỉ tương ứng
+            loadDiaChiByKhachHangId(khachHangId);
+        }
+    });
+
+    // ==========================================================
+    // KHỐI SỰ KIỆN CRUD KHÁCH HÀNG (GIỮ NGUYÊN)
+    // ==========================================================
+
+    // BẮT SỰ KIỆN: LỌC & RESET
+    // ... (Code lọc & reset giữ nguyên) ...
+    $('#filterForm').on('submit', function(e) {
+        e.preventDefault();
+        currentFilter.keyword = $('#keyword').val();
+        currentFilter.sdt = $('#sdt').val();
+        currentFilter.gioiTinh = $('#gioiTinh').val();
+        currentFilter.pageNo = 1;
         loadKhachHang();
     });
+
+    $('#btnReset').on('click', function() {
+        $('#keyword').val('');
+        $('#sdt').val('');
+        $('#gioiTinh').val('');
+        currentFilter = {
+            pageNo: 1, keyword: '', sdt: '', gioiTinh: ''
+        };
+        loadKhachHang();
+    });
+
+    // THÊM MỚI
+    $('#khachHangForm').on('submit', function(e) {
+        e.preventDefault();
+        let newKhachHang = {
+            maKhachHang: $('#newMaKhachHang').val(),
+            tenKhachHang: $('#newTenKhachHang').val(),
+            soDienThoai: $('#newSoDienThoai').val(),
+            email: $('#newEmail').val(),
+            namSinh: $('#newNamSinh').val() ? parseInt($('#newNamSinh').val()) : null,
+            gioiTinh: $('input[name="newGioiTinh"]:checked').val() === 'true'
+        };
+        $.ajax({
+            url: "/api/khach-hang",
+            type: "POST",
+            contentType: "application/json",
+            data: JSON.stringify(newKhachHang),
+            success: function(response) {
+                alert("Thêm khách hàng thành công!");
+                $('#addKhachHangModal').modal('hide');
+                setTimeout(function() {
+                    $('.modal-backdrop').remove();
+                    $('body').removeClass('modal-open');
+                }, 500);
+                $('#khachHangForm')[0].reset();
+                currentFilter.pageNo = 1;
+                loadKhachHang();
+            },
+            error: function(error) {
+                console.error("Lỗi khi thêm khách hàng:", error.responseText);
+                alert("Lỗi: " + error.responseJSON.message || "Lỗi khi thêm khách hàng. Vui lòng kiểm tra console.");
+            }
+        });
+    });
+
+    // SỬA & CẬP NHẬT (Code giữ nguyên)
+    $(document).on('click', '.btn-edit', function() {
+        // ... (Code lấy data và mở modal Sửa) ...
+        let khachHangId = $(this).data('id');
+
+        $.ajax({
+            url: "/api/khach-hang/" + khachHangId,
+            type: "GET",
+            dataType: "json",
+            success: function(kh) {
+
+                $('#editKhachHangId').val(kh.id);
+                $('#editMaKhachHang').val(kh.maKhachHang);
+                $('#editTenKhachHang').val(kh.tenKhachHang);
+                $('#editSoDienThoai').val(kh.soDienThoai || '');
+                $('#editEmail').val(kh.email || '');
+                $('#editNamSinh').val(kh.namSinh || '');
+
+
+                if (kh.gioiTinh === true) {
+                    $('#editGioiTinhNam').prop('checked', true);
+                } else if (kh.gioiTinh === false) {
+                    $('#editGioiTinhNu').prop('checked', true);
+                } else {
+                    $('input[name="editGioiTinh"]').prop('checked', false);
+                }
+
+
+                var editModal = new bootstrap.Modal(document.getElementById('editKhachHangModal'));
+                editModal.show();
+            },
+            error: function(error) {
+                console.error("Lỗi khi lấy chi tiết khách hàng:", error);
+                alert("Không thể tải dữ liệu khách hàng.");
+            }
+        });
+    });
+
+    $('#editKhachHangForm').on('submit', function(e) {
+        e.preventDefault();
+        let khachHangId = $('#editKhachHangId').val();
+        let updatedKhachHang = {
+            id: khachHangId,
+            maKhachHang: $('#editMaKhachHang').val(),
+            tenKhachHang: $('#editTenKhachHang').val(),
+            soDienThoai: $('#editSoDienThoai').val(),
+            email: $('#editEmail').val(),
+            namSinh: $('#editNamSinh').val() ? parseInt($('#editNamSinh').val()) : null,
+            gioiTinh: $('input[name="editGioiTinh"]:checked').val() === 'true'
+        };
+        $.ajax({
+            url: "/api/khach-hang/" + khachHangId,
+            type: "PUT",
+            contentType: "application/json",
+            data: JSON.stringify(updatedKhachHang),
+            success: function(response) {
+                alert("Cập nhật khách hàng thành công!");
+                $('#editKhachHangModal').modal('hide');
+                loadKhachHang();
+            },
+            error: function(error) {
+                console.error("Lỗi khi cập nhật khách hàng:", error.responseText);
+                alert("Lỗi: " + error.responseJSON.message || "Lỗi khi cập nhật khách hàng.");
+            }
+        });
+    });
+
+    // XÓA
+    $(document).on('click', '.btn-delete', function() {
+        // ... (Code xóa giữ nguyên) ...
+        let idToDelete = $(this).data('id');
+
+        if (confirm("Bạn có chắc chắn muốn xóa khách hàng ID: " + idToDelete + " không?")) {
+            $.ajax({
+                url: "/api/khach-hang/" + idToDelete,
+                type: "DELETE",
+                success: function() {
+                    alert("Xóa khách hàng thành công!");
+                    loadKhachHang();
+                },
+                error: function(error) {
+                    console.error("Lỗi khi xóa khách hàng:", error.responseText);
+                    alert("Lỗi khi xóa khách hàng.");
+                }
+            });
+        }
+    });
+
+
+    // KHỞI TẠO: Tải dữ liệu lần đầu khi trang load
+    loadKhachHang();
+    loadDiaChiByKhachHangId(null); // Load bảng địa chỉ với thông báo ban đầu
+});
 </script>
+
 
 </body>
 </html>
