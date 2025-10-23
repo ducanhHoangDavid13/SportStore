@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Quản lý Chi tiết Sản phẩm</title>
+  <style>
+
+    :root {
+      --sidebar-width: 260px;
+      --navbar-height: 60px;
+      --primary-color: #007bff;
+      --secondary-bg: #2b3543;
+      --text-light: #f8f9fa;
+      --active-bg: #0056b3;
+    }
+
+    body {
+
+      overflow-x: hidden;
+      background-color: #f0f2f5;
+    }
+
+
+    .sidebar-wrapper {
+      width: var(--sidebar-width);
+      position: fixed; /* Đã đúng */
+      top: var(--navbar-height); /* Đã đúng: Bắt đầu từ dưới navbar */
+      left: 0; bottom: 0; /* Đã đúng: Kéo dài từ trên xuống dưới */
+      overflow-y: auto; /* Đã đúng: Cho phép cuộn bên trong sidebar */
+      z-index: 1000;
+      background-color: var(--secondary-bg);
+      transition: all 0.3s;
+    }
+
+    .main-content {
+      margin-left: var(--sidebar-width);
+      padding: 1.5rem;
+      /* Điều chỉnh padding-top để tránh bị che bởi navbar cố định */
+      padding-top: calc(var(--navbar-height) + 1.5rem);
+      min-height: 100vh; /* Đảm bảo chiều cao tối thiểu cho nội dung */
+
+      transition: margin-left 0.3s;
+      /* Bỏ height và overflow-y: auto để cho phép toàn bộ trang cuộn */
+    }
+
+
+    .nav-link {
+      color: #b8c7e0;
+      padding: 0.75rem 1rem;
+      margin-bottom: 0.25rem;
+      transition: all 0.2s;
+      display: flex;
+      align-items: flex-start;
+      line-height: 1.2;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .nav-link:hover {
+      color: var(--text-light) !important;
+      background-color: rgba(255, 255, 255, 0.1);
+      border-radius: 5px;
+    }
+    .nav-link.active {
+      color: var(--text-light) !important;
+      background-color: var(--primary-color);
+      border-radius: 5px;
+      font-weight: 600;
+    }
+
+    .menu-text {
+      font-size: 1rem;
+      white-space: normal;
+    }
+    .nav-link i.fa-fw {
+      margin-top: 0.15rem;
+    }
+    .nav-link .float-end {
+      margin-top: 0.3rem;
+      transition: transform 0.3s;
+    }
+
+    .submenu-item a.nav-link {
+      padding-left: 2.5rem;
+      font-size: 0.9rem;
+      color: #d1d9e7;
+      align-items: center;
+    }
+    .submenu-item a.nav-link:hover {
+      background-color: rgba(255, 255, 255, 0.05);
+    }
+  </style>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</head>
+<body>
+
+<nav th:replace="~{library/navbar :: admin-navbar}"></nav>
+
+<div class="page-wrapper">
+  <div th:replace="~{library/navbar :: admin-sidebar}"></div>
+  <main class="main-content">
+<div class="container mt-4">
+
+
+  <h2>Quản lý Chi tiết Sản phẩm (Biến thể)</h2>
+
+  <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal"
+          data-bs-target="#spctModal" onclick="moModalThemMoi()">
+    <i class="bi bi-plus-circle"></i> Thêm mới biến thể
+  </button>
+
+  <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">...</div>
+  <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">...</div>
+
+  <div class="card card-body mb-3">
+    <form th:action="@{/admin/san-pham-chi-tiet}" method="GET" class="row g-3">
+      <div class="col-md-4">
+        <label class="form-label">Lọc theo Sản phẩm</label>
+        <select class="form-select" name="idSanPham">
+          <option value="">-- Tất cả sản phẩm --</option>
+          <option th:each="sp : ${listSanPham}" th:value="${sp.id}" th:text="${sp.tenSanPham}"
+                  th:selected="${sp.id == idSanPham}"></option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Lọc theo Màu sắc</label>
+        <select class="form-select" name="idMauSac">
+          <option value="">-- Tất cả màu sắc --</option>
+          <option th:each="ms : ${listMauSac}" th:value="${ms.id}" th:text="${ms.tenMauSac}"
+                  th:selected="${ms.id == idMauSac}"></option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">Lọc theo Kích thước</label>
+        <select class="form-select" name="idKichThuoc">
+          <option value="">-- Tất cả kích thước --</option>
+          <option th:each="kt : ${listKichThuoc}" th:value="${kt.id}" th:text="${kt.tenKichThuoc}"
+                  th:selected="${kt.id == idKichThuoc}"></option>
+        </select>
+      </div>
+      <div class="col-md-3 d-flex align-items-end">
+        <button type="submit" class="btn btn-info me-2">
+          <i class="bi bi-search"></i> Lọc
+        </button>
+        <a th:href="@{/admin/san-pham-chi-tiet}" class="btn btn-outline-secondary">
+          Xóa lọc
+        </a>
+      </div>
+    </form>
+  </div>
+  <table class="table table-bordered table-hover">
+    <thead class="table-light">
+    <tr>
+      <th>Sản phẩm</th>
+      <th>Màu sắc</th>
+      <th>Kích thước</th>
+      <th>Thể loại</th>
+      <th>Giá tiền</th>
+      <th>Số lượng</th>
+      <th>Thao tác</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="spct : ${spctPage.content}">
+      <td th:text="${spct.sanPham != null ? spct.sanPham.tenSanPham : 'N/A'}"></td>
+      <td th:text="${spct.mauSac != null ? spct.mauSac.tenMauSac : 'N/A'}"></td>
+      <td th:text="${spct.kichThuoc != null ? spct.kichThuoc.tenKichThuoc : 'N/A'}"></td>
+      <td th:text="${spct.theLoai != null ? spct.theLoai.tenTheLoai : 'N/A'}"></td>
+      <td th:text="${#numbers.formatDecimal(spct.giaTien, 0, 'COMMA', 0, 'POINT')} + ' ₫'"></td>
+      <td th:text="${spct.soLuong}"></td>
+      <td>
+        <button type="button" class="btn btn-sm btn-success"
+                data-bs-toggle="modal" data-bs-target="#spctModal"
+                th:attr="data-id=${spct.id}" onclick="moModalCapNhat(this.getAttribute('data-id'))">
+          <i class="bi bi-pencil-square"></i> Sửa
+        </button>
+        <a th:href="@{/admin/san-pham-chi-tiet/delete/{id}(id=${spct.id})}"
+           class="btn btn-sm btn-danger" onclick="return confirm('Bạn có chắc muốn xóa biến thể này?')">
+          <i class="bi bi-trash"></i> Xóa
+        </a>
+      </td>
+    </tr>
+    <tr th:if="${spctPage.empty}">
+      <td colspan="7" class="text-center">Không tìm thấy chi tiết sản phẩm nào.</td>
+    </tr>
+    </tbody>
+  </table>
+
+  <div class="modal fade" id="spctModal" tabindex="-1" aria-labelledby="spctModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <form th:action="@{/admin/san-pham-chi-tiet/save}" th:object="${spct}" method="post" id="spctForm">
+          <div class="modal-header">
+            <h5 class="modal-title" id="spctModalTitle">Thêm mới Biến thể</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body row g-3">
+            <input type="hidden" th:field="*{id}" id="spctId">
+
+            <div class="col-md-12">
+              <label class="form-label">Sản phẩm (*)</label>
+              <select class="form-select" th:field="*{sanPham}" required>
+                <option value="">-- Chọn sản phẩm --</option>
+                <option th:each="sp : ${listSanPham}" th:value="${sp.id}" th:text="${sp.tenSanPham}"></option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Màu sắc (*)</label>
+              <select class="form-select" th:field="*{mauSac}" required>
+                <option value="">-- Chọn màu sắc --</option>
+                <option th:each="ms : ${listMauSac}" th:value="${ms.id}" th:text="${ms.tenMauSac}"></option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Kích thước (*)</label>
+              <select class="form-select" th:field="*{kichThuoc}" required>
+                <option value="">-- Chọn kích thước --</option>
+                <option th:each="kt : ${listKichThuoc}" th:value="${kt.id}" th:text="${kt.tenKichThuoc}"></option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Thể loại (*)</label>
+              <select class="form-select" th:field="*{theLoai}" required>
+                <option value="">-- Chọn thể loại --</option>
+                <option th:each="tl : ${listTheLoai}" th:value="${tl.id}" th:text="${tl.tenTheLoai}"></option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Chất liệu (*)</label>
+              <select class="form-select" th:field="*{chatLieu}" required>
+                <option value="">-- Chọn chất liệu --</option>
+                <option th:each="cl : ${listChatLieu}" th:value="${cl.id}" th:text="${cl.loaiChatLieu}"></option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Giá tiền (*)</label>
+              <input type="number" class="form-control" th:field="*{giaTien}" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Số lượng (*)</label>
+              <input type="number" class="form-control" th:field="*{soLuong}" required>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            <button type="submit" class="btn btn-primary">Lưu</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+  </main>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  const spctModal = document.getElementById('spctModal');
+  const spctForm = document.getElementById('spctForm');
+  const spctModalTitle = document.getElementById('spctModalTitle');
+
+  function moModalThemMoi() {
+    spctForm.reset();
+    document.getElementById('spctId').value = '';
+    spctModalTitle.innerText = 'Thêm mới Biến thể';
+    spctForm.action = '/admin/san-pham-chi-tiet/save';
+  }
+
+  async function moModalCapNhat(id) {
+    spctForm.reset();
+    spctModalTitle.innerText = 'Cập nhật Biến thể';
+
+    try {
+      const response = await fetch(`/api/san-pham-chi-tiet/${id}`);
+      if (!response.ok) throw new Error('Không tìm thấy dữ liệu');
+
+      const spct = await response.json();
+
+      document.getElementById('spctId').value = spct.id;
+      spctForm.querySelector('[name="giaTien"]').value = spct.giaTien;
+      spctForm.querySelector('[name="soLuong"]').value = spct.soLuong;
+
+      if (spct.sanPham) spctForm.querySelector('[name="sanPham"]').value = spct.sanPham.id;
+      if (spct.mauSac) spctForm.querySelector('[name="mauSac"]').value = spct.mauSac.id;
+      if (spct.kichThuoc) spctForm.querySelector('[name="kichThuoc"]').value = spct.kichThuoc.id;
+      if (spct.theLoai) spctForm.querySelector('[name="theLoai"]').value = spct.theLoai.id;
+      if (spct.chatLieu) spctForm.querySelector('[name="chatLieu"]').value = spct.chatLieu.id;
+      if (spct.xuatXu) spctForm.querySelector('[name="xuatXu"]').value = spct.xuatXu.id;
+      if (spct.phanLoai) spctForm.querySelector('[name="phanLoai"]').value = spct.phanLoai.id;
+
+    } catch (error) {
+      console.error('Lỗi khi lấy SPCT:', error);
+      alert('Không thể tải dữ liệu để sửa.');
+      var myModal = bootstrap.Modal.getInstance(spctModal);
+      myModal.hide();
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', (event) => {
+    const hasError = document.querySelector('.alert-danger');
+    const spctId = document.getElementById('spctId').value;
+
+    if (hasError && document.body.contains(spctModal)) { // Kiểm tra modal có tồn tại không
+      if (spctId) {
+        spctModalTitle.innerText = 'Cập nhật Biến thể';
+      } else {
+        spctModalTitle.innerText = 'Thêm mới Biến thể';
+      }
+      var myModal = new bootstrap.Modal(spctModal);
+      myModal.show();
+    }
+  });
+</script>
+</body>
+</html>
