@@ -1,21 +1,63 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org"
-      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
-  <title layout:title-pattern="$LAYOUT_TITLE - My App">Trang Web</title>
-
-  <link rel="stylesheet" th:href="@{/css/header.css}">
-  <link rel="stylesheet" th:href="@{/css/footer.css}">
-
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <title>Home Page</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #1e90ff, #00bfff);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .login-container {
+      background: #fff;
+      padding: 40px 30px;
+      border-radius: 12px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.2);
+      width: 350px;
+      text-align: center;
+    }
+    h1 {
+      color: #28a745;
+      margin-bottom: 10px;
+    }
+    h2 {
+      margin-bottom: 25px;
+      color: #333;
+    }
+    form {
+      margin-top: 20px;
+    }
+    button {
+      width: 100%;
+      background-color: #ff4d4d;
+      color: white;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: bold;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #e63939;
+    }
+  </style>
 </head>
 <body>
-<div th:replace="~{fragments/header :: header}"></div>
+<div class="login-container">
+  <h1>Đăng nhập thành công</h1>
+  <h2>Home page</h2>
 
-<main layout:fragment="content">
-</main>
-
-<div th:replace="~{fragments/footer :: footer}"></div>
+  <!-- Nút Logout -->
+  <form th:action="@{/logout}" method="post">
+    <button type="submit">Đăng xuất</button>
+  </form>
+</div>
 </body>
 </html>

@@ -25,6 +25,9 @@ public class KhachHang {
     @Column(name = "email", length = 500)
     private String email;
 
+    @Column(name = "password")
+    private String password;
+
     @Column(name = "gioiTinh")
     private Boolean gioiTinh;
 

@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 import sd_04.datn_fstore.model.KhachHang;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.Optional;
 
 
 public interface KhachHangRepo extends JpaRepository<KhachHang,Integer> {
@@ -20,4 +21,7 @@ public interface KhachHangRepo extends JpaRepository<KhachHang,Integer> {
             @Param("sdt") String sdt,
             @Param("gioiTinh") Boolean gioiTinh,
             Pageable pageable);
+
+
+    Optional<KhachHang> findByEmail(String email);
 }
