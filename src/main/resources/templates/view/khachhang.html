@@ -1,275 +1,273 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="library/library :: library">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org ">
+<head >
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Quản lý Khách hàng</title>
-
+    <link rel="stylesheet" th:href="@{/css/navbar.css}"></head>
+<link rel="stylesheet" href="css/styles.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.2/css/dataTables.bootstrap5.min.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.2.0/css/bootstrap.min.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" />
+<link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" />
 </head>
 <body>
-<div class="container-fluid mt-3">
-    <div class="row mb-3 p-3 border rounded bg-light">
-        <h5 class="mb-3 text-info"><i class="fas fa-filter"></i> Bộ lọc tìm kiếm</h5>
+<nav th:replace="library/navbar :: admin-navbar"></nav>
 
-        <form id="filterForm">
-            <div class="d-flex flex-wrap align-items-end gap-3">
-                <div class="form-group" style="min-width: 200px;">
-                    <label for="searchCodeName" class="form-label visually-hidden">Theo mã, tên</label>
-                    <input type="text" id="keyword" class="form-control form-control-sm" placeholder="Tìm theo mã, tên">
-                </div>
+<div class="page-wrapper ">
+    <div th:replace="library/navbar :: admin-sidebar"></div>
+    <main class="main-content  " >
 
-                <div class="form-group" style="min-width: 200px;">
-                    <label for="searchPhone" class="form-label visually-hidden">Số điện thoại</label>
-                    <input type="text" id="sdt" class="form-control form-control-sm" placeholder="Số điện thoại">
-                </div>
+        <div class="container ">
+            <div class="row mb-3 p-3 border rounded bg-light">
+                <h5 class="mb-3 text-info"><i class="fas fa-filter"></i> Bộ lọc tìm kiếm</h5>
 
-                <div class="form-group" style="min-width: 150px;">
-                    <label for="genderSelect" class="form-label visually-hidden">Giới tính</label>
-                    <select id="gioiTinh" class="form-select form-select-sm">
-                        <option value="">Chọn giới tính</option> <option value="true">Nam</option>       <option value="false">Nữ</option>      </select>
-                </div>
+                <form id="filterForm">
+                    <div class="d-flex flex-wrap align-items-end gap-3">
+                        <div class="form-group" style="min-width: 200px;">
+                            <label for="searchCodeName" class="form-label visually-hidden">Theo mã, tên</label>
+                            <input type="text" id="keyword" class="form-control form-control-sm" placeholder="Tìm theo mã, tên">
+                        </div>
 
-                <div class="form-group d-flex gap-2">
-                    <button type="submit" class="btn btn-primary btn-sm">
-                        <i class="fas fa-search"></i> Lọc
-                    </button>
-                    <button type="button" class="btn btn-secondary btn-sm" id="btnReset">
-                        <i class="fas fa-redo-alt"></i> Reset
-                    </button>
-                </div>
+                        <div class="form-group" style="min-width: 200px;">
+                            <label for="searchPhone" class="form-label visually-hidden">Số điện thoại</label>
+                            <input type="text" id="sdt" class="form-control form-control-sm" placeholder="Số điện thoại">
+                        </div>
+
+                        <div class="form-group" style="min-width: 150px;">
+                            <label for="genderSelect" class="form-label visually-hidden">Giới tính</label>
+                            <select id="gioiTinh" class="form-select form-select-sm">
+                                <option value="">Chọn giới tính</option> <option value="true">Nam</option>       <option value="false">Nữ</option>      </select>
+                        </div>
+
+                        <div class="form-group d-flex gap-2">
+                            <button type="submit" class="btn btn-primary btn-sm">
+                                <i class="fas fa-search"></i> Lọc
+                            </button>
+                            <button type="button" class="btn btn-secondary btn-sm" id="btnReset">
+                                <i class="fas fa-redo-alt"></i> Reset
+                            </button>
+                        </div>
+                    </div>
+                </form>
             </div>
-        </form>
-    </div>
-    <div class="row">
-        <div class="col-12 data-panel">
-            <h3 class="mb-3" >Khách hàng</h3>
+            <div class="row">
+                <div class="col-12 data-panel">
+                    <h3 class="mb-3" >Khách hàng</h3>
 
-            <div class="d-flex justify-content-end mb-3">
-                <button class="btn btn-success btn-sm me-2" data-bs-toggle="modal"
-                        data-bs-target="#addKhachHangModal" ><i class="fas fa-user-plus"></i> Thêm Khách hàng</button>
-                <button class="btn btn-secondary btn-sm"><i class="fas fa-file-export"></i> Xuất file</button>
-            </div>
+                    <div class="d-flex justify-content-end mb-3">
+                        <button class="btn btn-success btn-sm me-2" data-bs-toggle="modal"
+                                data-bs-target="#addKhachHangModal" ><i class="fas fa-user-plus"></i> Thêm Khách hàng</button>
+                        <button class="btn btn-secondary btn-sm"><i class="fas fa-file-export"></i> Xuất file</button>
+                    </div>
 
-            <div class="table-responsive" style="height: 250px" >
-                <table class="table table-bordered table-hover table-sm" >
-                    <thead class="thead-light">
-                    <tr>
-                        <th>Mã khách hàng</th>
-                        <th>Tên khách hàng</th>
-                        <th>Điện thoại</th>
-                        <th>Email</th>
-                        <th>Tuổi</th>
-                        <th>Giới tính</th>
-                        <th>Thao tác</th>
-                    </tr>
-                    </thead>
-                    <tbody id="khachHangTableBody">
-                    <tr><td colspan="7" class="text-center">Đang tải dữ liệu...</td></tr>
-                    </tbody>
-                </table>
-            </div>
+                    <div class="table-responsive" style="height: 250px" >
+                        <table class="table table-bordered table-hover table-sm" >
+                            <thead class="thead-light">
+                            <tr>
+                                <th>Mã khách hàng</th>
+                                <th>Tên khách hàng</th>
+                                <th>Điện thoại</th>
+                                <th>Email</th>
+                                <th>Tuổi</th>
+                                <th>Giới tính</th>
+                                <th>Thao tác</th>
+                            </tr>
+                            </thead>
+                            <tbody id="khachHangTableBody">
+                            <tr><td colspan="7" class="text-center">Đang tải dữ liệu...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
 
 
-            <div class="d-flex justify-content-between align-items-center mt-3 ">
-                <nav id="paginationNav">
-                </nav>
-            </div>
+                    <div class="d-flex justify-content-between align-items-center mt-3 ">
+                        <nav id="paginationNav">
+                        </nav>
+                    </div>
 
-            <ul class="nav nav-tabs mt-4">
-                <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#tabdiachi">Địa chỉ</a></li>
-            </ul>
-            <div class="tab-content border p-3 bg-white">
-                <div class="tab-pane fade show active" id="tabdiachi" role="tabpanel">
-                    <table class="table table-sm table-striped">
-                        <thead class="bg-light">
-                        <tr>
-                            <th>Họ tên</th>
-                            <th>Số điện thoại</th>
-                            <th>Địa chỉ cụ thể</th>
-                            <th>Xã</th>
-                            <th>Thành phố</th>
-                            <th>Loại địa chỉ</th>
-                            <th>Ghi chú</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <tr>
-                            <td>dc01</td>
-                            <td>07474574754</td>
-                            <td>Số 66</td>
-                            <td>Xã 01</td>
-                            <td>Hà nội</td>
-                            <td>Công ty</td>
-                            <td>ghi chú 1</td>
-                        </tr>
-                        <tr>
-                            <td>dc02</td>
-                            <td>04737377373</td>
-                            <td>Số 1</td>
-                            <td>Xã 02</td>
-                            <td>Hà nội</td>
-                            <td>Nhà riêng</td>
-                            <td>ghi chú 2</td>
-                        </tr>
-                        </tbody>
-                    </table>
+                    <ul class="nav nav-tabs mt-4">
+                        <li class="nav-item"><a  class="nav-link active " data-bs-toggle="tab" href="#tabdiachi"><p style="color: black;">Địa chỉ</p></a></li>
+                    </ul>
+                    <div class="tab-content border p-3 bg-white">
+                        <div class="tab-pane fade show active" id="tabdiachi" role="tabpanel">
+                            <table class="table table-sm table-striped" id="diaChiTable"> <thead class="bg-light">
+                            <tr>
+                                <th>Họ tên</th>
+                                <th>Số điện thoại</th>
+                                <th>Địa chỉ cụ thể</th>
+                                <th>Xã</th>
+                                <th>Thành phố</th>
+                                <th>Loại địa chỉ</th>
+                                <th>Ghi chú</th>
+                            </tr>
+                            </thead>
+                                <tbody id="diaChiTableBody"> <tr><td colspan="7" class="text-center">Vui lòng chọn một khách hàng để xem địa chỉ.</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
                 </div>
             </div>
-
         </div>
-    </div>
-</div>
-<div class="modal fade" id="addKhachHangModal" tabindex="-1" aria-labelledby="addKhachHangModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content">
-            <form id="khachHangForm" method="post">
-                <div class="modal-header bg-primary text-white"> <h5 class="modal-title" id="addKhachHangModalLabel"><i class="fas fa-user-plus me-2"></i> THÊM THÔNG TIN KHÁCH HÀNG</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="row">
-
-                        <div class="col-md-6 mb-3">
-                            <label for="newMaKhachHang" class="form-label">Mã Khách hàng (*)</label>
-                            <input type="text" class="form-control" id="newMaKhachHang" placeholder="Ví dụ: KH001" required>
-                            <div class="form-text">Mã khách hàng phải là duy nhất.</div>
+        <div class="modal fade" id="addKhachHangModal" tabindex="-1" aria-labelledby="addKhachHangModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-centered">
+                <div class="modal-content">
+                    <form id="khachHangForm" method="post">
+                        <div class="modal-header bg-primary text-white"> <h5 class="modal-title" id="addKhachHangModalLabel"><i class="fas fa-user-plus me-2"></i> THÊM THÔNG TIN KHÁCH HÀNG</h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
+                        <div class="modal-body">
+                            <div class="row">
 
-                        <div class="col-md-6 mb-3">
-                            <label for="newTenKhachHang" class="form-label">Tên Khách hàng (*)</label>
-                            <input type="text" class="form-control" id="newTenKhachHang" placeholder="Nhập họ và tên đầy đủ" required>
-                        </div>
-                    </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="newMaKhachHang" class="form-label">Mã Khách hàng (*)</label>
+                                    <input type="text" class="form-control" id="newMaKhachHang" placeholder="Ví dụ: KH001" required>
+                                    <div class="form-text">Mã khách hàng phải là duy nhất.</div>
+                                </div>
 
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="newSoDienThoai" class="form-label">Số Điện thoại</label>
-                            <input type="text" class="form-control" id="newSoDienThoai" placeholder="0XXXXXXXXX">
-                        </div>
-
-                        <div class="col-md-6 mb-3">
-                            <label for="newEmail" class="form-label">Email</label>
-                            <input type="email" class="form-control" id="newEmail" placeholder="vd: tenkhachhang@gmail.com">
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="newNamSinh" class="form-label">Năm Sinh</label>
-                            <input type="number" class="form-control" id="newNamSinh" min="1900" max="2025" placeholder="YYYY">
-                        </div>
-
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Giới Tính</label><br>
-                            <div class="d-flex gap-4 pt-1"> <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="newGioiTinh" id="newGioiTinhNam" value="true">
-                                <label class="form-check-label" for="newGioiTinhNam">
-                                    <i class="fas fa-mars text-info"></i> Nam
-                                </label>
-                            </div>
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="newGioiTinh" id="newGioiTinhNu" value="false">
-                                    <label class="form-check-label" for="newGioiTinhNu">
-                                        <i class="fas fa-venus text-danger"></i> Nữ
-                                    </label>
+                                <div class="col-md-6 mb-3">
+                                    <label for="newTenKhachHang" class="form-label">Tên Khách hàng (*)</label>
+                                    <input type="text" class="form-control" id="newTenKhachHang" placeholder="Nhập họ và tên đầy đủ" required>
                                 </div>
                             </div>
-                        </div>
-                    </div>
 
-                    <div class="alert alert-info py-2 mt-3" role="alert">
-                        Các trường có dấu (*) là bắt buộc.
-                    </div>
-
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="fas fa-times me-1"></i> Đóng</button>
-                    <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i> Lưu Khách hàng</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-<div class="modal fade" id="editKhachHangModal" tabindex="-1" aria-labelledby="editKhachHangModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content">
-            <form id="editKhachHangForm" method="post">
-
-                <input type="hidden" id="editKhachHangId" name="id">
-
-                <div class="modal-header bg-warning text-dark"> <h5 class="modal-title" id="editKhachHangModalLabel"><i class="fas fa-edit me-2"></i> CẬP NHẬT THÔNG TIN KHÁCH HÀNG</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="row">
-
-                        <div class="col-md-6 mb-3">
-                            <label for="editMaKhachHang" class="form-label">Mã Khách hàng (*)</label>
-                            <input type="text" class="form-control" id="editMaKhachHang" placeholder="Ví dụ: KH001" required>
-                            <div class="form-text">Mã khách hàng phải là duy nhất.</div>
-                        </div>
-
-                        <div class="col-md-6 mb-3">
-                            <label for="editTenKhachHang" class="form-label">Tên Khách hàng (*)</label>
-                            <input type="text" class="form-control" id="editTenKhachHang" placeholder="Nhập họ và tên đầy đủ" required>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="editSoDienThoai" class="form-label">Số Điện thoại</label>
-                            <input type="text" class="form-control" id="editSoDienThoai" placeholder="0XXXXXXXXX">
-                        </div>
-
-                        <div class="col-md-6 mb-3">
-                            <label for="editEmail" class="form-label">Email</label>
-                            <input type="email" class="form-control" id="editEmail" placeholder="vd: tenkhachhang@gmail.com">
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="editNamSinh" class="form-label">Năm Sinh</label>
-                            <input type="number" class="form-control" id="editNamSinh" min="1900" max="2025" placeholder="YYYY">
-                        </div>
-
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Giới Tính</label><br>
-                            <div class="d-flex gap-4 pt-1">
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="editGioiTinh" id="editGioiTinhNam" value="true">
-                                    <label class="form-check-label" for="editGioiTinhNam">
-                                        <i class="fas fa-mars text-info"></i> Nam
-                                    </label>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="newSoDienThoai" class="form-label">Số Điện thoại</label>
+                                    <input type="text" class="form-control" id="newSoDienThoai" placeholder="0XXXXXXXXX">
                                 </div>
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="editGioiTinh" id="editGioiTinhNu" value="false">
-                                    <label class="form-check-label" for="editGioiTinhNu">
-                                        <i class="fas fa-venus text-danger"></i> Nữ
-                                    </label>
+
+                                <div class="col-md-6 mb-3">
+                                    <label for="newEmail" class="form-label">Email</label>
+                                    <input type="email" class="form-control" id="newEmail" placeholder="vd: tenkhachhang@gmail.com">
                                 </div>
                             </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="newNamSinh" class="form-label">Năm Sinh</label>
+                                    <input type="number" class="form-control" id="newNamSinh" min="1900" max="2025" placeholder="YYYY">
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Giới Tính</label><br>
+                                    <div class="d-flex gap-4 pt-1"> <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="newGioiTinh" id="newGioiTinhNam" value="true">
+                                        <label class="form-check-label" for="newGioiTinhNam">
+                                            <i class="fas fa-mars text-info"></i> Nam
+                                        </label>
+                                    </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="newGioiTinh" id="newGioiTinhNu" value="false">
+                                            <label class="form-check-label" for="newGioiTinhNu">
+                                                <i class="fas fa-venus text-danger"></i> Nữ
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="alert alert-info py-2 mt-3" role="alert">
+                                Các trường có dấu (*) là bắt buộc.
+                            </div>
+
                         </div>
-                    </div>
-
-                    <div class="alert alert-warning py-2 mt-3" role="alert">
-                        Lưu ý: Bạn đang thay đổi thông tin của khách hàng hiện tại.
-                    </div>
-
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="fas fa-times me-1"></i> Đóng</button>
+                            <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i> Lưu Khách hàng</button>
+                        </div>
+                    </form>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="fas fa-times me-1"></i> Hủy</button>
-                    <button type="submit" class="btn btn-warning"><i class="fas fa-sync-alt me-1"></i> Cập nhật</button>
-                </div>
-            </form>
+            </div>
         </div>
-    </div>
+        <div class="modal fade" id="editKhachHangModal" tabindex="-1" aria-labelledby="editKhachHangModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-centered">
+                <div class="modal-content">
+                    <form id="editKhachHangForm" method="post">
+
+                        <input type="hidden" id="editKhachHangId" name="id">
+
+                        <div class="modal-header bg-warning text-dark"> <h5 class="modal-title" id="editKhachHangModalLabel"><i class="fas fa-edit me-2"></i> CẬP NHẬT THÔNG TIN KHÁCH HÀNG</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="row">
+
+                                <div class="col-md-6 mb-3">
+                                    <label for="editMaKhachHang" class="form-label">Mã Khách hàng (*)</label>
+                                    <input type="text" class="form-control" id="editMaKhachHang" placeholder="Ví dụ: KH001" required>
+                                    <div class="form-text">Mã khách hàng phải là duy nhất.</div>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label for="editTenKhachHang" class="form-label">Tên Khách hàng (*)</label>
+                                    <input type="text" class="form-control" id="editTenKhachHang" placeholder="Nhập họ và tên đầy đủ" required>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="editSoDienThoai" class="form-label">Số Điện thoại</label>
+                                    <input type="text" class="form-control" id="editSoDienThoai" placeholder="0XXXXXXXXX">
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label for="editEmail" class="form-label">Email</label>
+                                    <input type="email" class="form-control" id="editEmail" placeholder="vd: tenkhachhang@gmail.com">
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="editNamSinh" class="form-label">Năm Sinh</label>
+                                    <input type="number" class="form-control" id="editNamSinh" min="1900" max="2025" placeholder="YYYY">
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Giới Tính</label><br>
+                                    <div class="d-flex gap-4 pt-1">
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="editGioiTinh" id="editGioiTinhNam" value="true">
+                                            <label class="form-check-label" for="editGioiTinhNam">
+                                                <i class="fas fa-mars text-info"></i> Nam
+                                            </label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="editGioiTinh" id="editGioiTinhNu" value="false">
+                                            <label class="form-check-label" for="editGioiTinhNu">
+                                                <i class="fas fa-venus text-danger"></i> Nữ
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="alert alert-warning py-2 mt-3" role="alert">
+                                Lưu ý: Bạn đang thay đổi thông tin của khách hàng hiện tại.
+                            </div>
+
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="fas fa-times me-1"></i> Hủy</button>
+                            <button type="submit" class="btn btn-warning"><i class="fas fa-sync-alt me-1"></i> Cập nhật</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
 </div>
+
+
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.bundle.min.js"></script>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+<script th:src="@{/js/my-custom-scripts.js}"></script>
 
 <script>
     $(document).ready(function() {
@@ -281,8 +279,10 @@
             gioiTinh: ''
         };
 
+        // ==========================================================
+        // KHỐI HÀM CHÍNH: KHÁCH HÀNG (LOAD, RENDER, CRUD)
+        // ==========================================================
 
-        // HÀM TẢI DỮ LIỆU CHÍNH (LOAD, FILTER, PAGINATE)
         function loadKhachHang() {
             let params = {
                 pageNo: currentFilter.pageNo,
@@ -292,6 +292,8 @@
             };
 
             $('#khachHangTableBody').html('<tr><td colspan="7" class="text-center"><i class="fas fa-spinner fa-spin"></i> Đang tải dữ liệu...</td></tr>');
+            // Reset bảng địa chỉ khi tải lại danh sách khách hàng
+            renderDiaChiTable([]);
 
             $.ajax({
                 url: "/api/khach-hang", // API Endpoint
@@ -309,7 +311,7 @@
             });
         }
 
-        // HÀM TẠO BẢNG
+        // HÀM TẠO BẢNG KHÁCH HÀNG (ĐÃ THÊM data-id vào <tr>)
         function renderTable(khachHangList) {
             let html = '';
             if (khachHangList.length === 0) {
@@ -319,7 +321,8 @@
                     let gioiTinhText = kh.gioiTinh === true ? 'Nam' : (kh.gioiTinh === false ? 'Nữ' : 'N/A');
                     let tuoi = kh.tuoi !== null ? kh.tuoi : 'N/A';
 
-                    html += '<tr>';
+                    // QUAN TRỌNG: Thêm data-id vào <tr>
+                    html += '<tr data-id="' + kh.id + '">';
                     html += '<td>' + kh.maKhachHang + '</td>';
                     html += '<td>' + kh.tenKhachHang + '</td>';
                     html += '<td>' + (kh.soDienThoai || '') + '</td>';
@@ -336,8 +339,7 @@
             $('#khachHangTableBody').html(html);
         }
 
-
-        // HÀM TẠO PHÂN TRANG
+        // ... (Giữ nguyên hàm renderPagination) ...
         function renderPagination(currentPage, totalPages) {
             if (totalPages <= 1) {
                 $('#paginationNav').empty();
@@ -371,7 +373,81 @@
             });
         }
 
+        // ==========================================================
+        // KHỐI HÀM MỚI: ĐỊA CHỈ (LOAD & RENDER)
+        // ==========================================================
+
+        // HÀM TẠO BẢNG ĐỊA CHỈ
+        function renderDiaChiTable(diaChiList) {
+            let html = '';
+            if (diaChiList.length === 0) {
+                html = '<tr><td colspan="7" class="text-center">Khách hàng này chưa có địa chỉ hoạt động nào được lưu.</td></tr>';
+            } else {
+                diaChiList.forEach(function(dc) {
+                    html += '<tr>';
+                    html += '<td>' + (dc.hoTen || '') + '</td>';
+                    html += '<td>' + (dc.soDienThoai || '') + '</td>';
+                    html += '<td>' + (dc.diaChiCuThe || '') + '</td>';
+                    html += '<td>' + (dc.xa || '') + '</td>';
+                    html += '<td>' + (dc.thanhPho || '') + '</td>';
+                    html += '<td>' + (dc.loaiDiaChi || '') + '</td>';
+                    html += '<td>' + (dc.ghiChu || '') + '</td>';
+                    // Thêm cột thao tác cho địa chỉ nếu cần (Sửa/Xóa địa chỉ)
+                    // html += '<td><button class="btn btn-sm btn-info">Chi tiết</button></td>';
+                    html += '</tr>';
+                });
+            }
+            $('#diaChiTableBody').html(html);
+        }
+
+        // HÀM GỌI API ĐỊA CHỈ
+        function loadDiaChiByKhachHangId(khachHangId) {
+            if (!khachHangId) {
+                $('#diaChiTableBody').html('<tr><td colspan="7" class="text-center">Vui lòng chọn một khách hàng để xem địa chỉ.</td></tr>');
+                return;
+            }
+
+            $('#diaChiTableBody').html('<tr><td colspan="7" class="text-center"><i class="fas fa-spinner fa-spin"></i> Đang tải địa chỉ...</td></tr>');
+
+            $.ajax({
+                // API đã tạo: GET /api/dia-chi/khach-hang/{idKhachHang}
+                url: "/api/dia-chi/khach-hang/" + khachHangId,
+                type: "GET",
+                dataType: "json",
+                success: function(response) {
+                    renderDiaChiTable(response);
+                },
+                error: function(error) {
+                    console.error("Lỗi khi tải địa chỉ:", error);
+                    $('#diaChiTableBody').html('<tr><td colspan="7" class="text-danger text-center">Lỗi: Không tải được danh sách địa chỉ.</td></tr>');
+                }
+            });
+        }
+
+        // ==========================================================
+        // SỰ KIỆN MỚI: CLICK VÀO HÀNG KHÁCH HÀNG (QUAN TRỌNG)
+        // ==========================================================
+
+        $(document).on('click', '#khachHangTableBody tr', function() {
+            // Lấy ID khách hàng từ thuộc tính data-id của <tr>
+            let khachHangId = $(this).data('id');
+
+            if (khachHangId) {
+                // 1. Cập nhật trạng thái chọn (Highlight hàng)
+                $('#khachHangTableBody tr').removeClass('table-active'); // Xóa highlight cũ
+                $(this).addClass('table-active'); // Highlight hàng được chọn
+
+                // 2. Tải và hiển thị địa chỉ tương ứng
+                loadDiaChiByKhachHangId(khachHangId);
+            }
+        });
+
+        // ==========================================================
+        // KHỐI SỰ KIỆN CRUD KHÁCH HÀNG (GIỮ NGUYÊN)
+        // ==========================================================
+
         // BẮT SỰ KIỆN: LỌC & RESET
+        // ... (Code lọc & reset giữ nguyên) ...
         $('#filterForm').on('submit', function(e) {
             e.preventDefault();
             currentFilter.keyword = $('#keyword').val();
@@ -391,22 +467,17 @@
             loadKhachHang();
         });
 
-        // CRUD MỚI: THÊM, SỬA, XÓA
-        // 1. CHỨC NĂNG THÊM MỚI (POST /api/khach-hang)
+        // THÊM MỚI
         $('#khachHangForm').on('submit', function(e) {
             e.preventDefault();
-
             let newKhachHang = {
                 maKhachHang: $('#newMaKhachHang').val(),
                 tenKhachHang: $('#newTenKhachHang').val(),
                 soDienThoai: $('#newSoDienThoai').val(),
                 email: $('#newEmail').val(),
-                // Chuyển sang số hoặc null
                 namSinh: $('#newNamSinh').val() ? parseInt($('#newNamSinh').val()) : null,
-                // Chuyển sang boolean
                 gioiTinh: $('input[name="newGioiTinh"]:checked').val() === 'true'
             };
-
             $.ajax({
                 url: "/api/khach-hang",
                 type: "POST",
@@ -414,14 +485,11 @@
                 data: JSON.stringify(newKhachHang),
                 success: function(response) {
                     alert("Thêm khách hàng thành công!");
-
                     $('#addKhachHangModal').modal('hide');
-
                     setTimeout(function() {
                         $('.modal-backdrop').remove();
                         $('body').removeClass('modal-open');
                     }, 500);
-// 3. Reset form và tải lại dữ liệu
                     $('#khachHangForm')[0].reset();
                     currentFilter.pageNo = 1;
                     loadKhachHang();
@@ -433,8 +501,9 @@
             });
         });
 
-        // 2. CHỨC NĂNG SỬA
+        // SỬA & CẬP NHẬT (Code giữ nguyên)
         $(document).on('click', '.btn-edit', function() {
+            // ... (Code lấy data và mở modal Sửa) ...
             let khachHangId = $(this).data('id');
 
             $.ajax({
@@ -470,12 +539,9 @@
             });
         });
 
-        // 3. CHỨC NĂNG CẬP NHẬT
         $('#editKhachHangForm').on('submit', function(e) {
             e.preventDefault();
-
             let khachHangId = $('#editKhachHangId').val();
-
             let updatedKhachHang = {
                 id: khachHangId,
                 maKhachHang: $('#editMaKhachHang').val(),
@@ -485,7 +551,6 @@
                 namSinh: $('#editNamSinh').val() ? parseInt($('#editNamSinh').val()) : null,
                 gioiTinh: $('input[name="editGioiTinh"]:checked').val() === 'true'
             };
-
             $.ajax({
                 url: "/api/khach-hang/" + khachHangId,
                 type: "PUT",
@@ -503,8 +568,9 @@
             });
         });
 
-        // 4. CHỨC NĂNG XÓA
+        // XÓA
         $(document).on('click', '.btn-delete', function() {
+            // ... (Code xóa giữ nguyên) ...
             let idToDelete = $(this).data('id');
 
             if (confirm("Bạn có chắc chắn muốn xóa khách hàng ID: " + idToDelete + " không?")) {
@@ -523,9 +589,13 @@
             }
         });
 
-        // Tải dữ liệu lần đầu khi trang load
+
+        // KHỞI TẠO: Tải dữ liệu lần đầu khi trang load
         loadKhachHang();
+        loadDiaChiByKhachHangId(null); // Load bảng địa chỉ với thông báo ban đầu
     });
 </script>
+
+
 </body>
 </html>
