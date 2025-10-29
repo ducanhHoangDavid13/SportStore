@@ -9,6 +9,8 @@ import org.springframework.data.repository.query.Param;
 import sd_04.datn_fstore.model.PhieuGiamGia;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
 
 public interface PhieuGiamGiaRepo extends JpaRepository<PhieuGiamGia, Integer> {
 
@@ -27,4 +29,21 @@ public interface PhieuGiamGiaRepo extends JpaRepository<PhieuGiamGia, Integer> {
             @Param("ngayBatDau") LocalDateTime ngayBatDau,
             @Param("ngayKetThuc") LocalDateTime ngayKetThuc,
             Pageable pageable);
+
+    // THÊM: Phương thức tìm kiếm theo mã để kiểm tra trùng lặp
+    Optional<PhieuGiamGia> findByMaPhieuGiamGia(String maPhieuGiamGia);
+
+    /**
+     * Lấy danh sách các PGG Đang hoạt động (0) nhưng đã Hết hạn (ngayKetThuc < now)
+     */
+    @Query("SELECT p FROM PhieuGiamGia p WHERE p.trangThai = 0 AND p.ngayKetThuc < :now")
+    List<PhieuGiamGia> findExpiredActivePromotions(@Param("now") LocalDateTime now);
+
+    /**
+     * Lấy danh sách các PGG Sắp diễn ra (2) nhưng đã Bắt đầu (ngayBatDau <= now)
+     */
+    @Query("SELECT p FROM PhieuGiamGia p WHERE p.trangThai = 2 AND p.ngayBatDau <= :now")
+    List<PhieuGiamGia> findUpcomingPromotionsToActivate(@Param("now") LocalDateTime now);
+
+
 }
