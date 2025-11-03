@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class KhachHangController {
     @GetMapping("/hien-thi")
     public String hienThi() {
-        return "view/khachhang"; // Trả về file HTML Thymeleaf
+        return "view/khachhang"; // Trả về file HTML t Thymeleaf
     }
 
 
