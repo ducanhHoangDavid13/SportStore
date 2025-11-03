@@ -15,8 +15,6 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Integer> {
 
     // Lọc theo ngày tạo
     List<HoaDon> findByNgayTaoBetween(Date startDate, Date endDate);
-<<<<<<< Updated upstream
+
 }
-=======
-}
->>>>>>> Stashed changes
+
