@@ -1,7 +1,6 @@
 package sd_04.datn_fstore.model;
 
-
-
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -41,16 +40,20 @@ public class GioHang {
     @Column(name = "maGioHang", length = 50)
     private String maGioHang;
 
-    // Foreign Keys
+    // --- KHÓA NGOẠI ---
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "idSanPham")
+    @JsonBackReference(value = "sanPham-gioHang")
     private SanPham sanPham;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "idKhachHang")
+    @JsonBackReference(value = "khachHang-gioHang")
     private KhachHang khachHang;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "idHoaDon")
+    @JsonBackReference(value = "hoaDon-gioHang")
     private HoaDon hoaDon;
 }

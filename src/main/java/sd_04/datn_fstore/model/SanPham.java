@@ -1,6 +1,5 @@
 package sd_04.datn_fstore.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -43,13 +42,15 @@ public class SanPham {
     @Column(name = "soLuong")
     private Integer soLuong;
 
+    // Mối quan hệ: Một sản phẩm có nhiều chi tiết sản phẩm
+    @OneToMany(mappedBy = "sanPham", fetch = FetchType.LAZY)
+    private List<SanPhamChiTiet> sanPhamChiTiets;
+
     // Mối quan hệ: Một sản phẩm có nhiều hình ảnh
     @OneToMany(mappedBy = "sanPham", fetch = FetchType.LAZY)
-    @JsonIgnore
-    private List<HinhAnh> hinhAnh;
+    private List<HinhAnh> hinhAnhs;
 
     // Mối quan hệ: Một sản phẩm có trong nhiều giỏ hàng
     @OneToMany(mappedBy = "sanPham", fetch = FetchType.LAZY)
-    @JsonIgnore
     private List<GioHang> gioHangs;
 }

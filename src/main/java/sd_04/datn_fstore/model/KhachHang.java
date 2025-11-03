@@ -42,16 +42,16 @@ public class KhachHang {
     public KhachHang() {
     }
 
-
-
+    // ------------------------------------------------------------------
+    // 2. TỰ VIẾT TAY GETTERS VÀ SETTERS
+    // ------------------------------------------------------------------
     public Integer getTuoi() {
         if (this.namSinh != null) {
             return Year.now().getValue() - this.namSinh;
         }
         return null;
     }
-
-
+    // Getters và Setters cho ID
     public Integer getId() {
         return id;
     }
@@ -60,7 +60,7 @@ public class KhachHang {
         this.id = id;
     }
 
-
+    // Getters và Setters cho maKhachHang
     public String getMaKhachHang() {
         return maKhachHang;
     }
@@ -69,8 +69,7 @@ public class KhachHang {
         this.maKhachHang = maKhachHang;
     }
 
-
-
+    // Getters và Setters cho tenKhachHang
     public String getTenKhachHang() {
         return tenKhachHang;
     }
@@ -79,7 +78,7 @@ public class KhachHang {
         this.tenKhachHang = tenKhachHang;
     }
 
-
+    // Getters và Setters cho email
     public String getEmail() {
         return email;
     }
@@ -88,8 +87,7 @@ public class KhachHang {
         this.email = email;
     }
 
-
-
+    // Getters và Setters cho gioiTinh
     public Boolean getGioiTinh() {
         return gioiTinh;
     }
@@ -98,7 +96,7 @@ public class KhachHang {
         this.gioiTinh = gioiTinh;
     }
 
-
+    // Getters và Setters cho soDienThoai
     public String getSoDienThoai() {
         return soDienThoai;
     }
@@ -107,7 +105,7 @@ public class KhachHang {
         this.soDienThoai = soDienThoai;
     }
 
-
+    // Getters và Setters cho namSinh
     public Integer getNamSinh() {
         return namSinh;
     }
@@ -116,6 +114,7 @@ public class KhachHang {
         this.namSinh = namSinh;
     }
 
+    // Getters và Setters cho vaiTro
     public String getVaiTro() {
         return vaiTro;
     }
@@ -124,8 +123,7 @@ public class KhachHang {
         this.vaiTro = vaiTro;
     }
 
-
-
+    // Getters và Setters cho trangThai
     public Integer getTrangThai() {
         return trangThai;
     }
@@ -133,8 +131,4 @@ public class KhachHang {
     public void setTrangThai(Integer trangThai) {
         this.trangThai = trangThai;
     }
-
-
-    
 }
-

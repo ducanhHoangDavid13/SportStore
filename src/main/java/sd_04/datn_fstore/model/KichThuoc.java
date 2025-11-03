@@ -1,6 +1,5 @@
 package sd_04.datn_fstore.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 
@@ -35,7 +34,8 @@ public class KichThuoc {
 
     @Column(name = "moTa")
     private String moTa;
-    @JsonIgnore
+
+    // Mối quan hệ: Một kích thước có trong nhiều sản phẩm chi tiết
     @OneToMany(mappedBy = "kichThuoc", fetch = FetchType.LAZY)
     private List<SanPhamChiTiet> sanPhamChiTiets;
 }
