@@ -4,10 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import sd_04.datn_fstore.model.SanPham;
 import sd_04.datn_fstore.model.SanPhamChiTiet;
 import sd_04.datn_fstore.repository.SanPhamCTRepository;
-
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -17,8 +15,10 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class SanPhamCTServiceImpl implements SanPhamCTService {
 
+    // Đổi tên repo cho khớp với file service impl cũ của bạn
     private final SanPhamCTRepository sanPhamChiTietRepository;
 
+    // --- CÁC PHƯƠNG THỨC CŨ (Giữ nguyên) ---
     @Override
     public List<SanPhamChiTiet> getAll() {
         return sanPhamChiTietRepository.findAll();
@@ -34,8 +34,6 @@ public class SanPhamCTServiceImpl implements SanPhamCTService {
         return sanPhamChiTietRepository.findById(id);
     }
 
-
-
     @Override
     public SanPhamChiTiet save(SanPhamChiTiet sanPhamChiTiet) {
         return sanPhamChiTietRepository.save(sanPhamChiTiet);
@@ -47,33 +45,38 @@ public class SanPhamCTServiceImpl implements SanPhamCTService {
             sanPhamChiTietRepository.deleteById(id);
         }
     }
-    @Override
-    public Page<SanPhamChiTiet> search(Pageable pageable,
-                                       Integer idSanPham,
-                                       Integer idKichThuoc,
-                                       Integer idPhanLoai,
-                                       Integer idXuatXu,
-                                       Integer idChatLieu,
-                                       Integer idMauSac,
-                                       Integer idTheLoai,
-                                       BigDecimal giaMin,
-                                       BigDecimal giaMax,
-                                       Integer trangThai) {
 
-        // Chỉ cần gọi thẳng phương thức trong repository
-        // vì logic "IS NULL" đã được xử lý trong JPQL
+    // --- PHƯƠNG THỨC SEARCH ĐÃ CẬP NHẬT (12 THAM SỐ) ---
+    @Override
+    public Page<SanPhamChiTiet> search(
+            Pageable pageable,
+            Integer idSanPham,
+            Integer idKichThuoc,
+            Integer idChatLieu,  // <-- Đã khớp thứ tự với Interface
+            Integer idTheLoai,   // <-- Đã khớp thứ tự với Interface
+            Integer idXuatXu,
+            Integer idMauSac,
+            Integer idPhanLoai,  // <-- Đã khớp thứ tự với Interface
+            BigDecimal minPrice, // <-- Đã khớp tên với Interface
+            BigDecimal maxPrice, // <-- Đã khớp tên với Interface
+            Integer trangThai,
+            String keyword
+    ) {
+
+        // Bây giờ chúng ta gọi Repository với ĐÚNG 12 tham số
         return sanPhamChiTietRepository.search(
                 pageable,
                 idSanPham,
                 idKichThuoc,
-                idPhanLoai,
-                idXuatXu,
                 idChatLieu,
-                idMauSac,
                 idTheLoai,
-                giaMin,
-                giaMax,
-                trangThai
+                idXuatXu,
+                idMauSac,
+                idPhanLoai,
+                minPrice,
+                maxPrice,
+                trangThai,
+                keyword
         );
     }
 }

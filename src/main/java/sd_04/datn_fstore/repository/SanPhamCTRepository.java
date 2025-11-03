@@ -14,32 +14,42 @@ import java.math.BigDecimal;
 public interface SanPhamCTRepository extends JpaRepository<SanPhamChiTiet, Integer> {
 
     /**
-     * Câu lệnh Query: Tìm kiếm và lọc SanPhamChiTiet theo tất cả các thuộc tính
-     * liên quan và các trường dữ liệu khác, trả về kết quả phân trang.
-     *
-     * JPQL cho phép chúng ta truy cập ID của entity liên kết trực tiếp
-     * (ví dụ: spct.sanPham.id) mà không cần JOIN tường minh.
+     * TRUY VẤN JPQL 12 THAM SỐ HOÀN CHỈNH
+     * (Đã sửa: Bỏ tìm kiếm theo maSPCT, chỉ tìm theo tenSanPham)
      */
-    @Query("SELECT spct FROM SanPhamChiTiet spct WHERE " +
-            "(:idSanPham IS NULL OR spct.sanPham.id = :idSanPham) AND " +
-            "(:idKichThuoc IS NULL OR spct.kichThuoc.id = :idKichThuoc) AND " +
-            "(:idPhanLoai IS NULL OR spct.phanLoai.id = :idPhanLoai) AND " +
-            "(:idXuatXu IS NULL OR spct.xuatXu.id = :idXuatXu) AND " +
-            "(:idChatLieu IS NULL OR spct.chatLieu.id = :idChatLieu) AND " +
-            "(:idMauSac IS NULL OR spct.mauSac.id = :idMauSac) AND " +
-            "(:idTheLoai IS NULL OR spct.theLoai.id = :idTheLoai) AND " +
-            "(:giaMin IS NULL OR spct.giaTien >= :giaMin) AND " +
-            "(:giaMax IS NULL OR spct.giaTien <= :giaMax) AND " +
-            "(:trangThai IS NULL OR spct.trangThai = :trangThai)")
-    Page<SanPhamChiTiet> search(Pageable pageable,
-                                @Param("idSanPham") Integer idSanPham,
-                                @Param("idKichThuoc") Integer idKichThuoc,
-                                @Param("idPhanLoai") Integer idPhanLoai,
-                                @Param("idXuatXu") Integer idXuatXu,
-                                @Param("idChatLieu") Integer idChatLieu,
-                                @Param("idMauSac") Integer idMauSac,
-                                @Param("idTheLoai") Integer idTheLoai,
-                                @Param("giaMin") BigDecimal giaMin,
-                                @Param("giaMax") BigDecimal giaMax,
-                                @Param("trangThai") Integer trangThai);
+    @Query("SELECT spct FROM SanPhamChiTiet spct " +
+            "LEFT JOIN spct.sanPham sp " +
+            "LEFT JOIN spct.mauSac ms " +
+            "LEFT JOIN spct.kichThuoc kt " +
+            "LEFT JOIN spct.chatLieu cl " +
+            "LEFT JOIN spct.theLoai tl " +
+            "LEFT JOIN spct.xuatXu xx " +
+            "LEFT JOIN spct.phanLoai pl " +
+            "WHERE " +
+            "(:idSanPham IS NULL OR sp.id = :idSanPham) AND " +
+            "(:idMauSac IS NULL OR ms.id = :idMauSac) AND " +
+            "(:idKichThuoc IS NULL OR kt.id = :idKichThuoc) AND " +
+            "(:idChatLieu IS NULL OR cl.id = :idChatLieu) AND " +
+            "(:idTheLoai IS NULL OR tl.id = :idTheLoai) AND " +
+            "(:idXuatXu IS NULL OR xx.id = :idXuatXu) AND " +
+            "(:idPhanLoai IS NULL OR pl.id = :idPhanLoai) AND " +
+            "(:minPrice IS NULL OR spct.giaTien >= :minPrice) AND " +
+            "(:maxPrice IS NULL OR spct.giaTien <= :maxPrice) AND " +
+            "(:trangThai IS NULL OR spct.trangThai = :trangThai) AND " +
+            // SỬA Ở ĐÂY: Bỏ spct.maSPCT
+            "(:keyword IS NULL OR :keyword = '' OR sp.tenSanPham LIKE %:keyword%)")
+    Page<SanPhamChiTiet> search(
+            @Param("pageable") Pageable pageable,
+            @Param("idSanPham") Integer idSanPham,
+            @Param("idKichThuoc") Integer idKichThuoc,
+            @Param("idChatLieu") Integer idChatLieu,
+            @Param("idTheLoai") Integer idTheLoai,
+            @Param("idXuatXu") Integer idXuatXu,
+            @Param("idMauSac") Integer idMauSac,
+            @Param("idPhanLoai") Integer idPhanLoai,
+            @Param("minPrice") BigDecimal minPrice,
+            @Param("maxPrice") BigDecimal maxPrice,
+            @Param("trangThai") Integer trangThai,
+            @Param("keyword") String keyword
+    );
 }

@@ -1,4 +1,5 @@
 package sd_04.datn_fstore.model;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -31,7 +32,7 @@ public class ChatLieu {
     @Column(name = "trangThai")
     private Integer trangThai;
 
-    // Mối quan hệ: Một chất liệu có trong nhiều sản phẩm chi tiết
+    @JsonIgnore
     @OneToMany(mappedBy = "chatLieu", fetch = FetchType.LAZY)
     private List<SanPhamChiTiet> sanPhamChiTiets;
 }

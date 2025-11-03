@@ -1,4 +1,20 @@
 package sd_04.datn_fstore.repository;
 
-public interface XuatXuRepository {
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+import sd_04.datn_fstore.model.XuatXu;
+
+@Repository
+public interface XuatXuRepository extends JpaRepository<XuatXu, Integer> {
+
+    @Query("SELECT xx FROM XuatXu xx WHERE " +
+            "(:keyword IS NULL OR :keyword = '' OR xx.tenXuatXu LIKE %:keyword%) AND " +
+            "(:trangThai IS NULL OR xx.trangThai = :trangThai)")
+    Page<XuatXu> findPaginated(Pageable pageable,
+                               @Param("keyword") String keyword,
+                               @Param("trangThai") Integer trangThai);
 }
