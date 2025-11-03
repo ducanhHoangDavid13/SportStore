@@ -22,7 +22,6 @@ import java.time.LocalDateTime;
 public class PhieuGiamGiaController {
     @GetMapping("/hien-thi")
     public String hienThi() {
-        // Tên file Thymeleaf của trang quản lý khuyến mại
         return "view/PhieuGiamGia";
     }
 }
