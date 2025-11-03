@@ -46,7 +46,7 @@ public class SanPham {
     // Mối quan hệ: Một sản phẩm có nhiều hình ảnh
     @OneToMany(mappedBy = "sanPham", fetch = FetchType.LAZY)
     @JsonIgnore
-    private List<HinhAnh> hinhAnhs;
+    private List<HinhAnh> hinhAnh;
 
     // Mối quan hệ: Một sản phẩm có trong nhiều giỏ hàng
     @OneToMany(mappedBy = "sanPham", fetch = FetchType.LAZY)
