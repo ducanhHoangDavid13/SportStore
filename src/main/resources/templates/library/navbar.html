@@ -37,6 +37,7 @@
         </a>
     </div>
 
+<<<<<<< Updated upstream
     <ul class="nav flex-column ps-3 pe-3">
         <li class="nav-item mb-1">
             <a class="nav-link" th:href="@{/admin/dashboard}">
@@ -83,6 +84,54 @@
                 <i class="fas fa-users fa-fw me-2"></i> <span class="menu-text">Khách hàng</span>
             </a>
         </li>
+=======
+  <ul class="nav flex-column ps-3 pe-3">
+    <li class="nav-item mb-1">
+      <a class="nav-link" th:href="@{/admin/dashboard}">
+        <i class="fas fa-chart-line fa-fw me-2"></i> <span class="menu-text">Thống kê</span>
+      </a>
+    </li>
+    <li class="nav-item mb-1">
+      <a class="nav-link" th:href="@{/admin/sale-pos}">
+        <i class="fas fa-cash-register fa-fw me-2"></i> <span class="menu-text">Bán hàng</span>
+      </a>
+    </li>
+    <li class="nav-item mb-1">
+      <a class="nav-link" th:href="@{/hoadon/view}">
+        <i class="fas fa-file-invoice-dollar fa-fw me-2"></i> <span class="menu-text">Hóa đơn</span>
+      </a>
+    </li>
+
+    <li class="nav-item mb-1">
+      <a class="nav-link " data-bs-toggle="collapse" data-bs-target="#productSubmenu" href="javascript:void(0)" role="button" aria-expanded="false">
+        <i class="fas fa-boxes fa-fw me-2"></i>
+        <span class="menu-text fw-bold">Sản phẩm</span>
+        <i class="fas fa-angle-down float-end ms-auto"></i>
+      </a>
+      <div class="collapse" id="productSubmenu">
+        <ul class="nav flex-column ms-3">
+          <li class="nav-item submenu-item"><a class="nav-link" th:href="@{/admin/san-pham}"><i class="fas fa-dot-circle fa-2xs me-2"></i> Sản phẩm</a></li>
+          <li class="nav-item submenu-item"><a class="nav-link" th:href="@{/admin/san-pham-chi-tiet}"><i class="fas fa-dot-circle fa-2xs me-2"></i> Sản Phẩm chi tiết</a></li>
+          <li class="nav-item submenu-item"><a class="nav-link" th:href="@{/admin/phan-loai}"><i class="fas fa-dot-circle fa-2xs me-2"></i> Phân loại</a></li>
+          <li class="nav-item submenu-item"><a class="nav-link" th:href="@{/admin/the-loai}"><i class="fas fa-dot-circle fa-2xs me-2"></i> Thể loại</a></li>
+          <li class="nav-item submenu-item"><a class="nav-link" th:href="@{/admin/xuat-xu}"><i class="fas fa-dot-circle fa-2xs me-2"></i> Xuất xứ</a></li>
+          <li class="nav-item submenu-item"><a class="nav-link" th:href="@{/admin/chat-lieu}"><i class="fas fa-dot-circle fa-2xs me-2"></i> Chất liệu</a></li>
+          <li class="nav-item submenu-item"><a class="nav-link" th:href="@{/admin/mau-sac}"><i class="fas fa-dot-circle fa-2xs me-2"></i> Màu sắc</a></li>
+          <li class="nav-item submenu-item"><a class="nav-link" th:href="@{/admin/kich-thuoc}"><i class="fas fa-dot-circle fa-2xs me-2"></i> Kích thước</a></li>
+      </ul>
+      </div>
+    </li>
+    <li class="nav-item mb-1">
+      <a class="nav-link" th:href="@{/nhanvien/view}">
+        <i class="fas fa-user-tag fa-fw me-2"></i> <span class="menu-text">Nhân viên</span>
+      </a>
+    </li>
+    <li class="nav-item mb-1">
+      <a class="nav-link" th:href="@{/admin/khach-hang/hien-thi}">
+        <i class="fas fa-users fa-fw me-2"></i> <span class="menu-text">Khách hàng</span>
+      </a>
+    </li>
+>>>>>>> Stashed changes
 
         <li class="nav-item mb-1">
             <a class="nav-link" th:href="@{/admin/phieu-giam-gia/hien-thi}">

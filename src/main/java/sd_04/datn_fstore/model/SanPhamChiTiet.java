@@ -61,7 +61,7 @@ public class SanPhamChiTiet {
     @JoinColumn(name = "idSanPham")
     private SanPham sanPham;
 
-    // Mối quan hệ: Một chi tiết sản phẩm có trong nhiều hóa đơn chi tiết
+//    // Mối quan hệ: Một chi tiết sản phẩm có trong nhiều hóa đơn chi tiết
     @OneToMany(mappedBy = "sanPhamChiTiet", fetch = FetchType.LAZY)
     private List<HoaDonChiTiet> hoaDonChiTiets;
 }

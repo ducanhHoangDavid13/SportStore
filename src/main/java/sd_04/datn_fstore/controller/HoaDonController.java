@@ -5,7 +5,12 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import sd_04.datn_fstore.model.HoaDon;
+<<<<<<< Updated upstream
 import sd_04.datn_fstore.services.HoaDonService;
+=======
+import sd_04.datn_fstore.service.HoaDonService;
+
+>>>>>>> Stashed changes
 
 import java.util.Date;
 import java.util.List;
@@ -65,4 +70,8 @@ public class HoaDonController {
         hoaDonService.delete(id);
         return ResponseEntity.noContent().build();
     }
+<<<<<<< Updated upstream
 }
+=======
+}
+>>>>>>> Stashed changes
