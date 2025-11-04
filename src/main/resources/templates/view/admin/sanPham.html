@@ -6,92 +6,92 @@
 
     <title>Quản lý Sản phẩm</title>
 
- <style>
+    <style>
 
-     :root {
-         --sidebar-width: 260px;
-         --navbar-height: 60px;
-         --primary-color: #007bff;
-         --secondary-bg: #2b3543;
-         --text-light: #f8f9fa;
-         --active-bg: #0056b3;
-     }
+        :root {
+            --sidebar-width: 260px;
+            --navbar-height: 60px;
+            --primary-color: #007bff;
+            --secondary-bg: #2b3543;
+            --text-light: #f8f9fa;
+            --active-bg: #0056b3;
+        }
 
-     body {
+        body {
 
-         overflow-x: hidden;
-         background-color: #f0f2f5;
-     }
-
-
-     .sidebar-wrapper {
-         width: var(--sidebar-width);
-         position: fixed; /* Đã đúng */
-         top: var(--navbar-height); /* Đã đúng: Bắt đầu từ dưới navbar */
-         left: 0; bottom: 0; /* Đã đúng: Kéo dài từ trên xuống dưới */
-         overflow-y: auto; /* Đã đúng: Cho phép cuộn bên trong sidebar */
-         z-index: 1000;
-         background-color: var(--secondary-bg);
-         transition: all 0.3s;
-     }
-
-     .main-content {
-         margin-left: var(--sidebar-width);
-         padding: 1.5rem;
-         /* Điều chỉnh padding-top để tránh bị che bởi navbar cố định */
-         padding-top: calc(var(--navbar-height) + 1.5rem);
-         min-height: 100vh; /* Đảm bảo chiều cao tối thiểu cho nội dung */
-
-         transition: margin-left 0.3s;
-         /* Bỏ height và overflow-y: auto để cho phép toàn bộ trang cuộn */
-     }
+            overflow-x: hidden;
+            background-color: #f0f2f5;
+        }
 
 
-     .nav-link {
-         color: #b8c7e0;
-         padding: 0.75rem 1rem;
-         margin-bottom: 0.25rem;
-         transition: all 0.2s;
-         display: flex;
-         align-items: flex-start;
-         line-height: 1.2;
-         text-decoration: none;
-         cursor: pointer;
-     }
-     .nav-link:hover {
-         color: var(--text-light) !important;
-         background-color: rgba(255, 255, 255, 0.1);
-         border-radius: 5px;
-     }
-     .nav-link.active {
-         color: var(--text-light) !important;
-         background-color: var(--primary-color);
-         border-radius: 5px;
-         font-weight: 600;
-     }
+        .sidebar-wrapper {
+            width: var(--sidebar-width);
+            position: fixed; /* Đã đúng */
+            top: var(--navbar-height); /* Đã đúng: Bắt đầu từ dưới navbar */
+            left: 0; bottom: 0; /* Đã đúng: Kéo dài từ trên xuống dưới */
+            overflow-y: auto; /* Đã đúng: Cho phép cuộn bên trong sidebar */
+            z-index: 1000;
+            background-color: var(--secondary-bg);
+            transition: all 0.3s;
+        }
 
-     .menu-text {
-         font-size: 1rem;
-         white-space: normal;
-     }
-     .nav-link i.fa-fw {
-         margin-top: 0.15rem;
-     }
-     .nav-link .float-end {
-         margin-top: 0.3rem;
-         transition: transform 0.3s;
-     }
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 1.5rem;
+            /* Điều chỉnh padding-top để tránh bị che bởi navbar cố định */
+            padding-top: calc(var(--navbar-height) + 1.5rem);
+            min-height: 100vh; /* Đảm bảo chiều cao tối thiểu cho nội dung */
 
-     .submenu-item a.nav-link {
-         padding-left: 2.5rem;
-         font-size: 0.9rem;
-         color: #d1d9e7;
-         align-items: center;
-     }
-     .submenu-item a.nav-link:hover {
-         background-color: rgba(255, 255, 255, 0.05);
-     }
- </style>
+            transition: margin-left 0.3s;
+            /* Bỏ height và overflow-y: auto để cho phép toàn bộ trang cuộn */
+        }
+
+
+        .nav-link {
+            color: #b8c7e0;
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.25rem;
+            transition: all 0.2s;
+            display: flex;
+            align-items: flex-start;
+            line-height: 1.2;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .nav-link:hover {
+            color: var(--text-light) !important;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+        }
+        .nav-link.active {
+            color: var(--text-light) !important;
+            background-color: var(--primary-color);
+            border-radius: 5px;
+            font-weight: 600;
+        }
+
+        .menu-text {
+            font-size: 1rem;
+            white-space: normal;
+        }
+        .nav-link i.fa-fw {
+            margin-top: 0.15rem;
+        }
+        .nav-link .float-end {
+            margin-top: 0.3rem;
+            transition: transform 0.3s;
+        }
+
+        .submenu-item a.nav-link {
+            padding-left: 2.5rem;
+            font-size: 0.9rem;
+            color: #d1d9e7;
+            align-items: center;
+        }
+        .submenu-item a.nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+    </style>
     <link rel="stylesheet" href="css/styles.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.2.0/css/bootstrap.min.css" />
@@ -144,7 +144,9 @@
                                 data-bs-target="#addSanPhamModal">
                             <i class="fas fa-plus"></i> Thêm Sản phẩm
                         </button>
-                        <button class="btn btn-secondary btn-sm"><i class="fas fa-file-export"></i> Xuất file</button>
+                        <button class="btn btn-info btn-sm" id="btnExportExcel">
+                            <i class="fas fa-file-excel"></i> Xuất Excel
+                        </button>
                     </div>
 
                     <div class="table-responsive" style="height: 400px; overflow-y: auto;">
@@ -152,7 +154,7 @@
                             <thead class="thead-light table-dark sticky-top">
                             <tr>
                                 <th>Mã SP (maSanPham)</th>
-                                <th>Tên SP (tenSanPham)</th>
+                                <th>Ảnh</th> <th>Tên SP (tenSanPham)</th>
                                 <th>Giá tiền (giaTien)</th>
                                 <th>Số lượng (soLuong)</th>
                                 <th>Trạng thái (trangThai)</th>
@@ -161,8 +163,7 @@
                             </tr>
                             </thead>
                             <tbody id="sanPhamTableBody">
-                            <tr><td colspan="7" class="text-center">Đang tải dữ liệu...</td></tr>
-                            </tbody>
+                            <tr><td colspan="8" class="text-center">Đang tải dữ liệu...</td></tr> </tbody>
                         </table>
                     </div>
                     <div class="d-flex justify-content-between align-items-center mt-3">
@@ -223,6 +224,13 @@
                                     </div>
                                 </div>
                             </div>
+                            <div class="row mt-3">
+                                <div class="col-md-12">
+                                    <label class="form-label text-info"><i class="fas fa-image"></i> Ảnh đại diện (Tùy chọn)</label>
+                                    <input type="file" class="form-control" id="initialImageUpload" accept="image/*">
+                                    <small class="form-text text-muted">Chọn 1 ảnh để làm ảnh đại diện ban đầu.</small>
+                                </div>
+                            </div>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="fas fa-times me-1"></i> Đóng</button>
@@ -269,8 +277,8 @@
                                     <textarea class="form-control" id="editMoTa" rows="3"></textarea>
                                 </div>
                             </div>
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
                                     <label class="form-label">Trạng thái (trangThai)</label><br>
                                     <div class="d-flex gap-4 pt-1">
                                         <div class="form-check form-check-inline">
@@ -294,6 +302,37 @@
             </div>
         </div>
 
+        <div class="modal fade" id="manageImagesModal" tabindex="-1" aria-labelledby="manageImagesModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header bg-secondary text-white">
+                        <h5 class="modal-title" id="manageImagesModalLabel"><i class="fas fa-camera me-2"></i> QUẢN LÝ HÌNH ẢNH SẢN PHẨM</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <h6 class="mb-3">Sản phẩm: <span id="currentProductName" class="text-primary fw-bold"></span></h6>
+
+                        <h6 class="text-info"><i class="fas fa-eye"></i> Ảnh hiện tại</h6>
+                        <div id="image-preview-area-new" class="d-flex flex-wrap gap-2 p-2 border rounded mb-4" style="min-height: 120px; max-height: 400px; overflow-y: auto;">
+                            <p class="text-muted w-100 text-center" id="no-images-msg-new">Đang tải...</p>
+                        </div>
+
+                        <h6 class="text-success"><i class="fas fa-cloud-upload-alt"></i> Tải ảnh mới lên</h6>
+                        <div class="input-group">
+                            <input type="file" class="form-control" id="newImageUploadNew" multiple accept="image/*">
+                            <button class="btn btn-success" type="button" id="btnUploadImagesNew">
+                                <i class="fas fa-upload"></i> Tải lên
+                            </button>
+                        </div>
+                        <small class="form-text text-muted">Có thể chọn nhiều file cùng lúc.</small>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="fas fa-times me-1"></i> Đóng</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </main>
 </div>
 
@@ -317,6 +356,10 @@
         };
         let currentPageData = null; // Biến lưu dữ liệu trang hiện tại
 
+        // ===== BIẾN GLOBAL CHO HÌNH ẢNH =====
+        let currentEditingSanPhamId = null;
+
+
         // Hàm gọi API để tải dữ liệu Sản phẩm
         function loadSanPham() {
             let params = {
@@ -326,7 +369,7 @@
                 trangThai: currentFilter.trangThai === '' ? null : parseInt(currentFilter.trangThai)
             };
 
-            $('#sanPhamTableBody').html('<tr><td colspan="7" class="text-center"><i class="fas fa-spinner fa-spin"></i> Đang tải...</td></tr>');
+            $('#sanPhamTableBody').html('<tr><td colspan="8" class="text-center"><i class="fas fa-spinner fa-spin"></i> Đang tải...</td></tr>');
             $('#pageInfo').text('');
             $('#paginationNav').empty();
 
@@ -343,7 +386,7 @@
                 },
                 error: function(jqXHR, textStatus, errorThrown) {
                     console.error("Lỗi tải SP:", textStatus, errorThrown, jqXHR.responseText);
-                    $('#sanPhamTableBody').html('<tr><td colspan="7" class="text-danger text-center">Lỗi tải dữ liệu.</td></tr>');
+                    $('#sanPhamTableBody').html('<tr><td colspan="8" class="text-danger text-center">Lỗi tải dữ liệu.</td></tr>');
                     $('#paginationNav').empty();
                     toastr.error("Lỗi tải dữ liệu sản phẩm.");
                 }
@@ -354,10 +397,22 @@
         function renderTable(sanPhamList) {
             let html = '';
             if (!sanPhamList || sanPhamList.length === 0) {
-                html = '<tr><td colspan="7" class="text-center">Không có sản phẩm nào khớp với bộ lọc.</td></tr>';
+                html = '<tr><td colspan="8" class="text-center">Không có sản phẩm nào khớp với bộ lọc.</td></tr>';
             } else {
                 sanPhamList.forEach(function(sp) {
+
+                    // ========================= CODE XỬ LÝ ẢNH CHÍNH =========================
+                    let imageHtml = '<div style="width: 50px; height: 50px; background-color: #f0f0f0; display: flex; align-items: center; justify-content: center; border-radius: 5px; font-size: 0.7rem; color: #6c757d;">N/A</div>';
+
+                    // Đọc trường transient mới được gửi từ Backend
+                    if (sp.tenHinhAnhChinh) {
+                        const imageUrl = `/api/hinh-anh/download/${sp.tenHinhAnhChinh}`;
+                        imageHtml = `<img src="${imageUrl}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px;" alt="SP Image">`;
+                    }
+                    // =========================================================================
+
                     let trangThaiBadge = sp.trangThai === 1 ? '<span class="badge bg-success">Đang bán</span>' : '<span class="badge bg-danger">Ngừng bán</span>';
+
                     let giaTienFormatted = 'N/A';
                     if (sp.giaTien != null) {
                         try {
@@ -390,14 +445,15 @@
 
                     html += `<tr data-id="${sp.id}">
                                 <td>${maSpDisplay}</td>
-                                <td>${tenSpDisplay}</td>
+                                <td class="text-center">${imageHtml}</td> <td>${tenSpDisplay}</td>
                                 <td class="text-end">${giaTienFormatted}</td>
                                 <td class="text-center">${soLuongDisplay}</td>
                                 <td class="text-center">${trangThaiBadge}</td>
                                 <td class="text-center">${ngayTaoFormatted}</td>
                                 <td class="text-center">
-                                    <button class="btn btn-warning btn-sm me-1 btn-edit" data-id="${sp.id}" title="Sửa"><i class="fas fa-edit"></i></button>
-                                    <button class="btn btn-danger btn-sm btn-delete" data-id="${sp.id}" title="Xóa"><i class="fas fa-trash"></i></button>
+                                    <button class="btn btn-warning btn-sm me-1 btn-edit" data-id="${sp.id}" title="Sửa thông tin cơ bản"><i class="fas fa-edit"></i></button>
+                                    <button class="btn btn-secondary btn-sm me-1 btn-manage-images" data-id="${sp.id}" data-name="${sp.tenSanPham}" title="Quản lý hình ảnh"><i class="fas fa-images"></i></button>
+                                    <button class="btn btn-danger btn-sm btn-delete" data-id="${sp.id}" title="Xóa sản phẩm"><i class="fas fa-trash"></i></button>
                                 </td>
                              </tr>`;
                 });
@@ -450,6 +506,44 @@
             $('#pageInfo').text(`Hiển thị ${startItem}-${endItem} của ${pageData.totalElements} mục`);
         }
 
+        // Hàm tải ảnh từ API và hiển thị cho MODAL MỚI
+        function loadProductImagesForNewModal(sanPhamId, productName) {
+            currentEditingSanPhamId = sanPhamId;
+            $('#currentProductName').text(productName); // Hiển thị tên sản phẩm
+
+            const $area = $('#image-preview-area-new');
+            $area.html('<p class="text-muted w-100 text-center"><i class="fas fa-spinner fa-spin"></i> Đang tải ảnh...</p>');
+
+            $.ajax({
+                url: "/api/hinh-anh/san-pham/" + sanPhamId,
+                type: "GET",
+                success: function(hinhAnhList) {
+                    let html = '';
+                    if (hinhAnhList && hinhAnhList.length > 0) {
+                        hinhAnhList.forEach(function(img) {
+                            const imageUrl = `/api/hinh-anh/download/${img.tenHinhAnh}`;
+                            html += `
+                                <div class="position-relative border rounded p-1" style="width: 100px; height: 100px;">
+                                    <img src="${imageUrl}" alt="Ảnh sản phẩm" class="w-100 h-100 object-fit-cover rounded" />
+                                    <button type="button" class="btn btn-danger btn-sm p-0 delete-image-btn-new"
+                                            data-id="${img.id}"
+                                            style="position: absolute; top: -5px; right: -5px; height: 20px; width: 20px; font-size: 10px; line-height: 1;">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>`;
+                        });
+                    } else {
+                        html = '<p class="text-muted w-100 text-center" id="no-images-msg-new">Chưa có hình ảnh nào.</p>';
+                    }
+                    $area.html(html);
+                },
+                error: function() {
+                    $area.html('<p class="text-danger w-100 text-center">Lỗi tải ảnh!</p>');
+                    toastr.error("Lỗi khi tải danh sách hình ảnh.");
+                }
+            });
+        }
+
         // Sự kiện click phân trang
         $('#paginationNav').on('click', 'a.page-link', function(e) {
             e.preventDefault();
@@ -476,28 +570,46 @@
             loadSanPham();
         });
 
-        // Sự kiện submit form Thêm mới (ĐÃ SỬA)
+        // Sự kiện submit form Thêm mới (ĐÃ SỬA để hỗ trợ FILES)
         $('#addSanPhamForm').on('submit', function(e) {
             e.preventDefault();
+
+            const $newTenSanPham = $('#newTenSanPham').val().trim();
             const $newGiaTien = $('#newGiaTien').val();
             const $newSoLuong = $('#newSoLuong').val();
+            const imageFile = $('#initialImageUpload')[0].files[0];
 
-            let newSanPham = {
+            // Validation cơ bản
+            if (!$newTenSanPham) { toastr.warning("Tên sản phẩm là bắt buộc."); return; }
+            if ($newGiaTien == null || isNaN(Number($newGiaTien)) || Number($newGiaTien) < 0) { toastr.warning("Giá tiền không hợp lệ."); return; }
+            if ($newSoLuong == null || isNaN(Number($newSoLuong)) || Number($newSoLuong) < 0 || Number($newSoLuong) % 1 !== 0) { toastr.warning("Số lượng không hợp lệ."); return; }
+
+            // Dữ liệu sản phẩm dưới dạng JSON string
+            const sanPhamJson = JSON.stringify({
                 maSanPham: $('#newMaSanPham').val().trim() || null,
-                tenSanPham: $('#newTenSanPham').val().trim(),
-                giaTien: $newGiaTien ? Number($newGiaTien) : null,
-                soLuong: $newSoLuong ? Number($newSoLuong) : null,
+                tenSanPham: $newTenSanPham,
+                giaTien: Number($newGiaTien),
+                soLuong: Number($newSoLuong),
                 moTa: $('#newMoTa').val().trim(),
                 trangThai: parseInt($('input[name="newTrangThai"]:checked').val())
-            };
+            });
 
-            // Validation
-            if (!newSanPham.tenSanPham) { toastr.warning("Tên sản phẩm là bắt buộc."); return; }
-            if (newSanPham.giaTien == null || isNaN(newSanPham.giaTien) || newSanPham.giaTien < 0) { toastr.warning("Giá tiền không hợp lệ."); return; }
-            if (newSanPham.soLuong == null || isNaN(newSanPham.soLuong) || newSanPham.soLuong < 0 || newSanPham.soLuong % 1 !== 0) { toastr.warning("Số lượng không hợp lệ (phải là số nguyên không âm)."); return; }
+            const formData = new FormData();
+            formData.append('sanPhamData', sanPhamJson); // Dữ liệu JSON
+
+            if (imageFile) {
+                formData.append('file', imageFile); // File ảnh
+            }
+
 
             $.ajax({
-                url: "/api/san-pham", type: "POST", contentType: "application/json", data: JSON.stringify(newSanPham),
+                // LƯU Ý QUAN TRỌNG: Bạn cần tạo API backend MỚI
+                url: "/api/san-pham/create-with-image",
+                type: "POST",
+                data: formData,
+                contentType: false, // Bắt buộc cho FormData
+                processData: false, // Bắt buộc cho FormData
+
                 beforeSend: function() {
                     $('#addSanPhamForm button[type="submit"]').prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i> Đang lưu...');
                 },
@@ -505,21 +617,18 @@
                     $('#addSanPhamForm button[type="submit"]').prop('disabled', false).html('<i class="fas fa-save me-1"></i> Lưu Sản phẩm');
                 },
                 success: function(response) {
-                    toastr.success("Thêm thành công!");
+                    toastr.success("Thêm sản phẩm và ảnh thành công!");
 
-                    // 1. Lắng nghe sự kiện KHI modal đã đóng xong
                     $('#addSanPhamModal').one('hidden.bs.modal', function () {
-                        // 2. Sau khi modal đã đóng, mới reset form và tải lại bảng
                         $('#addSanPhamForm')[0].reset();
-                        currentFilter.page = 1; // Thêm mới thì quay về trang 1
+                        currentFilter.page = 1;
                         loadSanPham();
                     });
 
-                    // 3. Bây giờ mới ra lệnh cho modal bắt đầu đóng
                     $('#addSanPhamModal').modal('hide');
                 },
                 error: function(jqXHR) {
-                    let errorMessage = jqXHR.responseJSON?.message || jqXHR.responseText || "Lỗi thêm sản phẩm. Vui lòng kiểm tra lại dữ liệu.";
+                    let errorMessage = jqXHR.responseJSON?.message || jqXHR.responseText || "Lỗi thêm sản phẩm.";
                     toastr.error(errorMessage);
                 }
             });
@@ -528,6 +637,9 @@
         // Sự kiện click nút Sửa (mở modal)
         $(document).on('click', '.btn-edit', function() {
             let sanPhamId = $(this).data('id');
+            // Cài đặt ID sản phẩm đang chỉnh sửa
+            currentEditingSanPhamId = sanPhamId;
+
             $.ajax({
                 url: "/api/san-pham/" + sanPhamId, type: "GET", dataType: "json",
                 success: function(sp) {
@@ -550,6 +662,19 @@
                 }
             });
         });
+
+        // SỰ KIỆN MỚI: Click nút Quản lý Hình ảnh
+        $(document).on('click', '.btn-manage-images', function() {
+            const sanPhamId = $(this).data('id');
+            const sanPhamName = $(this).data('name');
+
+            loadProductImagesForNewModal(sanPhamId, sanPhamName);
+
+            // Mở modal mới
+            var manageModal = new bootstrap.Modal(document.getElementById('manageImagesModal'));
+            manageModal.show();
+        });
+
 
         // Sự kiện submit form Cập nhật (ĐÃ SỬA)
         $('#editSanPhamForm').on('submit', function(e) {
@@ -623,6 +748,109 @@
                 });
             }
         });
+
+        // =============== (CODE BỔ SUNG CHO EXCEL VÀ HÌNH ẢNH) ===============
+
+        // Sự kiện click nút Xuất Excel
+        $('#btnExportExcel').on('click', function() {
+            const $btn = $(this);
+
+            const keyword = currentFilter.keyword.trim();
+            const trangThai = currentFilter.trangThai;
+
+            let url = "/api/san-pham/export/excel";
+            let params = [];
+
+            if (keyword) {
+                params.push("keyword=" + encodeURIComponent(keyword));
+            }
+            if (trangThai !== '') {
+                params.push("trangThai=" + encodeURIComponent(trangThai));
+            }
+
+            if (params.length > 0) {
+                url += "?" + params.join("&");
+            }
+
+            $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Đang xuất...');
+            toastr.info("Đang chuẩn bị file, vui lòng chờ...");
+
+            window.location.href = url;
+
+            setTimeout(function() {
+                $btn.prop('disabled', false).html('<i class="fas fa-file-excel"></i> Xuất Excel');
+            }, 10000); // 10 giây
+        });
+
+
+        // Xử lý nút Tải lên (Upload) trong modal mới
+        $('#btnUploadImagesNew').on('click', function() {
+            if (!currentEditingSanPhamId) {
+                toastr.warning("ID Sản phẩm không xác định.");
+                return;
+            }
+
+            const files = $('#newImageUploadNew')[0].files; // <-- ID mới
+            if (files.length === 0) {
+                toastr.warning("Vui lòng chọn file để tải lên.");
+                return;
+            }
+
+            const formData = new FormData();
+            for (let i = 0; i < files.length; i++) {
+                formData.append('file', files[i]);
+            }
+            formData.append('idSanPham', currentEditingSanPhamId);
+
+            const $btn = $(this);
+            $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Tải...');
+
+            $.ajax({
+                url: "/api/hinh-anh/upload",
+                type: "POST",
+                data: formData,
+                contentType: false,
+                processData: false,
+                success: function(response) {
+                    toastr.success("Tải ảnh lên thành công!");
+                    $('#newImageUploadNew').val(''); // Reset input file
+                    loadProductImagesForNewModal(currentEditingSanPhamId, $('#currentProductName').text()); // Tải lại danh sách ảnh
+                    loadSanPham(); // Cập nhật bảng chính để thấy ảnh đại diện nếu ảnh vừa tải lên là ảnh chính
+                },
+                error: function(jqXHR) {
+                    const errorMsg = jqXHR.responseJSON?.message || jqXHR.responseText || "Lỗi tải ảnh.";
+                    toastr.error(errorMsg);
+                },
+                complete: function() {
+                    $btn.prop('disabled', false).html('<i class="fas fa-upload"></i> Tải lên');
+                }
+            });
+        });
+
+
+        // Xử lý nút Xóa ảnh (Sử dụng delegation) trong modal mới
+        $(document).on('click', '.delete-image-btn-new', function() { // <-- CLASS mới
+            const imageId = $(this).data('id');
+            if (!confirm("Bạn có chắc chắn muốn xóa hình ảnh này? Thao tác này không thể hoàn tác.")) {
+                return;
+            }
+
+            $.ajax({
+                url: "/api/hinh-anh/" + imageId,
+                type: "DELETE",
+                success: function() {
+                    toastr.success("Xóa ảnh thành công!");
+                    loadProductImagesForNewModal(currentEditingSanPhamId, $('#currentProductName').text()); // Tải lại danh sách ảnh
+                    loadSanPham(); // Cập nhật bảng chính
+                },
+                error: function() {
+                    toastr.error("Lỗi khi xóa hình ảnh.");
+                }
+            });
+        });
+
+        // =============== (KẾT THÚC CODE BỔ SUNG) ===============
+
 
         // --- KHỞI TẠO ---
         loadSanPham();

@@ -8,7 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import sd_04.datn_fstore.model.SanPhamChiTiet;
 import sd_04.datn_fstore.service.SanPhamCTService;
-
+import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.Optional;
 
@@ -43,13 +43,13 @@ public class SanPhamChiTietApiController {
         return ResponseEntity.ok(spctPage);
     }
 
-    // API này sẽ được JS gọi để lấy dữ liệu cho modal "Sửa" SPCT
-    @GetMapping("/{id}")
-    public ResponseEntity<SanPhamChiTiet> getById(@PathVariable Integer id) {
-        return sanPhamCTService.getById(id)
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
-    }
+//    // API này sẽ được JS gọi để lấy dữ liệu cho modal "Sửa" SPCT
+//    @GetMapping("/{id}")
+//    public ResponseEntity<SanPhamChiTiet> getById(@PathVariable Integer id) {
+//        return sanPhamCTService.getById(id)
+//                .map(ResponseEntity::ok)
+//                .orElseGet(() -> ResponseEntity.notFound().build());
+//    }
 
     // API để Thêm mới biến thể
     @PostMapping
@@ -102,7 +102,14 @@ public class SanPhamChiTietApiController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Lỗi khi cập nhật: Biến thể này có thể đã tồn tại.");
         }
     }
-
+    // API này sẽ được JS gọi để lấy dữ liệu cho modal "Sửa" SPCT
+    @GetMapping("/{id}")
+    @Transactional(readOnly = true) // <-- SỬA: THÊM DÒNG NÀY
+    public ResponseEntity<SanPhamChiTiet> getById(@PathVariable Integer id) {
+        return sanPhamCTService.getById(id)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
     /**
      * SỬA: Bổ sung API để Xóa biến thể
      */

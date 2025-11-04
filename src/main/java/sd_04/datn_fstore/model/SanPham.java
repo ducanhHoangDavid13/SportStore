@@ -48,6 +48,17 @@ public class SanPham {
     @JsonIgnore
     private List<HinhAnh> hinhAnh;
 
+    @Transient
+    private String tenHinhAnhChinh;
+
+    // =================================================================
+    // Mối quan hệ MỚI: Một sản phẩm có nhiều biến thể (Sản phẩm Chi tiết)
+    // Cấu hình CascadeType.ALL để lưu SPCT cùng lúc với SanPham (nếu bạn sử dụng cơ chế này)
+    @OneToMany(mappedBy = "sanPham", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore // Bảo vệ khỏi lỗi Serialization vòng lặp
+    private List<SanPhamChiTiet> sanPhamChiTiets;
+    // =================================================================
+
     // Mối quan hệ: Một sản phẩm có trong nhiều giỏ hàng
     @OneToMany(mappedBy = "sanPham", fetch = FetchType.LAZY)
     @JsonIgnore
