@@ -1,8 +1,8 @@
-package sd_04.datn_fstore.api; // Đảm bảo đúng package
+package sd_04.datn_fstore.api;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j; // Thêm logger để ghi lại lỗi chi tiết
-import org.springframework.dao.DataIntegrityViolationException; // Bắt lỗi ràng buộc DB
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -20,7 +20,7 @@ import java.util.Optional;
 @RequestMapping("/api/san-pham")
 @RequiredArgsConstructor
 @CrossOrigin("*")
-@Slf4j // Lombok annotation để tự tạo logger
+@Slf4j
 public class SanPhamApiController {
 
     private final SanPhamService sanPhamService;
@@ -28,7 +28,7 @@ public class SanPhamApiController {
 
     /**
      * API: Lấy danh sách sản phẩm (phân trang, tìm kiếm, lọc)
-     * JS sẽ gọi khi LỌC hoặc CHUYỂN TRANG
+     * ... (Giữ nguyên)
      */
     @GetMapping
     public ResponseEntity<?> search(
@@ -39,7 +39,7 @@ public class SanPhamApiController {
             Page<SanPham> sanPhamPage = sanPhamService.searchAndPaginate(pageable, keyword, trangThai);
             return ResponseEntity.ok(sanPhamPage);
         } catch (Exception e) {
-            log.error("Error searching SanPham: ", e); // Ghi log lỗi chi tiết
+            log.error("Error searching SanPham: ", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Lỗi khi tìm kiếm sản phẩm.");
         }
@@ -47,6 +47,7 @@ public class SanPhamApiController {
 
     /**
      * API: Lấy TẤT CẢ sản phẩm (dùng cho dropdown)
+     * ... (Giữ nguyên)
      */
     @GetMapping("/all")
     public ResponseEntity<?> getAll() {
@@ -64,16 +65,16 @@ public class SanPhamApiController {
 
     /**
      * API: Lấy chi tiết 1 sản phẩm
-     * (JS sẽ gọi khi bấm "Sửa" để đổ dữ liệu vào modal)
+     * ... (Giữ nguyên)
      */
     @GetMapping("/{id}")
     public ResponseEntity<?> getById(@PathVariable Integer id) {
         try {
             Optional<SanPham> sanPhamOptional = sanPhamService.getById(id);
             if (sanPhamOptional.isPresent()) {
-                return ResponseEntity.ok(sanPhamOptional.get()); // 200 OK
+                return ResponseEntity.ok(sanPhamOptional.get());
             } else {
-                return ResponseEntity.notFound().build(); // 404 Not Found
+                return ResponseEntity.notFound().build();
             }
         } catch (Exception e) {
             log.error("Error getting SanPham by ID {}: ", id, e);
@@ -84,7 +85,7 @@ public class SanPhamApiController {
 
     /**
      * API: Thêm mới 1 sản phẩm
-     * (JS sẽ gọi khi "Lưu" trên modal "Thêm mới")
+     * (Không cần thay đổi logic, vì Jackson/JPA sẽ tự động ánh xạ Khóa ngoại)
      */
     @PostMapping
     public ResponseEntity<?> create(@RequestBody SanPham sanPham) {
@@ -100,19 +101,14 @@ public class SanPhamApiController {
             // Kiểm tra trùng mã (chỉ khi mã được nhập)
             if (sanPham.getMaSanPham() != null && !sanPham.getMaSanPham().trim().isEmpty()
                     && sanPhamService.existsByMaSanPham(sanPham.getMaSanPham())) {
-                return ResponseEntity.status(HttpStatus.CONFLICT).body("Mã sản phẩm đã tồn tại."); // 409 Conflict
+                return ResponseEntity.status(HttpStatus.CONFLICT).body("Mã sản phẩm đã tồn tại.");
             }
 
-            // Nếu mã trống, có thể tự sinh ở đây hoặc trong service
-            // if (sanPham.getMaSanPham() == null || sanPham.getMaSanPham().trim().isEmpty()) {
-            //    sanPham.setMaSanPham("SP" + System.currentTimeMillis()); // Ví dụ tự sinh mã
-            // }
-
-            sanPham.setNgayTao(new Date()); // Gán ngày tạo [cite: SanPham.java]
+            sanPham.setNgayTao(new Date());
             SanPham savedSanPham = sanPhamService.save(sanPham);
-            return ResponseEntity.status(HttpStatus.CREATED).body(savedSanPham); // 201 Created
+            return ResponseEntity.status(HttpStatus.CREATED).body(savedSanPham);
 
-        } catch (DataIntegrityViolationException e) { // Bắt lỗi ràng buộc DB cụ thể (ví dụ unique key)
+        } catch (DataIntegrityViolationException e) {
             log.error("Database integrity violation while creating SanPham: ", e);
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Lỗi ràng buộc dữ liệu, có thể mã sản phẩm đã tồn tại.");
         } catch (Exception e) {
@@ -124,7 +120,7 @@ public class SanPhamApiController {
 
     /**
      * API: Cập nhật 1 sản phẩm
-     * (JS sẽ gọi khi "Lưu" trên modal "Sửa")
+     * (Cần cập nhật để set trường hinhAnhChinh)
      */
     @PutMapping("/{id}")
     public ResponseEntity<?> update(@PathVariable Integer id, @RequestBody SanPham sanPhamDetails) {
@@ -139,7 +135,7 @@ public class SanPhamApiController {
 
             Optional<SanPham> optionalSanPham = sanPhamService.getById(id);
             if (optionalSanPham.isEmpty()) {
-                return ResponseEntity.notFound().build(); // 404 Not Found
+                return ResponseEntity.notFound().build();
             }
 
             SanPham existingSanPham = optionalSanPham.get();
@@ -151,17 +147,21 @@ public class SanPhamApiController {
                 return ResponseEntity.status(HttpStatus.CONFLICT).body("Mã sản phẩm mới này đã thuộc về một sản phẩm khác.");
             }
 
-            // Cập nhật các trường [cite: SanPham.java]
+            // Cập nhật các trường
             existingSanPham.setTenSanPham(sanPhamDetails.getTenSanPham());
-            existingSanPham.setMaSanPham(sanPhamDetails.getMaSanPham()); // Cho phép cập nhật mã nếu cần
+            existingSanPham.setMaSanPham(sanPhamDetails.getMaSanPham());
             existingSanPham.setMoTa(sanPhamDetails.getMoTa());
             existingSanPham.setTrangThai(sanPhamDetails.getTrangThai());
             existingSanPham.setGiaTien(sanPhamDetails.getGiaTien());
             existingSanPham.setSoLuong(sanPhamDetails.getSoLuong());
-            // ngayTao không cập nhật
+
+            // ============== CẬP NHẬT TRƯỜNG KHÓA NGOẠI HÌNH ẢNH ================
+            // Spring JPA sẽ tự động lấy HinhAnh theo ID được gửi trong sanPhamDetails.getHinhAnhChinh()
+//            existingSanPham.setHinhAnhChinh(sanPhamDetails.getHinhAnhChinh());
+            // ===================================================================
 
             SanPham updatedSanPham = sanPhamService.save(existingSanPham);
-            return ResponseEntity.ok(updatedSanPham); // 200 OK
+            return ResponseEntity.ok(updatedSanPham);
 
         } catch (DataIntegrityViolationException e) {
             log.error("Database integrity violation while updating SanPham ID {}: ", id, e);
@@ -175,23 +175,22 @@ public class SanPhamApiController {
 
     /**
      * API: Xóa 1 sản phẩm
-     * (JS sẽ gọi khi bấm "Xóa")
+     * ... (Giữ nguyên)
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Integer id) {
         if (sanPhamService.getById(id).isEmpty()) {
-            return ResponseEntity.notFound().build(); // 404 Not Found
+            return ResponseEntity.notFound().build();
         }
         try {
             sanPhamService.delete(id);
-            return ResponseEntity.noContent().build(); // 204 No Content (Thành công)
-        } catch (DataIntegrityViolationException e) { // Bắt lỗi ràng buộc khóa ngoại
+            return ResponseEntity.noContent().build();
+        } catch (DataIntegrityViolationException e) {
             log.error("Cannot delete SanPham ID {} due to foreign key constraint: ", id, e);
-            // Trả về 409 Conflict để báo cho client biết là không xóa được do ràng buộc
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
         } catch (Exception e) {
             log.error("Error deleting SanPham ID {}: ", id, e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build(); // 500 Lỗi chung
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 }

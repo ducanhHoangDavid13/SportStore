@@ -10,5 +10,4 @@ public class DatnFstoreApplication {
     public static void main(String[] args) {
         SpringApplication.run(DatnFstoreApplication.class, args);
     }
-
 }
