@@ -3,13 +3,15 @@ package sd_04.datn_fstore.controller;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.List;
 
 @Controller
+@RequestMapping("/admin/dashboard")
 public class DashboardController {
 
-    @GetMapping("/statistics")
+    @GetMapping()
     public String showDashboard(Model model) {
         model.addAttribute("totalUsers", 1532);
         model.addAttribute("totalOrders", 948);

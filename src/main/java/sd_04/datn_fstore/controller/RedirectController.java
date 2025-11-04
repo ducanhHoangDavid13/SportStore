@@ -17,7 +17,7 @@ public class RedirectController {
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
 
         if (isAdmin) {
-            return "redirect:/statistics";
+            return "redirect:/admin/dashboard";
         } else {
             return "redirect:/home";
         }

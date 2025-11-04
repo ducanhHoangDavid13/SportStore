@@ -3,250 +3,288 @@
 <head>
     <meta charset="UTF-8">
     <title>Thống kê hệ thống</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        /* ============ RESET ============ */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            --sidebar-width: 260px;
+            --navbar-height: 60px;
+            --primary-color: #007bff;
+            --primary-gradient: linear-gradient(135deg, #007bff, #00bfff);
+            --secondary-bg: #2b3543;
+            --text-light: #f8f9fa;
+            --card-bg: #ffffff;
+            --shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
 
         body {
-            font-family: "Segoe UI", Arial, sans-serif;
-            background: linear-gradient(135deg, #1e90ff, #00bfff);
+            background-color: #f0f2f5;
+            font-family: "Segoe UI", Roboto, Arial, sans-serif;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        /* ---------- SIDEBAR ---------- */
+        .sidebar-wrapper {
+            width: var(--sidebar-width);
+            position: fixed;
+            top: var(--navbar-height);
+            left: 0;
+            bottom: 0;
+            overflow-y: auto;
+            z-index: 1000;
+            background-color: var(--secondary-bg);
+            transition: all 0.3s;
+        }
+
+        /* ---------- MAIN CONTENT ---------- */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: calc(var(--navbar-height) + 1.5rem) 1.5rem 2rem;
             min-height: 100vh;
-            display: flex;
-            flex-direction: column;
+            transition: margin-left 0.3s;
         }
 
-        /* ============ NAVBAR ============ */
-        .navbar {
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(10px);
-            color: white;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 50px;
-            font-weight: bold;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        /* ---------- PAGE TITLE ---------- */
+        .container h1 {
+            font-weight: 700;
+            font-size: 1.8rem;
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
         }
 
-        .navbar a {
-            color: white;
-            text-decoration: none;
-            margin-left: 20px;
-            transition: 0.2s;
-        }
-
-        .navbar a:hover {
-            color: #ffe600;
-        }
-
-        /* ============ CONTAINER ============ */
-        .container {
-            flex: 1;
-            width: 90%;
-            max-width: 1200px;
-            margin: 30px auto;
-            background: #fff;
-            border-radius: 16px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-            padding: 40px;
-            animation: fadeIn 0.6s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(15px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        h1 {
-            text-align: center;
-            color: #1e90ff;
-            margin-bottom: 35px;
-            font-size: 28px;
-        }
-
-        /* ============ STAT CARDS ============ */
+        /* ---------- STATS CARDS ---------- */
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 25px;
-            margin-bottom: 40px;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.25rem;
+            margin-bottom: 2rem;
         }
 
         .card {
-            background: linear-gradient(145deg, #f9f9f9, #ffffff);
-            border-radius: 14px;
-            padding: 25px;
+            background: var(--card-bg);
+            border: none;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            padding: 1.5rem;
             text-align: center;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            transition: 0.3s ease;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
-
         .card:hover {
-            transform: translateY(-6px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            transform: translateY(-4px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.15);
         }
-
         .card h3 {
-            color: #666;
-            margin-bottom: 12px;
-            font-size: 16px;
+            font-size: 1.1rem;
+            color: #555;
+            margin-bottom: 0.5rem;
         }
-
         .card .value {
-            font-size: 32px;
+            font-size: 1.8rem;
             font-weight: bold;
-            color: #1e90ff;
+            color: var(--primary-color);
         }
 
-        /* ============ CHART SECTION ============ */
+        /* ---------- CHART SECTION ---------- */
         .charts {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
-            gap: 40px;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 1.5rem;
         }
-
         .chart-card {
-            background: #f8f9fa;
-            padding: 25px;
-            border-radius: 14px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            text-align: center;
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
         }
-
         .chart-card h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
             color: #333;
-            margin-bottom: 15px;
+            margin-bottom: 1rem;
         }
 
-        canvas {
-            width: 100%;
-            height: 320px;
+        /* ---------- TABLE ---------- */
+        .table thead {
+            background: var(--primary-gradient);
+            color: white;
+            font-weight: bold;
         }
 
-        /* ============ FOOTER ============ */
+        /* ---------- FOOTER ---------- */
         .footer {
             text-align: center;
-            color: #fff;
-            margin-bottom: 20px;
-            font-size: 14px;
+            padding: 1.2rem 0;
+            margin-top: 2rem;
+            border-top: 1px solid #dee2e6;
+            font-size: 0.9rem;
+            color: #666;
         }
-    </style>
-</head>
-<body>
-<div class="navbar">
-    <div>📊 Bảng điều khiển thống kê</div>
-    <div>
-        <a th:href="@{/home}">Trang chủ</a>
-        <a th:href="@{/logout}">Đăng xuất</a>
-    </div>
-</div>
 
-<!-- Nếu KHÔNG phải ADMIN thì redirect về trang chủ -->
-<div sec:authorize="!hasRole('ADMIN')">
-    <script th:inline="javascript">
-        /*<![CDATA[*/
-        const href = 'home';
-        window.location.href = /*[[@{/home}]]*/ '/' + href;
-        /*]]>*/
-    </script>
-</div>
-
-<div class="container">
-    <h1>Thống kê tổng quan</h1>
-    <!-- Các chỉ số -->
-    <div class="stats-grid">
-        <div class="card">
-            <h3>Tổng người dùng</h3>
-            <div class="value" th:text="${totalUsers}">0</div>
-        </div>
-        <div class="card">
-            <h3>Tổng đơn hàng</h3>
-            <div class="value" th:text="${totalOrders}">0</div>
-        </div>
-        <div class="card">
-            <h3>Doanh thu hôm nay</h3>
-            <div class="value" th:text="${todayRevenue}">0 VNĐ</div>
-        </div>
-        <div class="card">
-            <h3>Khách hàng mới</h3>
-            <div class="value" th:text="${newCustomers}">0</div>
-        </div>
-    </div>
-
-    <!-- Biểu đồ -->
-    <div class="charts">
-        <div class="chart-card">
-            <h3>📈 Doanh thu 7 ngày gần nhất</h3>
-            <canvas id="revenueChart"></canvas>
-        </div>
-
-        <div class="chart-card">
-            <h3>📦 Phân bố trạng thái đơn hàng</h3>
-            <canvas id="orderStatusChart"></canvas>
-        </div>
-    </div>
-</div>
-
-<div class="footer">
-    © 2025 - Dashboard by Banana Dev
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script th:inline="javascript">
-    /*<![CDATA[*/
-    const labels = [[${dayLabels}]];
-    const revenueData = [[${revenueList}]];
-    const orderStatusLabels = [[${orderStatusLabels}]];
-    const orderStatusValues = [[${orderStatusValues}]];
-
-    // Chart 1: Revenue
-    const ctx1 = document.getElementById('revenueChart').getContext('2d');
-    new Chart(ctx1, {
-        type: 'line',
-        data: {
-            labels: labels || ['T2','T3','T4','T5','T6','T7','CN'],
-            datasets: [{
-                label: 'Doanh thu (VNĐ)',
-                data: revenueData || [0, 0, 0, 0, 0, 0, 0],
-                borderColor: '#1e90ff',
-                backgroundColor: 'rgba(30,144,255,0.2)',
-                fill: true,
-                tension: 0.35,
-                pointRadius: 4,
-                pointBackgroundColor: '#1e90ff'
-            }]
-        },
-        options: {
-            responsive: true,
-            scales: { y: { beginAtZero: true } },
-            plugins: { legend: { display: false } }
+        /* ---------- NAVLINKS ---------- */
+        .nav-link {
+            color: #b8c7e0;
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.25rem;
+            transition: all 0.2s;
+            display: flex;
+            align-items: flex-start;
+            text-decoration: none;
+            cursor: pointer;
+            border-radius: 6px;
         }
-    });
+        .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #fff !important;
+        }
+        .nav-link.active {
+            background-color: var(--primary-color);
+            color: #fff !important;
+            font-weight: 600;
+        }
+        .submenu-item a.nav-link {
+            padding-left: 2.5rem;
+            font-size: 0.9rem;
+            color: #d1d9e7;
+        }
+        .submenu-item a.nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
 
-    // Chart 2: Order Status
-    const ctx2 = document.getElementById('orderStatusChart').getContext('2d');
-    new Chart(ctx2, {
-        type: 'doughnut',
-        data: {
-            labels: orderStatusLabels || ['Đang xử lý','Hoàn tất','Đã hủy'],
-            datasets: [{
-                data: orderStatusValues || [10, 7, 3],
-                backgroundColor: ['#1e90ff', '#32cd32', '#ff6347'],
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: { position: 'bottom' }
+        /* ---------- RESPONSIVE ---------- */
+        @media (max-width: 768px) {
+            .main-content {
+                margin-left: 0;
+                padding-top: calc(var(--navbar-height) + 1rem);
+            }
+            .stats-grid, .charts {
+                grid-template-columns: 1fr;
             }
         }
-    });
-    /*]]>*/
-</script>
+    </style>
+    <link rel="stylesheet" href="../static/css/styles.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.2.0/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css"/>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.2/css/dataTables.bootstrap5.min.css"/>
+</head>
+<body>
+
+<nav th:replace="~{library/navbar :: admin-navbar}"></nav>
+
+<div class="page-wrapper">
+    <div th:replace="~{library/navbar :: admin-sidebar}"></div>
+    <main class="main-content">
+
+
+        <!-- Nếu KHÔNG phải ADMIN thì redirect về trang chủ -->
+        <div sec:authorize="!hasRole('ADMIN')">
+            <script th:inline="javascript">
+                /*<![CDATA[*/
+                const href = 'home';
+                window.location.href = /*[[@{/home}]]*/ '/' + href;
+                /*]]>*/
+            </script>
+        </div>
+
+        <div class="container">
+            <h1>Thống kê tổng quan</h1>
+            <!-- Các chỉ số -->
+            <div class="stats-grid">
+                <div class="card">
+                    <h3>Tổng người dùng</h3>
+                    <div class="value" th:text="${totalUsers}">0</div>
+                </div>
+                <div class="card">
+                    <h3>Tổng đơn hàng</h3>
+                    <div class="value" th:text="${totalOrders}">0</div>
+                </div>
+                <div class="card">
+                    <h3>Doanh thu hôm nay</h3>
+                    <div class="value" th:text="${todayRevenue}">0 VNĐ</div>
+                </div>
+                <div class="card">
+                    <h3>Khách hàng mới</h3>
+                    <div class="value" th:text="${newCustomers}">0</div>
+                </div>
+            </div>
+
+            <!-- Biểu đồ -->
+            <div class="charts">
+                <div class="chart-card">
+                    <h3>📈 Doanh thu 7 ngày gần nhất</h3>
+                    <canvas id="revenueChart"></canvas>
+                </div>
+
+                <div class="chart-card">
+                    <h3>📦 Phân bố trạng thái đơn hàng</h3>
+                    <canvas id="orderStatusChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            © 2025 - Dashboard by Banana Dev
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        const labels = [[${dayLabels}]];
+        const revenueData = [[${revenueList}]];
+        const orderStatusLabels = [[${orderStatusLabels}]];
+        const orderStatusValues = [[${orderStatusValues}]];
+
+        // Chart 1: Revenue
+        const ctx1 = document.getElementById('revenueChart').getContext('2d');
+        new Chart(ctx1, {
+            type: 'line',
+            data: {
+                labels: labels || ['T2','T3','T4','T5','T6','T7','CN'],
+                datasets: [{
+                    label: 'Doanh thu (VNĐ)',
+                    data: revenueData || [0, 0, 0, 0, 0, 0, 0],
+                    borderColor: '#1e90ff',
+                    backgroundColor: 'rgba(30,144,255,0.2)',
+                    fill: true,
+                    tension: 0.35,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#1e90ff'
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: { y: { beginAtZero: true } },
+                plugins: { legend: { display: false } }
+            }
+        });
+
+        // Chart 2: Order Status
+        const ctx2 = document.getElementById('orderStatusChart').getContext('2d');
+        new Chart(ctx2, {
+            type: 'doughnut',
+            data: {
+                labels: orderStatusLabels || ['Đang xử lý','Hoàn tất','Đã hủy'],
+                datasets: [{
+                    data: orderStatusValues || [10, 7, 3],
+                    backgroundColor: ['#1e90ff', '#32cd32', '#ff6347'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+        /*]]>*/
+    </script>
 </body>
 </html>
