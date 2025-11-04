@@ -25,7 +25,12 @@ public class PhieuGiamGiaController {
         return "view/PhieuGiamGia";
     }
 <<<<<<< HEAD
+<<<<<<< HEAD
 }
 =======
 }
+>>>>>>> main
+=======
+}
+
 >>>>>>> main
