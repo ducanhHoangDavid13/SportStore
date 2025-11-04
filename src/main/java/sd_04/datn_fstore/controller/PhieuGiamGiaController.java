@@ -25,3 +25,4 @@ public class PhieuGiamGiaController {
         return "view/PhieuGiamGia";
     }
 }
+
