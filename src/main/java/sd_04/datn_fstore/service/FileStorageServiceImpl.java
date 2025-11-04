@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 import sd_04.datn_fstore.config.FileStorageProperties;
-import sd_04.datn_fstore.service.FileStorageService;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,55 +19,50 @@ import java.util.UUID;
 
 @Service
 public class FileStorageServiceImpl implements FileStorageService {
-    private final Path rootLocation; // Đường dẫn thư mục gốc để lưu file
+    private final Path rootLocation;
 
     @Autowired
     public FileStorageServiceImpl(FileStorageProperties properties) {
-        // Lấy đường dẫn từ file properties
-        this.rootLocation = Paths.get(properties.getUploadDir());
+        this.rootLocation = Paths.get(properties.getUploadDir()).toAbsolutePath().normalize(); // Thêm normalize
     }
 
-    /**
-     * Hàm này được gọi ngay sau khi Service được tạo.
-     * Nó sẽ kiểm tra và tạo thư mục Upload nếu chưa tồn tại.
-     */
     @Override
-    @PostConstruct // Đảm bảo hàm này chạy khi khởi động
+    @PostConstruct
     public void init() {
         try {
-            Files.createDirectories(rootLocation);
-            System.out.println("Đã tạo thư mục lưu trữ: " + rootLocation.toString());
+            if (!Files.exists(rootLocation)) {
+                Files.createDirectories(rootLocation);
+                System.out.println("Đã tạo thư mục lưu trữ: " + rootLocation.toString());
+            } else {
+                System.out.println("Thư mục lưu trữ đã tồn tại: " + rootLocation.toString());
+            }
         } catch (IOException e) {
             throw new RuntimeException("Không thể khởi tạo thư mục lưu trữ file!", e);
         }
     }
 
-    /**
-     * Logic lưu file
-     */
     @Override
     public String storeFile(MultipartFile file) {
         if (file.isEmpty()) {
             throw new RuntimeException("Lỗi: File rỗng!");
         }
 
-        // 1. Chuẩn hóa tên file (loại bỏ ký tự đặc biệt)
         String originalFilename = StringUtils.cleanPath(file.getOriginalFilename());
 
-        // 2. Tạo tên file duy nhất (Rất quan trọng)
-        // Ví dụ: abc.jpg -> 123e4567-e89b-12d3-a456-426614174000_abc.jpg
+        // Kiểm tra đường dẫn có hợp lệ (ví dụ: tránh ../../)
+        if (originalFilename.contains("..")) {
+            throw new RuntimeException("Tên file chứa chuỗi ký tự không hợp lệ: " + originalFilename);
+        }
+
         String uniqueFilename = UUID.randomUUID().toString() + "_" + originalFilename;
 
         try {
-            // 3. Resolve đường dẫn lưu file
             Path destinationFile = this.rootLocation.resolve(uniqueFilename);
 
-            // 4. Copy file vào thư mục đích (ghi đè nếu đã tồn tại)
             try (InputStream inputStream = file.getInputStream()) {
                 Files.copy(inputStream, destinationFile, StandardCopyOption.REPLACE_EXISTING);
             }
 
-            // 5. Trả về tên file duy nhất đã lưu
             return uniqueFilename;
 
         } catch (IOException e) {
@@ -76,35 +70,31 @@ public class FileStorageServiceImpl implements FileStorageService {
         }
     }
 
-    /**
-     * Logic tải file
-     */
     @Override
     public Resource loadFileAsResource(String filename) {
         try {
-            Path file = rootLocation.resolve(filename);
+            Path file = rootLocation.resolve(filename).normalize();
             Resource resource = new UrlResource(file.toUri());
 
-            if (resource.exists() || resource.isReadable()) {
+            if (resource.exists() && resource.isReadable()) {
                 return resource;
             } else {
-                throw new RuntimeException("Không thể đọc file: " + filename);
+                throw new RuntimeException("Không thể đọc file: " + filename + ". File không tồn tại hoặc không đọc được.");
             }
         } catch (MalformedURLException e) {
-            throw new RuntimeException("Lỗi: " + filename, e);
+            throw new RuntimeException("Lỗi đường dẫn file: " + filename, e);
         }
     }
 
-    /**
-     * Logic xóa file
-     */
     @Override
     public void deleteFile(String filename) {
         try {
-            Path file = rootLocation.resolve(filename);
+            Path file = rootLocation.resolve(filename).normalize();
             Files.deleteIfExists(file);
         } catch (IOException e) {
-            throw new RuntimeException("Không thể xóa file: " + filename, e);
+            // Không throw exception mà chỉ ghi log, vì mục tiêu chính là xóa record DB.
+            // Nếu xóa file vật lý thất bại, DB vẫn phải được update.
+            System.err.println("Lỗi khi xóa file vật lý: " + filename + " - " + e.getMessage());
         }
     }
 }

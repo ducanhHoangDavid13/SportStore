@@ -24,4 +24,8 @@ public class PhieuGiamGiaController {
     public String hienThi() {
         return "view/PhieuGiamGia";
     }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> main
