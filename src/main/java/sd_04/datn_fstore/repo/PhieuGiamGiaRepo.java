@@ -6,15 +6,18 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository; // Thêm import này nếu cần
 import sd_04.datn_fstore.model.PhieuGiamGia;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+// Thêm @Repository nếu interface này chưa được Spring tự động nhận dạng
+// @Repository
 public interface PhieuGiamGiaRepo extends JpaRepository<PhieuGiamGia, Integer> {
 
-    @Query("SELECT p FROM PhieuGiamGia p WHERE " +
+    @Query(value = "SELECT p FROM PhieuGiamGia p WHERE " +
             // Lọc bắt buộc theo trangThai, nếu trangThai = null thì bỏ qua điều kiện này
             "(:trangThai IS NULL OR p.trangThai = :trangThai) AND " +
             // Tìm kiếm theo keyword (Mã hoặc Tên)
@@ -22,13 +25,22 @@ public interface PhieuGiamGiaRepo extends JpaRepository<PhieuGiamGia, Integer> {
             // Lọc theo ngày bắt đầu
             "(:ngayBatDau IS NULL OR p.ngayBatDau >= :ngayBatDau) AND " +
             // Lọc theo ngày kết thúc
-            "(:ngayKetThuc IS NULL OR p.ngayKetThuc <= :ngayKetThuc)")
+            "(:ngayKetThuc IS NULL OR p.ngayKetThuc <= :ngayKetThuc)",
+
+            // >>>>> PHẦN BỔ SUNG ĐỂ KHẮC PHỤC LỖI COUNT QUERY <<<<<
+            countQuery = "SELECT COUNT(p) FROM PhieuGiamGia p WHERE " +
+                    "(:trangThai IS NULL OR p.trangThai = :trangThai) AND " +
+                    "(:keyword IS NULL OR p.maPhieuGiamGia LIKE %:keyword% OR p.tenPhieuGiamGia LIKE %:keyword%) AND " +
+                    "(:ngayBatDau IS NULL OR p.ngayBatDau >= :ngayBatDau) AND " +
+                    "(:ngayKetThuc IS NULL OR p.ngayKetThuc <= :ngayKetThuc)")
     Page<PhieuGiamGia> searchAndFilter(
             @Param("trangThai") Integer trangThai,
             @Param("keyword") String keyword,
             @Param("ngayBatDau") LocalDateTime ngayBatDau,
             @Param("ngayKetThuc") LocalDateTime ngayKetThuc,
             Pageable pageable);
+
+    // CÁC HÀM KHÁC KHÔNG SỬ DỤNG PAGEABLE NÊN KHÔNG CẦN SỬA
 
     // THÊM: Phương thức tìm kiếm theo mã để kiểm tra trùng lặp
     Optional<PhieuGiamGia> findByMaPhieuGiamGia(String maPhieuGiamGia);
@@ -44,6 +56,4 @@ public interface PhieuGiamGiaRepo extends JpaRepository<PhieuGiamGia, Integer> {
      */
     @Query("SELECT p FROM PhieuGiamGia p WHERE p.trangThai = 2 AND p.ngayBatDau <= :now")
     List<PhieuGiamGia> findUpcomingPromotionsToActivate(@Param("now") LocalDateTime now);
-
-
 }

@@ -12,17 +12,29 @@ import java.util.Optional;
 
 @Repository
 public interface KhachHangRepo extends JpaRepository<KhachHang, Integer> {
-    @Query("SELECT kh FROM KhachHang kh " +
+
+    /**
+     * Truy vấn tìm kiếm và phân trang cho KhachHang.
+     * ĐÃ THÊM countQuery để khắc phục lỗi phân trang (lỗi ':keyword_1').
+     */
+    @Query(value = "SELECT kh FROM KhachHang kh " +
             "WHERE (:keyword IS NULL OR kh.maKhachHang LIKE %:keyword% OR kh.tenKhachHang LIKE %:keyword%) " +
             "AND (:sdt IS NULL OR kh.soDienThoai LIKE %:sdt%) " +
             "AND (:gioiTinh IS NULL OR kh.gioiTinh = :gioiTinh) " +
-            "AND kh.trangThai = 1")
-        // CHỈ LẤY CÁC KHÁCH HÀNG CÓ TRẠNG THÁI = 1
+            "AND kh.trangThai = 1", // Truy vấn chính
+
+            // >>>>> PHẦN BỔ SUNG ĐỂ KHẮC PHỤC LỖI COUNT QUERY <<<<<
+            countQuery = "SELECT COUNT(kh) FROM KhachHang kh " +
+                    "WHERE (:keyword IS NULL OR kh.maKhachHang LIKE %:keyword% OR kh.tenKhachHang LIKE %:keyword%) " +
+                    "AND (:sdt IS NULL OR kh.soDienThoai LIKE %:sdt%) " +
+                    "AND (:gioiTinh IS NULL OR kh.gioiTinh = :gioiTinh) " +
+                    "AND kh.trangThai = 1" // Truy vấn đếm
+    )
     Page<KhachHang> findFilteredKhachHang(
             @Param("keyword") String keyword,
             @Param("sdt") String sdt,
             @Param("gioiTinh") Boolean gioiTinh,
-            Pageable pageable);
+            Pageable pageable); // Pageable không cần @Param
 
     Optional<KhachHang> findByEmail(String email);
 }

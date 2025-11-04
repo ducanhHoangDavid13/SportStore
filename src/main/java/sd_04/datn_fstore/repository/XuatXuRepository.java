@@ -11,9 +11,18 @@ import sd_04.datn_fstore.model.XuatXu;
 @Repository
 public interface XuatXuRepository extends JpaRepository<XuatXu, Integer> {
 
-    @Query("SELECT xx FROM XuatXu xx WHERE " +
+    /**
+     * Truy vấn tìm kiếm và phân trang cho XuatXu.
+     * ĐÃ THÊM countQuery để khắc phục lỗi phân trang (lỗi ':keyword_1').
+     */
+    @Query(value = "SELECT xx FROM XuatXu xx WHERE " +
             "(:keyword IS NULL OR :keyword = '' OR xx.tenXuatXu LIKE %:keyword%) AND " +
-            "(:trangThai IS NULL OR xx.trangThai = :trangThai)")
+            "(:trangThai IS NULL OR xx.trangThai = :trangThai)",
+
+            // >>>>> PHẦN BỔ SUNG ĐỂ KHẮC PHỤC LỖI COUNT QUERY <<<<<
+            countQuery = "SELECT COUNT(xx) FROM XuatXu xx WHERE " +
+                    "(:keyword IS NULL OR :keyword = '' OR xx.tenXuatXu LIKE %:keyword%) AND " +
+                    "(:trangThai IS NULL OR xx.trangThai = :trangThai)")
     Page<XuatXu> findPaginated(Pageable pageable,
                                @Param("keyword") String keyword,
                                @Param("trangThai") Integer trangThai);

@@ -15,9 +15,9 @@ public interface SanPhamCTRepository extends JpaRepository<SanPhamChiTiet, Integ
 
     /**
      * TRUY VẤN JPQL 12 THAM SỐ HOÀN CHỈNH
-     * (Đã sửa: Bỏ tìm kiếm theo maSPCT, chỉ tìm theo tenSanPham)
+     * ĐÃ THÊM countQuery để khắc phục lỗi phân trang (lỗi ':keyword_1').
      */
-    @Query("SELECT spct FROM SanPhamChiTiet spct " +
+    @Query(value = "SELECT spct FROM SanPhamChiTiet spct " +
             "LEFT JOIN spct.sanPham sp " +
             "LEFT JOIN spct.mauSac ms " +
             "LEFT JOIN spct.kichThuoc kt " +
@@ -36,10 +36,32 @@ public interface SanPhamCTRepository extends JpaRepository<SanPhamChiTiet, Integ
             "(:minPrice IS NULL OR spct.giaTien >= :minPrice) AND " +
             "(:maxPrice IS NULL OR spct.giaTien <= :maxPrice) AND " +
             "(:trangThai IS NULL OR spct.trangThai = :trangThai) AND " +
-            // SỬA Ở ĐÂY: Bỏ spct.maSPCT
-            "(:keyword IS NULL OR :keyword = '' OR sp.tenSanPham LIKE %:keyword%)")
+            "(:keyword IS NULL OR :keyword = '' OR sp.tenSanPham LIKE %:keyword%)",
+
+            // >>>>> PHẦN BỔ SUNG ĐỂ KHẮC PHỤC LỖI COUNT QUERY <<<<<
+            countQuery = "SELECT COUNT(spct) FROM SanPhamChiTiet spct " +
+                    "LEFT JOIN spct.sanPham sp " +
+                    "LEFT JOIN spct.mauSac ms " +
+                    "LEFT JOIN spct.kichThuoc kt " +
+                    "LEFT JOIN spct.chatLieu cl " +
+                    "LEFT JOIN spct.theLoai tl " +
+                    "LEFT JOIN spct.xuatXu xx " +
+                    "LEFT JOIN spct.phanLoai pl " +
+                    "WHERE " +
+                    "(:idSanPham IS NULL OR sp.id = :idSanPham) AND " +
+                    "(:idMauSac IS NULL OR ms.id = :idMauSac) AND " +
+                    "(:idKichThuoc IS NULL OR kt.id = :idKichThuoc) AND " +
+                    "(:idChatLieu IS NULL OR cl.id = :idChatLieu) AND " +
+                    "(:idTheLoai IS NULL OR tl.id = :idTheLoai) AND " +
+                    "(:idXuatXu IS NULL OR xx.id = :idXuatXu) AND " +
+                    "(:idPhanLoai IS NULL OR pl.id = :idPhanLoai) AND " +
+                    "(:minPrice IS NULL OR spct.giaTien >= :minPrice) AND " +
+                    "(:maxPrice IS NULL OR spct.giaTien <= :maxPrice) AND " +
+                    "(:trangThai IS NULL OR spct.trangThai = :trangThai) AND " +
+                    "(:keyword IS NULL OR :keyword = '' OR sp.tenSanPham LIKE %:keyword%)")
     Page<SanPhamChiTiet> search(
-            @Param("pageable") Pageable pageable,
+            // Tên tham số Pageable không cần @Param, nhưng tôi giữ lại để thống nhất
+            Pageable pageable,
             @Param("idSanPham") Integer idSanPham,
             @Param("idKichThuoc") Integer idKichThuoc,
             @Param("idChatLieu") Integer idChatLieu,

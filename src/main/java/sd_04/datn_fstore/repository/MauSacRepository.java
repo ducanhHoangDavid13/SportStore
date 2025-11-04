@@ -14,13 +14,19 @@ public interface MauSacRepository extends JpaRepository<MauSac, Integer> {
     /**
      * Câu lệnh Query: Tìm kiếm màu sắc (theo mã hoặc tên) VÀ lọc theo trạng thái,
      * kết quả trả về có phân trang (Pageable).
-     * (Giả định model MauSac có các trường: maMauSac, tenMauSac, trangThai)
+     * ĐÃ THÊM countQuery để khắc phục lỗi phân trang (lỗi ':keyword_1').
      */
-    @Query("SELECT ms FROM MauSac ms WHERE " +
+    @Query(value = "SELECT ms FROM MauSac ms WHERE " +
             "(:keyword IS NULL OR :keyword = '' OR ms.tenMauSac LIKE %:keyword% OR ms.maMau LIKE %:keyword%) AND " +
-            "(:trangThai IS NULL OR ms.trangThai = :trangThai)")
+            "(:trangThai IS NULL OR ms.trangThai = :trangThai)",
+
+            // >>>>> PHẦN BỔ SUNG ĐỂ KHẮC PHỤC LỖI COUNT QUERY <<<<<
+            countQuery = "SELECT COUNT(ms) FROM MauSac ms WHERE " +
+                    "(:keyword IS NULL OR :keyword = '' OR ms.tenMauSac LIKE %:keyword% OR ms.maMau LIKE %:keyword%) AND " +
+                    "(:trangThai IS NULL OR ms.trangThai = :trangThai)")
     Page<MauSac> findPaginated(Pageable pageable,
                                @Param("keyword") String keyword,
                                @Param("trangThai") Integer trangThai);
+
     MauSac findByMaMau(String maMau);
 }

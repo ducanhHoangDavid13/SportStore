@@ -23,14 +23,6 @@ public class PhieuGiamGiaController {
     @GetMapping("/hien-thi")
     public String hienThi() {
         return "view/PhieuGiamGia";
-    }
-<<<<<<< HEAD
-<<<<<<< HEAD
-}
-=======
-}
->>>>>>> main
-=======
-}
 
->>>>>>> main
+    }
+}

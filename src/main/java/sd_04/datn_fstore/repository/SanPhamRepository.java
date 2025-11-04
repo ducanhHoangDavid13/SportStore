@@ -16,18 +16,23 @@ public interface SanPhamRepository extends JpaRepository<SanPham, Integer> {
     /**
      * Câu lệnh Query 1: Tìm kiếm sản phẩm (theo mã hoặc tên) VÀ lọc theo trạng thái,
      * kết quả trả về có phân trang (Pageable).
-     * Đây là câu lệnh cốt lõi cho trang danh sách sản phẩm.
+     * ĐÃ THÊM countQuery để khắc phục lỗi Hibernate/JPA khi tự động tạo truy vấn đếm phức tạp.
      */
-    @Query("SELECT sp FROM SanPham sp WHERE " +
+    @Query(value = "SELECT sp FROM SanPham sp WHERE " +
             "(:keyword IS NULL OR :keyword = '' OR sp.tenSanPham LIKE %:keyword% OR sp.maSanPham LIKE %:keyword%) AND " +
-            "(:trangThai IS NULL OR sp.trangThai = :trangThai)")
+            "(:trangThai IS NULL OR sp.trangThai = :trangThai)",
+
+            // >>>>> PHẦN BỔ SUNG ĐỂ KHẮC PHỤC LỖI :keyword_1 <<<<<
+            countQuery = "SELECT COUNT(sp) FROM SanPham sp WHERE " +
+                    "(:keyword IS NULL OR :keyword = '' OR sp.tenSanPham LIKE %:keyword% OR sp.maSanPham LIKE %:keyword%) AND " +
+                    "(:trangThai IS NULL OR sp.trangThai = :trangThai)")
     Page<SanPham> findPaginated(Pageable pageable,
                                 @Param("keyword") String keyword,
                                 @Param("trangThai") Integer trangThai);
 
     /**
      * Câu lệnh Query 2: Tìm một sản phẩm chính xác bằng mã sản phẩm (maSanPham).
-     * Dùng để kiểm tra xem mã SP đã tồn tại hay chưa khi thêm mới.
+     * Không cần sửa, vì đây là truy vấn đơn giản, không cần phân trang.
      */
     Optional<SanPham> findByMaSanPham(String maSanPham);
-} 
+}
