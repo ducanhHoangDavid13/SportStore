@@ -5,18 +5,18 @@ import java.util.List;
 import java.util.Optional;
 
 public interface HinhAnhService {
-    /**
-     * Lấy tất cả hình ảnh (dùng cho dropdown Khóa phụ)
-     * @return List<HinhAnh>
-     */
+
     List<HinhAnh> getAll();
 
-    /**
-     * Lưu một đối tượng Hình ảnh (thường sau khi file đã được upload)
-     * @param hinhAnh Đối tượng HinhAnh
-     * @return HinhAnh đã lưu
-     */
+    List<HinhAnh> getBySanPhamId(Integer sanPhamId);
+
+    Optional<HinhAnh> getAvatar(Integer sanPhamId);
+
+    Optional<HinhAnh> findById(Integer id);
+
     HinhAnh save(HinhAnh hinhAnh);
 
-    // Có thể thêm các hàm khác như delete, findBySanPhamId, v.v.
+    void deleteById(Integer id); // <-- SỬA TÊN PHƯƠNG THỨC Ở ĐÂY
+
+    void deleteBySanPham(SanPham sanPham);
 }

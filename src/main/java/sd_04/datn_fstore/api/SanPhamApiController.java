@@ -8,11 +8,17 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import sd_04.datn_fstore.model.SanPham;
 import sd_04.datn_fstore.repository.SanPhamRepository;
+import sd_04.datn_fstore.service.FileStorageService;
+import sd_04.datn_fstore.service.HinhAnhService;
 import sd_04.datn_fstore.service.SanPhamService;
+import com.fasterxml.jackson.databind.ObjectMapper; // <-- Sửa lỗi "Cannot resolve symbol ObjectMapper"
+import sd_04.datn_fstore.model.HinhAnh; // <-- Sửa lỗi "Cannot resolve symbol HinhAnh"
 
-import java.util.Date;
+import java.io.IOException;
+import java.util.Date; // <-- Sửa lỗi Date
 import java.util.List;
 import java.util.Optional;
 
@@ -25,6 +31,8 @@ public class SanPhamApiController {
 
     private final SanPhamService sanPhamService;
     private  final SanPhamRepository sanPhamRepository;
+    private final FileStorageService fileStorageService; // <-- CẦN CÓ
+    private final HinhAnhService hinhAnhService;
 
     /**
      * API: Lấy danh sách sản phẩm (phân trang, tìm kiếm, lọc)
@@ -172,7 +180,49 @@ public class SanPhamApiController {
                     .body("Lỗi khi cập nhật sản phẩm.");
         }
     }
+    // Trong SanPhamApiController.java
 
+    // Trong SanPhamApiController.java (CẦN THÊM IMPORT: import com.fasterxml.jackson.databind.ObjectMapper;)
+// CẦN THÊM THUỘC TÍNH: private final FileStorageService fileStorageService; (VÀ inject nó qua constructor)
+// CẦN THÊM THUỘC TÍNH: private final HinhAnhService hinhAnhService; (VÀ inject nó qua constructor)
+
+    @PostMapping("/create-with-image")
+    public ResponseEntity<?> createWithImage(
+            @RequestParam("sanPhamData") String sanPhamDataJson,
+            @RequestParam(value = "file", required = false) MultipartFile file) throws IOException { // Thêm throws IOException
+
+        // Khởi tạo ObjectMapper ngay trong hàm (Nếu không inject)
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        try {
+            // 1. Chuyển đổi JSON string thành đối tượng SanPham Entity
+            SanPham sanPham = objectMapper.readValue(sanPhamDataJson, SanPham.class); // <-- ĐÃ FIX LỖI OBJECT MAPPER
+
+            // 2. Thiết lập Ngày tạo và Lưu sản phẩm
+            sanPham.setNgayTao(new Date());
+            SanPham savedSanPham = sanPhamService.save(sanPham);
+
+            // 3. Nếu có file, lưu file và tạo Entity HinhAnh
+            if (file != null && !file.isEmpty()) { // <-- ĐÃ FIX LỖI file.isEmpty()
+                String fileName = fileStorageService.storeFile(file); // <-- ĐÃ FIX LỖI fileStorageService
+
+                HinhAnh hinhAnh = new HinhAnh(); // <-- ĐÃ FIX LỖI HinhAnh
+                hinhAnh.setTenHinhAnh(fileName);
+                hinhAnh.setTrangThai(1); // Ảnh đại diện ban đầu
+                hinhAnh.setSanPham(savedSanPham); // Gán khóa ngoại SP
+                hinhAnhService.save(hinhAnh); // <-- ĐÃ FIX LỖI TÊN PHƯƠNG THỨC SERVICE
+            }
+
+            // 4. Phải có dòng kết thúc khối TRY
+            return ResponseEntity.status(HttpStatus.CREATED).body(savedSanPham);
+
+        } catch (Exception e) {
+            log.error("Lỗi khi thêm sản phẩm và ảnh: ", e);
+            // Phải có dòng kết thúc khối CATCH
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Lỗi khi thêm mới sản phẩm và hình ảnh: " + e.getMessage());
+        }
+    }
     /**
      * API: Xóa 1 sản phẩm
      * ... (Giữ nguyên)
