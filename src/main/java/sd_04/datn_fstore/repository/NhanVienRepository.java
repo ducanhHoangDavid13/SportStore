@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 import sd_04.datn_fstore.model.NhanVien;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface NhanVienRepository extends JpaRepository<NhanVien, Integer> {
@@ -16,4 +17,6 @@ public interface NhanVienRepository extends JpaRepository<NhanVien, Integer> {
             "(:vaiTro IS NULL OR nv.vaiTro = :vaiTro) AND " +
             "(:trangThai IS NULL OR nv.trangThai = :trangThai)")
     List<NhanVien> search(String keyword, String vaiTro, Integer trangThai);
+
+    Optional<NhanVien> findByEmail(String  email);
 }

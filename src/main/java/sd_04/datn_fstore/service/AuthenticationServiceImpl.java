@@ -1,4 +1,4 @@
-package sd_04.datn_fstore.service;
+package sd_04.datn_fstore.service.impl;
 
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -7,8 +7,10 @@ import org.springframework.stereotype.Service;
 import sd_04.datn_fstore.enums.RoleEnum;
 import sd_04.datn_fstore.model.Account;
 import sd_04.datn_fstore.model.KhachHang;
+import sd_04.datn_fstore.model.NhanVien;
 import sd_04.datn_fstore.repo.KhachHangRepo;
 import sd_04.datn_fstore.repository.AccountRepository;
+import sd_04.datn_fstore.repository.NhanVienRepository;
 
 import java.util.Optional;
 
@@ -17,6 +19,7 @@ import java.util.Optional;
 public class AuthenticationServiceImpl {
 
     private final KhachHangRepo khachHangRepo;
+    private final NhanVienRepository nhanVienRepository;
     private final AccountRepository accountRepository;
     private final PasswordEncoder passwordEncoder;
 
@@ -37,11 +40,24 @@ public class AuthenticationServiceImpl {
                     .build());
         }
 
-        Optional<KhachHang> khachHang = khachHangRepo.findByEmail(email);
-        if (khachHang.isEmpty()) {
-            KhachHang user = new KhachHang();
-            user.setEmail(email);
-            khachHangRepo.save(user);
+        if(RoleEnum.ADMIN == roleEnum){
+            Optional<NhanVien> nhanVien = nhanVienRepository.findByEmail(email);
+            if (nhanVien.isEmpty()) {
+                NhanVien user = new NhanVien();
+                user.setTenNhanVien(email);
+                user.setEmail(email);
+                nhanVienRepository.save(user);
+            }
+        }
+
+        if(RoleEnum.USDE == roleEnum){
+            Optional<KhachHang> khachHang = khachHangRepo.findByEmail(email);
+            if (khachHang.isEmpty()) {
+                KhachHang user = new KhachHang();
+                user.setTenKhachHang(email);
+                user.setEmail(email);
+                khachHangRepo.save(user);
+            }
         }
     }
 }
