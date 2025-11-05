@@ -6,8 +6,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import sd_04.datn_fstore.model.KhachHang;
-import sd_04.datn_fstore.repo.KhachHangRepo;
+import sd_04.datn_fstore.repository.KhachHangRepo;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -56,4 +57,18 @@ public class KhachhangService {
         }
     }
 
+    public List<KhachHang> findAll() {
+        return khachHangRepo.findAll();
+    }
+    public List<KhachHang> searchCustomerByNameOrPhone(String keyword) {
+        // Chuẩn hóa keyword
+        String searchKeyword = (keyword != null && !keyword.trim().isEmpty()) ? "%" + keyword.trim() + "%" : null;
+
+        if (searchKeyword == null) {
+            return khachHangRepo.findAll(); // Trả về tất cả nếu keyword rỗng
+        }
+
+        // Bạn cần thêm hàm này vào file KhachHangRepo.java
+        return khachHangRepo.findByTenKhachHangLikeOrSoDienThoaiLike(searchKeyword, searchKeyword);
+    }
 }

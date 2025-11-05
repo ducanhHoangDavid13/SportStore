@@ -4,39 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <title>Quản lý Xuất Xứ</title>
-  <style>
-    :root {
-      --sidebar-width: 260px;
-      --navbar-height: 60px;
-      --primary-color: #007bff;
-      --secondary-bg: #2b3543;
-      --text-light: #f8f9fa;
-      --active-bg: #0056b3;
-    }
-    body {
-      overflow-x: hidden;
-      background-color: #f0f2f5;
-    }
-    .sidebar-wrapper {
-      width: var(--sidebar-width);
-      position: fixed;
-      top: var(--navbar-height);
-      left: 0; bottom: 0;
-      overflow-y: auto;
-      z-index: 1000;
-      background-color: var(--secondary-bg);
-      transition: all 0.3s;
-    }
-    .main-content {
-      margin-left: var(--sidebar-width);
-      padding: 1.5rem;
-      padding-top: calc(var(--navbar-height) + 1.5rem);
-      min-height: 100vh;
-      transition: margin-left 0.3s;
-    }
-    /* ... (Các style khác của bạn được giữ nguyên) ... */
-  </style>
-
+  <link rel="stylesheet" th:href="@{/css/styles.css}" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.2.0/css/bootstrap.min.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" />
@@ -455,6 +423,22 @@
 
     // --- KHỞI TẠO ---
     loadData();
+  });
+  document.addEventListener("DOMContentLoaded", function() {
+
+    // 1. Tìm nút bấm
+    const toggleButton = document.getElementById('sidebarToggleBtn');
+
+    if (toggleButton) {
+      // 2. Thêm sự kiện click
+      toggleButton.addEventListener('click', function(e) {
+        e.preventDefault(); // Ngăn trình duyệt nhảy link
+
+        // 3. Thêm/Xóa class 'sidebar-toggled' trên thẻ <body>
+        document.body.classList.toggle('sidebar-toggled');
+      });
+    }
+
   });
 </script>
 </body>

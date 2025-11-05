@@ -3,92 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Quản lý Chi tiết Sản phẩm</title>
-  <style>
-    :root {
-      --sidebar-width: 260px;
-      --navbar-height: 60px;
-      --primary-color: #007bff;
-      --secondary-bg: #2b3543;
-      --text-light: #f8f9fa;
-      --active-bg: #0056b3;
-    }
-
-    body {
-
-      overflow-x: hidden;
-      background-color: #f0f2f5;
-    }
-
-
-    .sidebar-wrapper {
-      width: var(--sidebar-width);
-      position: fixed; /* Đã đúng */
-      top: var(--navbar-height); /* Đã đúng: Bắt đầu từ dưới navbar */
-      left: 0; bottom: 0; /* Đã đúng: Kéo dài từ trên xuống dưới */
-      overflow-y: auto; /* Đã đúng: Cho phép cuộn bên trong sidebar */
-      z-index: 1000;
-      background-color: var(--secondary-bg);
-      transition: all 0.3s;
-    }
-
-    .main-content {
-      margin-left: var(--sidebar-width);
-      padding: 1.5rem;
-      /* Điều chỉnh padding-top để tránh bị che bởi navbar cố định */
-      padding-top: calc(var(--navbar-height) + 1.5rem);
-      min-height: 100vh; /* Đảm bảo chiều cao tối thiểu cho nội dung */
-
-      transition: margin-left 0.3s;
-      /* Bỏ height và overflow-y: auto để cho phép toàn bộ trang cuộn */
-    }
-
-
-    .nav-link {
-      color: #b8c7e0;
-      padding: 0.75rem 1rem;
-      margin-bottom: 0.25rem;
-      transition: all 0.2s;
-      display: flex;
-      align-items: flex-start;
-      line-height: 1.2;
-      text-decoration: none;
-      cursor: pointer;
-    }
-    .nav-link:hover {
-      color: var(--text-light) !important;
-      background-color: rgba(255, 255, 255, 0.1);
-      border-radius: 5px;
-    }
-    .nav-link.active {
-      color: var(--text-light) !important;
-      background-color: var(--primary-color);
-      border-radius: 5px;
-      font-weight: 600;
-    }
-
-    .menu-text {
-      font-size: 1rem;
-      white-space: normal;
-    }
-    .nav-link i.fa-fw {
-      margin-top: 0.15rem;
-    }
-    .nav-link .float-end {
-      margin-top: 0.3rem;
-      transition: transform 0.3s;
-    }
-
-    .submenu-item a.nav-link {
-      padding-left: 2.5rem;
-      font-size: 0.9rem;
-      color: #d1d9e7;
-      align-items: center;
-    }
-    .submenu-item a.nav-link:hover {
-      background-color: rgba(255, 255, 255, 0.05);
-    }
-  </style>
-  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" th:href="@{/css/styles.css}" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.2.0/css/bootstrap.min.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" />
@@ -471,6 +386,22 @@
       toastr.error('Đã xảy ra lỗi khi xóa.');
     }
   }
+  document.addEventListener("DOMContentLoaded", function() {
+
+    // 1. Tìm nút bấm
+    const toggleButton = document.getElementById('sidebarToggleBtn');
+
+    if (toggleButton) {
+      // 2. Thêm sự kiện click
+      toggleButton.addEventListener('click', function(e) {
+        e.preventDefault(); // Ngăn trình duyệt nhảy link
+
+        // 3. Thêm/Xóa class 'sidebar-toggled' trên thẻ <body>
+        document.body.classList.toggle('sidebar-toggled');
+      });
+    }
+
+  });
 
   // (Bỏ đoạn code DOMContentLoaded cũ vì nó dùng cho Thymeleaf Form)
 </script>

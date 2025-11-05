@@ -13,13 +13,17 @@ public interface KichThuocRepository extends JpaRepository<KichThuoc, Integer> {
 
     /**
      * Tìm kiếm và phân trang theo keyword (chỉ theo tên) và trạng thái.
+     * ĐÃ THÊM countQuery để khắc phục lỗi phân trang (lỗi ':keyword_1')
      */
-    @Query("SELECT kt FROM KichThuoc kt WHERE " +
+    @Query(value = "SELECT kt FROM KichThuoc kt WHERE " +
             "(:keyword IS NULL OR :keyword = '' OR kt.tenKichThuoc LIKE %:keyword%) AND " +
-            "(:trangThai IS NULL OR kt.trangThai = :trangThai)")
+            "(:trangThai IS NULL OR kt.trangThai = :trangThai)",
+
+            // >>>>> PHẦN BỔ SUNG ĐỂ KHẮC PHỤC LỖI COUNT QUERY <<<<<
+            countQuery = "SELECT COUNT(kt) FROM KichThuoc kt WHERE " +
+                    "(:keyword IS NULL OR :keyword = '' OR kt.tenKichThuoc LIKE %:keyword%) AND " +
+                    "(:trangThai IS NULL OR kt.trangThai = :trangThai)")
     Page<KichThuoc> findPaginated(Pageable pageable,
                                   @Param("keyword") String keyword,
                                   @Param("trangThai") Integer trangThai);
-
-    // Đã loại bỏ phương thức findByMaKichThuoc
 }
