@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 import sd_04.datn_fstore.model.SanPhamChiTiet;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Repository
 public interface SanPhamCTRepository extends JpaRepository<SanPhamChiTiet, Integer> {
@@ -74,4 +75,6 @@ public interface SanPhamCTRepository extends JpaRepository<SanPhamChiTiet, Integ
             @Param("trangThai") Integer trangThai,
             @Param("keyword") String keyword
     );
+    List<SanPhamChiTiet> findAllByTrangThaiAndSoLuongGreaterThan(Integer trangThai, Integer soLuong);
+
 }

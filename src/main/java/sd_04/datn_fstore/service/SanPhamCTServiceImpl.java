@@ -79,4 +79,9 @@ public class SanPhamCTServiceImpl implements SanPhamCTService {
                 keyword
         );
     }
+    @Override
+    public List<SanPhamChiTiet> getAvailableProducts() {
+        // Gọi Repository, đây là nơi logic thuộc về
+        return sanPhamChiTietRepository.findAllByTrangThaiAndSoLuongGreaterThan(1, 0);
+    }
 }

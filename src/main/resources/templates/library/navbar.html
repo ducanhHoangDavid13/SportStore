@@ -8,7 +8,13 @@
 
 <!-- NAVBAR FRAGMENT -->
 <nav th:fragment="admin-navbar" class="navbar-admin navbar navbar-expand-lg fixed-top bg-warning">
+
     <div class="container-fluid ">
+        <a class="nav-link text-dark" href="#" id="sidebarToggleBtn" style="font-size: 1.25rem; margin-left: 10px;">
+            <i class="fas fa-bars"></i>
+        </a>
+        <ul class="navbar-nav d-flex flex-row align-items-center ms-auto">
+        </ul>
         <ul class="navbar-nav d-flex flex-row align-items-center ms-auto">
             <!--      <li class="nav-item me-3">-->
             <!--        &lt;!&ndash; Có thể thêm thông báo, tin nhắn ở đây &ndash;&gt;-->
@@ -48,7 +54,7 @@
             </a>
         </li>
         <li class="nav-item mb-1">
-            <a class="nav-link" th:href="@{/admin/sale-pos}">
+            <a class="nav-link" th:href="@{/admin/ban-hang}">
                 <i class="fas fa-cash-register fa-fw me-2"></i> <span class="menu-text">Bán hàng</span>
             </a>
         </li>

@@ -10,6 +10,7 @@ import sd_04.datn_fstore.model.SanPhamChiTiet;
 import sd_04.datn_fstore.service.SanPhamCTService;
 import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -127,5 +128,10 @@ public class SanPhamChiTietApiController {
             return ResponseEntity.status(HttpStatus.CONFLICT) // Dùng 409 cho lỗi khóa ngoại
                     .body("Không thể xóa biến thể này vì đang được sử dụng.");
         }
+    }
+    @GetMapping("/available")
+    public List<SanPhamChiTiet> getAvailableProducts() {
+        // SỬA LỖI: Gọi Service thay vì Repository
+        return sanPhamCTService.getAvailableProducts();
     }
 }

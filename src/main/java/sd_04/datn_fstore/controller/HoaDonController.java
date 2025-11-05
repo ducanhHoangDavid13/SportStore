@@ -1,73 +1,75 @@
-package sd_04.datn_fstore.controller;
+package sd_04.datn_fstore.controller; // Gói controller admin của bạn
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import sd_04.datn_fstore.model.HoaDon;
+import sd_04.datn_fstore.service.HoaDonService; // Dùng Service Admin
 
-import sd_04.datn_fstore.service.HoaDonService;
-
-
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
-@RestController
-@RequestMapping("/api/hoadon")
-@CrossOrigin("*")
+@Controller
+@RequestMapping("/admin/hoa-don") // Đường dẫn cho trang Admin
 @RequiredArgsConstructor
 public class HoaDonController {
 
     private final HoaDonService hoaDonService;
 
-    // ✅ Lấy toàn bộ hóa đơn
-    @GetMapping("/list")
-    public ResponseEntity<List<HoaDon>> getAll() {
-        return ResponseEntity.ok(hoaDonService.getAll());
+    /**
+     * Endpoint để hiển thị trang Danh sách Hóa đơn (phân trang, lọc)
+     */
+    @GetMapping("")
+    public String hienThiDanhSach(Model model,
+                                  @PageableDefault(size = 10) Pageable pageable,
+                                  @RequestParam(required = false) List<Integer> trangThaiList,
+                                  @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime ngayBatDau,
+                                  @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime ngayKetThuc,
+                                  @RequestParam(required = false) String keyword) {
+
+        // Gọi hàm search từ HoaDonService
+        Page<HoaDon> hoaDonPage = hoaDonService.search(
+                pageable, trangThaiList, ngayBatDau, ngayKetThuc, keyword
+        );
+
+        model.addAttribute("hoaDonPage", hoaDonPage);
+        // Lưu lại các bộ lọc để hiển thị trên input
+        model.addAttribute("trangThaiList", trangThaiList);
+        model.addAttribute("ngayBatDau", ngayBatDau);
+        model.addAttribute("ngayKetThuc", ngayKetThuc);
+        model.addAttribute("keyword", keyword);
+
+        // Trả về tên file Thymeleaf (Khớp với cấu trúc file của bạn)
+        return "view/admin/hoaDonView";
     }
 
-    // ✅ Lấy hóa đơn theo ID
-    @GetMapping("/{id}")
-    public ResponseEntity<?> getById(@PathVariable Integer id) {
-        Optional<HoaDon> hoaDon = hoaDonService.getById(id);
-        return hoaDon.<ResponseEntity<?>>map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
-    }
+    /**
+     * Endpoint để xử lý các nút bấm "Xác nhận", "Giao hàng", "Hủy"
+     */
+    @PostMapping("/update-status")
+    public String updateStatus(
+            @RequestParam("hoaDonId") Integer hoaDonId,
+            @RequestParam("newTrangThai") Integer newTrangThai,
+            RedirectAttributes redirectAttributes) {
 
-    // ✅ Lọc theo trạng thái
-    @GetMapping("/trangthai")
-    public ResponseEntity<List<HoaDon>> getByTrangThai(@RequestParam Integer trangThai) {
-        return ResponseEntity.ok(hoaDonService.getByTrangThai(trangThai));
-    }
+        try {
+            // Gọi hàm nghiệp vụ (đã bao gồm logic hoàn kho)
+            hoaDonService.updateTrangThai(hoaDonId, newTrangThai);
+            redirectAttributes.addFlashAttribute("message", "Cập nhật trạng thái thành công!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Đã xảy ra lỗi: " + e.getMessage());
+        }
 
-    // ✅ Lọc theo khoảng thời gian
-    @GetMapping("/date")
-    public ResponseEntity<List<HoaDon>> getByDate(
-            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date start,
-            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date end) {
-        return ResponseEntity.ok(hoaDonService.getByDateRange(start, end));
+        // Quay trở lại trang danh sách hóa đơn
+        return "redirect:/admin/hoa-don";
     }
-
-    // ✅ Thêm mới hóa đơn
-    @PostMapping("/add")
-    public ResponseEntity<HoaDon> add(@RequestBody HoaDon hoaDon) {
-        return ResponseEntity.ok(hoaDonService.add(hoaDon));
-    }
-
-    // ✅ Cập nhật hóa đơn
-    @PutMapping("/update/{id}")
-    public ResponseEntity<HoaDon> update(@PathVariable Integer id, @RequestBody HoaDon hoaDon) {
-        return ResponseEntity.ok(hoaDonService.update(id, hoaDon));
-    }
-
-    // ✅ Xóa hóa đơn
-    @DeleteMapping("/delete/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Integer id) {
-        hoaDonService.delete(id);
-        return ResponseEntity.noContent().build();
-    }
-
 }
-
-

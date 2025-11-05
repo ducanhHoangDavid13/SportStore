@@ -1,4 +1,4 @@
-package sd_04.datn_fstore.repo;
+package sd_04.datn_fstore.repository;
 
 import sd_04.datn_fstore.model.DiaChi;
 import org.springframework.data.jpa.repository.JpaRepository;

@@ -8,7 +8,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
-import java.util.Date;
+import java.time.LocalDateTime;
+// import java.util.Date; // Bỏ
 import java.util.List;
 
 @Data
@@ -26,9 +27,9 @@ public class HoaDon {
     @Column(name = "maHoaDon", length = 100)
     private String maHoaDon;
 
-    @Temporal(TemporalType.TIMESTAMP)
+    // @Temporal(TemporalType.TIMESTAMP) // Bỏ annotation này, không cần cho LocalDateTime
     @Column(name = "ngayTao")
-    private Date ngayTao;
+    private LocalDateTime ngayTao;
 
     @Column(name = "tongTien", precision = 18, scale = 2)
     private BigDecimal tongTien;
@@ -45,31 +46,33 @@ public class HoaDon {
     @Column(name = "hinhThucBanHang")
     private Integer hinhThucBanHang;
 
-    // 🔹 Liên kết tới Nhân viên
+    @Column(name = "tien_giam_gia")
+    private BigDecimal tienGiamGia;
+
+    @Column(name = "tong_tien_sau_giam")
+    private BigDecimal tongTienSauGiam;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "idNhanVien")
     @JsonIgnoreProperties({"hoaDons", "hibernateLazyInitializer", "handler"})
     private NhanVien nhanVien;
 
-    // 🔹 Liên kết tới Khách hàng
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "idKhachHang")
     @JsonIgnoreProperties({"hoaDons", "hibernateLazyInitializer", "handler"})
     private KhachHang khachHang;
 
-    // 🔹 Liên kết tới Phiếu giảm giá
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "idPhieuGiamGia")
     @JsonIgnoreProperties({"hoaDons", "hibernateLazyInitializer", "handler"})
     private PhieuGiamGia phieuGiamGia;
 
-    // 🔹 Một hóa đơn có nhiều giỏ hàng
-    @OneToMany(mappedBy = "hoaDon", fetch = FetchType.LAZY)
-    @JsonIgnore // 🧩 ẩn danh sách giỏ hàng để tránh vòng lặp và dữ liệu nặng
-    private List<GioHang> gioHangs;
+    // ----- XÓA LIÊN KẾT SAI LOGIC TỚI GIỎ HÀNG -----
+    // @OneToMany(mappedBy = "hoaDon", fetch = FetchType.LAZY)
+    // @JsonIgnore
+    // private List<GioHang> gioHangs; // <-- XÓA CÁI NÀY
 
-    // 🔹 Một hóa đơn có nhiều chi tiết hóa đơn
     @OneToMany(mappedBy = "hoaDon", fetch = FetchType.LAZY)
-    @JsonIgnore // 🧩 tránh vòng lặp và lỗi serialization
+    @JsonIgnore
     private List<HoaDonChiTiet> hoaDonChiTiets;
 }

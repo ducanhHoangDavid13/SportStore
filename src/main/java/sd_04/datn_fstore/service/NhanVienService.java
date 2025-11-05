@@ -5,6 +5,11 @@ import org.springframework.stereotype.Service;
 import sd_04.datn_fstore.model.NhanVien;
 import sd_04.datn_fstore.repository.NhanVienRepository;
 
+// 1. Thêm import cho Page và Pageable
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
+// import java.util.List; // (Không cần dùng List cho getAll nữa)
 import java.util.List;
 import java.util.Optional;
 
@@ -13,16 +18,24 @@ public class NhanVienService {
     @Autowired
     private NhanVienRepository nvrp;
 
-    public List<NhanVien> getAll() {
-        return nvrp.findAll();
-    }
+    // 2. XÓA HÀM getAll()
+    // Hàm này không hiệu quả, hãy dùng search() thay thế
+    // public List<NhanVien> getAll() {
+    //    return nvrp.findAll();
+    // }
 
     public Optional<NhanVien> getById(Integer id) {
         return nvrp.findById(id);
     }
-
+    public List<NhanVien> getAll() {
+        return nvrp.findAll();
+    }
     public NhanVien create(NhanVien nv) {
         return nvrp.save(nv);
+    }
+    public Optional<NhanVien> findByEmail(String email) {
+        // Gọi hàm mới mà bạn vừa thêm vào Repository
+        return nvrp.findByEmail(email);
     }
 
     public NhanVien update(Integer id, NhanVien nv) {
@@ -37,7 +50,10 @@ public class NhanVienService {
         nvrp.deleteById(id);
     }
 
-    public List<NhanVien> search(String keyword, String vaiTro, Integer trangThai) {
-        return nvrp.search(keyword, vaiTro, trangThai);
+    // 3. SỬA LẠI HOÀN TOÀN HÀM SEARCH
+    // Phải nhận Pageable và trả về Page
+    public Page<NhanVien> search(Pageable pageable, String keyword, String vaiTro, Integer trangThai) {
+        // Gửi Pageable (tham số đầu tiên) vào Repository
+        return nvrp.search(pageable, keyword, vaiTro, trangThai);
     }
 }

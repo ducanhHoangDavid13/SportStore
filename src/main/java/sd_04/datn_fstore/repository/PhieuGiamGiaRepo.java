@@ -1,4 +1,4 @@
-package sd_04.datn_fstore.repo;
+package sd_04.datn_fstore.repository;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -6,7 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository; // Thêm import này nếu cần
 import sd_04.datn_fstore.model.PhieuGiamGia;
 
 import java.time.LocalDateTime;
@@ -56,4 +55,5 @@ public interface PhieuGiamGiaRepo extends JpaRepository<PhieuGiamGia, Integer> {
      */
     @Query("SELECT p FROM PhieuGiamGia p WHERE p.trangThai = 2 AND p.ngayBatDau <= :now")
     List<PhieuGiamGia> findUpcomingPromotionsToActivate(@Param("now") LocalDateTime now);
+
 }

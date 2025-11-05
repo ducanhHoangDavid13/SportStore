@@ -8,7 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import sd_04.datn_fstore.model.PhieuGiamGia;
-import sd_04.datn_fstore.repo.PhieuGiamGiaRepo;
+import sd_04.datn_fstore.repository.PhieuGiamGiaRepo;
 
 
 import java.time.LocalDateTime;

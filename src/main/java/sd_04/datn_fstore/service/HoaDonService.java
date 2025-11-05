@@ -1,49 +1,28 @@
 package sd_04.datn_fstore.service;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import sd_04.datn_fstore.model.HoaDon;
-import sd_04.datn_fstore.repository.HoaDonRepository;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-@Service
-@RequiredArgsConstructor
-public class HoaDonService {
+public interface HoaDonService {
 
-    private final HoaDonRepository hoaDonRepository;
+    /**
+     * Hàm tìm kiếm phân trang và lọc theo nhiều điều kiện cho Admin
+     */
+    Page<HoaDon> search(Pageable pageable, List<Integer> trangThaiList,
+                        LocalDateTime ngayBatDau, LocalDateTime ngayKetThuc, String keyword);
 
-    public List<HoaDon> getAll() {
-        return hoaDonRepository.findAll();
-    }
+    Optional<HoaDon> getById(Integer id);
 
-    public Optional<HoaDon> getById(Integer id) {
-        return hoaDonRepository.findById(id);
-    }
+    HoaDon add(HoaDon hoaDon);
 
-    public HoaDon add(HoaDon hoaDon) {
-        if (hoaDon.getNgayTao() == null) {
-            hoaDon.setNgayTao(new Date());
-        }
-        return hoaDonRepository.save(hoaDon);
-    }
-
-    public HoaDon update(Integer id, HoaDon hoaDon) {
-        hoaDon.setId(id);
-        return hoaDonRepository.save(hoaDon);
-    }
-
-    public void delete(Integer id) {
-        hoaDonRepository.deleteById(id);
-    }
-
-    public List<HoaDon> getByTrangThai(Integer trangThai) {
-        return hoaDonRepository.findByTrangThai(trangThai);
-    }
-
-    public List<HoaDon> getByDateRange(Date start, Date end) {
-        return hoaDonRepository.findByNgayTaoBetween(start, end);
-    }
+    /**
+     * Hàm quan trọng: Xử lý logic nghiệp vụ khi thay đổi trạng thái
+     * (Ví dụ: Hủy đơn thì phải hoàn kho)
+     */
+    void updateTrangThai(Integer hoaDonId, Integer newTrangThai);
 }

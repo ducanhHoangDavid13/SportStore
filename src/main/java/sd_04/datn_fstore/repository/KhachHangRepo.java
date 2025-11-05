@@ -1,4 +1,4 @@
-package sd_04.datn_fstore.repo;
+package sd_04.datn_fstore.repository;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import sd_04.datn_fstore.model.KhachHang;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -37,4 +38,5 @@ public interface KhachHangRepo extends JpaRepository<KhachHang, Integer> {
             Pageable pageable); // Pageable không cần @Param
 
     Optional<KhachHang> findByEmail(String email);
+    List<KhachHang> findByTenKhachHangLikeOrSoDienThoaiLike(String tenKhachHang, String soDienThoai);
 }

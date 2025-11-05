@@ -31,4 +31,5 @@ public interface SanPhamCTService {
             Integer trangThai,
             String keyword      // Đã thêm
     );
+    List<SanPhamChiTiet> getAvailableProducts();
 }

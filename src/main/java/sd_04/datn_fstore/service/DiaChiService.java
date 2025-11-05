@@ -3,7 +3,7 @@ package sd_04.datn_fstore.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import sd_04.datn_fstore.model.DiaChi;
-import sd_04.datn_fstore.repo.DiaChiRepo;
+import sd_04.datn_fstore.repository.DiaChiRepo;
 
 import java.util.List;
 

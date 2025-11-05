@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import sd_04.datn_fstore.enums.RoleEnum;
 import sd_04.datn_fstore.model.Account;
 import sd_04.datn_fstore.model.KhachHang;
-import sd_04.datn_fstore.repo.KhachHangRepo;
+import sd_04.datn_fstore.repository.KhachHangRepo;
 import sd_04.datn_fstore.repository.AccountRepository;
 
 import java.util.Optional;
