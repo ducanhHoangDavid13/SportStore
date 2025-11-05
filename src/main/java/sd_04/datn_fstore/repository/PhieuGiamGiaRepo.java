@@ -55,5 +55,6 @@ public interface PhieuGiamGiaRepo extends JpaRepository<PhieuGiamGia, Integer> {
      */
     @Query("SELECT p FROM PhieuGiamGia p WHERE p.trangThai = 2 AND p.ngayBatDau <= :now")
     List<PhieuGiamGia> findUpcomingPromotionsToActivate(@Param("now") LocalDateTime now);
+    List<PhieuGiamGia> findAllByTrangThai(Integer trangThai);
 
 }

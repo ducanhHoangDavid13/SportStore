@@ -1,4 +1,4 @@
-package sd_04.datn_fstore.service;
+package sd_04.datn_fstore.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;

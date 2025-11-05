@@ -1,9 +1,20 @@
 package sd_04.datn_fstore.service;
 
+import org.springframework.transaction.annotation.Transactional;
+import sd_04.datn_fstore.dto.CreateOrderRequest;
+import sd_04.datn_fstore.dto.PaymentNotificationDto;
 import sd_04.datn_fstore.model.HoaDon;
 import java.util.Map;
 
 public interface BanHangService {
+
+    // <-- "Thực hiện" món ăn 1
+    @Transactional
+    HoaDon createPosPayment(CreateOrderRequest request);
+
+    // <-- "Thực hiện" món ăn 2
+    @Transactional
+    HoaDon saveDraftOrder(CreateOrderRequest request);
 
     /**
      * Xử lý nghiệp vụ "Hoàn tất Thanh toán" tại POS.
@@ -16,4 +27,5 @@ public interface BanHangService {
      * Sẽ KHÔNG trừ tồn kho và tạo hóa đơn (Hóa đơn Tạm = Giỏ hàng đã lưu).
      */
     HoaDon saveDraftOrder(Map<String, Object> requestBody);
+    void confirmPaymentByOrderCode(PaymentNotificationDto paymentData);
 }

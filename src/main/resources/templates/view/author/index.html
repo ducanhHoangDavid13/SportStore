@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JOGARBOLA - E-commerce Demo</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* Tệp: style.css */
+    /* Tệp: style.css (Thêm vào cuối file) */
+
+    /* --- Footer Customizations --- */
+    .footer-custom a {
+      color: #ccc; /* Màu liên kết nhạt hơn */
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .footer-custom a:hover {
+      color: #fff; /* Sáng hơn khi hover */
+    }
+
+    .footer-custom .footer-links li {
+      margin-bottom: 5px;
+    }
+
+    .footer-custom .footer-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .footer-custom .footer-logo i {
+      color: #fff; /* Màu trắng cho logo ngôi sao */
+    }
+
+    .footer-contact i.text-danger {
+      color: #dc3545 !important; /* Đảm bảo màu đỏ nổi bật */
+    }
+
+    /* Tùy chỉnh input email */
+    .footer-custom input.form-control {
+      background-color: #333 !important;
+      border-color: #333 !important;
+      color: #fff !important;
+    }
+
+    .footer-custom input.form-control::placeholder {
+      color: #999;
+    }
+    /* --- Thanh Thông Báo Đỉnh --- */
+    .top-bar {
+      font-size: 0.85rem;
+    }
+    /* Tệp: style.css (Thêm vào cuối file) */
+
+    /* --- Card Hình Ảnh (Vận động viên & Tin tức) --- */
+    .athlete-showcase .image-container,
+    .news-section .image-container {
+      height: 350px; /* Đặt chiều cao cố định cho các box hình ảnh */
+      overflow: hidden;
+      position: relative;
+      background-color: #f8f8f8;
+    }
+
+    .athlete-showcase .card-img-top,
+    .news-section .card-img-top {
+      width: 100%;
+      height: 100%;
+      object-fit: cover; /* Đảm bảo hình ảnh phủ kín */
+      transition: transform 0.5s ease;
+    }
+
+    /* Thêm hiệu ứng hover (tùy chọn) */
+    .athlete-showcase .card:hover .card-img-top,
+    .news-section .card:hover .card-img-top {
+      transform: scale(1.05);
+    }
+
+    /* Icons mạng xã hội trên bài đăng (giống card sản phẩm) */
+    .social-icons-on-post i {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 50%;
+      width: 25px;
+      height: 25px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 12px;
+      margin-bottom: 10px !important;
+    }
+
+    /* Logo nhỏ Jogarbola (dấu * và chữ) */
+    .logo-small {
+      font-size: 0.9rem;
+      font-weight: bold;
+      color: #fff;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+    }
+    /* --- Khu Vực Banner --- */
+    .banner-section {
+      /* Thiết lập chiều cao, có thể điều chỉnh theo ý muốn */
+      height: 600px;
+      /* Màu nền xanh ngọc đậm (tùy chỉnh để khớp với hình ảnh) */
+      background: linear-gradient(135deg, #008080, #00ced1);
+      /* Thêm hiệu ứng phát sáng cho nền */
+      box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.4);
+    }
+
+    .banner-section .carousel-item {
+      height: 100%;
+      background-size: cover;
+      background-position: center;
+      position: relative;
+    }
+
+    /* Nội dung văn bản chính */
+    .banner-content {
+      z-index: 10;
+    }
+
+    /* Chữ lớn SỨC MẠNH TRONG TỪNG CÚ ĐÁNH */
+    .large-text {
+      font-size: 4rem; /* Kích thước chữ lớn */
+      line-height: 1.1;
+      font-weight: 900;
+      color: #fff;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5); /* Tạo hiệu ứng nổi bật */
+    }
+
+    /* Icon mạng xã hội */
+    .social-icons a {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 50%;
+      width: 35px;
+      height: 35px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 10px !important;
+      transition: background 0.3s;
+    }
+
+    .social-icons a:hover {
+      background: rgba(255, 255, 255, 0.5);
+    }
+
+    /* Vợt và Logo Distributer */
+    .rackets-image {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+    }
+
+    .rackets-image img {
+      /* Điều chỉnh để hình ảnh vợt nằm đúng vị trí */
+      position: absolute;
+      right: 50px;
+      bottom: 0;
+      z-index: 5;
+      object-fit: contain;
+      /* Cần hình ảnh đã tách nền */
+    }
+
+    /* Tùy chỉnh Indicators (chấm tròn dưới vợt) */
+    .banner-indicators {
+      bottom: 20px;
+      right: 15%; /* Căn chỉnh sang phải để nằm dưới vợt */
+      left: unset;
+      margin-right: 5rem !important;
+      width: auto;
+    }
+
+    .banner-indicators button {
+      width: 10px !important;
+      height: 10px !important;
+      border-radius: 50%;
+      background-color: #fff;
+      opacity: 1;
+      border: 2px solid #fff;
+      margin: 0 5px;
+    }
+
+    .banner-indicators .active {
+      background-color: #ff0000; /* Màu đỏ nổi bật cho chấm tròn active */
+    }
+    /* --- Nút Chat Floating --- */
+    .floating-chat-btn {
+      text-decoration: none;
+      line-height: 1;
+    }
+
+    /* Điều chỉnh responsiveness cho mobile (chữ lớn hơn) */
+    @media (max-width: 768px) {
+      .large-text {
+        font-size: 2.5rem;
+      }
+      .rackets-image {
+        display: none; /* Ẩn vợt trên mobile để giữ bố cục */
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!--<div class="top-bar bg-danger text-white d-flex justify-content-between align-items-center py-1 px-3">-->
+<!--  <div>HỖ TRỢ 24/7</div>-->
+<!--  <div class="d-flex">-->
+<!--    <div class="px-3 border-end">VẬN CHUYỂN TOÀN QUỐC</div>-->
+<!--    <div>THANH TOÁN TẠI NHÀ</div>-->
+<!--  </div>-->
+<!--</div>-->
+
+<nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom">
+  <div class="container-fluid mx-lg-5">
+    <a class="navbar-brand text-danger fw-bold fs-3" href="#">JOGARBOLA</a>
+
+    <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
+      <ul class="navbar-nav mx-auto">
+        <li class="nav-item mx-3"><a class="nav-link fw-bold text-dark" href="#">ĐỒ NAM</a></li>
+        <li class="nav-item mx-3"><a class="nav-link fw-bold text-dark" href="#">ĐỒ NỮ</a></li>
+        <li class="nav-item mx-3"><a class="nav-link fw-bold text-dark" href="#">MÔN THỂ THAO</a></li>
+        <li class="nav-item mx-3"><a class="nav-link fw-bold text-dark" href="#">ĐỘI TUYỂN</a></li>
+        <li class="nav-item mx-3"><a class="nav-link fw-bold text-dark" href="#">SALE</a></li>
+        <li class="nav-item mx-3"><a class="nav-link fw-bold text-dark" href="#">BLOG</a></li>
+      </ul>
+    </div>
+
+    <div class="d-flex align-items-center">
+      <form class="d-flex me-3">
+        <div class="input-group">
+          <input class="form-control form-control-sm" type="search" placeholder="Search" aria-label="Search">
+          <button class="btn btn-outline-secondary btn-sm" type="submit"><i class="fas fa-search"></i></button>
+        </div>
+      </form>
+      <a href="#" class="text-dark me-3"><i class="fas fa-user"></i></a>
+      <a href="#" class="text-dark position-relative"><i class="fas fa-shopping-cart"></i>
+        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">0</span>
+      </a>
+    </div>
+  </div>
+</nav>
+
+<div id="mainBanner" class="carousel slide banner-section" data-bs-ride="carousel">
+  <div class="carousel-inner">
+    <div class="carousel-item active" style="background-image: url('placeholder-background.jpg');">
+      <div class="container-fluid h-100 d-flex align-items-center position-relative">
+
+        <div class="banner-content text-white p-5 ms-lg-5">
+          <div class="logo-small mb-3"><i class="fas fa-star" style="font-size: 30px;"></i> JOGARBOLA</div>
+          <h1 class="display-3 fw-bold mb-3">POWER PRO J800</h1>
+          <p class="fs-5 mb-4">QUICK GAME CHANGER</p>
+          <a href="#" class="btn btn-danger btn-lg px-4 py-2 fw-bold">XEM NGAY</a>
+
+          <div class="large-text mt-5">
+            SỨC MẠNH<br>TRONG TỪNG CÚ ĐÁNH
+          </div>
+        </div>
+
+        <div class="social-icons position-absolute top-50 start-0 translate-middle-y ms-3">
+          <a href="#" class="text-white d-block mb-3"><i class="fab fa-facebook-f fa-lg"></i></a>
+          <a href="#" class="text-white d-block mb-3"><i class="fab fa-youtube fa-lg"></i></a>
+          <a href="#" class="text-white d-block"><i class="fas fa-share-alt fa-lg"></i></a>
+        </div>
+
+        <div class="rackets-image position-absolute h-100 end-0 top-0">
+          <img src="placeholder-rackets.png" alt="Badminton Rackets" class="img-fluid h-100" style="opacity: 0.1; max-width: 600px;">
+          <div class="distributed-by position-absolute bottom-0 end-0 me-5 mb-3 text-white">
+            Distributed by <span class="fw-bold fs-4">D</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="carousel-indicators banner-indicators">
+    <button type="button" data-bs-target="#mainBanner" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+    <button type="button" data-bs-target="#mainBanner" data-bs-slide-to="1" aria-label="Slide 2"></button>
+    <button type="button" data-bs-target="#mainBanner" data-bs-slide-to="2" aria-label="Slide 3"></button>
+  </div>
+</div>
+
+<div class="email-signup text-center py-4 bg-white">
+  <p class="mb-3">Đặt hàng ngay hôm nay để nhận **ƯU ĐÃI**!!</p>
+  <div class="d-flex justify-content-center">
+    <input type="email" class="form-control me-2" placeholder="Nhập email" style="max-width: 300px;">
+    <button class="btn btn-dark fw-bold">ĐĂNG KÝ NGAY</button>
+  </div>
+</div>
+
+<div class="container-fluid my-4">
+  <div class="d-flex justify-content-between align-items-center">
+    <h2 class="fw-bold">SẢN PHẨM MỚI</h2>
+    <a href="#" class="text-danger text-decoration-none fw-bold">Xem tất cả <i class="fas fa-chevron-right"></i></a>
+  </div>
+</div>
+
+<a href="#" class="floating-chat-btn position-fixed bottom-0 end-0 m-4 p-3 bg-primary text-white rounded-circle shadow-lg" style="font-size: 24px; z-index: 1050;">
+  <i class="fab fa-facebook-messenger"></i>
+</a>
+
+<div class="container-fluid my-5 product-section">
+  <div class="d-flex align-items-center mb-4 product-filter-nav">
+    <button class="btn btn-outline-dark me-3 active-filter-btn">VỢT CẦU LÔNG</button>
+    <button class="btn btn-dark me-3">BỘ TRANG PHỤC BÓNG ĐÁ VIBRANT</button>
+    <button class="btn btn-dark me-3">TRANG PHỤC ĐỘI TUYỂN BÓNG ĐÁ QUỐC GIA</button>
+
+    <button class="btn btn-light border-0 ms-auto d-none d-lg-block">
+      <i class="fas fa-arrow-left"></i>
+    </button>
+  </div>
+
+  <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3 product-list-carousel">
+
+    <div class="col">
+      <div class="card h-100 border-0 product-card special-product-card">
+        <div class="product-image-container position-relative overflow-hidden">
+          <div class="special-banner-overlay bg-danger text-white p-3 position-absolute top-0 start-0 h-100 w-100 d-flex flex-column justify-content-end align-items-center">
+            <img src="placeholder-racket-pink.png" alt="Vợt cầu lông hồng" class="img-fluid mb-2" style="max-height: 80%; opacity: 0.9;">
+
+            <div class="social-icons-on-card position-absolute start-0 top-50 translate-middle-y ms-2 text-white">
+              <i class="fas fa-circle d-block mb-3"></i>
+              <i class="fab fa-facebook-f d-block mb-3"></i>
+              <i class="fab fa-youtube d-block"></i>
+            </div>
+
+            <div class="w-100 text-center">
+              <button class="btn btn-light text-danger fw-bold px-4 py-2 mb-2">View Details</button>
+              <span class="badge bg-dark position-absolute top-0 end-0 m-2 sold-out-tag">Hết hàng</span>
+            </div>
+          </div>
+        </div>
+        <div class="card-body text-center p-3 mt-5">
+          <p class="card-text mb-1 fw-semibold">Vợt cầu lông Jogarbola Control J750</p>
+          <h5 class="text-danger fw-bold">695,000đ</h5>
+        </div>
+        <div class="text-center bg-danger text-white py-2">
+          <h5 class="fw-bold m-0">695,000đ</h5>
+        </div>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="card h-100 border-0 product-card">
+        <div class="product-image-container position-relative overflow-hidden p-3">
+          <img src="placeholder-racket-blue.png" alt="Vợt cầu lông xanh" class="card-img-top img-fluid">
+          <span class="badge bg-danger position-absolute top-0 end-0 m-2 sold-out-tag">Hết hàng</span>
+        </div>
+        <div class="card-body text-center p-3">
+          <p class="card-text mb-1 fw-semibold">Vợt cầu lông Jogarbola Control J750</p>
+          <h5 class="text-danger fw-bold">695,000đ</h5>
+        </div>
+        <div class="text-center bg-white border-top py-2 product-buy-btn">
+          <h6 class="text-danger fw-bold m-0">695,000đ</h6>
+        </div>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="card h-100 border-0 product-card">
+        <div class="product-image-container position-relative overflow-hidden p-3">
+          <img src="placeholder-racket-red.png" alt="Vợt cầu lông đỏ" class="card-img-top img-fluid">
+          <span class="badge bg-danger position-absolute top-0 end-0 m-2 sold-out-tag">Hết hàng</span>
+        </div>
+        <div class="card-body text-center p-3">
+          <p class="card-text mb-1 fw-semibold">Vợt cầu lông Jogarbola Control J750</p>
+          <h5 class="text-danger fw-bold">695,000đ</h5>
+        </div>
+        <div class="text-center bg-white border-top py-2 product-buy-btn">
+          <h6 class="text-danger fw-bold m-0">695,000đ</h6>
+        </div>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="card h-100 border-0 product-card">
+        <div class="product-image-container position-relative overflow-hidden p-3">
+          <img src="placeholder-racket-white.png" alt="Vợt cầu lông trắng" class="card-img-top img-fluid">
+        </div>
+        <div class="card-body text-center p-3">
+          <p class="card-text mb-1 fw-semibold">Vợt cầu lông Jogarbola Power Pro J800</p>
+          <h5 class="text-danger fw-bold">795,000đ</h5>
+        </div>
+        <div class="text-center bg-white border-top py-2 product-buy-btn">
+          <h6 class="text-danger fw-bold m-0">795,000đ</h6>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+<div class="container-fluid my-5">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold">GIÀY ĐÁ BÓNG</h2>
+    <a href="#" class="text-dark text-decoration-none fw-bold">Xem tất cả <i class="fas fa-chevron-right"></i></a>
+  </div>
+
+  <div class="d-flex mb-4 product-filter-nav">
+    <button class="btn btn-outline-dark me-3 active-filter-btn">BĂNG CHÂN</button>
+    <button class="btn btn-dark me-3">COLORLUX</button>
+    <button class="btn btn-dark me-3">KOHA 2103</button>
+  </div>
+</div>
+<div class="container-fluid my-5 athlete-showcase">
+  <h2 class="fw-bold mb-4">Vận động viên trong trang phục Jogarbola</h2>
+
+  <div class="row row-cols-1 row-cols-md-3 g-4">
+
+    <div class="col">
+      <div class="card h-100 border-0 overflow-hidden">
+        <div class="image-container position-relative">
+          <img src="placeholder-shoes-paru.jpg" class="card-img-top img-fluid" alt="Giày cầu lông Paru">
+          <div class="position-absolute top-0 start-0 p-3 text-white">
+            <div class="logo-small mb-2"><i class="fas fa-star text-white"></i> JOGARBOLA</div>
+          </div>
+
+          <div class="social-icons-on-post position-absolute start-0 top-50 translate-middle-y ms-3 text-white">
+            <i class="fas fa-circle d-block mb-3"></i>
+            <i class="fab fa-facebook-f d-block mb-3"></i>
+            <i class="fab fa-youtube d-block"></i>
+          </div>
+
+          <div class="position-absolute bottom-0 start-0 p-3 text-white fw-bold fs-5">
+            <p class="m-0">JOGARBOLA.COM.VN</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="card h-100 border-0 overflow-hidden">
+        <div class="image-container position-relative">
+          <img src="placeholder-athletes-sr24.jpg" class="card-img-top img-fluid" alt="Vận động viên SR24">
+
+          <div class="position-absolute top-0 start-0 p-3 text-white">
+            <div class="logo-small mb-2"><i class="fas fa-star text-white"></i> JOGARBOLA</div>
+          </div>
+
+          <div class="position-absolute bottom-0 start-0 p-3 text-white">
+            <h3 class="fw-bold mb-1 text-uppercase">SR24</h3>
+            <p class="m-0 fw-light">HIỆU SUẤT HOÀN HẢO</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="card h-100 border-0 overflow-hidden">
+        <div class="image-container position-relative">
+          <img src="placeholder-football-vibrant.jpg" class="card-img-top img-fluid" alt="Áo bóng đá Vibrant">
+
+          <div class="position-absolute top-0 start-0 p-3 text-white">
+            <div class="logo-small mb-2"><i class="fas fa-star text-white"></i> JOGARBOLA</div>
+          </div>
+
+          <div class="position-absolute bottom-0 start-0 p-3 text-white">
+            <h3 class="fw-bold mb-1 text-uppercase">FOOTBALL JERSEY</h3>
+            <p class="m-0 fw-bold fs-4 text-uppercase">VIBRANT</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+---
+
+<div class="container-fluid my-5 news-section">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold">TIN TỨC MỚI NHẤT</h2>
+    <a href="#" class="text-dark text-decoration-none fw-bold">Xem tất cả <i class="fas fa-chevron-right"></i></a>
+  </div>
+
+  <div class="row row-cols-1 row-cols-md-3 g-4">
+
+    <div class="col">
+      <div class="card h-100 border-0">
+        <img src="placeholder-news-1.jpg" class="card-img-top img-fluid" alt="Tin tức 1">
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="card h-100 border-0">
+        <img src="placeholder-news-2.jpg" class="card-img-top img-fluid" alt="Tin tức 2">
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="card h-100 border-0">
+        <div class="image-container position-relative">
+          <img src="placeholder-news-3.jpg" class="card-img-top img-fluid" alt="Tin tức 3">
+
+          <div class="position-absolute top-0 start-0 p-3">
+            <div class="logo-small mb-2"><i class="fas fa-star text-white"></i> JOGARBOLA</div>
+          </div>
+          <div class="position-absolute bottom-0 start-0 p-3 text-white">
+            <h3 class="fw-bold mb-1 text-uppercase">NEW COLLECTION</h3>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+<footer class="bg-dark text-white pt-5 pb-3 footer-custom">
+  <div class="container-fluid">
+    <div class="row">
+
+      <div class="col-lg-4 col-md-6 mb-4">
+        <div class="footer-logo mb-4 text-white">
+          <i class="fas fa-star fa-3x mb-2 d-block"></i>
+          <span class="fs-4 fw-bold text-uppercase">JOGARBOLA</span>
+        </div>
+
+        <ul class="list-unstyled footer-links">
+          <li><a href="#" class="text-white-50">Chính sách thẻ thành viên</a></li>
+          <li><a href="#" class="text-white-50">Chính sách bảo hành</a></li>
+          <li><a href="#" class="text-white-50">Chính sách mua hàng, vận chuyển và phương thức thanh toán (Chi tiết Điều 34)</a></li>
+          <li><a href="#" class="text-white-50">Chính sách bảo mật</a></li>
+          <li><a href="#" class="text-white-50">Chính sách kiểm hàng, bảo hành và đổi trả</a></li>
+          <li><a href="#" class="text-white-50">Giới thiệu Jogarbola Việt Nam</a></li>
+          <li><a href="#" class="text-white-50">Chính sách bảo mật và bảo vệ hệ thống thông tin người tiêu dùng (Điều 68 đến điều 73)</a></li>
+          <li><a href="#" class="text-white-50">Chính sách hoàn tiền</a></li>
+          <li><a href="#" class="text-white-50">Phần định trách nhiệm của thương nhân, tổ chức cung ứng dịch vụ logistics về cung cấp chứng từ hàng hóa trong quá trình nhận</a></li>
+          <li><a href="#" class="text-white-50">Thông tin về chủ sở hữu Website (Chi tiết Điều 29)</a></li>
+        </ul>
+      </div>
+
+      <div class="col-lg-4 col-md-6 mb-4">
+        <h5 class="text-uppercase mb-4 fw-bold">Hệ thống cửa hàng</h5>
+        <ul class="list-unstyled footer-links mb-5">
+          <li><a href="#" class="text-white-50">Hệ thống cửa hàng</a></li>
+        </ul>
+
+        <ul class="list-unstyled footer-contact">
+          <li class="mb-2"><i class="fas fa-map-marker-alt me-2 text-danger"></i> Địa chỉ | <a href="#" class="text-white-50">Hỗ trợ</a> | <a href="#" class="text-white-50">Đăng kí thành viên</a> | <a href="#" class="text-white-50">Đăng kí đại lý</a></li>
+          <li class="mb-2"><i class="fas fa-phone-alt me-2 text-danger"></i> 18000021</li>
+          <li class="mb-2"><i class="fas fa-envelope me-2 text-danger"></i> Email: info@jogarbola.com.vn</li>
+          <li class="mb-3 d-flex flex-wrap">
+            <div class="me-3"><i class="fas fa-life-ring me-1 text-danger"></i> Hỗ trợ 24/7</div>
+            <div class="me-3"><i class="fas fa-shipping-fast me-1 text-danger"></i> Vận chuyển toàn quốc</div>
+            <div><i class="fas fa-money-check-alt me-1 text-danger"></i> Thanh toán tại nhà</div>
+          </li>
+        </ul>
+
+        <img src="placeholder-bo-cong-thuong.png" alt="Đã thông báo Bộ Công Thương" class="img-fluid" style="max-width: 150px;">
+      </div>
+
+      <div class="col-lg-4 col-md-12 mb-4">
+        <h5 class="text-uppercase mb-4 fw-bold">ĐĂNG KÝ NHẬN NGAY HOT DEAL VÀ S...</h5>
+        <form class="d-flex mb-3">
+          <input type="email" class="form-control form-control-sm me-2 bg-secondary border-0 text-white" placeholder="Nhập email">
+          <button class="btn btn-danger btn-sm fw-bold px-3" type="submit">Đăng ký</button>
+        </form>
+
+        <div class="social-icons-footer d-flex mt-4">
+          <a href="#" class="text-white me-3"><i class="fab fa-facebook-f fa-lg"></i></a>
+          <a href="#" class="text-white me-3"><i class="fab fa-instagram fa-lg"></i></a>
+          <a href="#" class="text-white me-3"><i class="fab fa-youtube fa-lg"></i></a>
+          <a href="#" class="text-white me-3"><i class="fas fa-share-alt fa-lg"></i></a>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="border-top border-secondary pt-3 mt-4 text-center">
+      <p class="m-0 text-white-50">&copy; Copyright 2023 Jogarbola.</p>
+      <p class="m-0 text-white-50">Jogarbola do Tập đoàn Động Lực kinh doanh độc quyền tại Việt Nam</p>
+    </div>
+  </div>
+</footer>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

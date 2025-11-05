@@ -76,5 +76,6 @@ public interface SanPhamCTRepository extends JpaRepository<SanPhamChiTiet, Integ
             @Param("keyword") String keyword
     );
     List<SanPhamChiTiet> findAllByTrangThaiAndSoLuongGreaterThan(Integer trangThai, Integer soLuong);
+    List<SanPhamChiTiet> findAllByTrangThai(Integer trangThai);
 
 }

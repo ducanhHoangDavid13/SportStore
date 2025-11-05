@@ -1,4 +1,4 @@
-package sd_04.datn_fstore.service;
+package sd_04.datn_fstore.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -6,6 +6,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import sd_04.datn_fstore.model.SanPhamChiTiet;
 import sd_04.datn_fstore.repository.SanPhamCTRepository;
+import sd_04.datn_fstore.service.SanPhamCTService;
 
 import java.math.BigDecimal;
 import java.util.List;

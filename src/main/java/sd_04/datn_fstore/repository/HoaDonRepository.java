@@ -11,6 +11,7 @@ import sd_04.datn_fstore.model.HoaDon;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface HoaDonRepository extends JpaRepository<HoaDon, Integer> {
@@ -40,4 +41,5 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Integer> {
             @Param("ngayKetThuc") LocalDateTime ngayKetThuc,
             @Param("keyword") String keyword
     );
+    Optional<HoaDon> findByMaHoaDon(String maHoaDon);
 }

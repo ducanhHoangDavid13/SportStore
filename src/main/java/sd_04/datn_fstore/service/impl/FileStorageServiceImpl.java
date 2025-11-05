@@ -1,4 +1,4 @@
-package sd_04.datn_fstore.service;
+package sd_04.datn_fstore.service.impl;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 import sd_04.datn_fstore.config.FileStorageProperties;
+import sd_04.datn_fstore.service.FileStorageService;
 
 import java.io.IOException;
 import java.io.InputStream;
