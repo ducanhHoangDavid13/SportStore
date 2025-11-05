@@ -9,6 +9,7 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -24,9 +25,10 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-
         http
+                .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(request -> request
+<<<<<<< HEAD
                         .requestMatchers("/",
                                 "/styles/*",
                                 "/registration",
@@ -34,6 +36,9 @@ public class SecurityConfig {
                                 "/statistics",
                                  "/admin/**"
                         ).permitAll()
+=======
+                        .requestMatchers("/", "/styles/*", "/registration", "/login", "/statistics", "/api/**").permitAll()
+>>>>>>> 3fef446b75181f27f81d2fe160195ccdd4d3e6ce
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
@@ -47,17 +52,29 @@ public class SecurityConfig {
                         .permitAll()
                 )
                 .exceptionHandling(e -> e
-                        .authenticationEntryPoint((request, response, authException) -> {
-                            if (request.getRequestURI().startsWith("/api/")) {
-                                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
+                        .authenticationEntryPoint((req, res, ex) -> {
+                            if (req.getRequestURI().startsWith("/api/")) {
+                                res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                                res.setContentType("application/json;charset=UTF-8");
+                                res.getWriter().write("{\"error\":\"Unauthorized\"}");
                             } else {
-                                response.sendRedirect("/login");
+                                res.sendRedirect("/login");
+                            }
+                        })
+                        .accessDeniedHandler((req, res, ex) -> {
+                            if (req.getRequestURI().startsWith("/api/")) {
+                                res.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                                res.setContentType("application/json;charset=UTF-8");
+                                res.getWriter().write("{\"error\":\"Access Denied\"}");
+                            } else {
+                                res.sendRedirect("/access-denied");
                             }
                         })
                 );
 
         return http.build();
     }
+
 
 
     @Bean
