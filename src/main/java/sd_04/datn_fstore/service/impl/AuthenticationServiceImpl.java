@@ -1,4 +1,4 @@
-package sd_04.datn_fstore.service;
+package sd_04.datn_fstore.service.impl;
 
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
