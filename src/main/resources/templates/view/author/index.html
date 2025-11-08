@@ -6,243 +6,12 @@
   <title>JOGARBOLA - E-commerce Demo</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-  <link rel="stylesheet" href="style.css">
-  <style>
-    /* Tệp: style.css */
-    /* Tệp: style.css (Thêm vào cuối file) */
-
-    /* --- Footer Customizations --- */
-    .footer-custom a {
-      color: #ccc; /* Màu liên kết nhạt hơn */
-      text-decoration: none;
-      transition: color 0.2s;
-    }
-
-    .footer-custom a:hover {
-      color: #fff; /* Sáng hơn khi hover */
-    }
-
-    .footer-custom .footer-links li {
-      margin-bottom: 5px;
-    }
-
-    .footer-custom .footer-logo {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .footer-custom .footer-logo i {
-      color: #fff; /* Màu trắng cho logo ngôi sao */
-    }
-
-    .footer-contact i.text-danger {
-      color: #dc3545 !important; /* Đảm bảo màu đỏ nổi bật */
-    }
-
-    /* Tùy chỉnh input email */
-    .footer-custom input.form-control {
-      background-color: #333 !important;
-      border-color: #333 !important;
-      color: #fff !important;
-    }
-
-    .footer-custom input.form-control::placeholder {
-      color: #999;
-    }
-    /* --- Thanh Thông Báo Đỉnh --- */
-    .top-bar {
-      font-size: 0.85rem;
-    }
-    /* Tệp: style.css (Thêm vào cuối file) */
-
-    /* --- Card Hình Ảnh (Vận động viên & Tin tức) --- */
-    .athlete-showcase .image-container,
-    .news-section .image-container {
-      height: 350px; /* Đặt chiều cao cố định cho các box hình ảnh */
-      overflow: hidden;
-      position: relative;
-      background-color: #f8f8f8;
-    }
-
-    .athlete-showcase .card-img-top,
-    .news-section .card-img-top {
-      width: 100%;
-      height: 100%;
-      object-fit: cover; /* Đảm bảo hình ảnh phủ kín */
-      transition: transform 0.5s ease;
-    }
-
-    /* Thêm hiệu ứng hover (tùy chọn) */
-    .athlete-showcase .card:hover .card-img-top,
-    .news-section .card:hover .card-img-top {
-      transform: scale(1.05);
-    }
-
-    /* Icons mạng xã hội trên bài đăng (giống card sản phẩm) */
-    .social-icons-on-post i {
-      background: rgba(255, 255, 255, 0.2);
-      border-radius: 50%;
-      width: 25px;
-      height: 25px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-size: 12px;
-      margin-bottom: 10px !important;
-    }
-
-    /* Logo nhỏ Jogarbola (dấu * và chữ) */
-    .logo-small {
-      font-size: 0.9rem;
-      font-weight: bold;
-      color: #fff;
-      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-    }
-    /* --- Khu Vực Banner --- */
-    .banner-section {
-      /* Thiết lập chiều cao, có thể điều chỉnh theo ý muốn */
-      height: 600px;
-      /* Màu nền xanh ngọc đậm (tùy chỉnh để khớp với hình ảnh) */
-      background: linear-gradient(135deg, #008080, #00ced1);
-      /* Thêm hiệu ứng phát sáng cho nền */
-      box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.4);
-    }
-
-    .banner-section .carousel-item {
-      height: 100%;
-      background-size: cover;
-      background-position: center;
-      position: relative;
-    }
-
-    /* Nội dung văn bản chính */
-    .banner-content {
-      z-index: 10;
-    }
-
-    /* Chữ lớn SỨC MẠNH TRONG TỪNG CÚ ĐÁNH */
-    .large-text {
-      font-size: 4rem; /* Kích thước chữ lớn */
-      line-height: 1.1;
-      font-weight: 900;
-      color: #fff;
-      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5); /* Tạo hiệu ứng nổi bật */
-    }
-
-    /* Icon mạng xã hội */
-    .social-icons a {
-      background: rgba(255, 255, 255, 0.2);
-      border-radius: 50%;
-      width: 35px;
-      height: 35px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      margin-bottom: 10px !important;
-      transition: background 0.3s;
-    }
-
-    .social-icons a:hover {
-      background: rgba(255, 255, 255, 0.5);
-    }
-
-    /* Vợt và Logo Distributer */
-    .rackets-image {
-      display: flex;
-      align-items: center;
-      justify-content: flex-end;
-    }
-
-    .rackets-image img {
-      /* Điều chỉnh để hình ảnh vợt nằm đúng vị trí */
-      position: absolute;
-      right: 50px;
-      bottom: 0;
-      z-index: 5;
-      object-fit: contain;
-      /* Cần hình ảnh đã tách nền */
-    }
-
-    /* Tùy chỉnh Indicators (chấm tròn dưới vợt) */
-    .banner-indicators {
-      bottom: 20px;
-      right: 15%; /* Căn chỉnh sang phải để nằm dưới vợt */
-      left: unset;
-      margin-right: 5rem !important;
-      width: auto;
-    }
-
-    .banner-indicators button {
-      width: 10px !important;
-      height: 10px !important;
-      border-radius: 50%;
-      background-color: #fff;
-      opacity: 1;
-      border: 2px solid #fff;
-      margin: 0 5px;
-    }
-
-    .banner-indicators .active {
-      background-color: #ff0000; /* Màu đỏ nổi bật cho chấm tròn active */
-    }
-    /* --- Nút Chat Floating --- */
-    .floating-chat-btn {
-      text-decoration: none;
-      line-height: 1;
-    }
-
-    /* Điều chỉnh responsiveness cho mobile (chữ lớn hơn) */
-    @media (max-width: 768px) {
-      .large-text {
-        font-size: 2.5rem;
-      }
-      .rackets-image {
-        display: none; /* Ẩn vợt trên mobile để giữ bố cục */
-      }
-    }
-  </style>
+  <link rel="stylesheet" th:href="@{/css/header.css}">
+  <link rel="stylesheet" th:href="@{/css/footer.css}">
+  <link rel="stylesheet" th:href="@{/css/index.css}">
 </head>
 <body>
-
-<!--<div class="top-bar bg-danger text-white d-flex justify-content-between align-items-center py-1 px-3">-->
-<!--  <div>HỖ TRỢ 24/7</div>-->
-<!--  <div class="d-flex">-->
-<!--    <div class="px-3 border-end">VẬN CHUYỂN TOÀN QUỐC</div>-->
-<!--    <div>THANH TOÁN TẠI NHÀ</div>-->
-<!--  </div>-->
-<!--</div>-->
-
-<nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom">
-  <div class="container-fluid mx-lg-5">
-    <a class="navbar-brand text-danger fw-bold fs-3" href="#">JOGARBOLA</a>
-
-    <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
-      <ul class="navbar-nav mx-auto">
-        <li class="nav-item mx-3"><a class="nav-link fw-bold text-dark" href="#">ĐỒ NAM</a></li>
-        <li class="nav-item mx-3"><a class="nav-link fw-bold text-dark" href="#">ĐỒ NỮ</a></li>
-        <li class="nav-item mx-3"><a class="nav-link fw-bold text-dark" href="#">MÔN THỂ THAO</a></li>
-        <li class="nav-item mx-3"><a class="nav-link fw-bold text-dark" href="#">ĐỘI TUYỂN</a></li>
-        <li class="nav-item mx-3"><a class="nav-link fw-bold text-dark" href="#">SALE</a></li>
-        <li class="nav-item mx-3"><a class="nav-link fw-bold text-dark" href="#">BLOG</a></li>
-      </ul>
-    </div>
-
-    <div class="d-flex align-items-center">
-      <form class="d-flex me-3">
-        <div class="input-group">
-          <input class="form-control form-control-sm" type="search" placeholder="Search" aria-label="Search">
-          <button class="btn btn-outline-secondary btn-sm" type="submit"><i class="fas fa-search"></i></button>
-        </div>
-      </form>
-      <a href="#" class="text-dark me-3"><i class="fas fa-user"></i></a>
-      <a href="#" class="text-dark position-relative"><i class="fas fa-shopping-cart"></i>
-        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">0</span>
-      </a>
-    </div>
-  </div>
-</nav>
-
+<div th:replace="~{library/header :: header}"></div>
 <div id="mainBanner" class="carousel slide banner-section" data-bs-ride="carousel">
   <div class="carousel-inner">
     <div class="carousel-item active" style="background-image: url('placeholder-background.jpg');">
@@ -503,73 +272,74 @@
 
   </div>
 </div>
-<footer class="bg-dark text-white pt-5 pb-3 footer-custom">
-  <div class="container-fluid">
-    <div class="row">
+<!--<footer class="bg-dark text-white pt-5 pb-3 footer-custom">-->
+<!--  <div class="container-fluid">-->
+<!--    <div class="row">-->
 
-      <div class="col-lg-4 col-md-6 mb-4">
-        <div class="footer-logo mb-4 text-white">
-          <i class="fas fa-star fa-3x mb-2 d-block"></i>
-          <span class="fs-4 fw-bold text-uppercase">JOGARBOLA</span>
-        </div>
+<!--      <div class="col-lg-4 col-md-6 mb-4">-->
+<!--        <div class="footer-logo mb-4 text-white">-->
+<!--          <i class="fas fa-star fa-3x mb-2 d-block"></i>-->
+<!--          <span class="fs-4 fw-bold text-uppercase">JOGARBOLA</span>-->
+<!--        </div>-->
 
-        <ul class="list-unstyled footer-links">
-          <li><a href="#" class="text-white-50">Chính sách thẻ thành viên</a></li>
-          <li><a href="#" class="text-white-50">Chính sách bảo hành</a></li>
-          <li><a href="#" class="text-white-50">Chính sách mua hàng, vận chuyển và phương thức thanh toán (Chi tiết Điều 34)</a></li>
-          <li><a href="#" class="text-white-50">Chính sách bảo mật</a></li>
-          <li><a href="#" class="text-white-50">Chính sách kiểm hàng, bảo hành và đổi trả</a></li>
-          <li><a href="#" class="text-white-50">Giới thiệu Jogarbola Việt Nam</a></li>
-          <li><a href="#" class="text-white-50">Chính sách bảo mật và bảo vệ hệ thống thông tin người tiêu dùng (Điều 68 đến điều 73)</a></li>
-          <li><a href="#" class="text-white-50">Chính sách hoàn tiền</a></li>
-          <li><a href="#" class="text-white-50">Phần định trách nhiệm của thương nhân, tổ chức cung ứng dịch vụ logistics về cung cấp chứng từ hàng hóa trong quá trình nhận</a></li>
-          <li><a href="#" class="text-white-50">Thông tin về chủ sở hữu Website (Chi tiết Điều 29)</a></li>
-        </ul>
-      </div>
+<!--        <ul class="list-unstyled footer-links">-->
+<!--          <li><a href="#" class="text-white-50">Chính sách thẻ thành viên</a></li>-->
+<!--          <li><a href="#" class="text-white-50">Chính sách bảo hành</a></li>-->
+<!--          <li><a href="#" class="text-white-50">Chính sách mua hàng, vận chuyển và phương thức thanh toán (Chi tiết Điều 34)</a></li>-->
+<!--          <li><a href="#" class="text-white-50">Chính sách bảo mật</a></li>-->
+<!--          <li><a href="#" class="text-white-50">Chính sách kiểm hàng, bảo hành và đổi trả</a></li>-->
+<!--          <li><a href="#" class="text-white-50">Giới thiệu Jogarbola Việt Nam</a></li>-->
+<!--          <li><a href="#" class="text-white-50">Chính sách bảo mật và bảo vệ hệ thống thông tin người tiêu dùng (Điều 68 đến điều 73)</a></li>-->
+<!--          <li><a href="#" class="text-white-50">Chính sách hoàn tiền</a></li>-->
+<!--          <li><a href="#" class="text-white-50">Phần định trách nhiệm của thương nhân, tổ chức cung ứng dịch vụ logistics về cung cấp chứng từ hàng hóa trong quá trình nhận</a></li>-->
+<!--          <li><a href="#" class="text-white-50">Thông tin về chủ sở hữu Website (Chi tiết Điều 29)</a></li>-->
+<!--        </ul>-->
+<!--      </div>-->
 
-      <div class="col-lg-4 col-md-6 mb-4">
-        <h5 class="text-uppercase mb-4 fw-bold">Hệ thống cửa hàng</h5>
-        <ul class="list-unstyled footer-links mb-5">
-          <li><a href="#" class="text-white-50">Hệ thống cửa hàng</a></li>
-        </ul>
+<!--      <div class="col-lg-4 col-md-6 mb-4">-->
+<!--        <h5 class="text-uppercase mb-4 fw-bold">Hệ thống cửa hàng</h5>-->
+<!--        <ul class="list-unstyled footer-links mb-5">-->
+<!--          <li><a href="#" class="text-white-50">Hệ thống cửa hàng</a></li>-->
+<!--        </ul>-->
 
-        <ul class="list-unstyled footer-contact">
-          <li class="mb-2"><i class="fas fa-map-marker-alt me-2 text-danger"></i> Địa chỉ | <a href="#" class="text-white-50">Hỗ trợ</a> | <a href="#" class="text-white-50">Đăng kí thành viên</a> | <a href="#" class="text-white-50">Đăng kí đại lý</a></li>
-          <li class="mb-2"><i class="fas fa-phone-alt me-2 text-danger"></i> 18000021</li>
-          <li class="mb-2"><i class="fas fa-envelope me-2 text-danger"></i> Email: info@jogarbola.com.vn</li>
-          <li class="mb-3 d-flex flex-wrap">
-            <div class="me-3"><i class="fas fa-life-ring me-1 text-danger"></i> Hỗ trợ 24/7</div>
-            <div class="me-3"><i class="fas fa-shipping-fast me-1 text-danger"></i> Vận chuyển toàn quốc</div>
-            <div><i class="fas fa-money-check-alt me-1 text-danger"></i> Thanh toán tại nhà</div>
-          </li>
-        </ul>
+<!--        <ul class="list-unstyled footer-contact">-->
+<!--          <li class="mb-2"><i class="fas fa-map-marker-alt me-2 text-danger"></i> Địa chỉ | <a href="#" class="text-white-50">Hỗ trợ</a> | <a href="#" class="text-white-50">Đăng kí thành viên</a> | <a href="#" class="text-white-50">Đăng kí đại lý</a></li>-->
+<!--          <li class="mb-2"><i class="fas fa-phone-alt me-2 text-danger"></i> 18000021</li>-->
+<!--          <li class="mb-2"><i class="fas fa-envelope me-2 text-danger"></i> Email: info@jogarbola.com.vn</li>-->
+<!--          <li class="mb-3 d-flex flex-wrap">-->
+<!--            <div class="me-3"><i class="fas fa-life-ring me-1 text-danger"></i> Hỗ trợ 24/7</div>-->
+<!--            <div class="me-3"><i class="fas fa-shipping-fast me-1 text-danger"></i> Vận chuyển toàn quốc</div>-->
+<!--            <div><i class="fas fa-money-check-alt me-1 text-danger"></i> Thanh toán tại nhà</div>-->
+<!--          </li>-->
+<!--        </ul>-->
 
-        <img src="placeholder-bo-cong-thuong.png" alt="Đã thông báo Bộ Công Thương" class="img-fluid" style="max-width: 150px;">
-      </div>
+<!--        <img src="placeholder-bo-cong-thuong.png" alt="Đã thông báo Bộ Công Thương" class="img-fluid" style="max-width: 150px;">-->
+<!--      </div>-->
 
-      <div class="col-lg-4 col-md-12 mb-4">
-        <h5 class="text-uppercase mb-4 fw-bold">ĐĂNG KÝ NHẬN NGAY HOT DEAL VÀ S...</h5>
-        <form class="d-flex mb-3">
-          <input type="email" class="form-control form-control-sm me-2 bg-secondary border-0 text-white" placeholder="Nhập email">
-          <button class="btn btn-danger btn-sm fw-bold px-3" type="submit">Đăng ký</button>
-        </form>
+<!--      <div class="col-lg-4 col-md-12 mb-4">-->
+<!--        <h5 class="text-uppercase mb-4 fw-bold">ĐĂNG KÝ NHẬN NGAY HOT DEAL VÀ S...</h5>-->
+<!--        <form class="d-flex mb-3">-->
+<!--          <input type="email" class="form-control form-control-sm me-2 bg-secondary border-0 text-white" placeholder="Nhập email">-->
+<!--          <button class="btn btn-danger btn-sm fw-bold px-3" type="submit">Đăng ký</button>-->
+<!--        </form>-->
 
-        <div class="social-icons-footer d-flex mt-4">
-          <a href="#" class="text-white me-3"><i class="fab fa-facebook-f fa-lg"></i></a>
-          <a href="#" class="text-white me-3"><i class="fab fa-instagram fa-lg"></i></a>
-          <a href="#" class="text-white me-3"><i class="fab fa-youtube fa-lg"></i></a>
-          <a href="#" class="text-white me-3"><i class="fas fa-share-alt fa-lg"></i></a>
-        </div>
-      </div>
+<!--        <div class="social-icons-footer d-flex mt-4">-->
+<!--          <a href="#" class="text-white me-3"><i class="fab fa-facebook-f fa-lg"></i></a>-->
+<!--          <a href="#" class="text-white me-3"><i class="fab fa-instagram fa-lg"></i></a>-->
+<!--          <a href="#" class="text-white me-3"><i class="fab fa-youtube fa-lg"></i></a>-->
+<!--          <a href="#" class="text-white me-3"><i class="fas fa-share-alt fa-lg"></i></a>-->
+<!--        </div>-->
+<!--      </div>-->
 
-    </div>
+<!--    </div>-->
 
-    <div class="border-top border-secondary pt-3 mt-4 text-center">
-      <p class="m-0 text-white-50">&copy; Copyright 2023 Jogarbola.</p>
-      <p class="m-0 text-white-50">Jogarbola do Tập đoàn Động Lực kinh doanh độc quyền tại Việt Nam</p>
-    </div>
-  </div>
-</footer>
+<!--    <div class="border-top border-secondary pt-3 mt-4 text-center">-->
+<!--      <p class="m-0 text-white-50">&copy; Copyright 2023 Jogarbola.</p>-->
+<!--      <p class="m-0 text-white-50">Jogarbola do Tập đoàn Động Lực kinh doanh độc quyền tại Việt Nam</p>-->
+<!--    </div>-->
+<!--  </div>-->
+<!--</footer>-->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<div th:replace="~{library/footer :: footer}"></div>
 </body>
 </html>
