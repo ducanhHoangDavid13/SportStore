@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>JOGARBOLA - E-commerce Demo</title>
+  <title>Sport store</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <link rel="stylesheet" th:href="@{/css/header.css}">
@@ -12,333 +12,498 @@
 </head>
 <body>
 <div th:replace="~{library/header :: header}"></div>
-<div id="mainBanner" class="carousel slide banner-section" data-bs-ride="carousel">
+<div id="mainBannerCarousel" class="carousel slide main-carousel" data-bs-ride="carousel">
+
+  <div class="carousel-indicators">
+    <button type="button" data-bs-target="#mainBannerCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+    <button type="button" data-bs-target="#mainBannerCarousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
+    <button type="button" data-bs-target="#mainBannerCarousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
+  </div>
+
   <div class="carousel-inner">
-    <div class="carousel-item active" style="background-image: url('placeholder-background.jpg');">
-      <div class="container-fluid h-100 d-flex align-items-center position-relative">
 
-        <div class="banner-content text-white p-5 ms-lg-5">
-          <div class="logo-small mb-3"><i class="fas fa-star" style="font-size: 30px;"></i> JOGARBOLA</div>
-          <h1 class="display-3 fw-bold mb-3">POWER PRO J800</h1>
-          <p class="fs-5 mb-4">QUICK GAME CHANGER</p>
-          <a href="#" class="btn btn-danger btn-lg px-4 py-2 fw-bold">XEM NGAY</a>
+    <div class="carousel-item carousel-item-custom active"
+         style="background-image: url('https://tn.com.ar/resizer/v2/los-terrenos-las-distancias-los-ritmos-y-las-exigencias-seran-diferentes-a-tus-entrenamientos-en-otras-partes-del-ano-foto-shutterstock-XQ3CADM4TZPTBI33DXC6P6AHLY.jpg?auth=0e8721df902a795351454cdeeb718a44c9f12dcf0addeacaee75d3d829558e6f&width=767');">
 
-          <div class="large-text mt-5">
-            SỨC MẠNH<br>TRONG TỪNG CÚ ĐÁNH
+      <div class="carousel-caption-custom">
+        <h1 class="caption-title">MEN WEAR MÙA HÈ</h1>
+        <p class="caption-subtitle">
+          Khám phá bộ sưu tập thời trang Nam mới nhất. Nhập COOLNEW Giảm 50K đơn đầu tiên từ 299K.
+        </p>
+        <a href="#" class="btn-slide-action">KHÁM PHÁ NGAY</a>
+      </div>
+    </div>
+
+    <div class="carousel-item carousel-item-custom"
+         style="background-image: url('https://product.hstatic.net/200000650139/product/tvv07200_b8b681a667df46c68dd94f065fcbce48_grande.jpg');">
+
+      <div class="carousel-caption-custom">
+        <h1 class="caption-title">WOMEN ACTIVE ESSENTIALS</h1>
+        <p class="caption-subtitle">
+          Tự tin năng động với BST Active Wear liền mạch. Nhập CMSEAMLESS Giảm 50K cho BST Seamless.
+        </p>
+        <a href="#" class="btn-slide-action">XEM SẢN PHẨM</a>
+      </div>
+    </div>
+
+    <div class="carousel-item carousel-item-custom"
+         style="background-image: url('https://aokhoacdu.com/wp-content/uploads/2020/06/ao-khoac-the-thao-adidas-2020.jpg');">
+
+      <div class="carousel-caption-custom">
+        <h1 class="caption-title">MUA SẮM ĐỒ THU ĐÔNG</h1>
+        <p class="caption-subtitle">
+          Các mẫu Hoodie và Sweater mới về! Nhập CMFW25 Giảm 50K cho đơn từ 499K.
+        </p>
+        <a href="#" class="btn-slide-action">MUA NGAY</a>
+      </div>
+    </div>
+
+  </div>
+
+  <button class="carousel-control-prev" type="button" data-bs-target="#mainBannerCarousel" data-bs-slide="prev">
+    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+    <span class="visually-hidden">Previous</span>
+  </button>
+
+  <button class="carousel-control-next" type="button" data-bs-target="#mainBannerCarousel" data-bs-slide="next">
+    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+    <span class="visually-hidden">Next</span>
+  </button>
+</div>
+<div class="container-section">
+  <div class="d-flex mb-4">
+    <button class="category-button">DANH MỤC SẢN PHẨM</button>
+
+  </div>
+
+  <div class="row row-cols-2 row-cols-md-3 row-cols-lg-5 g-3 g-md-4 justify-content-center">
+
+    <div class="col">
+      <div class="product-card d-flex flex-column">
+        <div class="product-image-container">
+          <img src="https://n7media.coolmate.me/uploads/September2025/ao-khoac-the-thao-track-jacket-essential-xam-bid-grey-1.jpg" alt="Áo Khoác">
+        </div>
+        <div class="card-body-custom">
+          ÁO KHOÁC
+        </div>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="product-card d-flex flex-column">
+        <div class="product-image-container">
+          <img src="https://pos.nvncdn.com/a36e05-151378/ps/20241128_TyLUzfgv9J.jpeg?v=1732776975" alt="Áo Nam">
+        </div>
+        <div class="card-body-custom">
+          ÁO NAM
+        </div>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="product-card d-flex flex-column">
+        <div class="product-image-container">
+          <img src="https://product.hstatic.net/200000650139/product/tvv07200_b8b681a667df46c68dd94f065fcbce48_grande.jpg" alt="Áo Nữ">
+        </div>
+        <div class="card-body-custom">
+          ÁO NỮ
+        </div>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="product-card d-flex flex-column">
+        <div class="product-image-container">
+          <img src="https://victeam.co/wp-content/uploads/2022/02/A43-xanh-bich-e1645301099369.jpg" alt="Áo Polo">
+          <div class="icon-overlay">
+            <small class="fw-bold text-dark">
+              <span style="transform: rotate(-45deg); display: inline-block;">%</span>
+            </small>
           </div>
         </div>
-
-        <div class="social-icons position-absolute top-50 start-0 translate-middle-y ms-3">
-          <a href="#" class="text-white d-block mb-3"><i class="fab fa-facebook-f fa-lg"></i></a>
-          <a href="#" class="text-white d-block mb-3"><i class="fab fa-youtube fa-lg"></i></a>
-          <a href="#" class="text-white d-block"><i class="fas fa-share-alt fa-lg"></i></a>
+        <div class="card-body-custom">
+          ÁO POLO
         </div>
+      </div>
+    </div>
 
-        <div class="rackets-image position-absolute h-100 end-0 top-0">
-          <img src="placeholder-rackets.png" alt="Badminton Rackets" class="img-fluid h-100" style="opacity: 0.1; max-width: 600px;">
-          <div class="distributed-by position-absolute bottom-0 end-0 me-5 mb-3 text-white">
-            Distributed by <span class="fw-bold fs-4">D</span>
-          </div>
+    <div class="col">
+      <div class="product-card d-flex flex-column">
+        <div class="product-image-container">
+          <img src="https://product.hstatic.net/200000805635/product/do_de94001dd04048c2bb32eaac7d4f7a2d_1024x1024.png" alt="Áo Thun">
+        </div>
+        <div class="card-body-custom">
+          ÁO THUN
         </div>
       </div>
     </div>
   </div>
-  <div class="carousel-indicators banner-indicators">
-    <button type="button" data-bs-target="#mainBanner" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
-    <button type="button" data-bs-target="#mainBanner" data-bs-slide-to="1" aria-label="Slide 2"></button>
-    <button type="button" data-bs-target="#mainBanner" data-bs-slide-to="2" aria-label="Slide 3"></button>
-  </div>
 </div>
-
-<div class="email-signup text-center py-4 bg-white">
-  <p class="mb-3">Đặt hàng ngay hôm nay để nhận **ƯU ĐÃI**!!</p>
-  <div class="d-flex justify-content-center">
-    <input type="email" class="form-control me-2" placeholder="Nhập email" style="max-width: 300px;">
-    <button class="btn btn-dark fw-bold">ĐĂNG KÝ NGAY</button>
-  </div>
-</div>
-
-<div class="container-fluid my-4">
-  <div class="d-flex justify-content-between align-items-center">
-    <h2 class="fw-bold">SẢN PHẨM MỚI</h2>
-    <a href="#" class="text-danger text-decoration-none fw-bold">Xem tất cả <i class="fas fa-chevron-right"></i></a>
-  </div>
-</div>
-
-<a href="#" class="floating-chat-btn position-fixed bottom-0 end-0 m-4 p-3 bg-primary text-white rounded-circle shadow-lg" style="font-size: 24px; z-index: 1050;">
+<a href="https://m.me/CSKH.sportstore?hash=AbYyzpOFlKgriRyz&source_id=8585216" class="floating-chat-btn position-fixed bottom-0 end-0 m-4 p-3 bg-messenger text-white rounded-circle shadow-lg" style="font-size: 24px; z-index: 1050;">
   <i class="fab fa-facebook-messenger"></i>
 </a>
 
-<div class="container-fluid my-5 product-section">
-  <div class="d-flex align-items-center mb-4 product-filter-nav">
-    <button class="btn btn-outline-dark me-3 active-filter-btn">VỢT CẦU LÔNG</button>
-    <button class="btn btn-dark me-3">BỘ TRANG PHỤC BÓNG ĐÁ VIBRANT</button>
-    <button class="btn btn-dark me-3">TRANG PHỤC ĐỘI TUYỂN BÓNG ĐÁ QUỐC GIA</button>
+<div class="container-fluid px-0">
+  <div class="container-section pt-0 pb-0">
 
-    <button class="btn btn-light border-0 ms-auto d-none d-lg-block">
-      <i class="fas fa-arrow-left"></i>
-    </button>
-  </div>
+    <div class="row g-4 mx-0">
 
-  <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3 product-list-carousel">
-
-    <div class="col">
-      <div class="card h-100 border-0 product-card special-product-card">
-        <div class="product-image-container position-relative overflow-hidden">
-          <div class="special-banner-overlay bg-danger text-white p-3 position-absolute top-0 start-0 h-100 w-100 d-flex flex-column justify-content-end align-items-center">
-            <img src="placeholder-racket-pink.png" alt="Vợt cầu lông hồng" class="img-fluid mb-2" style="max-height: 80%; opacity: 0.9;">
-
-            <div class="social-icons-on-card position-absolute start-0 top-50 translate-middle-y ms-2 text-white">
-              <i class="fas fa-circle d-block mb-3"></i>
-              <i class="fab fa-facebook-f d-block mb-3"></i>
-              <i class="fab fa-youtube d-block"></i>
-            </div>
-
-            <div class="w-100 text-center">
-              <button class="btn btn-light text-danger fw-bold px-4 py-2 mb-2">View Details</button>
-              <span class="badge bg-dark position-absolute top-0 end-0 m-2 sold-out-tag">Hết hàng</span>
+      <div class="col-12 col-md-6">
+        <a href="#" class="text-decoration-none">
+          <div class="banner-item" style="--bg-url: url('https://tn.com.ar/resizer/v2/los-terrenos-las-distancias-los-ritmos-y-las-exigencias-seran-diferentes-a-tus-entrenamientos-en-otras-partes-del-ano-foto-shutterstock-XQ3CADM4TZPTBI33DXC6P6AHLY.jpg?auth=0e8721df902a795351454cdeeb718a44c9f12dcf0addeacaee75d3d829558e6f&width=767');">
+            <div class="banner-content">
+              <h2 class="banner-title">ĐỒ NAM</h2>
+              <p class="banner-subtitle">Thiết kế nam tính mạnh mẽ</p>
+              <button class="btn-discover">KHÁM PHÁ</button>
             </div>
           </div>
-        </div>
-        <div class="card-body text-center p-3 mt-5">
-          <p class="card-text mb-1 fw-semibold">Vợt cầu lông Jogarbola Control J750</p>
-          <h5 class="text-danger fw-bold">695,000đ</h5>
-        </div>
-        <div class="text-center bg-danger text-white py-2">
-          <h5 class="fw-bold m-0">695,000đ</h5>
-        </div>
+        </a>
       </div>
+
+      <div class="col-12 col-md-6">
+        <a href="#" class="text-decoration-none">
+          <div class="banner-item" style="--bg-url: url('https://thanhnien.mediacdn.vn/uploaded/minhtan/2021_07_04/2021-07-03t131214z_1158724332_up1eh7310oc7r_rtrmadp_3_tennis-wimbledon_DCFS.jpg?width=500');">
+            <div class="banner-content">
+              <h2 class="banner-title">ĐỒ NỮ</h2>
+              <p class="banner-subtitle">Chất liệu thoáng mát, kiểu dáng thời trang</p>
+              <button class="btn-discover">KHÁM PHÁ</button>
+            </div>
+          </div>
+        </a>
+      </div>
+
     </div>
 
-    <div class="col">
-      <div class="card h-100 border-0 product-card">
-        <div class="product-image-container position-relative overflow-hidden p-3">
-          <img src="placeholder-racket-blue.png" alt="Vợt cầu lông xanh" class="card-img-top img-fluid">
-          <span class="badge bg-danger position-absolute top-0 end-0 m-2 sold-out-tag">Hết hàng</span>
-        </div>
-        <div class="card-body text-center p-3">
-          <p class="card-text mb-1 fw-semibold">Vợt cầu lông Jogarbola Control J750</p>
-          <h5 class="text-danger fw-bold">695,000đ</h5>
-        </div>
-        <div class="text-center bg-white border-top py-2 product-buy-btn">
-          <h6 class="text-danger fw-bold m-0">695,000đ</h6>
-        </div>
-      </div>
-    </div>
-
-    <div class="col">
-      <div class="card h-100 border-0 product-card">
-        <div class="product-image-container position-relative overflow-hidden p-3">
-          <img src="placeholder-racket-red.png" alt="Vợt cầu lông đỏ" class="card-img-top img-fluid">
-          <span class="badge bg-danger position-absolute top-0 end-0 m-2 sold-out-tag">Hết hàng</span>
-        </div>
-        <div class="card-body text-center p-3">
-          <p class="card-text mb-1 fw-semibold">Vợt cầu lông Jogarbola Control J750</p>
-          <h5 class="text-danger fw-bold">695,000đ</h5>
-        </div>
-        <div class="text-center bg-white border-top py-2 product-buy-btn">
-          <h6 class="text-danger fw-bold m-0">695,000đ</h6>
-        </div>
-      </div>
-    </div>
-
-    <div class="col">
-      <div class="card h-100 border-0 product-card">
-        <div class="product-image-container position-relative overflow-hidden p-3">
-          <img src="placeholder-racket-white.png" alt="Vợt cầu lông trắng" class="card-img-top img-fluid">
-        </div>
-        <div class="card-body text-center p-3">
-          <p class="card-text mb-1 fw-semibold">Vợt cầu lông Jogarbola Power Pro J800</p>
-          <h5 class="text-danger fw-bold">795,000đ</h5>
-        </div>
-        <div class="text-center bg-white border-top py-2 product-buy-btn">
-          <h6 class="text-danger fw-bold m-0">795,000đ</h6>
-        </div>
+    <div class="row mx-0">
+      <div class="col-12">
+        <a href="#" class="text-decoration-none">
+          <div class="banner-winter" style="--winter-bg-url: url('https://aokhoacdu.com/wp-content/uploads/2020/06/ao-khoac-the-thao-adidas-2020.jpg');">
+            <div class="winter-content">
+              <h2 class="winter-title">ĐỒ THU ĐÔNG</h2>
+              <p class="winter-subtitle">Nhập CMFW25 Giảm 50K cho đơn từ 499K</p>
+              <button class="btn-buy-now">MUA NGAY</button>
+            </div>
+          </div>
+        </a>
       </div>
     </div>
 
   </div>
-
 </div>
-<div class="container-fluid my-5">
+
+
+
+<div class="container-section">
+
   <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="fw-bold">GIÀY ĐÁ BÓNG</h2>
-    <a href="#" class="text-dark text-decoration-none fw-bold">Xem tất cả <i class="fas fa-chevron-right"></i></a>
+    <h2 class="product-section-title">SẢN PHẨM THU ĐÔNG</h2>
+    <a href="#" class="view-more-link">Xem thêm</a>
   </div>
 
-  <div class="d-flex mb-4 product-filter-nav">
-    <button class="btn btn-outline-dark me-3 active-filter-btn">BĂNG CHÂN</button>
-    <button class="btn btn-dark me-3">COLORLUX</button>
-    <button class="btn btn-dark me-3">KOHA 2103</button>
+  <div class="position-relative">
+
+    <button class="btn btn-dark rounded-circle position-absolute top-50 start-0 translate-middle" style="z-index: 10; width: 40px; height: 40px;">&lt;</button>
+
+    <div class="row row-cols-2 row-cols-md-4 g-3 g-md-4">
+
+      <div class="col">
+        <div class="winter-product-card">
+          <div class="winter-product-image-container">
+            <img src="https://vinsport.vn/my_uploads/2023/12/Bo-quan-ao-khoac-ni-thu-dong-xuan-Suvec-Wika-chinh-hang-nhieu-mau-kieu-dang-the-thao-moi-2024-1.jpg" alt="Áo Khoác">
+            <span class="product-tag">NEW</span>
+
+            <div class="product-overlay">
+              <div class="size-options">
+                <span>S</span>
+                <span>M</span>
+                <span>L</span>
+                <span>XL</span>
+                <span>2XL</span>
+              </div>
+              <button class="add-to-cart-btn">
+                Thêm nhanh vào giỏ hàng <span style="font-size: 1.2em;">+</span>
+              </button>
+            </div>
+          </div>
+          <div class="product-footer">
+            <span class="promo-tag">CMFW25</span>
+            <span class="promo-text">GIẢM 50K CHO ĐƠN 499K</span>
+            <div class="color-picker">
+              <div class="color-option selected" style="background-color: #fff; border: 1px solid #ccc;"></div>
+              <div class="color-option" style="background-color: #000;"></div>
+              <div class="color-option" style="background-color: #b0a090;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col">
+        <div class="winter-product-card">
+          <div class="winter-product-image-container">
+            <img src="https://bizweb.dktcdn.net/100/481/348/products/z4147260213030-0bc9a3e8796f400a2e44729000478a01-1677660244570.jpg?v=1680768222003" alt="Quần Thể Thao">
+            <span class="product-tag">NEW</span>
+
+            <div class="product-overlay">
+              <div class="size-options">
+                <span>S</span>
+                <span>M</span>
+                <span>L</span>
+                <span>XL</span>
+              </div>
+              <button class="add-to-cart-btn">
+                Thêm nhanh vào giỏ hàng <span style="font-size: 1.2em;">+</span>
+              </button>
+            </div>
+          </div>
+          <div class="product-footer">
+            <span class="promo-tag">CMFW25</span>
+            <span class="promo-text">GIẢM 50K CHO ĐƠN 499K</span>
+            <div class="color-picker">
+              <div class="color-option selected" style="background-color: #000;"></div>
+              <div class="color-option" style="background-color: #888;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="winter-product-card">
+          <div class="winter-product-image-container">
+            <img src="https://namfashion.com/home/wp-content/uploads/2024/07/Bo-quan-ao-the-thao-exr-cao-cap-xuat-khau-ha-noi-12.jpg" alt="Set đồ nam">
+            <span class="product-tag">NEW</span>
+
+            <div class="product-overlay">
+              <div class="size-options">
+                <span>S</span>
+                <span>M</span>
+                <span>L</span>
+                <span>XL</span>
+                <span>2XL</span>
+              </div>
+              <button class="add-to-cart-btn">
+                Thêm nhanh vào giỏ hàng <span style="font-size: 1.2em;">+</span>
+              </button>
+            </div>
+          </div>
+          <div class="product-footer">
+            <span class="promo-tag">CMFW25</span>
+            <span class="promo-text">GIẢM 50K CHO ĐƠN 499K</span>
+            <div class="color-picker">
+              <div class="color-option selected" style="background-color: #a32a22;"></div>
+              <div class="color-option" style="background-color: #333;"></div>
+              <div class="color-option" style="background-color: #fff; border: 1px solid #ccc;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col">
+        <div class="winter-product-card">
+          <div class="winter-product-image-container">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSTwJ9HLD_KdXAvDNeLbNZ0-QhngPMJWocGbw&s" alt="set bóng đã">
+            <span class="product-tag tag-out-stock">BÁN HẾT</span>
+
+            <div class="product-overlay">
+              <div class="size-options">
+                <span>S</span>
+                <span>M</span>
+                <span>L</span>
+                <span>XL</span>
+              </div>
+              <button class="add-to-cart-btn" disabled style="background-color: #ffc107;">
+                HẾT HÀNG
+              </button>
+            </div>
+          </div>
+          <div class="product-footer">
+            <span class="promo-tag">CMFW25</span>
+            <span class="promo-text">GIẢM 50K CHO ĐƠN 499K</span>
+            <div class="color-picker">
+              <div class="color-option" style="background-color: #888; border: 1px solid #ccc;"></div>
+              <div class="color-option selected" style="background-color: #000;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <button class="btn btn-dark rounded-circle position-absolute top-50 end-0 translate-middle" style="z-index: 10; width: 40px; height: 40px;">&gt;</button>
+
   </div>
 </div>
-<div class="container-fluid my-5 athlete-showcase">
-  <h2 class="fw-bold mb-4">Vận động viên trong trang phục Jogarbola</h2>
 
-  <div class="row row-cols-1 row-cols-md-3 g-4">
 
-    <div class="col">
-      <div class="card h-100 border-0 overflow-hidden">
-        <div class="image-container position-relative">
-          <img src="placeholder-shoes-paru.jpg" class="card-img-top img-fluid" alt="Giày cầu lông Paru">
-          <div class="position-absolute top-0 start-0 p-3 text-white">
-            <div class="logo-small mb-2"><i class="fas fa-star text-white"></i> JOGARBOLA</div>
-          </div>
-
-          <div class="social-icons-on-post position-absolute start-0 top-50 translate-middle-y ms-3 text-white">
-            <i class="fas fa-circle d-block mb-3"></i>
-            <i class="fab fa-facebook-f d-block mb-3"></i>
-            <i class="fab fa-youtube d-block"></i>
-          </div>
-
-          <div class="position-absolute bottom-0 start-0 p-3 text-white fw-bold fs-5">
-            <p class="m-0">JOGARBOLA.COM.VN</p>
+<div class="container-section pt-0 pb-0">
+  <div class="row g-4 mx-0">
+    <div class="col-12">
+      <a href="#" class="text-decoration-none">
+        <div class="banner-winter" style="--winter-bg-url: url('https://file.hstatic.net/1000331599/file/w-banner_2000x800_5d42dff4956248538a887eba1fc51904.jpg');">
+          <div class="winter-content">
+            <h2 class="winter-title">ĐỒ THAO THAO NỮ</h2>
+            <p class="winter-subtitle">Thời trang đa dạng, kiểu dáng hiện đại</p>
+            <button class="btn-buy-now">MUA NGAY</button>
           </div>
         </div>
-      </div>
-    </div>
-
-    <div class="col">
-      <div class="card h-100 border-0 overflow-hidden">
-        <div class="image-container position-relative">
-          <img src="placeholder-athletes-sr24.jpg" class="card-img-top img-fluid" alt="Vận động viên SR24">
-
-          <div class="position-absolute top-0 start-0 p-3 text-white">
-            <div class="logo-small mb-2"><i class="fas fa-star text-white"></i> JOGARBOLA</div>
-          </div>
-
-          <div class="position-absolute bottom-0 start-0 p-3 text-white">
-            <h3 class="fw-bold mb-1 text-uppercase">SR24</h3>
-            <p class="m-0 fw-light">HIỆU SUẤT HOÀN HẢO</p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="col">
-      <div class="card h-100 border-0 overflow-hidden">
-        <div class="image-container position-relative">
-          <img src="placeholder-football-vibrant.jpg" class="card-img-top img-fluid" alt="Áo bóng đá Vibrant">
-
-          <div class="position-absolute top-0 start-0 p-3 text-white">
-            <div class="logo-small mb-2"><i class="fas fa-star text-white"></i> JOGARBOLA</div>
-          </div>
-
-          <div class="position-absolute bottom-0 start-0 p-3 text-white">
-            <h3 class="fw-bold mb-1 text-uppercase">FOOTBALL JERSEY</h3>
-            <p class="m-0 fw-bold fs-4 text-uppercase">VIBRANT</p>
-          </div>
-        </div>
-      </div>
+      </a>
     </div>
   </div>
 </div>
----
 
-<div class="container-fluid my-5 news-section">
+<div class="container-section">
+
   <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="fw-bold">TIN TỨC MỚI NHẤT</h2>
-    <a href="#" class="text-dark text-decoration-none fw-bold">Xem tất cả <i class="fas fa-chevron-right"></i></a>
+    <h2 class="product-section-title">SẢN PHẨM THỂ THAO NỮ</h2>
+    <a href="#" class="view-more-link">Xem thêm</a>
   </div>
 
-  <div class="row row-cols-1 row-cols-md-3 g-4">
+  <div class="position-relative">
 
-    <div class="col">
-      <div class="card h-100 border-0">
-        <img src="placeholder-news-1.jpg" class="card-img-top img-fluid" alt="Tin tức 1">
-      </div>
-    </div>
+    <button class="btn btn-dark rounded-circle position-absolute top-50 start-0 translate-middle" style="z-index: 10; width: 40px; height: 40px;">&lt;</button>
 
-    <div class="col">
-      <div class="card h-100 border-0">
-        <img src="placeholder-news-2.jpg" class="card-img-top img-fluid" alt="Tin tức 2">
-      </div>
-    </div>
+    <div class="row row-cols-2 row-cols-md-4 g-3 g-md-4">
 
-    <div class="col">
-      <div class="card h-100 border-0">
-        <div class="image-container position-relative">
-          <img src="placeholder-news-3.jpg" class="card-img-top img-fluid" alt="Tin tức 3">
+      <div class="col">
+        <div class="winter-product-card">
+          <div class="winter-product-image-container">
+            <img src="https://lh7-rt.googleusercontent.com/docsz/AD_4nXcLAIihQQazyCMnlD1M7DpMYlRvZW9DIJn07HOrZeIAVm9sqUZ8B0sXxcOVN89kQWMabCFUKcbHOKiuV0jUCBsvzRPxL6jd9hziZ2GKirlNrJyEltowenW_2bXybIuCfRzFTfoChw?key=XB9oEV9WJSkBEUioOoctv865" alt="set pickke ball">
+            <span class="product-tag">NEW</span>
 
-          <div class="position-absolute top-0 start-0 p-3">
-            <div class="logo-small mb-2"><i class="fas fa-star text-white"></i> JOGARBOLA</div>
+            <div class="product-overlay">
+              <div class="size-options">
+                <span>S</span>
+                <span>M</span>
+                <span>L</span>
+                <span>XL</span>
+                <span>2XL</span>
+              </div>
+              <button class="add-to-cart-btn">
+                Thêm nhanh vào giỏ hàng <span style="font-size: 1.2em;">+</span>
+              </button>
+            </div>
           </div>
-          <div class="position-absolute bottom-0 start-0 p-3 text-white">
-            <h3 class="fw-bold mb-1 text-uppercase">NEW COLLECTION</h3>
+          <div class="product-footer">
+            <span class="promo-tag">CMFW25</span>
+            <span class="promo-text">GIẢM 50K CHO ĐƠN 499K</span>
+            <div class="color-picker">
+              <div class="color-option selected" style="background-color: #fff; border: 1px solid #ccc;"></div>
+              <div class="color-option" style="background-color: #000;"></div>
+              <div class="color-option" style="background-color: #b0a090;"></div>
+            </div>
           </div>
         </div>
       </div>
+
+      <div class="col">
+        <div class="winter-product-card">
+          <div class="winter-product-image-container">
+            <img src="https://dongphuchaianh.vn/wp-content/uploads/2022/03/ao-quan-the-thao-nu.jpg" alt="">
+            <span class="product-tag">NEW</span>
+
+            <div class="product-overlay">
+              <div class="size-options">
+                <span>S</span>
+                <span>M</span>
+                <span>L</span>
+                <span>XL</span>
+              </div>
+              <button class="add-to-cart-btn">
+                Thêm nhanh vào giỏ hàng <span style="font-size: 1.2em;">+</span>
+              </button>
+            </div>
+          </div>
+          <div class="product-footer">
+            <span class="promo-tag">CMFW25</span>
+            <span class="promo-text">GIẢM 50K CHO ĐƠN 499K</span>
+            <div class="color-picker">
+              <div class="color-option selected" style="background-color: #000;"></div>
+              <div class="color-option" style="background-color: #888;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="winter-product-card">
+          <div class="winter-product-image-container">
+            <img src="https://product.hstatic.net/1000312752/product/dsc05677_8e359d557e824b608c69ee5717fe76fc_master.jpg" alt="">
+            <span class="product-tag">NEW</span>
+
+            <div class="product-overlay">
+              <div class="size-options">
+                <span>S</span>
+                <span>M</span>
+                <span>L</span>
+                <span>XL</span>
+                <span>2XL</span>
+              </div>
+              <button class="add-to-cart-btn">
+                Thêm nhanh vào giỏ hàng <span style="font-size: 1.2em;">+</span>
+              </button>
+            </div>
+          </div>
+          <div class="product-footer">
+            <span class="promo-tag">CMFW25</span>
+            <span class="promo-text">GIẢM 50K CHO ĐƠN 499K</span>
+            <div class="color-picker">
+              <div class="color-option selected" style="background-color: #a32a22;"></div>
+              <div class="color-option" style="background-color: #333;"></div>
+              <div class="color-option" style="background-color: #fff; border: 1px solid #ccc;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col">
+        <div class="winter-product-card">
+          <div class="winter-product-image-container">
+            <img src="https://deltasport.vn/wp-content/uploads/2025/10/354-1.png" alt="">
+            <span class="product-tag tag-out-stock">BÁN HẾT</span>
+
+            <div class="product-overlay">
+              <div class="size-options">
+                <span>S</span>
+                <span>M</span>
+                <span>L</span>
+                <span>XL</span>
+              </div>
+              <button class="add-to-cart-btn" disabled style="background-color: #ffc107;">
+                HẾT HÀNG
+              </button>
+            </div>
+          </div>
+          <div class="product-footer">
+            <span class="promo-tag">CMFW25</span>
+            <span class="promo-text">GIẢM 50K CHO ĐƠN 499K</span>
+            <div class="color-picker">
+              <div class="color-option" style="background-color: #888; border: 1px solid #ccc;"></div>
+              <div class="color-option selected" style="background-color: #000;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
+
+    <button class="btn btn-dark rounded-circle position-absolute top-50 end-0 translate-middle" style="z-index: 10; width: 40px; height: 40px;">&gt;</button>
 
   </div>
 </div>
-<!--<footer class="bg-dark text-white pt-5 pb-3 footer-custom">-->
-<!--  <div class="container-fluid">-->
-<!--    <div class="row">-->
+<div class="container-section pt-0 pb-0">
+  <div class="video-hero-section">
+    <div class="video-hero-container">
 
-<!--      <div class="col-lg-4 col-md-6 mb-4">-->
-<!--        <div class="footer-logo mb-4 text-white">-->
-<!--          <i class="fas fa-star fa-3x mb-2 d-block"></i>-->
-<!--          <span class="fs-4 fw-bold text-uppercase">JOGARBOLA</span>-->
-<!--        </div>-->
+      <div class="video-wrapper">
+        <iframe width="560" height="315" src="https://www.youtube.com/embed/DlUyuNRTp8Y?si=GkFXQGchyOfx4aN-" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+      </div>
 
-<!--        <ul class="list-unstyled footer-links">-->
-<!--          <li><a href="#" class="text-white-50">Chính sách thẻ thành viên</a></li>-->
-<!--          <li><a href="#" class="text-white-50">Chính sách bảo hành</a></li>-->
-<!--          <li><a href="#" class="text-white-50">Chính sách mua hàng, vận chuyển và phương thức thanh toán (Chi tiết Điều 34)</a></li>-->
-<!--          <li><a href="#" class="text-white-50">Chính sách bảo mật</a></li>-->
-<!--          <li><a href="#" class="text-white-50">Chính sách kiểm hàng, bảo hành và đổi trả</a></li>-->
-<!--          <li><a href="#" class="text-white-50">Giới thiệu Jogarbola Việt Nam</a></li>-->
-<!--          <li><a href="#" class="text-white-50">Chính sách bảo mật và bảo vệ hệ thống thông tin người tiêu dùng (Điều 68 đến điều 73)</a></li>-->
-<!--          <li><a href="#" class="text-white-50">Chính sách hoàn tiền</a></li>-->
-<!--          <li><a href="#" class="text-white-50">Phần định trách nhiệm của thương nhân, tổ chức cung ứng dịch vụ logistics về cung cấp chứng từ hàng hóa trong quá trình nhận</a></li>-->
-<!--          <li><a href="#" class="text-white-50">Thông tin về chủ sở hữu Website (Chi tiết Điều 29)</a></li>-->
-<!--        </ul>-->
-<!--      </div>-->
+      <div class="video-caption">
+        <p class="video-title-text">LÀM CHỦ PHONG CÁCH</p>
+      </div>
 
-<!--      <div class="col-lg-4 col-md-6 mb-4">-->
-<!--        <h5 class="text-uppercase mb-4 fw-bold">Hệ thống cửa hàng</h5>-->
-<!--        <ul class="list-unstyled footer-links mb-5">-->
-<!--          <li><a href="#" class="text-white-50">Hệ thống cửa hàng</a></li>-->
-<!--        </ul>-->
+    </div>
+  </div>
+</div>
 
-<!--        <ul class="list-unstyled footer-contact">-->
-<!--          <li class="mb-2"><i class="fas fa-map-marker-alt me-2 text-danger"></i> Địa chỉ | <a href="#" class="text-white-50">Hỗ trợ</a> | <a href="#" class="text-white-50">Đăng kí thành viên</a> | <a href="#" class="text-white-50">Đăng kí đại lý</a></li>-->
-<!--          <li class="mb-2"><i class="fas fa-phone-alt me-2 text-danger"></i> 18000021</li>-->
-<!--          <li class="mb-2"><i class="fas fa-envelope me-2 text-danger"></i> Email: info@jogarbola.com.vn</li>-->
-<!--          <li class="mb-3 d-flex flex-wrap">-->
-<!--            <div class="me-3"><i class="fas fa-life-ring me-1 text-danger"></i> Hỗ trợ 24/7</div>-->
-<!--            <div class="me-3"><i class="fas fa-shipping-fast me-1 text-danger"></i> Vận chuyển toàn quốc</div>-->
-<!--            <div><i class="fas fa-money-check-alt me-1 text-danger"></i> Thanh toán tại nhà</div>-->
-<!--          </li>-->
-<!--        </ul>-->
 
-<!--        <img src="placeholder-bo-cong-thuong.png" alt="Đã thông báo Bộ Công Thương" class="img-fluid" style="max-width: 150px;">-->
-<!--      </div>-->
-
-<!--      <div class="col-lg-4 col-md-12 mb-4">-->
-<!--        <h5 class="text-uppercase mb-4 fw-bold">ĐĂNG KÝ NHẬN NGAY HOT DEAL VÀ S...</h5>-->
-<!--        <form class="d-flex mb-3">-->
-<!--          <input type="email" class="form-control form-control-sm me-2 bg-secondary border-0 text-white" placeholder="Nhập email">-->
-<!--          <button class="btn btn-danger btn-sm fw-bold px-3" type="submit">Đăng ký</button>-->
-<!--        </form>-->
-
-<!--        <div class="social-icons-footer d-flex mt-4">-->
-<!--          <a href="#" class="text-white me-3"><i class="fab fa-facebook-f fa-lg"></i></a>-->
-<!--          <a href="#" class="text-white me-3"><i class="fab fa-instagram fa-lg"></i></a>-->
-<!--          <a href="#" class="text-white me-3"><i class="fab fa-youtube fa-lg"></i></a>-->
-<!--          <a href="#" class="text-white me-3"><i class="fas fa-share-alt fa-lg"></i></a>-->
-<!--        </div>-->
-<!--      </div>-->
-
-<!--    </div>-->
-
-<!--    <div class="border-top border-secondary pt-3 mt-4 text-center">-->
-<!--      <p class="m-0 text-white-50">&copy; Copyright 2023 Jogarbola.</p>-->
-<!--      <p class="m-0 text-white-50">Jogarbola do Tập đoàn Động Lực kinh doanh độc quyền tại Việt Nam</p>-->
-<!--    </div>-->
-<!--  </div>-->
-<!--</footer>-->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <div th:replace="~{library/footer :: footer}"></div>
 </body>
