@@ -1,111 +1,144 @@
-/* ---- General Footer Styling ---- */
+
+    /* --- Cài đặt cơ bản cho Footer --- */
 .site-footer {
-    background-color: #26272b;
-    color: #a9a9a9;
-    padding: 45px 0 20px;
-    font-size: 15px;
-    line-height: 24px;
+    background-color: #111; /* Màu nền đen */
+    color: #a9a9a9; /* Màu chữ xám nhạt */
+    padding: 50px 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+    margin-top: 50px; /* Tạo khoảng cách với nội dung bên trên */
 }
 
+/* Container bên trong footer, dùng lại từ file .css chính
+  nếu có, hoặc định nghĩa ở đây.
+*/
 .site-footer .container {
-    max-width: 1200px;
+    width: 100%;
+    max-width: 1400px; /* Khớp với max-width của header */
     margin: 0 auto;
-    padding: 0 15px;
+    padding: 0 1.5rem; /* Khớp với padding của header */
 }
 
+/* --- Lưới (Grid) của Footer --- */
 .footer-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    /* Tạo 4 cột trên desktop.
+      gap: 30px là khoảng cách giữa các cột.
+    */
+    grid-template-columns: repeat(4, 1fr);
     gap: 30px;
 }
 
+/* --- Từng cột trong Lưới --- */
 .footer-col {
-    padding: 0 10px;
+    min-width: 0; /* Sửa lỗi flexbox/grid overflow */
 }
 
 .footer-logo svg {
     margin-bottom: 20px;
 }
 
-.social-icons {
-    margin-bottom: 25px;
-}
-
-.social-icons a {
-    display: inline-block;
-    width: 40px;
-    height: 40px;
-    line-height: 40px;
-    margin-right: 8px;
-    border-radius: 50%;
-    background-color: #33383d;
-    color: #ffffff;
-    text-align: center;
-    font-size: 16px;
-    transition: all 0.3s ease;
-}
-
-.social-icons a:hover {
-    background-color: #007bff;
-    color: #fff;
-}
-
+/* Tiêu đề của mỗi cột (Về chúng tôi, Hỗ trợ...) */
 .footer-heading {
-    color: #fff;
-    font-size: 16px;
-    text-transform: uppercase;
-    margin-top: 5px;
+    font-size: 1.1rem;
+    color: #fff; /* Màu trắng */
     margin-bottom: 20px;
     font-weight: 600;
-    letter-spacing: 0.5px;
 }
 
-.site-footer a {
-    color: #a9a9a9;
-    text-decoration: none;
-}
-
-.site-footer a:hover {
-    color: #ffffff;
-    text-decoration: underline;
-}
-
-/* ---- Lists Styling ---- */
-.footer-links, .contact-info {
+/* --- Các link trong Footer --- */
+.footer-links {
     list-style: none;
-    padding-left: 0;
+    padding: 0;
+    margin: 0;
 }
 
 .footer-links li {
     margin-bottom: 12px;
 }
 
+.footer-links a {
+    text-decoration: none;
+    color: #a9a9a9; /* Màu chữ xám nhạt */
+    transition: color 0.2s, padding-left 0.2s;
+}
+
+.footer-links a:hover {
+    color: #fff; /* Chuyển sang màu trắng khi hover */
+    padding-left: 5px; /* Hiệu ứng thụt vào */
+}
+
+/* --- Thông tin liên hệ (Cột 1) --- */
+.contact-info {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    color: #a9a9a9;
+}
 .contact-info li {
+    margin-bottom: 15px;
     display: flex;
     align-items: flex-start;
-    margin-bottom: 15px;
 }
-
 .contact-info i {
-    color: #ffffff;
     margin-right: 12px;
-    font-size: 16px;
-    margin-top: 4px;
+    margin-top: 5px;
+    color: var(--primary-color, #0d6efd); /* Dùng màu nhấn */
+}
+.contact-info a {
+    color: #fff; /* Số điện thoại/email màu trắng */
+    text-decoration: none;
+}
+.contact-info a:hover {
+    text-decoration: underline;
 }
 
-.contact-info span a {
-    color: #ffffff; /* Make phone number stand out */
-    font-weight: bold;
+/* --- Icon Mạng xã hội (Cột 1) --- */
+.social-icons {
+    margin-bottom: 25px;
+}
+.social-icons a {
+    color: #a9a9a9;
+    font-size: 1.3rem;
+    margin-right: 15px;
+    transition: color 0.2s;
+}
+.social-icons a:hover {
+    color: var(--primary-color, #0d6efd);
 }
 
-/* ---- Map and Bottom Bar ---- */
-.map-container iframe {
+/* --- Bản đồ (Cột 4) --- */
+.map-container {
     border-radius: 8px;
+    overflow: hidden; /* Bo góc cho iframe */
 }
 
+/* --- Dòng Copyright cuối cùng --- */
 .footer-bottom {
-    padding-top: 20px;
-    margin-top: 30px;
-    border-top: 1px solid #3a3a3a;
+    border-top: 1px solid #333; /* Đường kẻ mờ */
+    padding-top: 25px;
+    margin-top: 40px;
     text-align: center;
+    font-size: 0.9rem;
+}
+
+/* --- RESPONSIVE CHO FOOTER --- */
+
+/* Tablet (2 cột) */
+@media (max-width: 992px) {
+    .footer-grid {
+        /* Chuyển thành 2 cột */
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Mobile (1 cột) */
+@media (max-width: 768px) {
+    .footer-grid {
+        /* Chuyển thành 1 cột */
+        grid-template-columns: 1fr;
+    }
+    .site-footer {
+        padding: 40px 0;
+    }
 }

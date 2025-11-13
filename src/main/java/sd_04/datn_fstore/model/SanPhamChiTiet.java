@@ -1,11 +1,12 @@
 package sd_04.datn_fstore.model;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -14,6 +15,7 @@ import java.util.List;
 @AllArgsConstructor
 @Entity
 @Table(name = "SanPhamChiTiet")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class SanPhamChiTiet {
 
     @Id
@@ -62,6 +64,7 @@ public class SanPhamChiTiet {
     private SanPham sanPham;
 
     // Mối quan hệ: Một chi tiết sản phẩm có trong nhiều hóa đơn chi tiết
+    @JsonIgnore // BẮT BUỘC: Ngắt vòng lặp với HoaDonChiTiet
     @OneToMany(mappedBy = "sanPhamChiTiet", fetch = FetchType.LAZY)
     private List<HoaDonChiTiet> hoaDonChiTiets;
 }

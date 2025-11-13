@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #1e90ff, #00bfff);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .login-container {
+            background: #fff;
+            padding: 40px 30px;
+            border-radius: 12px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+            width: 350px;
+            text-align: center;
+        }
+        h2 {
+            margin-bottom: 25px;
+            color: #333;
+        }
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0 16px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        input[type="submit"] {
+            width: 100%;
+            background-color: #1e90ff;
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        input[type="submit"]:hover {
+            background-color: #187bcd;
+        }
+        .message {
+            margin-bottom: 15px;
+            font-size: 14px;
+            color: #333;
+        }
+        .error { color: red; }
+        .success { color: green; }
+        .link {
+            margin-top: 20px;
+            display: block;
+            font-size: 14px;
+            color: #1e90ff;
+            text-decoration: none;
+        }
+        .link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+<div class="login-container">
+    <h2>Đăng nhập</h2>
+
+    <div th:if="${param.success}" class="message success">
+        Đăng ký thành công! Hãy đăng nhập bằng tài khoản của bạn.
+    </div>
+    <div th:if="${param.error}" class="message error">
+        Sai tên đăng nhập hoặc mật khẩu.
+    </div>
+    <div th:if="${param.logout}" class="message">
+        Bạn đã đăng xuất thành công.
+    </div>
+
+    <form th:action="@{/login}" method="post">
+        <input name="username" type="text" placeholder="Tên đăng nhập" required>
+        <input name="password" type="password" placeholder="Mật khẩu" required>
+        <input type="submit" value="Đăng nhập">
+    </form>
+
+    <a th:href="@{/registration}" class="link">Chưa có tài khoản? Đăng ký ngay</a>
+    <a th:href="@{/}" class="link">Về trang chủ</a>
+</div>
+</body>
+</html>

@@ -1,17 +1,21 @@
 package sd_04.datn_fstore.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.util.Date;
 import java.util.List;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+@Entity
 @Data
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity
+
 @Table(name = "XuatXu")
-public class XuatXu {
+public class    XuatXu {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,7 +34,7 @@ public class XuatXu {
     @Column(name = "moTa")
     private String moTa;
 
-    // Mối quan hệ: Một xuất xứ có trong nhiều sản phẩm chi tiết
+    @JsonIgnore
     @OneToMany(mappedBy = "xuatXu", fetch = FetchType.LAZY)
     private List<SanPhamChiTiet> sanPhamChiTiets;
 }

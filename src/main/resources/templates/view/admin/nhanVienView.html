@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8"/>
+    <title>Quản lý Nhân viên</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/styles.css}" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.2.0/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css"/>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.2/css/dataTables.bootstrap5.min.css"/>
+</head>
+<body class="p-4">
+<nav th:replace="~{library/navbar :: admin-navbar}"></nav>
+
+<div class="page-wrapper">
+    <div th:replace="~{library/navbar :: admin-sidebar}"></div>
+    <main class="main-content">
+        <div class="container">
+            <h2 class="text-center mb-4">Quản lý Nhân viên</h2>
+
+            <!-- search & actions -->
+            <div class="row mb-3 align-items-center">
+                <div class="col-md-6">
+                    <input id="searchInput" type="text" class="form-control" placeholder="Tìm theo mã hoặc tên..."/>
+                </div>
+                <div class="col-md-6 text-end">
+                    <button class="btn btn-primary me-2" onclick="searchNhanVien()">Tìm kiếm</button>
+                    <button class="btn btn-secondary me-2" onclick="loadNhanVien()">Làm mới</button>
+                    <button class="btn btn-success" onclick="showAddModal()">+ Thêm nhân viên</button>
+                </div>
+            </div>
+
+            <!-- table -->
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped">
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Mã NV</th>
+                        <th>Tên NV</th>
+                        <th>Email</th>
+                        <th>SĐT</th>
+                        <th>CCCD</th>
+                        <th>Giới tính</th>
+                        <th>Địa chỉ</th>
+                        <th>Vai trò</th>
+                        <th>Trạng thái</th>
+                        <th>Hành động</th>
+                    </tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Modal Thêm/Sửa -->
+        <div class="modal fade" id="nvModal" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header bg-dark text-white">
+                        <h5 id="modalTitle" class="modal-title">Thêm nhân viên</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="nvForm" onsubmit="return false;">
+                            <input type="hidden" id="nvId"/>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Mã NV</label>
+                                    <input id="maNhanVien" class="form-control" required/>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Tên NV</label>
+                                    <input id="tenNhanVien" class="form-control" required/>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Email</label>
+                                    <input id="email" type="email" class="form-control"/>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">SĐT</label>
+                                    <input id="soDienThoai" class="form-control"/>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">CCCD</label>
+                                    <input id="cccd" class="form-control"/>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Giới tính</label>
+                                    <select id="gioiTinh" class="form-select">
+                                        <option value="">Không khai báo</option>
+                                        <option value="true">Nam</option>
+                                        <option value="false">Nữ</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Địa chỉ</label>
+                                    <input id="diaChi" class="form-control"/>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Vai trò</label>
+                                    <input id="vaiTro" class="form-control" placeholder="Ví dụ: Quản lý, Bán hàng..."/>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Trạng thái</label>
+                                    <select id="trangThai" class="form-select">
+                                        <option value="1">Đang làm</option>
+                                        <option value="0">Nghỉ việc</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button class="btn btn-success" id="saveBtn" onclick="saveNhanVien()">Lưu</button>
+                        <button class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toasts -->
+        <div class="toast-container" id="toastContainer"></div>
+    </main>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
+<script th:src="@{/js/my-custom-scripts.js}"></script>
+<script>
+    const apiBase = "/api/nhanvien";
+    const nvModalEl = document.getElementById('nvModal');
+    const nvModal = new bootstrap.Modal(nvModalEl);
+
+    let currentPage = 1;
+    const pageSize = 10;
+    let allNhanVien = [];
+
+    function showToast(msg, type='success'){
+        const id='t'+Date.now();
+        const div=document.createElement('div');
+        div.className=`toast text-bg-${type} border-0`;
+        div.innerHTML=`<div class="d-flex"><div class="toast-body">${msg}</div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div>`;
+        document.getElementById('toastContainer').appendChild(div);
+        const t=new bootstrap.Toast(div);
+        t.show();
+        div.addEventListener('hidden.bs.toast',()=>div.remove());
+    }
+
+    function trangThaiToText(v){ return v===1?'Đang làm':'Nghỉ việc'; }
+    function gioiTinhToText(v){ return v===true?'Nam':v===false?'Nữ':'—'; }
+    function parseTrangThai(v){return Number(v)===1?1:0;}
+    function parseGioiTinh(v){if(v==='true')return true;if(v==='false')return false;return null;}
+
+    async function loadNhanVien(){
+        try{
+            const res=await fetch(apiBase+'/list');
+            if(!res.ok) throw new Error(res.status);
+            allNhanVien=await res.json();
+            renderTable();
+            renderPagination();
+        }catch(e){console.error(e);showToast('Không thể tải danh sách','danger');}
+    }
+
+    function renderTable(){
+        const body=document.getElementById('tableBody');
+        if(!allNhanVien.length){body.innerHTML=`<tr><td colspan="11" class="text-center text-muted">Không có dữ liệu</td></tr>`;return;}
+        const start=(currentPage-1)*pageSize;
+        const end=start+pageSize;
+        const pageData=allNhanVien.slice(start,end);
+        body.innerHTML=pageData.map(nv=>`
+      <tr>
+        <td>${nv.id??''}</td>
+        <td>${nv.maNhanVien??''}</td>
+        <td>${nv.tenNhanVien??''}</td>
+        <td>${nv.email??''}</td>
+        <td>${nv.soDienThoai??''}</td>
+        <td>${nv.cccd??''}</td>
+        <td>${gioiTinhToText(nv.gioiTinh)}</td>
+        <td>${nv.diaChi??''}</td>
+        <td>${nv.vaiTro??''}</td>
+        <td>${trangThaiToText(nv.trangThai)}</td>
+        <td>
+          <button class="btn btn-warning btn-sm me-1" onclick="openEdit(${nv.id})">Sửa</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteNhanVien(${nv.id})">Xóa</button>
+        </td>
+      </tr>`).join('');
+    }
+
+    function renderPagination(){
+        const totalPages=Math.max(3,Math.ceil(allNhanVien.length/pageSize));
+        const div=document.getElementById('paginationContainer');
+        let html=`<nav><ul class="pagination justify-content-center">`;
+        html+=`<li class="page-item ${currentPage===1?'disabled':''}">
+      <button class="page-link" onclick="changePage(${currentPage-1})">«</button></li>`;
+        for(let i=1;i<=totalPages;i++){
+            html+=`<li class="page-item ${i===currentPage?'active':''}">
+        <button class="page-link" onclick="changePage(${i})">${i}</button></li>`;
+        }
+        html+=`<li class="page-item ${currentPage===totalPages?'disabled':''}">
+      <button class="page-link" onclick="changePage(${currentPage+1})">»</button></li>`;
+        html+=`</ul></nav>`;
+        div.innerHTML=html;
+    }
+
+    function changePage(p){
+        const totalPages=Math.max(3,Math.ceil(allNhanVien.length/pageSize));
+        if(p<1||p>totalPages)return;
+        currentPage=p;
+        renderTable();renderPagination();
+    }
+
+    async function searchNhanVien(){
+        const kw=document.getElementById('searchInput').value.trim().toLowerCase();
+        try{
+            const res=await fetch(apiBase+'/list');
+            const list=await res.json();
+            allNhanVien=list.filter(nv=>{
+                return (nv.tenNhanVien??'').toLowerCase().includes(kw)||(nv.maNhanVien??'').toLowerCase().includes(kw);
+            });
+            currentPage=1;renderTable();renderPagination();
+        }catch(e){showToast('Tìm kiếm thất bại','danger');}
+    }
+
+    function showAddModal(){
+        document.getElementById('modalTitle').innerText='Thêm nhân viên';
+        document.getElementById('nvForm').reset();
+        document.getElementById('nvId').value='';
+        document.getElementById('trangThai').value='1';
+        nvModal.show();
+    }
+
+    async function openEdit(id){
+        try{
+            const res=await fetch(`${apiBase}/${id}`);
+            if(!res.ok){showToast('Không tìm thấy','danger');return;}
+            const nv=await res.json();
+            document.getElementById('modalTitle').innerText='Sửa nhân viên';
+            document.getElementById('nvId').value=nv.id??'';
+            document.getElementById('maNhanVien').value=nv.maNhanVien??'';
+            document.getElementById('tenNhanVien').value=nv.tenNhanVien??'';
+            document.getElementById('email').value=nv.email??'';
+            document.getElementById('soDienThoai').value=nv.soDienThoai??'';
+            document.getElementById('cccd').value=nv.cccd??'';
+            document.getElementById('gioiTinh').value=nv.gioiTinh===null?'':String(nv.gioiTinh);
+            document.getElementById('diaChi').value=nv.diaChi??'';
+            document.getElementById('vaiTro').value=nv.vaiTro??'';
+            document.getElementById('trangThai').value=nv.trangThai===1?'1':'0';
+            nvModal.show();
+        }catch(e){showToast('Lỗi khi lấy dữ liệu','danger');}
+    }
+
+    async function saveNhanVien(){
+        const id=document.getElementById('nvId').value;
+        const ma=document.getElementById('maNhanVien').value.trim();
+        const ten=document.getElementById('tenNhanVien').value.trim();
+        if(!ma||!ten){showToast('Mã và tên bắt buộc','warning');return;}
+        const payload={
+            maNhanVien:ma,
+            tenNhanVien:ten,
+            email:document.getElementById('email').value.trim()||null,
+            soDienThoai:document.getElementById('soDienThoai').value.trim()||null,
+            cccd:document.getElementById('cccd').value.trim()||null,
+            gioiTinh:parseGioiTinh(document.getElementById('gioiTinh').value),
+            diaChi:document.getElementById('diaChi').value.trim()||null,
+            vaiTro:document.getElementById('vaiTro').value.trim()||null,
+            trangThai:parseTrangThai(document.getElementById('trangThai').value)
+        };
+        try{
+            const method=id?'PUT':'POST';
+            const url=id?`${apiBase}/update/${id}`:`${apiBase}/add`;
+            const res=await fetch(url,{method,headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+            if(!res.ok){showToast('Lưu thất bại','danger');return;}
+            nvModal.hide();showToast('Lưu thành công');loadNhanVien();
+        }catch(e){showToast('Lỗi khi gọi API','danger');}
+    }
+
+    async function deleteNhanVien(id){
+        if(!confirm('Bạn có chắc muốn xóa nhân viên này?'))return;
+        try{
+            const res=await fetch(`${apiBase}/delete/${id}`,{method:'DELETE'});
+            if(!res.ok){showToast('Xóa thất bại','danger');return;}
+            showToast('Xóa thành công');loadNhanVien();
+        }catch(e){showToast('Lỗi khi xóa','danger');}
+    }
+
+    document.addEventListener('DOMContentLoaded',()=>{
+        const div=document.createElement('div');
+        div.id='paginationContainer';
+        div.className='mt-3';
+        document.querySelector('.container').appendChild(div);
+        loadNhanVien();
+    });
+    document.addEventListener("DOMContentLoaded", function() {
+
+        // 1. Tìm nút bấm
+        const toggleButton = document.getElementById('sidebarToggleBtn');
+
+        if (toggleButton) {
+            // 2. Thêm sự kiện click
+            toggleButton.addEventListener('click', function(e) {
+                e.preventDefault(); // Ngăn trình duyệt nhảy link
+
+                // 3. Thêm/Xóa class 'sidebar-toggled' trên thẻ <body>
+                document.body.classList.toggle('sidebar-toggled');
+            });
+        }
+
+    });
+</script>
+</body>
+</html>
