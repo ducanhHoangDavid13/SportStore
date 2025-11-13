@@ -23,11 +23,10 @@ public class DataApiController {
     /**
      * API này khớp với JS: fetch('/api/data/san-pham-active')
      */
-    @GetMapping("/san-pham-active")
-    public ResponseEntity<List<SanPhamChiTiet>> getAvailableProducts() {
-        // (Bạn phải tạo hàm getAvailableProducts() trong Service/Repo)
-        List<SanPhamChiTiet> products = sanPhamCTService.getAvailableProducts();
-        return ResponseEntity.ok(products);
+    @GetMapping("/san-pham-chi-tiet-active") // <-- ĐỔI TÊN
+    public ResponseEntity<List<SanPhamChiTiet>> getActiveProductDetails() {
+        // Hàm này trả về List<SanPhamChiTiet> là đúng
+        return ResponseEntity.ok(sanPhamCTService.getAvailableProducts());
     }
 
     /**

@@ -70,13 +70,13 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Integer> {
     /**
      * HÀM 5: Dùng cho API /api/ban-hang/hoa-don-tam/{id} (Tải chi tiết HĐ Tạm)
      */
-    @Query("SELECT h FROM HoaDon h " +
-            "LEFT JOIN FETCH h.khachHang " +
-            "LEFT JOIN FETCH h.hoaDonChiTiets hdct " +
-            "LEFT JOIN FETCH hdct.sanPhamChiTiet spct " +
-            "LEFT JOIN FETCH spct.sanPham sp " +
-            "LEFT JOIN FETCH sp.hinhAnh " + // Lấy cả hình ảnh
-            "WHERE h.id = :id")
+// Trong HoaDonRepository.java
+    @Query("SELECT hd FROM HoaDon hd " +
+            "LEFT JOIN FETCH hd.hoaDonChiTiets " + // <-- PHẢI CÓ DÒNG NÀY
+            "LEFT JOIN FETCH hd.khachHang " +
+            "LEFT JOIN FETCH hd.nhanVien " +
+            "LEFT JOIN FETCH hd.phieuGiamGia " +
+            "WHERE hd.id = :id")
     Optional<HoaDon> findByIdWithDetails(@Param("id") Integer id);
 
     // --- HÀM TIỆN ÍCH KHÁC ---
@@ -84,5 +84,12 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Integer> {
     /**
      * HÀM 6: Dùng để kiểm tra trùng mã HĐ
      */
+    // THÊM HÀM NÀY: Để lấy HĐ Tạm cho Modal
+    List<HoaDon> findByTrangThaiIn(List<Integer> trangThaiList);
+
+    // THÊM HÀM NÀY: Để VNPAY tìm HĐ
     Optional<HoaDon> findByMaHoaDon(String maHoaDon);
+
+
+
 }
