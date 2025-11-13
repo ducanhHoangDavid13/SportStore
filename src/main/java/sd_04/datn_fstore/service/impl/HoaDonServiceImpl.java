@@ -3,6 +3,7 @@ package sd_04.datn_fstore.service.impl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort; // <-- Cần import
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import sd_04.datn_fstore.model.HoaDon;
@@ -12,6 +13,7 @@ import sd_04.datn_fstore.repository.HoaDonChiTietRepository;
 import sd_04.datn_fstore.service.HoaDonService;
 import sd_04.datn_fstore.service.KhoService;
 
+import java.math.BigDecimal; // <-- Cần import
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -24,16 +26,18 @@ public class HoaDonServiceImpl implements HoaDonService {
     private final HoaDonChiTietRepository hoaDonChiTietRepository;
     private final KhoService khoService; // Dịch vụ Lõi
 
-    // Định nghĩa các trạng thái (Theo ảnh của bạn)
     private static final int TT_HOAN_THANH = 5;
     private static final int TT_DA_HUY = 6;
 
     @Override
+    // SỬA 1: Signature phải có 7 tham số (thêm minPrice, maxPrice)
     public Page<HoaDon> search(Pageable pageable, List<Integer> trangThaiList,
-                               LocalDateTime ngayBatDau, LocalDateTime ngayKetThuc, String keyword) {
+                               LocalDateTime ngayBatDau, LocalDateTime ngayKetThuc, String keyword,
+                               BigDecimal minPrice, BigDecimal maxPrice) { // <-- SỬA
 
         return hoaDonRepository.searchByTrangThaiAndNgayTao(
-                pageable, trangThaiList, ngayBatDau, ngayKetThuc, keyword
+                pageable, trangThaiList, ngayBatDau, ngayKetThuc, keyword,
+                minPrice, maxPrice // <-- TRUYỀN 2 BIẾN
         );
     }
 
@@ -51,19 +55,14 @@ public class HoaDonServiceImpl implements HoaDonService {
     }
 
     @Override
-    @Transactional // Quan trọng: Đảm bảo Hủy đơn và Hoàn kho cùng lúc
+    @Transactional // (Giữ nguyên hàm updateTrangThai)
     public void updateTrangThai(Integer hoaDonId, Integer newTrangThai) {
         HoaDon hoaDon = hoaDonRepository.findById(hoaDonId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy HĐ ID: " + hoaDonId));
 
-        // Logic nghiệp vụ: Hoàn kho khi HỦY ĐƠN (chỉ khi đơn chưa hoàn thành)
         if (newTrangThai == TT_DA_HUY && hoaDon.getTrangThai() < TT_HOAN_THANH) {
-
-            // Lấy tất cả sản phẩm trong hóa đơn (Sử dụng Repo HDCT)
             List<HoaDonChiTiet> items = hoaDonChiTietRepository.findByHoaDonId(hoaDonId);
-
             for (HoaDonChiTiet item : items) {
-                // Gọi service Kho để hoàn kho
                 khoService.hoanTonKho(
                         item.getSanPhamChiTiet().getId(),
                         item.getSoLuong()
@@ -71,8 +70,24 @@ public class HoaDonServiceImpl implements HoaDonService {
             }
         }
 
-        // Cập nhật trạng thái cuối cùng
         hoaDon.setTrangThai(newTrangThai);
         hoaDonRepository.save(hoaDon);
+    }
+
+    // --- THÊM CÁC HÀM MỚI TỪ INTERFACE ---
+
+    @Override
+    public List<HoaDon> getAll() {
+        return hoaDonRepository.findAll(Sort.by(Sort.Direction.DESC, "ngayTao"));
+    }
+
+    @Override
+    public List<HoaDon> getByTrangThai(Integer trangThai) {
+        return hoaDonRepository.findByTrangThaiOrderByNgayTaoDesc(trangThai);
+    }
+
+    @Override
+    public List<HoaDon> getByDateRange(LocalDateTime startTime, LocalDateTime endTime) {
+        return hoaDonRepository.findByNgayTaoBetweenOrderByNgayTaoDesc(startTime, endTime);
     }
 }

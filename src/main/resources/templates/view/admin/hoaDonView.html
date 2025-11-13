@@ -1,14 +1,20 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title>Quản Lý Hóa Đơn</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}" />
-    <!-- ✅ Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="css/styles.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.2.0/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.2/css/dataTables.bootstrap5.min.css" />
 
     <style>
+        /* (CSS CỦA BẠN - GIỮ NGUYÊN) */
         body { background-color: #f8f9fa; }
         .table thead th { background-color: #e9ecef; text-align: center; }
         .badge { font-size: 0.9rem; padding: 8px 12px; }
@@ -38,7 +44,6 @@
             left: 0; bottom: 0;
             overflow-y: auto;
             z-index: 1000;
-            background-color: var(--secondary-bg);
             transition: all 0.3s;
         }
 
@@ -49,49 +54,8 @@
             min-height: 100vh;
             transition: margin-left 0.3s;
         }
-
-        .nav-link {
-            color: #b8c7e0;
-            padding: 0.75rem 1rem;
-            margin-bottom: 0.25rem;
-            transition: all 0.2s;
-            display: flex;
-            align-items: flex-start;
-            line-height: 1.2;
-            text-decoration: none;
-            cursor: pointer;
-        }
-        .nav-link:hover {
-            color: var(--text-light) !important;
-            background-color: rgba(255, 255, 255, 0.1);
-            border-radius: 5px;
-        }
-        .nav-link.active {
-            color: var(--text-light) !important;
-            background-color: var(--primary-color);
-            border-radius: 5px;
-            font-weight: 600;
-        }
-        .menu-text { font-size: 1rem; white-space: normal; }
-        .nav-link i.fa-fw { margin-top: 0.15rem; }
-        .nav-link .float-end { margin-top: 0.3rem; transition: transform 0.3s; }
-        .submenu-item a.nav-link {
-            padding-left: 2.5rem;
-            font-size: 0.9rem;
-            color: #d1d9e7;
-            align-items: center;
-        }
-        .submenu-item a.nav-link:hover {
-            background-color: rgba(255, 255, 255, 0.05);
-        }
+        /* (Các style sidebar khác giữ nguyên) */
     </style>
-
-    <link rel="stylesheet" href="css/styles.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.2.0/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" />
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.2/css/dataTables.bootstrap5.min.css" />
 </head>
 
 <body>
@@ -104,7 +68,6 @@
         <div class="container mt-5">
             <h2 class="text-center mb-4 fw-bold">Quản Lý Hóa Đơn</h2>
 
-            <!-- Tabs -->
             <div class="d-flex justify-content-center mb-4 flex-wrap">
                 <button class="tab-button active" data-status="all">Tất cả</button>
                 <button class="tab-button" data-status="0">Chờ Xác Nhận</button>
@@ -113,7 +76,6 @@
                 <button class="tab-button" data-status="3">Đã Hủy</button>
             </div>
 
-            <!-- Bộ lọc ngày -->
             <div class="d-flex justify-content-center mb-3">
                 <input type="date" class="form-control w-25 me-2" id="startDate">
                 <input type="date" class="form-control w-25 me-2" id="endDate">
@@ -121,7 +83,6 @@
                 <button class="btn btn-secondary" id="btnReset">Làm mới</button>
             </div>
 
-            <!-- Bảng danh sách hóa đơn -->
             <div class="card shadow-sm">
                 <div class="card-body">
                     <table class="table table-hover align-middle text-center">
@@ -136,10 +97,8 @@
                         </tr>
                         </thead>
                         <tbody id="hoaDonTableBody">
-                        <!-- Dữ liệu render JS -->
                         </tbody>
                     </table>
-                    <!-- ✅ Phân trang -->
                     <nav>
                         <ul class="pagination justify-content-center mt-3" id="pagination"></ul>
                     </nav>
@@ -151,153 +110,389 @@
             </div>
         </div>
 
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
-        <script th:src="@{/js/my-custom-scripts.js}"></script>
+    </main>
+</div>
 
-        <script>
-            const API_BASE = "/api/hoadon";
-            const tableBody = document.getElementById("hoaDonTableBody");
-            const recordCount = document.getElementById("recordCount");
-            const pagination = document.getElementById("pagination");
+<div class="modal fade" id="invoiceDetailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Chi Tiết Hóa Đơn #<span id="detail-maHoaDon"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="invoice-detail-content">
+                <p class="text-center text-muted">Đang tải...</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
 
-            let allHoaDon = [];
-            let currentPage = 1;
-            const itemsPerPage = 5;
 
-            function renderStatus(status) {
-                switch (status) {
-                    case 0: return `<span class="badge bg-warning">Chờ xác nhận</span>`;
-                    case 1: return `<span class="badge bg-info text-dark">Đang chuẩn bị</span>`;
-                    case 2: return `<span class="badge bg-success-subtle text-success fw-semibold">Hoàn thành</span>`;
-                    case 3: return `<span class="badge bg-secondary">Đã hủy</span>`;
-                    default: return `<span class="badge bg-danger">Không xác định</span>`;
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
+<script th:src="@{/js/my-custom-scripts.js}"></script>
+
+<script>
+    // Cấu hình Toastr (Thông báo)
+    toastr.options = { "positionClass": "toast-top-right", "timeOut": "3000", "closeButton": true };
+
+    // --- KHAI BÁO BIẾN CỐT LÕI ---
+    const API_BASE = "/api/admin/hoadon"; // URL Base cho API
+    const tableBody = document.getElementById("hoaDonTableBody");
+    const recordCountEl = document.getElementById("recordCount");
+    const paginationEl = document.getElementById("pagination");
+
+    let currentPage = 0; // Trang hiện tại (0-based index)
+    let currentTrangThai = 'all'; // Trạng thái lọc hiện tại
+    let currentFilters = {}; // Bộ lọc ngày, keyword
+    const itemsPerPage = 10; // Kích thước trang mặc định (khớp với @PageableDefault)
+
+    // --- LẤY DOM MODAL VÀ LỌC ---
+    const tabButtons = document.querySelectorAll(".tab-button");
+    const btnSearch = document.getElementById("btnSearch");
+    const btnReset = document.getElementById("btnReset");
+    const startDateInput = document.getElementById("startDate");
+    const endDateInput = document.getElementById("endDate");
+
+    const detailModal = new bootstrap.Modal(document.getElementById('invoiceDetailModal'));
+    const detailMaHoaDonEl = document.getElementById('detail-maHoaDon');
+    const detailContentEl = document.getElementById('invoice-detail-content');
+
+
+    // --- HÀM 1: RENDER TRẠNG THÁI ---
+    function renderStatus(status) {
+        switch (status) {
+            case 0: return `<span class="badge bg-warning">Chờ Xác Nhận</span>`;
+            case 1: return `<span class="badge bg-info text-dark">Đang Chuẩn Bị</span>`;
+            case 2: return `<span class="badge bg-success-subtle text-success fw-semibold">Hoàn Thành</span>`;
+            case 3: return `<span class="badge bg-danger">Đã Hủy</span>`;
+            case 5: return `<span class="badge bg-primary">Chờ TT (VNPAY/CK)</span>`;
+            default: return `<span class="badge bg-secondary">Tạm (Lưu)</span>`;
+        }
+    }
+
+    // --- HÀM 2: RENDER PHÂN TRANG ---
+    function renderPagination(totalPages) {
+        paginationEl.innerHTML = "";
+        if (totalPages <= 1) return;
+
+        for (let i = 0; i < totalPages; i++) {
+            const li = document.createElement("li");
+            li.className = "page-item " + (i === currentPage ? "active" : "");
+            li.innerHTML = `<button class="page-link" data-page="${i}">${i + 1}</button>`;
+            li.addEventListener("click", () => {
+                loadHoaDon(i);
+            });
+            paginationEl.appendChild(li);
+        }
+    }
+
+    // --- HÀM 3: GẮN SỰ KIỆN NÚT BẤM (Hủy/Xác nhận VÀ Chi tiết) ---
+    function addEventListenersToButtons() {
+        // Gắn sự kiện Hủy/Xác nhận
+        tableBody.querySelectorAll('.btn-update-status').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const hoaDonId = e.target.dataset.id;
+                const newStatus = e.target.dataset.newStatus;
+
+                let actionText = newStatus === '3' ? 'HỦY' : (newStatus === '2' ? 'HOÀN THÀNH' : 'XÁC NHẬN');
+
+                if (confirm(`Bạn có chắc muốn ${actionText} hóa đơn này?`)) {
+                    handleUpdateStatus(hoaDonId, newStatus);
                 }
+            });
+        });
+
+        // Gắn sự kiện XEM CHI TIẾT (MỚI)
+        tableBody.querySelectorAll('.btn-view-detail').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const hoaDonId = e.target.dataset.id;
+                fetchAndRenderDetails(hoaDonId); // Gọi hàm tải chi tiết
+            });
+        });
+    }
+
+    // --- HÀM 4: RENDER BẢNG VÀ TỔNG HỢP (Giữ nguyên) ---
+    function renderTable(hoaDonList, totalItems, totalPages) {
+        tableBody.innerHTML = "";
+
+        if (hoaDonList.length === 0) {
+            tableBody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">Không có hóa đơn nào</td></tr>`;
+            recordCountEl.innerText = "Hiển thị 0 hóa đơn";
+            return;
+        }
+
+        hoaDonList.forEach((hd, i) => {
+            const stt = (currentPage * itemsPerPage) + i + 1;
+            let buttonsHtml = '';
+
+            // Logic nút bấm:
+            if (hd.trangThai === 0) { // Chờ xác nhận
+                buttonsHtml = `
+                    <button class="btn btn-success btn-sm btn-update-status"
+                            data-id="${hd.id}" data-new-status="1">Xác nhận</button>
+                    <button class="btn btn-danger btn-sm btn-update-status"
+                            data-id="${hd.id}" data-new-status="3">Hủy</button>
+                `;
+            } else if (hd.trangThai === 1) { // Đang Chuẩn Bị
+                buttonsHtml = `
+                    <button class="btn btn-primary btn-sm btn-update-status"
+                            data-id="${hd.id}" data-new-status="2">Hoàn tất</button>
+                `;
+            } else if (hd.trangThai === 5) { // Chờ TT (VNPAY/CK)
+                buttonsHtml = `
+                    <button class="btn btn-success btn-sm btn-update-status"
+                            data-id="${hd.id}" data-new-status="1">Xác nhận TT</button>
+                    <button class="btn btn-danger btn-sm btn-update-status"
+                            data-id="${hd.id}" data-new-status="3">Hủy</button>
+                `;
             }
 
-            function renderPagination(totalItems) {
-                const totalPages = Math.ceil(totalItems / itemsPerPage);
-                pagination.innerHTML = "";
-                if (totalPages <= 1) return;
-
-                for (let i = 1; i <= totalPages; i++) {
-                    const li = document.createElement("li");
-                    li.className = "page-item " + (i === currentPage ? "active" : "");
-                    li.innerHTML = `<button class="page-link">${i}</button>`;
-                    li.addEventListener("click", () => {
-                        currentPage = i;
-                        renderTable();
-                    });
-                    pagination.appendChild(li);
-                }
-            }
-
-            function renderTable() {
-                tableBody.innerHTML = "";
-                const start = (currentPage - 1) * itemsPerPage;
-                const paginated = allHoaDon.slice(start, start + itemsPerPage);
-
-                if (paginated.length === 0) {
-                    tableBody.innerHTML = `<tr><td colspan="6" class="text-muted">Không có hóa đơn nào</td></tr>`;
-                    recordCount.innerText = "Hiển thị 0 hóa đơn";
-                    return;
-                }
-
-                paginated.forEach((hd, i) => {
-                    tableBody.innerHTML += `
+            tableBody.innerHTML += `
                 <tr>
-                    <td>${start + i + 1}</td>
+                    <td>${stt}</td>
                     <td>${hd.maHoaDon || "HD" + hd.id}</td>
-                    <td>${hd.hinhThucBanHang === 0 ? "Tại quầy" : "Mua hàng online"}</td>
+                    <td>${hd.hinhThucBanHang === 1 ? "Tại quầy" : "Mua hàng online"}</td>
                     <td>${renderStatus(hd.trangThai)}</td>
                     <td>${hd.tongTien?.toLocaleString("vi-VN")} VND</td>
                     <td>
-                        <button class="btn btn-success btn-sm">Xác nhận</button>
-                        <button class="btn btn-danger btn-sm">Hủy</button>
+                        <button class="btn btn-info btn-sm me-1 btn-view-detail" data-id="${hd.id}">Xem chi tiết</button>
+                        ${buttonsHtml}
                     </td>
                 </tr>`;
-                });
+        });
 
-                recordCount.innerText = `Hiển thị ${allHoaDon.length} hóa đơn`;
-                renderPagination(allHoaDon.length);
+        recordCountEl.innerText = `Hiển thị ${totalItems} hóa đơn`;
+        renderPagination(totalPages);
+        addEventListenersToButtons();
+    }
+
+
+    // --- HÀM 5: GỌI API ĐỂ CẬP NHẬT TRẠNG THÁI ---
+    async function handleUpdateStatus(hoaDonId, newStatus) {
+        try {
+            const formData = new FormData();
+            formData.append('hoaDonId', hoaDonId);
+            formData.append('newTrangThai', newStatus);
+
+            const response = await fetch(`${API_BASE}/update-status`, {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.message || 'Lỗi cập nhật');
             }
 
-            async function loadHoaDon(status = "all") {
-                let url = `${API_BASE}/list`;
-                if (status !== "all") url = `${API_BASE}/trangthai?trangThai=${status}`;
+            toastr.success(result.message);
+            loadHoaDon(currentPage); // Tải lại trang hiện tại
 
-                try {
-                    const res = await fetch(url);
-                    if (!res.ok) throw new Error("Lỗi tải dữ liệu: " + res.status);
-                    allHoaDon = await res.json();
-                    currentPage = 1;
-                    renderTable();
-                } catch (e) {
-                    console.error(e);
-                    tableBody.innerHTML = `<tr><td colspan="6" class="text-danger">Không thể tải dữ liệu.</td></tr>`;
-                }
+        } catch (error) {
+            console.error('Lỗi khi cập nhật trạng thái:', error);
+            toastr.error(error.message);
+        }
+    }
+
+    // --- HÀM 6: TẢI VÀ HIỂN THỊ CHI TIẾT HÓA ĐƠN (MODAL) ---
+    async function fetchAndRenderDetails(hoaDonId) {
+        detailContentEl.innerHTML = '<p class="text-center text-primary">Đang tải chi tiết...</p>';
+        detailModal.show();
+
+        try {
+            const response = await fetch(`${API_BASE}/${hoaDonId}`);
+
+            if (response.status === 404) throw new Error("Không tìm thấy hóa đơn này.");
+            if (!response.ok) throw new Error("Lỗi tải dữ liệu");
+
+            const hd = await response.json();
+
+            // Lấy chi tiết hóa đơn (JSON) và định dạng
+            const customerName = hd.khachHang ? hd.khachHang.tenKhachHang : "Khách lẻ";
+            const employeeName = hd.nhanVien ? hd.nhanVien.tenNhanVien : "N/A";
+            const thucBanHang = hd.hinhThucBanHang === 1 ? "Tại quầy" : "Online";
+            const ngayTao = new Date(hd.ngayTao).toLocaleString('vi-VN');
+
+            // Xây dựng bảng chi tiết sản phẩm
+            let itemsTableHtml = `
+                <h6 class="mt-4 mb-3 fw-bold">Sản phẩm đã mua:</h6>
+                <table class="table table-striped table-sm">
+                    <thead>
+                        <tr>
+                            <th>STT</th> <th>Tên SP</th> <th>Số lượng</th> <th>Đơn giá</th> <th>Thành tiền</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            let totalItemsCost = 0;
+
+            if (hd.hoaDonChiTiets && hd.hoaDonChiTiets.length > 0) {
+                hd.hoaDonChiTiets.forEach((item, index) => {
+                    const spct = item.sanPhamChiTiet;
+
+                    // --- SỬA LỖI: THÊM NULL CHECK CHO DỮ LIỆU SẢN PHẨM ---
+                    const tenSP = spct.sanPham ? spct.sanPham.tenSanPham : 'Sản phẩm lỗi';
+                    const mauSac = (spct.mauSac && spct.mauSac.tenMauSac) ? spct.mauSac.tenMauSac : 'N/A';
+                    const kichThuoc = (spct.kichThuoc && spct.kichThuoc.tenKichThuoc) ? spct.kichThuoc.tenKichThuoc : 'N/A';
+
+                    const price = item.donGia;
+                    const quantity = item.soLuong;
+                    const total = price * quantity;
+                    totalItemsCost += total;
+
+                    itemsTableHtml += `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td>${tenSP} (${mauSac}/${kichThuoc})</td>
+                            <td>${quantity}</td>
+                            <td>${price.toLocaleString('vi-VN')}</td>
+                            <td>${total.toLocaleString('vi-VN')}</td>
+                        </tr>
+                    `;
+                });
+            } else {
+                itemsTableHtml += `<tr><td colspan="5" class="text-center">Chưa có chi tiết sản phẩm.</td></tr>`;
             }
 
-            // Tabs
-            document.querySelectorAll(".tab-button").forEach(btn => {
-                btn.addEventListener("click", () => {
-                    document.querySelectorAll(".tab-button").forEach(b => b.classList.remove("active"));
-                    btn.classList.add("active");
-                    const status = btn.getAttribute("data-status");
-                    loadHoaDon(status);
-                });
-            });
+            itemsTableHtml += `</tbody></table>`;
 
-            // Lọc theo ngày
-            document.getElementById("btnSearch").addEventListener("click", async () => {
-                const start = document.getElementById("startDate").value;
-                const end = document.getElementById("endDate").value;
-                if (!start || !end) {
-                    alert("Vui lòng chọn đầy đủ ngày bắt đầu và kết thúc!");
-                    return;
+
+            // Tổng hợp và hiển thị
+            detailMaHoaDonEl.innerText = hd.maHoaDon;
+            detailContentEl.innerHTML = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5 class="fw-bold text-primary">Thông tin chung</h5>
+                        <p><strong>Mã giao dịch:</strong> ${hd.maHoaDon}</p>
+                        <p><strong>Ngày tạo:</strong> ${ngayTao}</p>
+                        <p><strong>Hình thức:</strong> ${thucBanHang}</p>
+                        <p><strong>Nhân viên:</strong> ${employeeName}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h5 class="fw-bold text-primary">Khách hàng</h5>
+                        <p><strong>Tên khách:</strong> ${customerName}</p>
+                        <p><strong>Trạng thái:</strong> ${renderStatus(hd.trangThai)}</p>
+                        <p><strong>Tiền giảm:</strong> ${hd.tienGiamGia ? hd.tienGiamGia.toLocaleString('vi-VN') : '0'} VND</p>
+                    </div>
+                </div>
+
+                ${itemsTableHtml}
+
+                <div class="alert alert-success mt-4 p-3 text-end">
+                    <p class="mb-1">Tổng tiền hàng: <strong>${totalItemsCost.toLocaleString('vi-VN')} VND</strong></p>
+                    <p class="mb-1 text-danger">Chiết khấu: <strong>${hd.tienGiamGia ? hd.tienGiamGia.toLocaleString('vi-VN') : '0'} VND</strong></p>
+                    <h5 class="mb-0">CẦN THANH TOÁN: <strong class="text-dark">${hd.tongTien.toLocaleString('vi-VN')} VND</strong></h5>
+                </div>
+            `;
+
+        } catch (error) {
+            detailContentEl.innerHTML = `<p class="text-center text-danger">Lỗi tải: ${error.message}</p>`;
+        }
+    }
+
+
+    // --- HÀM 7: GỌI API CHÍNH (Tải dữ liệu) ---
+    async function loadHoaDon(page = 0) {
+        tableBody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">Đang tải dữ liệu...</td></tr>`;
+        currentPage = page;
+
+        let url = `${API_BASE}/search?page=${page}&size=${itemsPerPage}`;
+
+        if (currentTrangThai !== 'all') {
+            url += `&trangThaiList=${currentTrangThai}`;
+        }
+
+        if (currentFilters.startDate) url += `&ngayBatDau=${currentFilters.startDate}T00:00:00`;
+        if (currentFilters.endDate) url += `&ngayKetThuc=${currentFilters.endDate}T23:59:59`;
+        if (currentFilters.keyword) url += `&keyword=${currentFilters.keyword}`;
+
+        try {
+            const res = await fetch(url);
+            if (!res.ok) throw new Error("Lỗi tải dữ liệu: " + res.status);
+
+            const dataPage = await res.json();
+
+            renderTable(dataPage.content, dataPage.totalElements, dataPage.totalPages);
+
+        } catch (e) {
+            console.error("Lỗi tải dữ liệu Hóa Đơn:", e);
+            tableBody.innerHTML = `<tr><td colspan="6" class="text-center text-danger">Không thể tải dữ liệu. Vui lòng kiểm tra Console.</td></tr>`;
+        }
+    }
+
+    // --- HÀM 8: GẮN SỰ KIỆN VÀ KHỞI CHẠY ---
+
+    function addEventListenersToButtons() {
+        tableBody.querySelectorAll('.btn-update-status').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const hoaDonId = e.target.dataset.id;
+                const newStatus = e.target.dataset.newStatus;
+
+                let actionText = newStatus === '3' ? 'HỦY' : (newStatus === '2' ? 'HOÀN THÀNH' : 'XÁC NHẬN');
+
+                if (confirm(`Bạn có chắc muốn ${actionText} hóa đơn này?`)) {
+                    handleUpdateStatus(hoaDonId, newStatus);
                 }
-                try {
-                    const res = await fetch(`${API_BASE}/date?start=${start}&end=${end}`);
-                    if (!res.ok) throw new Error("Lỗi tải dữ liệu");
-                    allHoaDon = await res.json();
-                    currentPage = 1;
-                    renderTable();
-                } catch (e) {
-                    console.error(e);
-                }
             });
+        });
 
-            // Làm mới
-            document.getElementById("btnReset").addEventListener("click", () => {
-                document.getElementById("startDate").value = "";
-                document.getElementById("endDate").value = "";
-                document.querySelectorAll(".tab-button").forEach(b => b.classList.remove("active"));
-                document.querySelector('.tab-button[data-status="all"]').classList.add("active");
-                loadHoaDon("all");
+        tableBody.querySelectorAll('.btn-view-detail').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const hoaDonId = e.target.dataset.id;
+                fetchAndRenderDetails(hoaDonId);
             });
+        });
+    }
 
-            // 🚀 Load dữ liệu ban đầu
-            loadHoaDon();
+    // Gắn sự kiện cho các Tab (Lọc theo trạng thái)
+    document.querySelectorAll(".tab-button").forEach(btn => {
+        btn.addEventListener("click", () => {
+            document.querySelectorAll(".tab-button").forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+            currentTrangThai = btn.getAttribute("data-status");
+            currentFilters.keyword = null;
 
-            document.addEventListener("DOMContentLoaded", function() {
+            loadHoaDon(0);
+        });
+    });
 
-                // 1. Tìm nút bấm
-                const toggleButton = document.getElementById('sidebarToggleBtn');
+    // Gắn sự kiện Lọc theo ngày
+    btnSearch.addEventListener("click", () => {
+        const start = startDateInput.value;
+        const end = endDateInput.value;
 
-                if (toggleButton) {
-                    // 2. Thêm sự kiện click
-                    toggleButton.addEventListener('click', function(e) {
-                        e.preventDefault(); // Ngăn trình duyệt nhảy link
+        currentFilters.startDate = start;
+        currentFilters.endDate = end;
+        currentTrangThai = 'all';
 
-                        // 3. Thêm/Xóa class 'sidebar-toggled' trên thẻ <body>
-                        document.body.classList.toggle('sidebar-toggled');
-                    });
-                }
+        if (!start && !end) {
+            toastr.info("Vui lòng chọn đầy đủ ngày bắt đầu và kết thúc.");
+            return;
+        }
 
-            });
-        </script>
-    </main>
-</div>
+        document.querySelectorAll(".tab-button").forEach(b => b.classList.remove("active"));
+        loadHoaDon(0);
+    });
+
+    // Làm mới (Reset)
+    btnReset.addEventListener("click", () => {
+        startDateInput.value = "";
+        endDateInput.value = "";
+        currentFilters = {};
+        currentTrangThai = 'all';
+        document.querySelectorAll(".tab-button").forEach(b => b.classList.remove("active"));
+        document.querySelector('.tab-button[data-status="all"]').classList.add("active");
+        loadHoaDon(0);
+    });
+
+    // 🚀 Khởi chạy dữ liệu ban đầu
+    currentTrangThai = 'all';
+    loadHoaDon(0);
+</script>
 </body>
 </html>

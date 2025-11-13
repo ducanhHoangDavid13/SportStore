@@ -1,31 +1,28 @@
 package sd_04.datn_fstore.service;
 
 import org.springframework.transaction.annotation.Transactional;
-import sd_04.datn_fstore.dto.CreateOrderRequest;
-import sd_04.datn_fstore.dto.PaymentNotificationDto;
+import sd_04.datn_fstore.dto.CreateOrderRequest; // <-- SỬA Ở ĐÂY
 import sd_04.datn_fstore.model.HoaDon;
-import java.util.Map;
+
+import java.util.List;
 
 public interface BanHangService {
 
-    // <-- "Thực hiện" món ăn 1
+    /**
+     * Xử lý thanh toán TIỀN MẶT (Trạng thái 1).
+     * Sẽ tạo HĐ, tạo HĐCT, và TRỪ tồn kho.
+     */
     @Transactional
-    HoaDon createPosPayment(CreateOrderRequest request);
-
-    // <-- "Thực hiện" món ăn 2
-    @Transactional
-    HoaDon saveDraftOrder(CreateOrderRequest request);
+    HoaDon thanhToanTienMat(CreateOrderRequest request); // <-- SỬA Ở ĐÂY
 
     /**
-     * Xử lý nghiệp vụ "Hoàn tất Thanh toán" tại POS.
-     * Sẽ trừ tồn kho, tính toán, và tạo hóa đơn.
+     * Xử lý Hóa đơn CHỜ (Trạng thái 5) hoặc TẠM (Trạng thái 0).
+     * Sẽ tạo HĐ, tạo HĐCT, và KHÔNG trừ tồn kho.
      */
-    HoaDon createPosPayment(Map<String, Object> requestBody);
+    @Transactional
+    HoaDon luuHoaDonTam(CreateOrderRequest request); // <-- SỬA Ở ĐÂY
 
-    /**
-     * Xử lý nghiệp vụ "Lưu Tạm" tại POS.
-     * Sẽ KHÔNG trừ tồn kho và tạo hóa đơn (Hóa đơn Tạm = Giỏ hàng đã lưu).
-     */
-    HoaDon saveDraftOrder(Map<String, Object> requestBody);
-    void confirmPaymentByOrderCode(PaymentNotificationDto paymentData);
+    // (Các hàm khác như confirmPaymentByOrderCode giữ nguyên...)
+    List<HoaDon> getDraftOrders();
+    HoaDon getDraftOrderDetail(Integer id);
 }

@@ -15,8 +15,7 @@ import java.util.List;
 public interface SanPhamCTRepository extends JpaRepository<SanPhamChiTiet, Integer> {
 
     /**
-     * TRUY VẤN JPQL 12 THAM SỐ HOÀN CHỈNH
-     * ĐÃ THÊM countQuery để khắc phục lỗi phân trang (lỗi ':keyword_1').
+     * HÀM CHÍNH: Truy vấn JPQL 12 THAM SỐ HOÀN CHỈNH (Cho trang Admin)
      */
     @Query(value = "SELECT spct FROM SanPhamChiTiet spct " +
             "LEFT JOIN spct.sanPham sp " +
@@ -39,7 +38,6 @@ public interface SanPhamCTRepository extends JpaRepository<SanPhamChiTiet, Integ
             "(:trangThai IS NULL OR spct.trangThai = :trangThai) AND " +
             "(:keyword IS NULL OR :keyword = '' OR sp.tenSanPham LIKE %:keyword%)",
 
-            // >>>>> PHẦN BỔ SUNG ĐỂ KHẮC PHỤC LỖI COUNT QUERY <<<<<
             countQuery = "SELECT COUNT(spct) FROM SanPhamChiTiet spct " +
                     "LEFT JOIN spct.sanPham sp " +
                     "LEFT JOIN spct.mauSac ms " +
@@ -61,7 +59,6 @@ public interface SanPhamCTRepository extends JpaRepository<SanPhamChiTiet, Integ
                     "(:trangThai IS NULL OR spct.trangThai = :trangThai) AND " +
                     "(:keyword IS NULL OR :keyword = '' OR sp.tenSanPham LIKE %:keyword%)")
     Page<SanPhamChiTiet> search(
-            // Tên tham số Pageable không cần @Param, nhưng tôi giữ lại để thống nhất
             Pageable pageable,
             @Param("idSanPham") Integer idSanPham,
             @Param("idKichThuoc") Integer idKichThuoc,
@@ -75,7 +72,24 @@ public interface SanPhamCTRepository extends JpaRepository<SanPhamChiTiet, Integ
             @Param("trangThai") Integer trangThai,
             @Param("keyword") String keyword
     );
-    List<SanPhamChiTiet> findAllByTrangThaiAndSoLuongGreaterThan(Integer trangThai, Integer soLuong);
-    List<SanPhamChiTiet> findAllByTrangThai(Integer trangThai);
 
+    /**
+     * HÀM TỐI ƯU: Lấy sản phẩm có sẵn (cho trang Bán Hàng)
+     */
+    @Query("SELECT spct FROM SanPhamChiTiet spct " +
+            "JOIN FETCH spct.sanPham sp " +
+            "LEFT JOIN FETCH sp.hinhAnh " + // Lấy cả hình ảnh
+            "JOIN FETCH spct.kichThuoc " +
+            "JOIN FETCH spct.phanLoai " +
+            "JOIN FETCH spct.xuatXu " +
+            "JOIN FETCH spct.chatLieu " +
+            "JOIN FETCH spct.mauSac " +
+            "JOIN FETCH spct.theLoai " +
+            "WHERE spct.trangThai = :trangThai AND spct.soLuong > :soLuong")
+    List<SanPhamChiTiet> getAvailableProductsWithDetails(@Param("trangThai") Integer trangThai, @Param("soLuong") Integer soLuong);
+
+    /**
+     * HÀM TIỆN ÍCH: Dùng cho các service
+     */
+    List<SanPhamChiTiet> findByTrangThai(Integer trangThai);
 }

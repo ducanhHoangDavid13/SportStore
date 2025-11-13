@@ -4,29 +4,27 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository; // Thêm @Repository cho chắc chắn
 import sd_04.datn_fstore.model.PhieuGiamGia;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-// Thêm @Repository nếu interface này chưa được Spring tự động nhận dạng
-// @Repository
+@Repository // Thêm @Repository
 public interface PhieuGiamGiaRepo extends JpaRepository<PhieuGiamGia, Integer> {
 
+    /**
+     * Hàm tìm kiếm và phân trang chính
+     */
     @Query(value = "SELECT p FROM PhieuGiamGia p WHERE " +
-            // Lọc bắt buộc theo trangThai, nếu trangThai = null thì bỏ qua điều kiện này
             "(:trangThai IS NULL OR p.trangThai = :trangThai) AND " +
-            // Tìm kiếm theo keyword (Mã hoặc Tên)
             "(:keyword IS NULL OR p.maPhieuGiamGia LIKE %:keyword% OR p.tenPhieuGiamGia LIKE %:keyword%) AND " +
-            // Lọc theo ngày bắt đầu
             "(:ngayBatDau IS NULL OR p.ngayBatDau >= :ngayBatDau) AND " +
-            // Lọc theo ngày kết thúc
             "(:ngayKetThuc IS NULL OR p.ngayKetThuc <= :ngayKetThuc)",
 
-            // >>>>> PHẦN BỔ SUNG ĐỂ KHẮC PHỤC LỖI COUNT QUERY <<<<<
+            // Thêm countQuery để sửa lỗi phân trang
             countQuery = "SELECT COUNT(p) FROM PhieuGiamGia p WHERE " +
                     "(:trangThai IS NULL OR p.trangThai = :trangThai) AND " +
                     "(:keyword IS NULL OR p.maPhieuGiamGia LIKE %:keyword% OR p.tenPhieuGiamGia LIKE %:keyword%) AND " +
@@ -39,22 +37,25 @@ public interface PhieuGiamGiaRepo extends JpaRepository<PhieuGiamGia, Integer> {
             @Param("ngayKetThuc") LocalDateTime ngayKetThuc,
             Pageable pageable);
 
-    // CÁC HÀM KHÁC KHÔNG SỬ DỤNG PAGEABLE NÊN KHÔNG CẦN SỬA
+    /**
+     * Dùng cho hàm getActive() trong Service
+     */
+    List<PhieuGiamGia> findByTrangThai(Integer trangThai);
 
-    // THÊM: Phương thức tìm kiếm theo mã để kiểm tra trùng lặp
+    /**
+     * Dùng để check trùng mã khi Thêm/Sửa
+     */
     Optional<PhieuGiamGia> findByMaPhieuGiamGia(String maPhieuGiamGia);
 
     /**
-     * Lấy danh sách các PGG Đang hoạt động (0) nhưng đã Hết hạn (ngayKetThuc < now)
+     * Dùng cho hàm sync: Lấy PGG Đang hoạt động (0) nhưng đã Hết hạn
      */
     @Query("SELECT p FROM PhieuGiamGia p WHERE p.trangThai = 0 AND p.ngayKetThuc < :now")
     List<PhieuGiamGia> findExpiredActivePromotions(@Param("now") LocalDateTime now);
 
     /**
-     * Lấy danh sách các PGG Sắp diễn ra (2) nhưng đã Bắt đầu (ngayBatDau <= now)
+     * Dùng cho hàm sync: Lấy PGG Sắp diễn ra (2) nhưng đã Bắt đầu
      */
     @Query("SELECT p FROM PhieuGiamGia p WHERE p.trangThai = 2 AND p.ngayBatDau <= :now")
     List<PhieuGiamGia> findUpcomingPromotionsToActivate(@Param("now") LocalDateTime now);
-    List<PhieuGiamGia> findAllByTrangThai(Integer trangThai);
-
 }

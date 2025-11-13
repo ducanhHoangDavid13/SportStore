@@ -1,9 +1,11 @@
 package sd_04.datn_fstore.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.Year;
+import java.util.List;
 
 
 @Entity
@@ -41,7 +43,9 @@ public class KhachHang {
     private Integer trangThai; // 1: Hoạt động (hiển thị), 0: Đã xóa (ẩn)
     public KhachHang() {
     }
-
+    @JsonIgnore
+    @OneToMany(mappedBy = "khachHang", fetch = FetchType.LAZY)
+    private List<HoaDon> hoaDons;
 
 
     public Integer getTuoi() {

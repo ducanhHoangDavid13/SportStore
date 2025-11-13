@@ -40,6 +40,7 @@ public class SanPhamCTServiceImpl implements SanPhamCTService {
         return sanPhamChiTietRepository.save(sanPhamChiTiet);
     }
 
+
     @Override
     public void delete(Integer id) {
         if (sanPhamChiTietRepository.existsById(id)) {
@@ -82,7 +83,11 @@ public class SanPhamCTServiceImpl implements SanPhamCTService {
     }
     @Override
     public List<SanPhamChiTiet> getAvailableProducts() {
-        // Gọi Repository, đây là nơi logic thuộc về
-        return sanPhamChiTietRepository.findAllByTrangThaiAndSoLuongGreaterThan(1, 0);
+
+        // SỬA LẠI DÒNG NÀY:
+        // return sanPhamCTRepository.findAllByTrangThaiAndSoLuongGreaterThan(1, 0);
+
+        // THÀNH DÒNG NÀY:
+        return sanPhamChiTietRepository.getAvailableProductsWithDetails(1, 0);
     }
 }

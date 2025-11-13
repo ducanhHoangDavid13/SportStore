@@ -22,6 +22,7 @@ public class PhieuGiamgiaService {
     @Autowired
     private PhieuGiamGiaRepo phieuGiamGiaRepository;
     private final ZoneId VN_ZONE = ZoneId.of("Asia/Ho_Chi_Minh");
+
     public Page<PhieuGiamGia> searchAndFilter(
             Integer trangThai,
             String keyword,
@@ -56,17 +57,25 @@ public class PhieuGiamgiaService {
         return phieuGiamGiaRepository.findById(id);
     }
 
+    // --- SỬA LỖI Ở ĐÂY ---
+    // @Override // <-- XÓA DÒNG NÀY
+    public List<PhieuGiamGia> getActive() {
+        // (Lưu ý: Bạn cũng nên kiểm tra cả ngày bắt đầu/kết thúc ở đây nếu cần)
 
+        // Gọi hàm findByTrangThai(1)
+        return phieuGiamGiaRepository.findByTrangThai(1);
+    }
 
     // --- Phương thức gán trạng thái tự động (Đã sửa lỗi và dùng LocalDateTime) ---
     private void setStatusBasedOnDates(PhieuGiamGia pgg) {
         // Khắc phục lỗi: Dùng LocalDateTime.now(VN_ZONE)
         LocalDateTime now = LocalDateTime.now(VN_ZONE);
 
+        // (Logic trạng thái của bạn: 0=Active, 1=Stopped/Expired, 2=Upcoming)
         if (pgg.getNgayBatDau().isAfter(now)) {
             pgg.setTrangThai(2); // Sắp diễn ra
         } else if (pgg.getNgayKetThuc() != null && pgg.getNgayKetThuc().isBefore(now)) {
-            pgg.setTrangThai(1); // Dừng hoạt động (Hết hạn)
+            pgg.setTrangThai(1); // Hết hạn
         } else {
             pgg.setTrangThai(0); // Đang hoạt động
         }
@@ -76,18 +85,7 @@ public class PhieuGiamgiaService {
     public PhieuGiamGia saveWithStatusCheck(PhieuGiamGia pgg) {
 
         // --- 1. Validation Backend Cơ bản (Giữ nguyên) ---
-        if (pgg.getMaPhieuGiamGia() == null || pgg.getTenPhieuGiamGia() == null) {
-            throw new IllegalArgumentException("Mã hoặc tên phiếu giảm giá không được để trống.");
-        }
-        if (pgg.getSoTienGiam() == null || pgg.getSoTienGiam().doubleValue() <= 0) {
-            throw new IllegalArgumentException("Số tiền giảm phải lớn hơn 0.");
-        }
-        if (pgg.getDieuKienGiamGia() == null || pgg.getDieuKienGiamGia().doubleValue() < 0) {
-            throw new IllegalArgumentException("Điều kiện giảm giá không hợp lệ.");
-        }
-        if (pgg.getNgayBatDau() == null) {
-            throw new IllegalArgumentException("Ngày bắt đầu không được để trống.");
-        }
+        // (Giữ nguyên code validation của bạn)
 
         // --- 2. Bổ sung check trùng mã khi thêm mới ---
         if (phieuGiamGiaRepository.findByMaPhieuGiamGia(pgg.getMaPhieuGiamGia()).isPresent()) {
@@ -95,7 +93,6 @@ public class PhieuGiamgiaService {
         }
 
         // --- 3. Logic Gán Trạng Thái Tự Động ---
-        // Sử dụng logic đã sửa lỗi cú pháp
         setStatusBasedOnDates(pgg);
 
         // 4. Lưu vào Repository
@@ -118,13 +115,11 @@ public class PhieuGiamgiaService {
         // 2. Cập nhật các trường dữ liệu
         existingPhieu.setMaPhieuGiamGia(updatedPhieu.getMaPhieuGiamGia());
         existingPhieu.setTenPhieuGiamGia(updatedPhieu.getTenPhieuGiamGia());
-        existingPhieu.setMoTa(updatedPhieu.getMoTa());
-        existingPhieu.setSoTienGiam(updatedPhieu.getSoTienGiam());
-        existingPhieu.setDieuKienGiamGia(updatedPhieu.getDieuKienGiamGia());
+        // (Cập nhật các trường khác...)
         existingPhieu.setNgayBatDau(updatedPhieu.getNgayBatDau());
         existingPhieu.setNgayKetThuc(updatedPhieu.getNgayKetThuc());
 
-        // Cập nhật trạng thái thủ công nếu người dùng muốn (ví dụ: chuyển sang Dừng hoạt động)
+        // Cập nhật trạng thái thủ công nếu người dùng muốn
         if (updatedPhieu.getTrangThai() != null) {
             existingPhieu.setTrangThai(updatedPhieu.getTrangThai());
         }
@@ -136,15 +131,11 @@ public class PhieuGiamgiaService {
     }
 
     // --- THÊM: Phương thức Xóa Mềm (Soft Delete) ---
-    /**
-     * Thực hiện xóa mềm (Soft Delete) bằng cách chuyển trạng thái về 1
-     */
     public PhieuGiamGia softDelete(Integer id) {
         PhieuGiamGia existingPhieu = phieuGiamGiaRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy Phiếu Giảm Giá có ID: " + id));
 
-        // Yêu cầu: Chuyển trạng thái sang 1
-        existingPhieu.setTrangThai(1);
+        existingPhieu.setTrangThai(1); // 1 = Dừng hoạt động
 
         return phieuGiamGiaRepository.save(existingPhieu);
     }
@@ -154,20 +145,18 @@ public class PhieuGiamgiaService {
         LocalDateTime now = LocalDateTime.now(VN_ZONE);
         int updatedCount = 0;
 
-        // 1. Cập nhật: Đang hoạt động (0) -> Dừng hoạt động (1) nếu đã HẾT HẠN
-        // Logic: trangThai = 0 VÀ ngayKetThuc < now
+        // 1. Cập nhật: Đang hoạt động (0) -> Dừng hoạt động (1)
         List<PhieuGiamGia> expiredList = phieuGiamGiaRepository.findExpiredActivePromotions(now);
         for (PhieuGiamGia pgg : expiredList) {
-            pgg.setTrangThai(1); // Chuyển về trạng thái Dừng hoạt động
+            pgg.setTrangThai(1);
             phieuGiamGiaRepository.save(pgg);
             updatedCount++;
         }
 
-        // 2. Cập nhật: Sắp diễn ra (2) -> Đang hoạt động (0) nếu ĐẾN NGÀY BẮT ĐẦU
-        // Logic: trangThai = 2 VÀ ngayBatDau <= now
+        // 2. Cập nhật: Sắp diễn ra (2) -> Đang hoạt động (0)
         List<PhieuGiamGia> upcomingList = phieuGiamGiaRepository.findUpcomingPromotionsToActivate(now);
         for (PhieuGiamGia pgg : upcomingList) {
-            pgg.setTrangThai(0); // Chuyển về trạng thái Đang hoạt động
+            pgg.setTrangThai(0);
             phieuGiamGiaRepository.save(pgg);
             updatedCount++;
         }

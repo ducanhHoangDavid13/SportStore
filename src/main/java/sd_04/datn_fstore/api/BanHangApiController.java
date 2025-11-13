@@ -1,104 +1,82 @@
 package sd_04.datn_fstore.controller.api;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import sd_04.datn_fstore.dto.CreateOrderRequest; // <-- SỬ DỤNG DTO
-import sd_04.datn_fstore.dto.PaymentNotificationDto; // <-- SỬ DỤNG DTO
+import sd_04.datn_fstore.dto.CreateOrderRequest;
 import sd_04.datn_fstore.model.HoaDon;
 import sd_04.datn_fstore.service.BanHangService;
+import sd_04.datn_fstore.service.VnPayService;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/api/ban-hang")
 @RequiredArgsConstructor
-@CrossOrigin("*") // Cho phép JavaScript (frontend) gọi vào
 public class BanHangApiController {
 
     private final BanHangService banHangService;
+    private final VnPayService vnPayService;
 
     /**
-     * Endpoint cho nút "Hoàn tất Thanh toán"
+     * API Tiền Mặt (Giữ nguyên)
      */
     @PostMapping("/thanh-toan")
-    public ResponseEntity<?> createPayment(@RequestBody CreateOrderRequest request) { // <-- SỬ DỤNG DTO
+    public ResponseEntity<?> thanhToanTienMat(@RequestBody CreateOrderRequest request) {
         try {
-            // Gọi service với DTO
-            HoaDon hoaDon = banHangService.createPosPayment(request);
+            HoaDon hoaDon = banHangService.thanhToanTienMat(request);
             return ResponseEntity.ok(hoaDon);
-        } catch (RuntimeException e) {
-            // Trả về lỗi nếu (ví dụ: hết hàng)
-            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
     }
 
     /**
-     * Endpoint cho nút "Lưu Tạm" (Lưu giỏ hàng)
+     * SỬA: API này CHỈ dùng cho "Lưu Tạm" (Trạng thái 0)
      */
     @PostMapping("/luu-tam")
-    public ResponseEntity<?> saveDraft(@RequestBody CreateOrderRequest request) { // <-- SỬ DỤNG DTO
+    public ResponseEntity<?> luuHoaDonTam(@RequestBody CreateOrderRequest request) {
         try {
-            // Gọi service với DTO
-            HoaDon hoaDon = banHangService.saveDraftOrder(request);
+            // Đảm bảo PTTT là "Lưu Tạm" để service set trạng thái = 0
+            request.setPaymentMethod("DRAFT");
+            HoaDon hoaDon = banHangService.luuHoaDonTam(request);
             return ResponseEntity.ok(hoaDon);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
     }
 
     /**
-     * API: Tạo mã QR động cho đơn hàng
-     * (Hàm này có thể giữ nguyên vì nó chỉ tạo link)
+     * API Tạo Link VNPAY
      */
-    @PostMapping("/generate-qr")
-    public ResponseEntity<?> generateQrCode(@RequestBody Map<String, Object> requestBody) {
+    @PostMapping("/tao-thanh-toan-vnpay")
+    public ResponseEntity<?> createVnPayPayment(@RequestBody CreateOrderRequest request,
+                                                HttpServletRequest httpReq) {
         try {
-            // ----- CẤU HÌNH CỐ ĐỊNH CỦA BẠN -----
-            final String BANK_ID = "970415"; // Ví dụ: Vietinbank
-            final String ACCOUNT_NO = "123456789"; // STK của cửa hàng
-            // ------------------------------------
+            // Gọi service VNPAY, service này sẽ tự động:
+            // 1. Gọi banHangService.luuHoaDonTam() (với PTTT là VNPAY/QR)
+            // 2. Tạo link VNPAY
+            String paymentUrl = vnPayService.createOrder(request, httpReq);
 
-            String amount = requestBody.get("amount").toString();
-            String orderCode = requestBody.get("orderCode").toString();
-
-            // Mã hóa nội dung (quan trọng)
-            String encodedOrderCode = URLEncoder.encode(orderCode, StandardCharsets.UTF_8.toString());
-
-            // Tạo link QR theo chuẩn
-            String qrLink = String.format(
-                    "https://img.vietqr.io/image/%s-%s.png?amount=%s&addInfo=%s",
-                    BANK_ID, ACCOUNT_NO, amount, encodedOrderCode
-            );
-
-            // Trả về link ảnh QR cho frontend
-            return ResponseEntity.ok(Map.of("qrLink", qrLink));
+            return ResponseEntity.ok(Map.of("success", true, "paymentUrl", paymentUrl));
 
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
         }
     }
 
-    /**
-     * API Webhook: Dành cho dịch vụ (Casso/VietQR) gọi vào khi có tiền về
-     */
-    @PostMapping("/payment-notify")
-    public ResponseEntity<?> handlePaymentNotification(@RequestBody PaymentNotificationDto paymentData) { // <-- SỬ DỤNG DTO
-        try {
-            System.out.println("Nhận được Webhook thanh toán: " + paymentData.toString());
+    // (Các API /hoa-don-tam và /hoa-don-tam/{id} giữ nguyên)
+    @GetMapping("/hoa-don-tam")
+    public ResponseEntity<List<HoaDon>> getHoaDonTam() {
+        List<HoaDon> drafts = banHangService.getDraftOrders();
+        return ResponseEntity.ok(drafts);
+    }
 
-            // Gọi service với DTO
-            banHangService.confirmPaymentByOrderCode(paymentData);
-
-            // Trả về 200 OK để báo cho dịch vụ là đã nhận thành công
-            return ResponseEntity.ok().build();
-
-        } catch (Exception e) {
-            // Nếu có lỗi (vd: tiền không khớp, đơn không tồn tại), trả về 400
-            System.err.println("Lỗi xử lý Webhook: " + e.getMessage());
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    @GetMapping("/hoa-don-tam/{id}")
+    public ResponseEntity<HoaDon> getChiTietHoaDonTam(@PathVariable Integer id) {
+        HoaDon hoaDon = banHangService.getDraftOrderDetail(id);
+        return ResponseEntity.ok(hoaDon);
     }
 }

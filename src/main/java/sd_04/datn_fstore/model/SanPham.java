@@ -1,20 +1,21 @@
 package sd_04.datn_fstore.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.List;
+
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @Table(name = "SanPham")
 public class SanPham {
 
@@ -55,8 +56,8 @@ public class SanPham {
     // =================================================================
     // Mối quan hệ MỚI: Một sản phẩm có nhiều biến thể (Sản phẩm Chi tiết)
     // Cấu hình CascadeType.ALL để lưu SPCT cùng lúc với SanPham (nếu bạn sử dụng cơ chế này)
-    @OneToMany(mappedBy = "sanPham", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnore // Bảo vệ khỏi lỗi Serialization vòng lặp
+    @JsonIgnore
+    @OneToMany(mappedBy = "sanPham", fetch = FetchType.LAZY)
     private List<SanPhamChiTiet> sanPhamChiTiets;
     // =================================================================
 

@@ -81,13 +81,9 @@ public class KhachHangApi {
      * HÀM QUAN TRỌNG: Dùng cho Giao diện POS (banHang.html)
      */
     @GetMapping("/search")
-    public List<KhachHang> searchCustomer(@RequestParam String keyword) {
-        // TODO: Bạn nên tạo một hàm search riêng trong Service thay vì findAll()
-
-        // (Tạm thời trả về tất cả để test, nhưng giờ nó đã gọi Service)
-        return khachHangService.findAll();
-
-        // (Sau này bạn sẽ sửa thành:)
-        // return khachHangService.searchCustomerByNameOrPhone(keyword);
+    public ResponseEntity<List<KhachHang>> searchCustomer(@RequestParam String keyword) {
+        // (Bạn cần tạo hàm searchCustomerByNameOrPhone trong Service/Repo)
+        List<KhachHang> customers = khachHangService.searchCustomerByNameOrPhone(keyword);
+        return ResponseEntity.ok(customers);
     }
 }

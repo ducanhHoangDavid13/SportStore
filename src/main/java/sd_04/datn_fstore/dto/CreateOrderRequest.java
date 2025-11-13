@@ -4,11 +4,13 @@ import lombok.Data;
 import java.math.BigDecimal;
 import java.util.List;
 
-@Data
+@Data // (Cần Lombok) Hoặc tự tạo Getter/Setter
 public class CreateOrderRequest {
-    private Integer customerId; // <-- THAY ĐỔI TỪ String SANG Integer
-    private List<CartItemDto> items;
-    private BigDecimal totalAmount;
-    private BigDecimal paidAmount;
-    private String paymentMethod;
+    // Tên biến phải khớp với JSON từ Javascript
+    private Integer nhanVienId;
+    private Integer khachHangId;
+    private List<CartItemDto> itemsList;
+    private Double totalAmount;
+    private Double discountAmount;
+    private String paymentMethod; // (CASH, TRANSFER, QR)
 }
