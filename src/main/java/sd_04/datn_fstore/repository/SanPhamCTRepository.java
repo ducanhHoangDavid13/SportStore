@@ -1,8 +1,10 @@
 package sd_04.datn_fstore.repository;
 
+import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -10,6 +12,7 @@ import sd_04.datn_fstore.model.SanPhamChiTiet;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface SanPhamCTRepository extends JpaRepository<SanPhamChiTiet, Integer> {
@@ -92,4 +95,7 @@ public interface SanPhamCTRepository extends JpaRepository<SanPhamChiTiet, Integ
      * HÀM TIỆN ÍCH: Dùng cho các service
      */
     List<SanPhamChiTiet> findByTrangThai(Integer trangThai);
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT spct FROM SanPhamChiTiet spct WHERE spct.id = :id")
+    Optional<SanPhamChiTiet> findByIdWithLock(Integer id);
 }

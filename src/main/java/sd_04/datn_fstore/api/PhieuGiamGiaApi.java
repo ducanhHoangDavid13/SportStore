@@ -1,5 +1,6 @@
 package sd_04.datn_fstore.api;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -12,11 +13,14 @@ import sd_04.datn_fstore.service.PhieuGiamgiaService;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/phieu-giam-gia")
+@RequiredArgsConstructor
+@CrossOrigin(origins = "*")
 public class PhieuGiamGiaApi {
     @Autowired
     private PhieuGiamgiaService phieuGiamGiaService;
@@ -105,5 +109,12 @@ public class PhieuGiamGiaApi {
 
         // Trả về số lượng bản ghi đã được cập nhật
         return ResponseEntity.ok(Collections.singletonMap("updatedCount", count));
+    }
+    @GetMapping("/phieu-giam-gia-active")
+    public ResponseEntity<List<PhieuGiamGia>> getActiveVouchers() {
+        // Hàm getActive() của bạn đang là findByTrangThai(1)
+        // Hãy đảm bảo logic này là đúng (vd: 1 = Đang hoạt động)
+        List<PhieuGiamGia> activeVouchers = phieuGiamGiaService.getActive();
+        return ResponseEntity.ok(activeVouchers);
     }
 }

@@ -1,4 +1,4 @@
-package sd_04.datn_fstore.controller;
+package sd_04.datn_fstore.controller.author;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
