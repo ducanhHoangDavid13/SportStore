@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kết Quả Thanh Toán VNPay</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; border: 1px solid #ccc; padding: 20px; border-radius: 8px; }
+        h1 { text-align: center; }
+        .success { color: green; border: 1px solid green; padding: 10px; background-color: #e6ffe6; }
+        .fail { color: red; border: 1px solid red; padding: 10px; background-color: #ffe6e6; }
+        .details p { margin: 5px 0; }
+        .details strong { display: inline-block; width: 150px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1 th:text="${vnp_ResponseCode == '00'} ? '🎉 Thanh Toán Thành Công' : '⚠️ Thanh Toán Thất Bại / Chờ Xử Lý'">
+        Trạng Thái Thanh Toán
+    </h1>
+
+    <div th:if="${vnp_ResponseCode == '00'}" class="success">
+        <p>Giao dịch của bạn đã được thực hiện thành công. Cảm ơn bạn đã sử dụng dịch vụ.</p>
+    </div>
+
+    <div th:unless="${vnp_ResponseCode == '00'}" class="fail">
+        <p th:text="'Giao dịch không thành công. Mã lỗi: ' + ${vnp_ResponseCode}"></p>
+        <p th:text="'Chi tiết: ' + ${vnp_Message}"></p>
+        <p>Vui lòng kiểm tra lại thông tin hoặc thử lại sau.</p>
+    </div>
+
+    <hr/>
+
+    <h2>Chi Tiết Giao Dịch</h2>
+
+    <div class="details">
+        <p>
+            <strong>Mã Giao Dịch VNPAY:</strong>
+            <span th:text="${vnp_TransactionNo}">[VNPay Transaction No]</span>
+        </p>
+        <p>
+            <strong>Mã Đơn Hàng (TxnRef):</strong>
+            <span th:text="${vnp_TxnRef}">[Order ID]</span>
+        </p>
+        <p>
+            <strong>Số Tiền:</strong>
+            <span th:text="${#numbers.formatDecimal(vnp_Amount / 100, 0, 'POINT', 0, 'COMMA')} + ' VND'">[Amount]</span>
+        </p>
+        <p>
+            <strong>Ngân Hàng:</strong>
+            <span th:text="${vnp_BankCode}">[Bank Code]</span>
+        </p>
+        <p>
+            <strong>Thời Gian GD:</strong>
+            <span th:text="${vnp_PayDate}">[Payment Time]</span>
+        </p>
+        <p>
+            <strong>Mã Phản Hồi (Code):</strong>
+            <span th:text="${vnp_ResponseCode}">[Response Code]</span>
+        </p>
+        <p>
+            <strong>Trạng Thái GD:</strong>
+            <span th:text="${vnp_Message}">[Status Message]</span>
+        </p>
+
+        <p>
+            <strong>Mã Lỗi (VDESK):</strong>
+            <span th:text="${vnp_TransactionStatus}">[Transaction Status]</span>
+        </p>
+    </div>
+
+    <hr/>
+
+    <p style="text-align: center;">
+        <a href="/" style="padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px;">
+            Quay lại Trang Chủ
+        </a>
+    </p>
+
+</div>
+
+</body>
+</html>

@@ -7,6 +7,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.data.jpa.repository.Query; // <-- BẠN SẼ CẦN IMPORT NÀY
 import sd_04.datn_fstore.model.PhieuGiamGia;
 import sd_04.datn_fstore.repository.PhieuGiamGiaRepo;
 
@@ -57,14 +58,49 @@ public class PhieuGiamgiaService {
         return phieuGiamGiaRepository.findById(id);
     }
 
-    // --- SỬA LỖI Ở ĐÂY ---
-    // @Override // <-- XÓA DÒNG NÀY
+    // === 1. SỬA LỖI LOGIC Ở ĐÂY ===
     public List<PhieuGiamGia> getActive() {
-        // (Lưu ý: Bạn cũng nên kiểm tra cả ngày bắt đầu/kết thúc ở đây nếu cần)
+        // Lấy voucher ĐANG HOẠT ĐỘNG (trangThai = 0)
+        // và còn lượt sử dụng (soLuong > 0 hoặc soLuong = null)
+        // và trong thời gian diễn ra
+        LocalDateTime now = LocalDateTime.now(VN_ZONE);
 
-        // Gọi hàm findByTrangThai(1)
-        return phieuGiamGiaRepository.findByTrangThai(1);
+        // Bạn cần thêm hàm này vào PhieuGiamGiaRepo.java:
+        /*
+         @Query("SELECT p FROM PhieuGiamGia p WHERE p.trangThai = 0 " +
+                "AND (p.soLuong IS NULL OR p.soLuong > 0) " +
+                "AND p.ngayBatDau <= :now " +
+                "AND (p.ngayKetThuc IS NULL OR p.ngayKetThuc >= :now)")
+         List<PhieuGiamGia> findActiveVouchers(@Param("now") LocalDateTime now);
+        */
+        return phieuGiamGiaRepository.findActiveVouchers(now);
+    } // <-- DẤU NGOẶC } CỦA HÀM getActive() PHẢI Ở ĐÂY
+
+    // === 2. HÀM NÀY PHẢI NẰM NGOÀI ===
+    /**
+     * Giảm lượt sử dụng của Voucher.
+     * Được gọi bởi BanHangService sau khi thanh toán thành công.
+     */
+    @Transactional
+    public void decrementVoucher(PhieuGiamGia pgg) {
+        if (pgg == null) return;
+
+        // Chỉ giảm số lượng nếu nó được quản lý (không phải null)
+        if (pgg.getSoLuong() != null) {
+            if (pgg.getSoLuong() <= 0) {
+                // Double check, ném lỗi nếu voucher đã hết
+                throw new RuntimeException("Voucher đã hết lượt sử dụng: " + pgg.getMaPhieuGiamGia());
+            }
+            pgg.setSoLuong(pgg.getSoLuong() - 1);
+
+            // Tự động chuyển trạng thái nếu hết
+            if (pgg.getSoLuong() == 0) {
+                pgg.setTrangThai(1); // 1 = Hết/Dừng
+            }
+            phieuGiamGiaRepository.save(pgg);
+        }
     }
+    // <-- DẤU NGOẶC } CỦA HÀM decrementVoucher() Ở ĐÂY
 
     // --- Phương thức gán trạng thái tự động (Đã sửa lỗi và dùng LocalDateTime) ---
     private void setStatusBasedOnDates(PhieuGiamGia pgg) {
@@ -77,7 +113,10 @@ public class PhieuGiamgiaService {
         } else if (pgg.getNgayKetThuc() != null && pgg.getNgayKetThuc().isBefore(now)) {
             pgg.setTrangThai(1); // Hết hạn
         } else {
-            pgg.setTrangThai(0); // Đang hoạt động
+            // Chỉ gán = 0 (Hoạt động) nếu nó không bị dừng thủ công (trangThai != 1)
+            if (pgg.getTrangThai() != 1) {
+                pgg.setTrangThai(0); // Đang hoạt động
+            }
         }
     }
 
@@ -88,6 +127,9 @@ public class PhieuGiamgiaService {
         // (Giữ nguyên code validation của bạn)
 
         // --- 2. Bổ sung check trùng mã khi thêm mới ---
+        if (pgg.getMaPhieuGiamGia() == null || pgg.getMaPhieuGiamGia().trim().isEmpty()) {
+            throw new IllegalArgumentException("Mã phiếu giảm giá không được để trống.");
+        }
         if (phieuGiamGiaRepository.findByMaPhieuGiamGia(pgg.getMaPhieuGiamGia()).isPresent()) {
             throw new IllegalArgumentException("Mã phiếu giảm giá đã tồn tại.");
         }
@@ -115,17 +157,19 @@ public class PhieuGiamgiaService {
         // 2. Cập nhật các trường dữ liệu
         existingPhieu.setMaPhieuGiamGia(updatedPhieu.getMaPhieuGiamGia());
         existingPhieu.setTenPhieuGiamGia(updatedPhieu.getTenPhieuGiamGia());
-        // (Cập nhật các trường khác...)
+        existingPhieu.setSoTienGiam(updatedPhieu.getSoTienGiam());
+        existingPhieu.setDieuKienGiamGia(updatedPhieu.getDieuKienGiamGia());
+        existingPhieu.setSoLuong(updatedPhieu.getSoLuong());
         existingPhieu.setNgayBatDau(updatedPhieu.getNgayBatDau());
         existingPhieu.setNgayKetThuc(updatedPhieu.getNgayKetThuc());
 
-        // Cập nhật trạng thái thủ công nếu người dùng muốn
-        if (updatedPhieu.getTrangThai() != null) {
-            existingPhieu.setTrangThai(updatedPhieu.getTrangThai());
-        }
-
         // 3. Tự động kiểm tra và cập nhật lại trạng thái dựa trên thời gian
-        setStatusBasedOnDates(existingPhieu);
+        // Chỉ cập nhật tự động nếu người dùng không chủ động set là 1 (Dừng)
+        if (updatedPhieu.getTrangThai() != null && updatedPhieu.getTrangThai() == 1) {
+            existingPhieu.setTrangThai(1);
+        } else {
+            setStatusBasedOnDates(existingPhieu);
+        }
 
         return phieuGiamGiaRepository.save(existingPhieu);
     }
@@ -146,6 +190,9 @@ public class PhieuGiamgiaService {
         int updatedCount = 0;
 
         // 1. Cập nhật: Đang hoạt động (0) -> Dừng hoạt động (1)
+        // Bạn cần thêm hàm này vào Repo:
+        // @Query("SELECT p FROM PhieuGiamGia p WHERE p.trangThai = 0 AND p.ngayKetThuc IS NOT NULL AND p.ngayKetThuc < :now")
+        // List<PhieuGiamGia> findExpiredActivePromotions(@Param("now") LocalDateTime now);
         List<PhieuGiamGia> expiredList = phieuGiamGiaRepository.findExpiredActivePromotions(now);
         for (PhieuGiamGia pgg : expiredList) {
             pgg.setTrangThai(1);
@@ -154,6 +201,9 @@ public class PhieuGiamgiaService {
         }
 
         // 2. Cập nhật: Sắp diễn ra (2) -> Đang hoạt động (0)
+        // Bạn cần thêm hàm này vào Repo:
+        // @Query("SELECT p FROM PhieuGiamGia p WHERE p.trangThai = 2 AND p.ngayBatDau <= :now")
+        // List<PhieuGiamGia> findUpcomingPromotionsToActivate(@Param("now") LocalDateTime now);
         List<PhieuGiamGia> upcomingList = phieuGiamGiaRepository.findUpcomingPromotionsToActivate(now);
         for (PhieuGiamGia pgg : upcomingList) {
             pgg.setTrangThai(0);

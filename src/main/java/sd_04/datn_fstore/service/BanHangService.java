@@ -1,28 +1,42 @@
 package sd_04.datn_fstore.service;
 
 import org.springframework.transaction.annotation.Transactional;
-import sd_04.datn_fstore.dto.CreateOrderRequest; // <-- SỬA Ở ĐÂY
+import sd_04.datn_fstore.dto.CreateOrderRequest;
+import sd_04.datn_fstore.dto.VnPayResponseDTO; // <-- THÊM IMPORT
 import sd_04.datn_fstore.model.HoaDon;
+import sd_04.datn_fstore.model.PhieuGiamGia; // <-- THÊM IMPORT
 
 import java.util.List;
 
 public interface BanHangService {
 
-    /**
-     * Xử lý thanh toán TIỀN MẶT (Trạng thái 1).
-     * Sẽ tạo HĐ, tạo HĐCT, và TRỪ tồn kho.
-     */
+    // --- CÁC HÀM CŨ (Giữ nguyên) ---
     @Transactional
-    HoaDon thanhToanTienMat(CreateOrderRequest request); // <-- SỬA Ở ĐÂY
+    HoaDon thanhToanTienMat(CreateOrderRequest request);
 
-    /**
-     * Xử lý Hóa đơn CHỜ (Trạng thái 5) hoặc TẠM (Trạng thái 0).
-     * Sẽ tạo HĐ, tạo HĐCT, và KHÔNG trừ tồn kho.
-     */
     @Transactional
-    HoaDon luuHoaDonTam(CreateOrderRequest request); // <-- SỬA Ở ĐÂY
+    HoaDon luuHoaDonTam(CreateOrderRequest request);
 
-    // (Các hàm khác như confirmPaymentByOrderCode giữ nguyên...)
     List<HoaDon> getDraftOrders();
     HoaDon getDraftOrderDetail(Integer id);
+
+    // --- 🚀 THÊM 3 HÀM MỚI VÀO ĐÂY ---
+
+    /**
+     * THÊM MỚI: Luồng VNPAY
+     */
+    @Transactional(rollbackFor = Exception.class)
+    VnPayResponseDTO taoThanhToanVnPay(CreateOrderRequest request, String ipAddress);
+
+    /**
+     * THÊM MỚI: Interface để trừ tồn kho
+     */
+    @Transactional(rollbackFor = Exception.class)
+    void decrementInventory(List<CreateOrderRequest.Item> items);
+
+    /**
+     * THÊM MỚI: Interface để trừ lượt dùng voucher
+     */
+    @Transactional(rollbackFor = Exception.class)
+    void decrementVoucher(PhieuGiamGia pgg);
 }
