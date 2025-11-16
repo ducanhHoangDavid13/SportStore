@@ -1,18 +1,21 @@
 package sd_04.datn_fstore.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import java.math.BigDecimal;
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
+
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @Table(name = "SanPham")
 public class SanPham {
 
@@ -28,7 +31,7 @@ public class SanPham {
 
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "ngayTao")
-    private Date ngayTao;
+    private LocalDateTime ngayTao;
 
     @Column(name = "trangThai")
     private Integer trangThai;
@@ -42,15 +45,24 @@ public class SanPham {
     @Column(name = "soLuong")
     private Integer soLuong;
 
-    // Mối quan hệ: Một sản phẩm có nhiều chi tiết sản phẩm
-    @OneToMany(mappedBy = "sanPham", fetch = FetchType.LAZY)
-    private List<SanPhamChiTiet> sanPhamChiTiets;
-
     // Mối quan hệ: Một sản phẩm có nhiều hình ảnh
     @OneToMany(mappedBy = "sanPham", fetch = FetchType.LAZY)
-    private List<HinhAnh> hinhAnhs;
+    @JsonIgnore
+    private List<HinhAnh> hinhAnh;
+
+    @Transient
+    private String tenHinhAnhChinh;
+
+    // =================================================================
+    // Mối quan hệ MỚI: Một sản phẩm có nhiều biến thể (Sản phẩm Chi tiết)
+    // Cấu hình CascadeType.ALL để lưu SPCT cùng lúc với SanPham (nếu bạn sử dụng cơ chế này)
+    @JsonIgnore
+    @OneToMany(mappedBy = "sanPham", fetch = FetchType.LAZY)
+    private List<SanPhamChiTiet> sanPhamChiTiets;
+    // =================================================================
 
     // Mối quan hệ: Một sản phẩm có trong nhiều giỏ hàng
     @OneToMany(mappedBy = "sanPham", fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<GioHang> gioHangs;
 }

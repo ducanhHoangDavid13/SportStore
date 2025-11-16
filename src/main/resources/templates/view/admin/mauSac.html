@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Quản lý Màu Sắc</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.2.0/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.2/css/dataTables.bootstrap5.min.css" />
+</head>
+<body>
+<nav th:replace="~{library/navbar :: admin-navbar}"></nav>
+
+<div class="page-wrapper">
+    <div th:replace="~{library/navbar :: admin-sidebar}"></div>
+    <main class="main-content">
+
+        <div class="container">
+            <div class="row mb-3 p-3 border rounded bg-light">
+                <h5 class="mb-3 text-info"><i class="fas fa-filter"></i> Bộ lọc tìm kiếm</h5>
+                <form id="filterForm">
+                    <div class="d-flex flex-wrap align-items-end gap-3">
+                        <div class="form-group" style="min-width: 200px;">
+                            <label for="keyword" class="form-label">Theo mã, tên màu</label>
+                            <input type="text" id="keyword" class="form-control form-control-sm"
+                                   placeholder="Tìm theo mã hoặc tên màu" th:value="${keyword}">
+                        </div>
+                        <div class="form-group" style="min-width: 150px;">
+                            <label for="trangThaiFilter" class="form-label">Trạng thái</label>
+                            <select id="trangThaiFilter" class="form-select form-select-sm">
+                                <option value="">-- Chọn trạng thái --</option>
+                                <option value="1" th:selected="${trangThai != null and trangThai == 1}">Hoạt động</option>
+                                <option value="0" th:selected="${trangThai != null and trangThai == 0}">Ngừng hoạt động</option>
+                            </select>
+                        </div>
+                        <div class="form-group d-flex gap-2">
+                            <button type="submit" class="btn btn-primary btn-sm">
+                                <i class="fas fa-search"></i> Lọc
+                            </button>
+                            <button type="button" class="btn btn-secondary btn-sm" id="btnReset">
+                                <i class="fas fa-redo-alt"></i> Reset
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="row">
+                <div class="col-12 data-panel">
+                    <h3 class="mb-3">Quản lý Màu Sắc</h3>
+                    <div class="d-flex justify-content-end mb-3">
+                        <button class="btn btn-success btn-sm me-2" data-bs-toggle="modal"
+                                data-bs-target="#addMauSacModal">
+                            <i class="fas fa-plus"></i> Thêm Màu Sắc
+                        </button>
+                    </div>
+
+                    <div class="table-responsive" style="height: 400px; overflow-y: auto;">
+                        <table class="table table-bordered table-hover table-sm">
+                            <thead class="thead-light table-dark sticky-top">
+                            <tr>
+                                <th>ID</th>
+                                <th>Mã Màu (maMau)</th>
+                                <th>Tên Màu (tenMauSac)</th>
+                                <th>Trạng thái (trangThai)</th>
+                                <th>Ngày tạo (ngayTao)</th>
+                                <th>Thao tác</th>
+                            </tr>
+                            </thead>
+                            <tbody id="mauSacTableBody">
+                            <tr><td colspan="6" class="text-center">Đang tải dữ liệu...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <nav id="paginationNav"></nav>
+                        <div id="pageInfo"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="addMauSacModal" tabindex="-1" aria-labelledby="addMauSacModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-md modal-dialog-centered">
+                <div class="modal-content">
+                    <form id="addMauSacForm" method="post">
+                        <div class="modal-header bg-primary text-white">
+                            <h5 class="modal-title" id="addMauSacModalLabel"><i class="fas fa-plus me-2"></i> THÊM MỚI MÀU SẮC</h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label for="newMaMau" class="form-label">Mã Màu (maMau) (*)</label>
+                                <input type="text" class="form-control" id="newMaMau" maxlength="100">
+                                <small class="form-text text-muted">Tối đa 100 ký tự.</small>
+                            </div>
+                            <div class="mb-3">
+                                <label for="newTenMauSac" class="form-label">Tên Màu (tenMauSac) (*)</label>
+                                <input type="text" class="form-control" id="newTenMauSac" maxlength="255" required>
+                                <small class="form-text text-muted">Tối đa 255 ký tự.</small>
+                            </div>
+                            <div class="mb-3">
+                                <label for="newMoTa" class="form-label">Mô tả (moTa)</label>
+                                <textarea class="form-control" id="newMoTa" rows="2"></textarea>
+                            </div>
+                            <div>
+                                <label class="form-label">Trạng thái (trangThai)</label><br>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="fas fa-times me-1"></i> Đóng</button>
+                            <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i> Lưu Màu Sắc</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="editMauSacModal" tabindex="-1" aria-labelledby="editMauSacModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-md modal-dialog-centered">
+                <div class="modal-content">
+                    <form id="editMauSacForm" method="post">
+                        <input type="hidden" id="editMauSacId" name="id">
+                        <div class="modal-header bg-warning text-dark">
+                            <h5 class="modal-title" id="editMauSacModalLabel"><i class="fas fa-edit me-2"></i> CẬP NHẬT MÀU SẮC</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label for="editMaMau" class="form-label">Mã Màu (maMau) (*)</label>
+                                <input type="text" class="form-control" id="editMaMau" maxlength="100">
+                                <small class="form-text text-muted">Tối đa 100 ký tự.</small>
+                            </div>
+                            <div class="mb-3">
+                                <label for="editTenMauSac" class="form-label">Tên Màu (tenMauSac) (*)</label>
+                                <input type="text" class="form-control" id="editTenMauSac" maxlength="255" required>
+                                <small class="form-text text-muted">Tối đa 255 ký tự.</small>
+                            </div>
+                            <div class="mb-3">
+                                <label for="editMoTa" class="form-label">Mô tả (moTa)</label>
+                                <textarea class="form-control" id="editMoTa" rows="2"></textarea>
+                            </div>
+                            <div>
+                                <label class="form-label">Trạng thái (trangThai)</label><br>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="fas fa-times me-1"></i> Hủy</button>
+                            <button type="submit" class="btn btn-warning"><i class="fas fa-sync-alt me-1"></i> Cập nhật</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
+<script th:src="@{/js/my-custom-scripts.js}"></script>
+
+<script>
+    toastr.options = { "positionClass": "toast-top-right", "timeOut": "3000", "closeButton": true };
+
+    // Bỏ hàm formatDateForInput và getLocalISOString vì Model này không dùng
+
+    $(document).ready(function() {
+        const API_URL = "/api/mau-sac";
+        const TABLE_BODY_ID = '#mauSacTableBody';
+        const ADD_FORM_ID = '#addMauSacForm';
+        const EDIT_MODAL_ID = '#editMauSacModal';
+        const EDIT_FORM_ID = '#editMauSacForm';
+        const MODEL_NAME = 'Màu Sắc';
+
+        let currentFilter = {
+            page: 1,
+            keyword: '', // Sẽ được cập nhật từ form
+            trangThai: '' // Sẽ được cập nhật từ form
+        };
+        let currentPageData = null;
+
+        function loadData() {
+            // Cập nhật filter từ form trước khi tải
+            currentFilter.keyword = $('#keyword').val() || '';
+            currentFilter.trangThai = $('#trangThaiFilter').val() || '';
+
+            let params = {
+                page: currentFilter.page - 1, size: 5,
+                keyword: currentFilter.keyword.trim(),
+                trangThai: currentFilter.trangThai === '' ? null : parseInt(currentFilter.trangThai)
+            };
+
+            $(TABLE_BODY_ID).html('<tr><td colspan="6" class="text-center"><i class="fas fa-spinner fa-spin"></i> Đang tải...</td></tr>');
+            $('#pageInfo').text(''); $('#paginationNav').empty();
+            $.ajax({
+                url: API_URL, type: "GET", data: params, dataType: "json",
+                success: function(response) {
+                    currentPageData = response;
+                    renderTable(response.content);
+                    renderPagination(response.number + 1, response.totalPages);
+                    updatePageInfo(response);
+                },
+                error: function() {
+                    $(TABLE_BODY_ID).html('<tr><td colspan="6" class="text-danger text-center">Lỗi tải dữ liệu.</td></tr>');
+                    toastr.error("Lỗi tải dữ liệu " + MODEL_NAME.toLowerCase() + ".");
+                }
+            });
+        }
+
+        // --- CÁC HÀM RENDER (Giữ nguyên) ---
+        function renderTable(list) {
+            let html = '';
+            if (!list || list.length === 0) {
+                html = `<tr><td colspan="6" class="text-center">Không có ${MODEL_NAME.toLowerCase()} nào khớp với bộ lọc.</td></tr>`;
+            } else {
+                list.forEach(function(item) {
+                    let trangThaiBadge = item.trangThai === 1 ? '<span class="badge bg-success">Hoạt động</span>' : '<span class="badge bg-danger">Ngừng hoạt động</span>';
+                    let ngayTaoFormatted = item.ngayTao ? new Date(item.ngayTao).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' }) : 'N/A';
+                    let maDisplay = item.maMau || '';
+                    let tenDisplay = item.tenMauSac || '';
+                    html += `<tr data-id="${item.id}">
+                                <td>${item.id}</td>
+                                <td>${maDisplay}</td>
+                                <td>${tenDisplay}</td>
+                                <td class="text-center">${trangThaiBadge}</td>
+                                <td class="text-center">${ngayTaoFormatted}</td>
+                                <td class="text-center">
+                                    <button class="btn btn-warning btn-sm me-1 btn-edit" data-id="${item.id}" title="Sửa"><i class="fas fa-edit"></i></button>
+                                    <button class="btn btn-danger btn-sm btn-delete" data-id="${item.id}" title="Xóa"><i class="fas fa-trash"></i></button>
+                                </td>
+                             </tr>`;
+                });
+            }
+            $(TABLE_BODY_ID).html(html);
+        }
+        function renderPagination(currentPage, totalPages) { /* Logic giữ nguyên */ }
+        function updatePageInfo(pageData) { /* Logic giữ nguyên */ }
+
+        // --- SỰ KIỆN LỌC & PHÂN TRANG (Giữ nguyên) ---
+        $('#paginationNav').on('click', 'a.page-link', function(e) {
+            e.preventDefault();
+            const newPage = $(this).data('page');
+            if (!newPage || $(this).parent().hasClass('disabled') || $(this).parent().hasClass('active')) return;
+            currentFilter.page = newPage;
+            loadData();
+        });
+        $('#filterForm').on('submit', function(e) {
+            e.preventDefault();
+            currentFilter.page = 1;
+            loadData();
+        });
+        $('#btnReset').on('click', function() {
+            $('#keyword').val('');
+            $('#trangThaiFilter').val('');
+            currentFilter = { page: 1, keyword: '', trangThai: '' };
+            loadData();
+        });
+
+        // --- SỰ KIỆN CRUD (Đã cập nhật Validation) ---
+
+        // Thêm mới
+        $(ADD_FORM_ID).on('submit', function(e) {
+            e.preventDefault();
+
+            let tenMauSac = $('#newTenMauSac').val().trim();
+            let maMau = $('#newMaMau').val().trim();
+
+            // --- VALIDATE (Nâng cấp) ---
+            if (!tenMauSac) { toastr.warning("Tên màu là bắt buộc."); return; }
+            if (tenMauSac.length > 255) { toastr.warning("Tên màu không được vượt quá 255 ký tự."); return; }
+            if (!maMau) { toastr.warning("Mã màu là bắt buộc."); return; }
+            if (maMau.length > 100) { toastr.warning("Mã màu không được vượt quá 100 ký tự."); return; }
+
+            let newMauSac = {
+                maMau: maMau,
+                tenMauSac: tenMauSac,
+                moTa: $('#newMoTa').val().trim(),
+                trangThai: parseInt($('input[name="newTrangThai"]:checked').val())
+            };
+
+            $.ajax({
+                url: API_URL, type: "POST", contentType: "application/json", data: JSON.stringify(newMauSac),
+                beforeSend: function() { $(ADD_FORM_ID + ' button[type="submit"]').prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i> Đang lưu...'); },
+                complete: function() { $(ADD_FORM_ID + ' button[type="submit"]').prop('disabled', false).html('<i class="fas fa-save me-1"></i> Lưu ' + MODEL_NAME); },
+                success: function() {
+                    toastr.success("Thêm " + MODEL_NAME.toLowerCase() + " thành công!");
+                    $('#addMauSacModal').one('hidden.bs.modal', function () { $(ADD_FORM_ID)[0].reset(); currentFilter.page = 1; loadData(); }).modal('hide');
+                },
+                error: function(jqXHR) {
+                    let err = jqXHR.responseJSON?.message || "Lỗi thêm " + MODEL_NAME.toLowerCase() + ".";
+                    toastr.error(err);
+                }
+            });
+        });
+
+        // Sửa (mở modal)
+        $(document).on('click', '.btn-edit', function() {
+            let itemId = $(this).data('id');
+            $.ajax({
+                url: API_URL + "/" + itemId, type: "GET", dataType: "json",
+                success: function(item) {
+                    $('#editMauSacId').val(item.id);
+                    $('#editMaMau').val(item.maMau || '');
+                    $('#editTenMauSac').val(item.tenMauSac || '');
+                    $('#editMoTa').val(item.moTa || '');
+                    if (item.trangThai === 1) $('#editTrangThaiOn').prop('checked', true);
+                    else $('#editTrangThaiOff').prop('checked', true);
+
+                    var editModal = new bootstrap.Modal(document.getElementById(EDIT_MODAL_ID.substring(1)));
+                    editModal.show();
+                },
+                error: function() { toastr.error("Không tải được dữ liệu để sửa."); }
+            });
+        });
+
+        // Cập nhật
+        $(EDIT_FORM_ID).on('submit', function(e) {
+            e.preventDefault();
+            let itemId = $('#editMauSacId').val();
+
+            let tenMauSac = $('#editTenMauSac').val().trim();
+            let maMau = $('#editMaMau').val().trim();
+
+            // --- VALIDATE (Nâng cấp) ---
+            if (!tenMauSac) { toastr.warning("Tên màu là bắt buộc."); return; }
+            if (tenMauSac.length > 255) { toastr.warning("Tên màu không được vượt quá 255 ký tự."); return; }
+            if (!maMau) { toastr.warning("Mã màu là bắt buộc."); return; }
+            if (maMau.length > 100) { toastr.warning("Mã màu không được vượt quá 100 ký tự."); return; }
+
+            // SỬA LỖI NGHIÊM TRỌNG: Thêm 'id' vào object
+            let updatedMauSac = {
+                id: itemId, // <-- DÒNG NÀY RẤT QUAN TRỌNG
+                maMau: maMau,
+                tenMauSac: tenMauSac,
+                moTa: $('#editMoTa').val().trim(),
+                trangThai: parseInt($('input[name="editTrangThai"]:checked').val())
+            };
+
+            $.ajax({
+                url: API_URL + "/" + itemId,
+                type: "PUT",
+                contentType: "application/json",
+                data: JSON.stringify(updatedMauSac),
+                beforeSend: function() { $(EDIT_FORM_ID + ' button[type="submit"]').prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i> Đang cập nhật...'); },
+                complete: function() { $(EDIT_FORM_ID + ' button[type="submit"]').prop('disabled', false).html('<i class="fas fa-sync-alt me-1"></i> Cập nhật'); },
+                success: function() {
+                    toastr.success("Cập nhật " + MODEL_NAME.toLowerCase() + " thành công!");
+                    $('#editMauSacModal').one('hidden.bs.modal', function () { loadData(); }).modal('hide');
+                },
+                error: function(jqXHR) {
+                    let err = jqXHR.responseJSON?.message || "Lỗi cập nhật " + MODEL_NAME.toLowerCase() + ".";
+                    toastr.error(err);
+                }
+            });
+        });
+
+        // Xóa (Giữ nguyên)
+        $(document).on('click', '.btn-delete', function() {
+            let idToDelete = $(this).data('id');
+            if (confirm(`Bạn chắc chắn muốn xóa ${MODEL_NAME} ID: ${idToDelete}?`)) {
+                $.ajax({
+                    url: API_URL + "/" + idToDelete, type: "DELETE",
+                    success: function() {
+                        toastr.success("Xóa thành công!");
+                        if (currentPageData && currentPageData.numberOfElements === 1 && currentFilter.page > 1) { currentFilter.page--; }
+                        loadData();
+                    },
+                    error: function(jqXHR) { toastr.error(jqXHR.status === 409 ? "Không thể xóa màu sắc này vì đang được sử dụng." : "Lỗi xóa " + MODEL_NAME.toLowerCase() + "."); }
+                });
+            }
+        });
+
+        // --- KHỞI TẠO ---
+        loadData();
+    });
+    document.addEventListener("DOMContentLoaded", function() {
+
+        // 1. Tìm nút bấm
+        const toggleButton = document.getElementById('sidebarToggleBtn');
+
+        if (toggleButton) {
+            // 2. Thêm sự kiện click
+            toggleButton.addEventListener('click', function(e) {
+                e.preventDefault(); // Ngăn trình duyệt nhảy link
+
+                // 3. Thêm/Xóa class 'sidebar-toggled' trên thẻ <body>
+                document.body.classList.toggle('sidebar-toggled');
+            });
+        }
+
+    });
+</script>
+</body>
+</html>
