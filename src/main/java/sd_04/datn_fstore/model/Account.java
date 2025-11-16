@@ -7,6 +7,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import sd_04.datn_fstore.enums.RoleEnum;
 
+import java.time.LocalDateTime;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -28,4 +30,7 @@ public class Account {
     @Column(name = "role")
     @Enumerated(EnumType.STRING)
     private RoleEnum role;
+
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }

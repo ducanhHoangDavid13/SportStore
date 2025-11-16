@@ -3,6 +3,7 @@ package sd_04.datn_fstore.model;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -12,6 +13,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+@Builder
 @Table(name = "NhanVien")
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "hoaDons"}) // 🟢 tránh vòng lặp
 public class NhanVien {

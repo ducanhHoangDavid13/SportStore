@@ -89,6 +89,10 @@
                                     <input id="cccd" class="form-control"/>
                                 </div>
                                 <div class="col-md-6">
+                                    <label class="form-label">Mật khẩu</label>
+                                    <input id="password" class="form-control"/>
+                                </div>
+                                <div class="col-md-6">
                                     <label class="form-label">Giới tính</label>
                                     <select id="gioiTinh" class="form-select">
                                         <option value="">Không khai báo</option>
@@ -267,6 +271,7 @@
             maNhanVien:ma,
             tenNhanVien:ten,
             email:document.getElementById('email').value.trim()||null,
+            password:document.getElementById('password').value.trim()||null,
             soDienThoai:document.getElementById('soDienThoai').value.trim()||null,
             cccd:document.getElementById('cccd').value.trim()||null,
             gioiTinh:parseGioiTinh(document.getElementById('gioiTinh').value),

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <title>Navbar Fragments</title>
 
@@ -48,11 +48,12 @@
     </div>
 
     <ul class="nav flex-column ps-3 pe-3">
-        <li class="nav-item mb-1">
+        <li class="nav-item mb-1" sec:authorize="hasRole('ADMIN')">
             <a class="nav-link" th:href="@{/admin/dashboard}">
                 <i class="fas fa-chart-line fa-fw me-2"></i> <span class="menu-text">Thống kê</span>
             </a>
         </li>
+
         <li class="nav-item mb-1">
             <a class="nav-link" th:href="@{/admin/ban-hang}">
                 <i class="fas fa-cash-register fa-fw me-2"></i> <span class="menu-text">Bán hàng</span>
@@ -64,7 +65,7 @@
             </a>
         </li>
 
-        <li class="nav-item mb-1">
+        <li class="nav-item mb-1" sec:authorize="hasRole('ADMIN')">
             <a class="nav-link " data-bs-toggle="collapse" data-bs-target="#productSubmenu" href="javascript:void(0)"
                role="button" aria-expanded="false">
                 <i class="fas fa-boxes fa-fw me-2"></i>
@@ -92,7 +93,7 @@
                 </ul>
             </div>
         </li>
-        <li class="nav-item mb-1">
+        <li class="nav-item mb-1" sec:authorize="hasRole('ADMIN')">
             <a class="nav-link" th:href="@{/nhanvien/view}">
                 <i class="fas fa-user-tag fa-fw me-2"></i> <span class="menu-text">Nhân viên</span>
             </a>

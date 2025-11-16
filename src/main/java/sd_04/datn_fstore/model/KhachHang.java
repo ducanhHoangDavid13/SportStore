@@ -11,7 +11,10 @@ import java.util.List;
 @Entity
 @Getter
 @Setter
+@Builder
 @Table(name = "KhachHang")
+@AllArgsConstructor
+@NoArgsConstructor
 public class KhachHang {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -41,12 +44,10 @@ public class KhachHang {
 
     @Column(name = "trangThai")
     private Integer trangThai; // 1: Hoạt động (hiển thị), 0: Đã xóa (ẩn)
-    public KhachHang() {
-    }
+
     @JsonIgnore
     @OneToMany(mappedBy = "khachHang", fetch = FetchType.LAZY)
     private List<HoaDon> hoaDons;
-
 
     public Integer getTuoi() {
         if (this.namSinh != null) {
@@ -54,91 +55,6 @@ public class KhachHang {
         }
         return null;
     }
-
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-
-    public String getMaKhachHang() {
-        return maKhachHang;
-    }
-
-    public void setMaKhachHang(String maKhachHang) {
-        this.maKhachHang = maKhachHang;
-    }
-
-
-
-    public String getTenKhachHang() {
-        return tenKhachHang;
-    }
-
-    public void setTenKhachHang(String tenKhachHang) {
-        this.tenKhachHang = tenKhachHang;
-    }
-
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-
-
-    public Boolean getGioiTinh() {
-        return gioiTinh;
-    }
-
-    public void setGioiTinh(Boolean gioiTinh) {
-        this.gioiTinh = gioiTinh;
-    }
-
-
-    public String getSoDienThoai() {
-        return soDienThoai;
-    }
-
-    public void setSoDienThoai(String soDienThoai) {
-        this.soDienThoai = soDienThoai;
-    }
-
-
-    public Integer getNamSinh() {
-        return namSinh;
-    }
-
-    public void setNamSinh(Integer namSinh) {
-        this.namSinh = namSinh;
-    }
-
-    public String getVaiTro() {
-        return vaiTro;
-    }
-
-    public void setVaiTro(String vaiTro) {
-        this.vaiTro = vaiTro;
-    }
-
-
-
-    public Integer getTrangThai() {
-        return trangThai;
-    }
-
-    public void setTrangThai(Integer trangThai) {
-        this.trangThai = trangThai;
-    }
-
-
     
 }
 

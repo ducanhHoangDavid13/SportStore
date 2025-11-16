@@ -169,6 +169,13 @@
                                     </div>
                                 </div>
                             </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="password" class="form-label">Mật khẩu</label>
+                                    <input type="text" class="form-control" id="password" placeholder="password">
+                                    <div class="invalid-feedback" id="error-password"></div> </div>
+
+                            </div>
 
                             <div class="alert alert-info py-2 mt-3" role="alert">
                                 Các trường có dấu (*) là bắt buộc.
@@ -571,7 +578,8 @@
                 soDienThoai: $('#newSoDienThoai').val(),
                 email: $('#newEmail').val(),
                 namSinh: $('#newNamSinh').val() ? parseInt($('#newNamSinh').val()) : null,
-                gioiTinh: $('input[name="newGioiTinh"]:checked').val() === 'true'
+                gioiTinh: $('input[name="newGioiTinh"]:checked').val() === 'true',
+                password: $('#password').val()
             };
 
             $.ajax({

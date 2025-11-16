@@ -8,7 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import sd_04.datn_fstore.model.HoaDon;
 
-import java.math.BigDecimal; // <-- THÊM IMPORT NÀY
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -90,6 +90,8 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Integer> {
     // THÊM HÀM NÀY: Để VNPAY tìm HĐ
     Optional<HoaDon> findByMaHoaDon(String maHoaDon);
 
+
+    long count();
 
 
 }
