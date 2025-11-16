@@ -1,92 +1,128 @@
 <!DOCTYPE html>
-<<<<<<< HEAD
-<head>
-
-=======
-
-<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-=======
 <html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
->>>>>>> f8ee6624fa0591064e66b5c48943609c2be196b4
 <head>
->>>>>>> 9d31ecc89ab2e35d43af533bd172e6688b7e3cb7
+    <title>Navbar Fragments</title>
+
 </head>
 <body>
 
-<nav th:fragment="header" class="navbar navbar-expand-sm bg-white shadow">
-  <div class="container-fluid">
-    <a href="/hoa-don/doanh-thu" class="navbar-brand">
-      <img src="/images/logo.png" alt="Logo" style="max-height: 50px;">
-    </a>
+<!-- NAVBAR FRAGMENT -->
+<nav th:fragment="admin-navbar" class="navbar-admin navbar navbar-expand-lg fixed-top bg-warning">
 
-    <div class="d-flex align-items-center ms-auto">
-      <div class="top-header">
-        <div class="top-content">
-          <div class="logo">
-            <img src="/images/img.png" alt="User Logo" style="max-height: 30px;">
-          </div>
-          <div class="search">
-            <input type="text" placeholder="Tìm kiếm">
-            <button type="submit"><i class="bi bi-search"></i></button>
-          </div>
-          <div class="user-actions">
-            <a href="#"><i class="bi bi-shop"></i> Cửa hàng</a>
-            <a href="#"><i class="bi bi-football"></i> Sân thể thao</a>
-            <a href="#"><i class="bi bi-person-circle"></i> Tài khoản</a>
-            <a href="#"><i class="bi bi-cart3"></i> Giỏ hàng</a>
-          </div>
-        </div>
-      </div>
-
-      <a class="btn btn-primary ms-3" href="/dang-nhap/login">
-        <i class="bi bi-box-arrow-right"></i> Đăng xuất
-      </a>
+    <div class="container-fluid ">
+        <a class="nav-link text-dark" href="#" id="sidebarToggleBtn" style="font-size: 1.25rem; margin-left: 10px;">
+            <i class="fas fa-bars"></i>
+        </a>
+        <ul class="navbar-nav d-flex flex-row align-items-center ms-auto">
+        </ul>
+        <ul class="navbar-nav d-flex flex-row align-items-center ms-auto">
+            <!--      <li class="nav-item me-3">-->
+            <!--        &lt;!&ndash; Có thể thêm thông báo, tin nhắn ở đây &ndash;&gt;-->
+            <!--      </li>-->
+            <li class="nav-item dropdown me-2">
+                <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="navbarDropdownMenuLink"
+                   role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <!--          <img th:src="@{/images/avatar.jpg}" class="rounded-circle border" height="30" width="30" alt="Avatar" />-->
+                    <span class="ms-2 d-none d-lg-inline text-dark">Admin</span>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownMenuLink">
+                    <li><a class="dropdown-item" th:href="@{/admin/profile}"><i
+                            class="fas fa-user-circle fa-fw me-2 text-primary"></i> Tài khoản</a></li>
+                    <li>
+                        <hr class="dropdown-divider">
+                    </li>
+                    <li><a class="dropdown-item text-danger" th:href="@{/logout}"><i
+                            class="fas fa-sign-out-alt fa-fw me-2"></i> Đăng xuất</a></li>
+                </ul>
+            </li>
+        </ul>
     </div>
-  </div>
 </nav>
 
-<div th:fragment="navbar">
-  <div class="card w-72 bg-white p-5 shadow-md shadow-blue-200/50 rounded-md">
-    <ul class="w-full flex flex-col gap-2">
-      <li class="flex-center cursor-pointer p-16-semibold w-full">
-        <a href="/quan-ly-san-pham" class="p-16-semibold flex size-full max-w-full gap-4 p-3 group font-semibold rounded-full bg-cover hover:bg-blue-100 hover:shadow-inner focus:bg-gradient-to-r from-blue-400 to-blue-600 focus:text-white text-gray-700 transition-all ease-linear overflow-hidden text-ellipsis whitespace-nowrap">
-          <i class="bi bi-box-seam size-6"></i>
-          Quản lý sân
+<!-- SIDEBAR FRAGMENT -->
+<div th:fragment="admin-sidebar" class="sidebar-wrapper">
+    <div class="sidebar-header">
+        <a th:href="@{/admin/dashboard}" class="text-white text-decoration-none">
+            <strong class="text-primary fs-3">FSTORE</strong> <span class="badge bg-secondary">ADMIN</span>
         </a>
-      </li>
-      <li class="flex-center cursor-pointer p-16-semibold w-full">
-        <a href="/ban-hang-online" class="p-16-semibold flex size-full max-w-full gap-4 p-3 group font-semibold rounded-full bg-cover hover:bg-blue-100 hover:shadow-inner focus:bg-gradient-to-r from-blue-400 to-blue-600 focus:text-white text-gray-700 transition-all ease-linear overflow-hidden text-ellipsis whitespace-nowrap">
-          <i class="bi bi-cart size-6"></i>
-          Dịch vụ
-        </a>
-      </li>
-      <li class="flex-center cursor-pointer p-16-semibold w-full">
-        <a href="/phieu-giam-gia" class="p-16-semibold flex size-full max-w-full gap-4 p-3 group font-semibold rounded-full bg-cover hover:bg-blue-100 hover:shadow-inner focus:bg-gradient-to-r from-blue-400 to-blue-600 focus:text-white text-gray-700 transition-all ease-linear overflow-hidden text-ellipsis whitespace-nowrap">
-          <i class="bi bi-shop size-6"></i>
-          Khuyến mãi
-        </a>
-      </li>
-      <li class="flex-center cursor-pointer p-16-semibold w-full">
-        <a href="/hoa-don/" class="p-16-semibold flex size-full max-w-full gap-4 p-3 group font-semibold rounded-full bg-cover hover:bg-blue-100 hover:shadow-inner focus:bg-gradient-to-r from-blue-400 to-blue-600 focus:text-white text-gray-700 transition-all ease-linear overflow-hidden text-ellipsis whitespace-nowrap">
-          <i class="bi bi-receipt size-6"></i>
-          Quản lý hóa đơn
-        </a>
-      </li>
-      <li class="flex-center cursor-pointer p-16-semibold w-full">
-        <a href="/quan-ly-nhan-vien" class="p-16-semibold flex size-full max-w-full gap-4 p-3 group font-semibold rounded-full bg-cover hover:bg-blue-100 hover:shadow-inner focus:bg-gradient-to-r from-blue-400 to-blue-600 focus:text-white text-gray-700 transition-all ease-linear overflow-hidden text-ellipsis whitespace-nowrap">
-          <i class="bi bi-people size-6"></i>
-          Quản lý tài khoản
-        </a>
-      </li>
-      <li class="flex-center cursor-pointer p-16-semibold w-full">
-        <a href="/thong-ke" class="p-16-semibold flex size-full max-w-full gap-4 p-3 group font-semibold rounded-full bg-cover hover:bg-blue-100 hover:shadow-inner focus:bg-gradient-to-r from-blue-400 to-blue-600 focus:text-white text-gray-700 transition-all ease-linear overflow-hidden text-ellipsis whitespace-nowrap">
-          <i class="bi bi-bar-chart size-6"></i>
-          Thống kê
-        </a>
-      </li>
+    </div>
+
+    <ul class="nav flex-column ps-3 pe-3">
+        <li class="nav-item mb-1" sec:authorize="hasRole('ADMIN')">
+            <a class="nav-link" th:href="@{/admin/dashboard}">
+                <i class="fas fa-chart-line fa-fw me-2"></i> <span class="menu-text">Thống kê</span>
+            </a>
+        </li>
+
+        <li class="nav-item mb-1">
+            <a class="nav-link" th:href="@{/admin/ban-hang}">
+                <i class="fas fa-cash-register fa-fw me-2"></i> <span class="menu-text">Bán hàng</span>
+            </a>
+        </li>
+        <li class="nav-item mb-1">
+            <a class="nav-link" th:href="@{/admin/hoa-don}">
+                <i class="fas fa-file-invoice-dollar fa-fw me-2"></i> <span class="menu-text">Hóa đơn</span>
+            </a>
+        </li>
+
+        <li class="nav-item mb-1" sec:authorize="hasRole('ADMIN')">
+            <a class="nav-link " data-bs-toggle="collapse" data-bs-target="#productSubmenu" href="javascript:void(0)"
+               role="button" aria-expanded="false">
+                <i class="fas fa-boxes fa-fw me-2"></i>
+                <span class="menu-text fw-bold">Sản phẩm</span>
+                <i class="fas fa-angle-down float-end ms-auto"></i>
+            </a>
+            <div class="collapse" id="productSubmenu">
+                <ul class="nav flex-column ms-3">
+                    <li class="nav-item submenu-item"><a class="nav-link" th:href="@{/admin/san-pham}"><i
+                            class="fas fa-dot-circle fa-2xs me-2"></i> Sản phẩm</a></li>
+                    <li class="nav-item submenu-item"><a class="nav-link" th:href="@{/admin/san-pham-chi-tiet}"><i
+                            class="fas fa-dot-circle fa-2xs me-2"></i> Sản Phẩm chi tiết</a></li>
+                    <li class="nav-item submenu-item"><a class="nav-link" th:href="@{/admin/phan-loai}"><i
+                            class="fas fa-dot-circle fa-2xs me-2"></i> Phân loại</a></li>
+                    <li class="nav-item submenu-item"><a class="nav-link" th:href="@{/admin/the-loai}"><i
+                            class="fas fa-dot-circle fa-2xs me-2"></i> Thể loại</a></li>
+                    <li class="nav-item submenu-item"><a class="nav-link" th:href="@{/admin/xuat-xu}"><i
+                            class="fas fa-dot-circle fa-2xs me-2"></i> Xuất xứ</a></li>
+                    <li class="nav-item submenu-item"><a class="nav-link" th:href="@{/admin/chat-lieu}"><i
+                            class="fas fa-dot-circle fa-2xs me-2"></i> Chất liệu</a></li>
+                    <li class="nav-item submenu-item"><a class="nav-link" th:href="@{/admin/mau-sac}"><i
+                            class="fas fa-dot-circle fa-2xs me-2"></i> Màu sắc</a></li>
+                    <li class="nav-item submenu-item"><a class="nav-link" th:href="@{/admin/kich-thuoc}"><i
+                            class="fas fa-dot-circle fa-2xs me-2"></i> Kích thước</a></li>
+                </ul>
+            </div>
+        </li>
+        <li class="nav-item mb-1" sec:authorize="hasRole('ADMIN')">
+            <a class="nav-link" th:href="@{/nhanvien/view}">
+                <i class="fas fa-user-tag fa-fw me-2"></i> <span class="menu-text">Nhân viên</span>
+            </a>
+        </li>
+        <li class="nav-item mb-1">
+            <a class="nav-link" th:href="@{/admin/khach-hang/hien-thi}">
+                <i class="fas fa-users fa-fw me-2"></i> <span class="menu-text">Khách hàng</span>
+            </a>
+        </li>
+
+        <li class="nav-item mb-1">
+            <a class="nav-link" th:href="@{/admin/phieu-giam-gia/hien-thi}">
+                <i class="fas fa-tags fa-fw me-2"></i> <span class="menu-text">Khuyến mãi</span>
+            </a>
+        </li>
+        <li class="nav-item mb-1">
+            <form th:action="@{/logout}" method="post">
+                <button type="submit" class="nav-link border-0 bg-transparent text-start w-100">
+                    <i class="fas fa-sign-out-alt fa-fw me-2"></i>
+                    <span class="menu-text">Đăng xuất</span>
+                </button>
+            </form>
+        </li>
+
     </ul>
-  </div>
 </div>
 
+
+</body>
+</html>
 </body>
 </html>
