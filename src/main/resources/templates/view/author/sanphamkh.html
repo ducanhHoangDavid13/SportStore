@@ -1,15 +1,16 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Danh Sách Sản Phẩm - Áo Thu Đông</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
+    <link rel="stylesheet" th:href="@{/css/header.css}">
+    <link rel="stylesheet" th:href="@{/css/footer.css}">
+    <link rel="stylesheet" th:href="@{/css/index.css}">
     <style>
         /* ======================================= */
-        /* === THIẾT LẬP CHUNG === */
+        /* === CSS CỦA BẠN (GIỮ NGUYÊN) === */
         /* ======================================= */
         :root {
             --primary-color: #000;
@@ -27,9 +28,7 @@
             margin: 0 auto;
         }
 
-        /* ======================================= */
-        /* === HEADER, BỘ LỌC VÀ SẮP XẾP (PLP HEADER) === */
-        /* ======================================= */
+        /* HEADER, BỘ LỌC VÀ SẮP XẾP (PLP HEADER) */
         .plp-header {
             display: flex;
             justify-content: space-between;
@@ -49,7 +48,6 @@
             font-size: 0.9rem;
         }
 
-        /* Ẩn bộ lọc trên mobile để giữ gọn gàng */
         @media (max-width: 768px) {
             .filter-bar {
                 flex-direction: column;
@@ -57,7 +55,7 @@
                 gap: 10px;
             }
             .filter-group:first-child {
-                display: none; /* Ẩn các tùy chọn lọc */
+                display: none;
             }
         }
 
@@ -81,9 +79,7 @@
             color: #888;
         }
 
-        /* ======================================= */
-        /* === CARD SẢN PHẨM (PLP CARD) === */
-        /* ======================================= */
+        /* CARD SẢN PHẨM (PLP CARD) */
         .product-list-card {
             border-radius: 8px;
             overflow: hidden;
@@ -91,6 +87,8 @@
             cursor: pointer;
             position: relative;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            /* Đảm bảo chiều cao đồng nhất */
+            height: 100%;
         }
 
         .product-list-img-container {
@@ -108,32 +106,11 @@
             display: block;
         }
 
-        /* Swatches Màu trên ảnh */
-        .plp-color-swatches {
-            position: absolute;
-            bottom: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 4px;
-            background-color: rgba(255, 255, 255, 0.9);
-            padding: 3px 8px;
-            border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-            z-index: 5;
-        }
-
-        .plp-color-swatch {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            border: 1px solid #ccc;
-            box-shadow: 0 0 0 1px #fff;
-        }
+        /* Swatches Màu và các phần CSS khác không liên quan đến hiển thị chính bị lược bỏ để tập trung vào logic */
 
         /* Text dưới ảnh */
         .product-list-text {
-            padding: 0 10px 50px 10px; /* Thêm padding dưới để tránh bị đè lên footer */
+            padding: 0 10px 50px 10px;
             text-align: center;
         }
 
@@ -141,6 +118,12 @@
             font-size: 0.9rem;
             color: #333;
             margin-bottom: 5px;
+            /* Giới hạn tên sản phẩm trên 2 dòng */
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            min-height: 2.2em;
         }
 
         .product-list-price {
@@ -150,7 +133,7 @@
             margin-bottom: 0;
         }
 
-        /* === FOOTER HOVER (Mua nhanh/Chi tiết) === */
+        /* FOOTER HOVER */
         .product-list-footer {
             position: absolute;
             bottom: 0;
@@ -163,8 +146,6 @@
             padding: 5px 10px;
             border-top: 1px solid #eee;
             z-index: 10;
-
-            /* Hiệu ứng hover (Ẩn/Hiện) */
             opacity: 0;
             transform: translateY(100%);
             transition: all 0.3s ease;
@@ -202,8 +183,8 @@
     </style>
 </head>
 <body>
-
-<div class="container-section">
+<div th:replace="~{library/header :: header}"></div>
+<div class="container-section " style="margin-top: 35px">
 
     <div class="plp-header">
         <h2 class="plp-title">DANH SÁCH SẢN PHẨM</h2>
@@ -223,103 +204,71 @@
         </div>
     </div>
 
-    <div class="row row-cols-2 row-cols-md-4 g-4" id="product-list-container">
-        <div class="col-12" id="loading-message">
-            <p class="text-center text-muted">Đang tải dữ liệu sản phẩm...</p>
+    <div th:if="${sanPhamPage.isEmpty()}" class="alert alert-info text-center">
+        Không tìm thấy sản phẩm nào.
+    </div>
+
+    <div class="row row-cols-2 row-cols-md-4 g-4">
+
+        <div class="col" th:each="product : ${sanPhamPage.content}">
+            <div class="product-list-card" th:data-product-id="${product.id}">
+                <div class="product-list-img-container">
+                    <img th:src="${product.tenHinhAnhChinh}
+                                ? @{'/image/' + ${product.tenHinhAnhChinh}}
+                                : @{/image/default_no_image.png}"
+                         th:alt="${product.tenSanPham}">
+                </div>
+                <div class="product-list-text">
+                    <p class="product-list-name" th:text="${product.tenSanPham}">Tên Sản phẩm...</p>
+                    <p class="product-list-price" th:text="${#numbers.formatDecimal(product.giaTien, 0, 'POINT', 0, 'COMMA') + '₫'}">Giá tiền...</p>
+                </div>
+                <div class="product-list-footer">
+                    <button class="footer-btn btn-buy-quick">
+                        <span style="font-size: 1.2em;">&#8226;</span> Mua nhanh
+                    </button>
+                    <button class="footer-btn btn-detail">
+                        <span style="font-size: 1.2em;">&#9900;</span> Xem chi tiết
+                    </button>
+                </div>
+            </div>
         </div>
+
+    </div>
+
+    <div th:if="${sanPhamPage.totalPages > 0}" class="d-flex flex-column align-items-center mt-5">
+
+        <div class="text-center text-muted mb-3">
+            <span th:text="'Trang ' + ${sanPhamPage.number + 1} + ' / ' + ${sanPhamPage.totalPages} ">
+                Trang 1 / 10
+            </span>
+        </div>
+
+        <nav aria-label="Phân trang sản phẩm">
+            <ul class="pagination">
+
+                <li class="page-item" th:classappend="${sanPhamPage.first} ? 'disabled'">
+                    <a class="page-link"
+                       th:href="@{/san-pham(page=${sanPhamPage.number - 1}, size=${sanPhamPage.size}, keyword=${keyword}, trangThai=${trangThai})}"
+                       tabindex="-1" aria-disabled="true">Trước</a>
+                </li>
+
+                <li class="page-item"
+                    th:each="i : ${#numbers.sequence(0, sanPhamPage.totalPages - 1)}"
+                    th:classappend="${i == sanPhamPage.number} ? 'active'">
+                    <a class="page-link"
+                       th:href="@{/san-pham(page=${i}, size=${sanPhamPage.size}, keyword=${keyword}, trangThai=${trangThai})}"
+                       th:text="${i + 1}">1</a>
+                </li>
+
+                <li class="page-item" th:classappend="${sanPhamPage.last} ? 'disabled'">
+                    <a class="page-link"
+                       th:href="@{/san-pham(page=${sanPhamPage.number + 1}, size=${sanPhamPage.size}, keyword=${keyword}, trangThai=${trangThai})}">Sau</a>
+                </li>
+            </ul>
+        </nav>
     </div>
 </div>
-
+<div th:replace="~{library/footer :: footer}"></div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
-<script>
-    $(document).ready(function() {
-        // API Endpoints
-        const PRODUCT_API = 'http://localhost:8080/api/san-pham/all';
-        const IMAGE_API = 'http://localhost:8080/api/hinh-anh/all';
-        const $productListRow = $('#product-list-container');
-
-        // Hàm định dạng tiền tệ (Ví dụ: 250000.00 -> 250.000₫)
-        function formatCurrency(amount) {
-            if (amount === undefined || amount === null) return 'N/A';
-            // Sử dụng toLocaleString để định dạng tiền tệ
-            return parseFloat(amount).toLocaleString('vi-VN', { style: 'currency', currency: 'VND', minimumFractionDigits: 0, maximumFractionDigits: 0 });
-        }
-
-        /**
-         * Hàm tìm hình ảnh cho sản phẩm dựa trên ID sản phẩm.
-         * Lưu ý: Đường dẫn ảnh được cấu hình là /image/tên_file_ảnh.
-         */
-        function findImageForProduct(productId, images) {
-            const foundImage = images.find(img => img.sanPham && img.sanPham.id === productId);
-
-            if (foundImage && foundImage.tenHinhAnh) {
-                return `/image/${foundImage.tenHinhAnh}`;
-            }
-
-            // TRẢ VỀ ẢNH MẶC ĐỊNH CỤC BỘ
-            return '/image/anh1.png';
-        }
-
-        // 1. Lấy dữ liệu Hình ảnh (Image Data)
-        $.getJSON(IMAGE_API)
-            .done(function(imageData) {
-                const images = imageData;
-
-                // 2. Lấy dữ liệu Sản phẩm (Product Data)
-                $.getJSON(PRODUCT_API)
-                    .done(function(productData) {
-                        // Xóa thông báo tải
-                        $productListRow.empty();
-
-                        if (productData.length === 0) {
-                            $productListRow.html('<p class="col-12 text-info text-center">Không có sản phẩm nào được tìm thấy.</p>');
-                            return;
-                        }
-
-                        // Lặp qua danh sách sản phẩm và render
-                        productData.forEach(function(product) {
-                            const imageUrl = findImageForProduct(product.id, images);
-                            const formattedPrice = formatCurrency(product.giaTien);
-
-                            // Template HTML cho mỗi sản phẩm
-                            const productHtml = `
-                            <div class="col">
-                                <div class="product-list-card" data-product-id="${product.id}">
-                                    <div class="product-list-img-container">
-                                        <img src="${imageUrl}" alt="${product.tenSanPham}">
-                                    </div>
-                                    <div class="product-list-text">
-                                        <p class="product-list-name">${product.tenSanPham}</p>
-                                        <p class="product-list-price">${formattedPrice}</p>
-                                    </div>
-                                    <div class="product-list-footer">
-                                        <button class="footer-btn btn-buy-quick">
-                                            <span style="font-size: 1.2em;">&#8226;</span> Mua nhanh
-                                        </button>
-                                        <button class="footer-btn btn-detail">
-                                            <span style="font-size: 1.2em;">&#9900;</span> Xem chi tiết
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-
-                            // Thêm sản phẩm vào container
-                            $productListRow.append(productHtml);
-                        });
-                    })
-                    .fail(function(jqxhr, textStatus, error) {
-                        console.error("Lỗi khi lấy dữ liệu sản phẩm: " + textStatus + ", " + error);
-                        $productListRow.empty().html('<p class="col-12 text-danger text-center">❌ Lỗi: Không thể tải danh sách sản phẩm. Vui lòng kiểm tra API.</p>');
-                    });
-            })
-            .fail(function(jqxhr, textStatus, error) {
-                console.error("Lỗi khi lấy dữ liệu hình ảnh: " + textStatus + ", " + error);
-                $productListRow.empty().html('<p class="col-12 text-danger text-center">❌ Lỗi: Không thể tải dữ liệu hình ảnh. Vui lòng kiểm tra API.</p>');
-            });
-    });
-</script>
-
 </body>
 </html>
