@@ -1,4 +1,4 @@
-package sd_04.datn_fstore.controller;
+package sd_04.datn_fstore.controller.author;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -25,7 +25,7 @@ public class SanPhamUser {
      */
     @GetMapping
     public String hienThiTrangUser(Model model,
-                               @PageableDefault(size = 5) Pageable pageable,
+                               @PageableDefault(size = 10) Pageable pageable,
                                @RequestParam(required = false) String keyword,
                                @RequestParam(required = false) Integer trangThai) {
 
