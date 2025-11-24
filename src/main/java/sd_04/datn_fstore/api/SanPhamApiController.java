@@ -4,7 +4,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import sd_04.datn_fstore.model.HinhAnh;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.time.LocalDateTime; // <-- SỬA 1: Đổi import
 import java.util.List;
 import java.util.Optional;
@@ -198,5 +201,41 @@ public class SanPhamApiController {
     public ResponseEntity<Void> delete(@PathVariable Integer id) {
         // ... (Logic xóa)
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/filter")
+    public ResponseEntity<Page<SanPham>> getProducts(
+            @RequestParam(value = "xuatXuIds", required = false) List<Integer> xuatXuIds, // Sửa Long -> Integer
+            @RequestParam(value = "theLoaiIds", required = false) List<Integer> theLoaiIds, // Sửa Long -> Integer
+            @RequestParam(value = "phanLoaiIds", required = false) List<Integer> phanLoaiIds, // Sửa Long -> Integer
+            @RequestParam(value = "chatLieuIds", required = false) List<Integer> chatLieuIds, // Sửa Long -> Integer
+            @RequestParam(value = "minPrice", required = false, defaultValue = "0") BigDecimal minPrice,
+            @RequestParam(value = "maxPrice", required = false, defaultValue = "999999999") BigDecimal maxPrice,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id,asc") String sort
+    ) {
+        // 1. Xử lý logic List rỗng thành NULL (Sử dụng Integer List)
+        List<Integer> finalXuatXuIds = Optional.ofNullable(xuatXuIds).filter(list -> !list.isEmpty()).orElse(null);
+        List<Integer> finalTheLoaiIds = Optional.ofNullable(theLoaiIds).filter(list -> !list.isEmpty()).orElse(null);
+        List<Integer> finalPhanLoaiIds = Optional.ofNullable(phanLoaiIds).filter(list -> !list.isEmpty()).orElse(null);
+        List<Integer> finalChatLieuIds = Optional.ofNullable(chatLieuIds).filter(list -> !list.isEmpty()).orElse(null);
+
+        // 2. Xử lý tham số sort và Pageable (Giữ nguyên)
+        String[] sortParams = sort.split(",");
+        Sort sortOrder = Sort.by(Sort.Direction.fromString(sortParams[1]), sortParams[0]);
+        Pageable pageable = PageRequest.of(page, size, sortOrder);
+
+        // 3. Gọi Repository trực tiếp với các tham số ĐÃ XỬ LÝ
+        Page<SanPham> productsPage = sanPhamRepository.findFilteredProducts(
+                finalXuatXuIds,
+                finalTheLoaiIds,
+                finalPhanLoaiIds,
+                finalChatLieuIds,
+                minPrice,
+                maxPrice,
+                pageable);
+
+        return ResponseEntity.ok(productsPage);
     }
 }

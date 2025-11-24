@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thông tin cá nhân</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/header.css}">
+    <link rel="stylesheet" th:href="@{/css/footer.css}">
+    <style>
+        /* ======================================================= */
+        /* CSS CHUNG CHO DASHBOARD & MENU */
+        /* ======================================================= */
+        .account-menu { border: none; }
+        .account-menu .list-group-item { border: none; padding: 10px 15px; color: #333; cursor: pointer; font-size: 14px; }
+        .account-menu .list-group-item:hover { background-color: #f8f9fa; }
+        .account-menu .list-group-item.active {
+            background-color: #fef4f4; color: #e5101d; border-left: 5px solid #e5101d; font-weight: bold; border-radius: 0;
+        }
+        .account-menu .list-group-item a { color: inherit; text-decoration: none; display: block; }
+        .account-menu .list-group-item.active a { color: #e5101d !important; }
+        .account-menu i { color: #e5101d; width: 20px; }
+        .border-start { border-left: 1px solid #dee2e6 !important; }
+
+        /* ======================================================= */
+        /* CSS TRANG PROFILE */
+        /* ======================================================= */
+        .avatar-placeholder {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background-color: #fcece7;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #fcece7;
+            box-shadow: inset -20px 20px 0 0px #ff7b32;
+        }
+        .avatar-placeholder::before { /* Thân người */
+            content: ''; position: absolute; width: 60px; height: 60px;
+            background-color: #3f3950; border-radius: 50%; bottom: 10px; left: 50%;
+            transform: translateX(-50%);
+        }
+        .avatar-placeholder::after { /* Đầu người */
+            content: ''; position: absolute; width: 40px; height: 40px;
+            background-color: #3f3950; border-radius: 50%; top: 30px; left: 50%;
+            transform: translateX(-50%); border: 3px solid #fcece7;
+        }
+
+        .info-list .text-muted { color: #6c757d !important; }
+        .btn-danger {
+            background-color: #e5101d !important;
+            border-color: #e5101d !important;
+            font-weight: bold;
+        }
+        .profile-card { max-width: 600px; margin: auto; padding: 50px; }
+    </style>
+</head>
+<body>
+<div th:replace="~{library/header :: header}"></div>
+<div class="container-fluid bg-light py-3">
+    <div class="container bg-white p-4 shadow-sm rounded">
+
+        <h2 class="h4 mb-4 fw-bold">Quản lý tài khoản</h2>
+        <hr class="mb-4">
+
+        <div class="row">
+
+            <div th:replace="~{library/hosouser :: account-sidebar('profile')}"></div>
+
+            <div class="col-md-9 border-start p-4">
+                <div class="personal-info-container">
+                    <h2 class="h4 mb-4 fw-bold">Thông tin cá nhân</h2>
+
+                    <div class="card border-0 profile-card bg-white shadow-sm">
+                        <div class="card-body text-center">
+
+                            <div class="avatar-placeholder mx-auto mb-5"></div>
+
+                            <div class="info-list mx-auto">
+
+                                <div class="row align-items-center border-bottom py-3">
+                                    <div class="col-6 text-start text-muted">Họ và tên</div>
+                                    <div class="col-6 text-end fw-bold">a chiến</div>
+                                </div>
+
+                                <div class="row align-items-center border-bottom py-3">
+                                    <div class="col-6 text-start text-muted">Số điện thoại</div>
+                                    <div class="col-6 text-end fw-bold">0338783110</div>
+                                </div>
+
+                                <div class="row align-items-center border-bottom py-3 mb-5">
+                                    <div class="col-6 text-start text-muted">Giới tính</div>
+                                    <div class="col-6 text-end fw-bold"></div>
+                                </div>
+
+                                <button class="btn btn-danger btn-lg w-50">
+                                    Chỉnh sửa thông tin
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<div th:replace="~{library/footer :: footer}"></div>
+</body>
+</html>

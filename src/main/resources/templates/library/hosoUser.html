@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<div th:fragment="account-sidebar(activePage)" class="col-md-3">
+    <div class="p-3 mb-3 bg-light rounded d-flex align-items-center">
+        <img th:src="@{/image/avatar-placeholder.png}" alt="Avatar" class="rounded-circle me-3" style="width: 50px; height: 50px; background-color: #f0f0f0;">
+        <div>
+            <p class="fw-bold mb-0" th:text="${user?.name}">a chiến</p>
+            <p class="text-muted mb-0 small" th:text="${user?.phone}">0338783110</p>
+        </div>
+    </div>
+
+    
+
+    <ul class="list-group list-group-flush account-menu">
+        <li th:class="${activePage == 'orders'} ? 'list-group-item active' : 'list-group-item'">
+            <a th:href="@{/orders-user}" class="text-decoration-none d-block" style="color: inherit;">
+                <i class="fas fa-box-open me-2"></i> Đơn hàng của tôi
+            </a>
+        </li>
+        <li th:class="${activePage == 'profile'} ? 'list-group-item active' : 'list-group-item'">
+            <a th:href="@{/profile}" class="text-decoration-none d-block" style="color: inherit;">
+                <i class="fas fa-user-circle me-2"></i> Thông tin cá nhân
+            </a>
+        </li>
+        <li th:class="${activePage == 'address'} ? 'list-group-item active' : 'list-group-item'">
+            <a th:href="@{/address}" class="text-decoration-none d-block" style="color: inherit;">
+                <i class="fas fa-map-marker-alt me-2"></i> Sổ địa chỉ nhận hàng
+            </a>
+        </li>
+
+        <li class="list-group-item">
+            <a href="#" class="text-decoration-none d-block" style="color: inherit;"
+               data-bs-toggle="modal" data-bs-target="#logoutModal">
+                <i class="fas fa-sign-out-alt me-2"></i> Đăng xuất
+            </a>
+        </li>
+    </ul>
+
+    <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
+            <div class="modal-content p-4 text-center">
+                <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal" aria-label="Close"></button>
+                <div class="modal-body p-0">
+
+                    <div style="background-image: url('placeholder-for-logout-image.png'); background-size: contain; background-repeat: no-repeat; height: 150px; margin-bottom: 20px;">
+                    </div>
+
+                    <h5 class="fw-bold mb-3">Đăng xuất</h5>
+                    <p class="text-muted small mb-4">Bạn sẽ không nhận được đặc quyền riêng dành cho thành viên</p>
+
+                    <div class="d-flex justify-content-between">
+                        <button type="button" class="btn btn-secondary w-50 me-2" data-bs-dismiss="modal" style="background-color: #dc3545; border-color: #dc3545; color: white;">Đóng</button>
+
+                        <a th:href="@{/logout}" class="btn btn-outline-danger w-50 ms-2" style="border-color: #dc3545; color: #dc3545;">
+                            Đăng xuất
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</html>

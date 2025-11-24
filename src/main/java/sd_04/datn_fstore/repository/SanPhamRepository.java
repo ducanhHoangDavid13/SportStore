@@ -8,6 +8,8 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import sd_04.datn_fstore.model.SanPham;
 
+import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -35,4 +37,34 @@ public interface SanPhamRepository extends JpaRepository<SanPham, Integer> {
      * Không cần sửa, vì đây là truy vấn đơn giản, không cần phân trang.
      */
     Optional<SanPham> findByMaSanPham(String maSanPham);
+
+    @Query(value = """
+        SELECT DISTINCT s FROM SanPham s
+        LEFT JOIN s.sanPhamChiTiets ct 
+        WHERE
+            (:xuatXuIds IS NULL OR ct.xuatXu.id IN :xuatXuIds) AND
+            (:theLoaiIds IS NULL OR ct.theLoai.id IN :theLoaiIds) AND
+            (:phanLoaiIds IS NULL OR ct.phanLoai.id IN :phanLoaiIds) AND
+            (:chatLieuIds IS NULL OR ct.chatLieu.id IN :chatLieuIds) AND
+            (s.giaTien BETWEEN :minPrice AND :maxPrice)
+        """,
+            // CUNG CẤP TRUY VẤN COUNT RÕ RÀNG để tránh lỗi ánh xạ tham số
+            countQuery = """ 
+        SELECT COUNT(DISTINCT s.id) FROM SanPham s
+        LEFT JOIN s.sanPhamChiTiets ct 
+        WHERE
+            (:xuatXuIds IS NULL OR ct.xuatXu.id IN :xuatXuIds) AND
+            (:theLoaiIds IS NULL OR ct.theLoai.id IN :theLoaiIds) AND
+            (:phanLoaiIds IS NULL OR ct.phanLoai.id IN :phanLoaiIds) AND
+            (:chatLieuIds IS NULL OR ct.chatLieu.id IN :chatLieuIds) AND
+            (s.giaTien BETWEEN :minPrice AND :maxPrice)
+        """)
+    Page<SanPham> findFilteredProducts(
+            @Param("xuatXuIds") List<Integer> xuatXuIds,
+            @Param("theLoaiIds") List<Integer> theLoaiIds,
+            @Param("phanLoaiIds") List<Integer> phanLoaiIds,
+            @Param("chatLieuIds") List<Integer> chatLieuIds,
+            @Param("minPrice") BigDecimal minPrice,
+            @Param("maxPrice") BigDecimal maxPrice,
+            Pageable pageable);
 }

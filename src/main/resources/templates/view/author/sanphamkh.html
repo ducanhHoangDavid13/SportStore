@@ -3,272 +3,630 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Danh Sách Sản Phẩm - Áo Thu Đông</title>
+    <title>Danh Sách Sản Phẩm - Thể Thao</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/header.css}">
     <link rel="stylesheet" th:href="@{/css/footer.css}">
     <link rel="stylesheet" th:href="@{/css/index.css}">
-    <style>
-        /* ======================================= */
-        /* === CSS CỦA BẠN (GIỮ NGUYÊN) === */
-        /* ======================================= */
-        :root {
-            --primary-color: #000;
-        }
 
+    <style>
+        /* ==================================== */
+        /* === 1. BIẾN VÀ CẤU TRÚC CHUNG === */
+        /* ==================================== */
+        :root { --primary-color: #000; --secondary-color: #f7f7f7; --accent-color: #d9534f; }
         body {
             font-family: Arial, sans-serif;
             color: #333;
             background-color: #fff;
+            padding-top: 0;
         }
-
         .container-section {
             padding: 40px 20px;
             max-width: 1400px;
             margin: 0 auto;
         }
 
-        /* HEADER, BỘ LỌC VÀ SẮP XẾP (PLP HEADER) */
-        .plp-header {
+        .plp-page-title {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            padding-top: 20px;
+        }
+
+        /* Thanh Sắp xếp */
+        .plp-sort-bar {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .plp-sort-bar select {
+            width: 150px;
+            height: 35px;
+            font-size: 0.85rem;
+        }
+        .sort-text { color: #666; font-weight: 500; }
+
+        /* ==================================== */
+        /* === 2. BỘ LỌC SIDEBAR (THU NHỎ) === */
+        /* ==================================== */
+        .filter-sidebar {
+            background-color: #f8f8f8;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #eee;
+            /* THU NHỎ CHIỀU NGANG THỰC TẾ */
+            width: 100%;
+            max-width: 250px;
+            margin-right: auto;
+        }
+
+        @media (min-width: 992px) {
+            .filter-sidebar {
+                position: sticky;
+                top: 20px;
+                margin-bottom: 0;
+            }
+        }
+
+        /* Tiêu đề & Nút Reset */
+        .filter-sidebar-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
+            padding-bottom: 5px;
+            border-bottom: 1px dashed #ddd;
         }
-
-        .plp-title {
-            font-size: 1.8rem;
-            font-weight: 800;
-        }
-
-        .filter-bar {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            font-size: 0.9rem;
-        }
-
-        @media (max-width: 768px) {
-            .filter-bar {
-                flex-direction: column;
-                align-items: flex-end;
-                gap: 10px;
-            }
-            .filter-group:first-child {
-                display: none;
-            }
-        }
-
-        .filter-group {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .filter-item {
-            cursor: pointer;
-            font-weight: 500;
-        }
-
-        .filter-item.active {
+        .filter-sidebar-header h5 {
+            margin-bottom: 0;
             font-weight: 700;
+        }
+        .reset-filter-btn {
+            border: none;
+            background: transparent;
             color: var(--primary-color);
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: transform 0.2s, color 0.2s;
+            padding: 5px;
+        }
+        .reset-filter-btn:hover {
+            color: var(--accent-color);
+            transform: rotate(15deg);
         }
 
-        .sort-text {
-            color: #888;
+        /* Combobox (Select) đẹp hơn */
+        .filter-group-item {
+            margin-bottom: 15px;
+        }
+        .filter-group-item label {
+            font-weight: 600;
+            margin-bottom: 5px;
+            display: block;
+            font-size: 0.95rem;
+            color: #555;
+        }
+        .filter-group-item select {
+            width: 100%;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            padding: 8px 12px;
+            height: 40px;
+            font-size: 0.9rem;
+            background-color: #fff;
+            appearance: none;
+            /* Icon mũi tên xuống */
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%23333' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 10px;
         }
 
-        /* CARD SẢN PHẨM (PLP CARD) */
+        /* ==================================== */
+        /* === 3. CARD SẢN PHẨM & NÚT MỚI === */
+        /* ==================================== */
         .product-list-card {
             border-radius: 8px;
             overflow: hidden;
             background-color: #fff;
             cursor: pointer;
             position: relative;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-            /* Đảm bảo chiều cao đồng nhất */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
             height: 100%;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
-
+        .product-list-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
         .product-list-img-container {
             position: relative;
-            height: 400px;
+            height: 300px;
             overflow: hidden;
-            margin-bottom: 10px;
-            border-radius: 8px;
         }
+        .product-list-img-container img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
-        .product-list-img-container img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-        }
-
-        /* Swatches Màu và các phần CSS khác không liên quan đến hiển thị chính bị lược bỏ để tập trung vào logic */
-
-        /* Text dưới ảnh */
         .product-list-text {
-            padding: 0 10px 50px 10px;
+            padding: 10px;
             text-align: center;
+            min-height: 80px;
+            transition: opacity 0.3s ease;
         }
+        .product-list-name { /* ... giữ nguyên ... */ }
+        .product-list-price { /* ... giữ nguyên ... */ }
 
-        .product-list-name {
-            font-size: 0.9rem;
-            color: #333;
-            margin-bottom: 5px;
-            /* Giới hạn tên sản phẩm trên 2 dòng */
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-            min-height: 2.2em;
-        }
-
-        .product-list-price {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: var(--primary-color);
-            margin-bottom: 0;
-        }
-
-        /* FOOTER HOVER */
+        /* KHU VỰC CHÂN CARD: NÚT HÀNH ĐỘNG MỚI (NỀN ĐEN, SLIDE UP) */
         .product-list-footer {
             position: absolute;
             bottom: 0;
             left: 0;
             right: 0;
-            display: flex;
-            justify-content: center;
-            gap: 5px;
-            background-color: #fff;
-            padding: 5px 10px;
-            border-top: 1px solid #eee;
-            z-index: 10;
+            width: 100%;
+            padding: 0;
+            border-radius: 0;
+            box-shadow: none;
+            background-color: rgba(30, 144, 255, 0.95); /* DodgerBlue */
+            transform: translateY(100%); /* Bắt đầu ẩn dưới */
             opacity: 0;
-            transform: translateY(100%);
-            transition: all 0.3s ease;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            z-index: 10;
+            height: 50px;
+            display: flex;
+            justify-content: stretch;
         }
 
         .product-list-card:hover .product-list-footer {
             opacity: 1;
-            transform: translateY(0);
+            transform: translateY(0); /* Trượt lên */
         }
 
         .footer-btn {
             flex: 1;
-            padding: 8px 0;
+            padding: 0;
+            height: 100%;
             border: none;
-            border-radius: 4px;
-            font-size: 0.85rem;
+            color: #fff; /* Chữ trắng */
+            background: transparent;
+            font-size: 0.9rem;
             font-weight: 600;
-            cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s;
         }
 
-        .btn-buy-quick {
-            background-color: var(--primary-color);
-            color: #fff;
-        }
-
-        .btn-detail {
-            background-color: #f7f7f7;
-            color: var(--primary-color);
-            border: 1px solid #eee;
-        }
+        .btn-detail { border-left: 1px solid #333; }
+        .btn-detail:hover { background-color: rgba(255, 255, 255, 0.1); }
+        .btn-add-to-cart { border-right: 1px solid #333; }
+        .btn-add-to-cart:hover { background-color: rgba(255, 255, 255, 0.1); }
     </style>
 </head>
 <body>
 <div th:replace="~{library/header :: header}"></div>
-<div class="container-section " style="margin-top: 35px">
 
-    <div class="plp-header">
-        <h2 class="plp-title">DANH SÁCH SẢN PHẨM</h2>
-        <div class="filter-bar">
+<div class="container-section">
+    <h2 class="plp-page-title">DANH SÁCH SẢN PHẨM</h2>
 
-            <div class="filter-group">
-                <span class="filter-item active">BỘ LỌC</span>
-                <span class="filter-item">Màu Sắc ⌄</span>
-                <span class="filter-item">Kích cỡ ⌄</span>
-                <span class="filter-item">Khoảng giá ⌄</span>
-            </div>
-
-            <div class="filter-group">
-                <span class="sort-text">Sắp xếp:</span>
-                <span class="filter-item active">Mới nhất ⌄</span>
-            </div>
-        </div>
+    <div class="plp-sort-bar">
+        <span class="sort-text">Sắp xếp:</span>
+        <select id="sort-select" class="form-select form-select-sm">
+            <option value="id,desc" selected>Mới nhất</option>
+            <option value="giaTien,asc">Giá: Thấp đến Cao</option>
+            <option value="giaTien,desc">Giá: Cao đến Thấp</option>
+            <option value="tenSanPham,asc">Tên: A-Z</option>
+        </select>
     </div>
 
-    <div th:if="${sanPhamPage.isEmpty()}" class="alert alert-info text-center">
-        Không tìm thấy sản phẩm nào.
-    </div>
+    <div class="row">
+        <div class="col-lg-3">
+            <div class="filter-sidebar">
 
-    <div class="row row-cols-2 row-cols-md-4 g-4">
-
-        <div class="col" th:each="product : ${sanPhamPage.content}">
-            <div class="product-list-card" th:data-product-id="${product.id}">
-                <div class="product-list-img-container">
-                    <img th:src="${product.tenHinhAnhChinh}
-                                ? @{'/image/' + ${product.tenHinhAnhChinh}}
-                                : @{/image/default_no_image.png}"
-                         th:alt="${product.tenSanPham}">
-                </div>
-                <div class="product-list-text">
-                    <p class="product-list-name" th:text="${product.tenSanPham}">Tên Sản phẩm...</p>
-                    <p class="product-list-price" th:text="${#numbers.formatDecimal(product.giaTien, 0, 'POINT', 0, 'COMMA') + '₫'}">Giá tiền...</p>
-                </div>
-                <div class="product-list-footer">
-                    <button class="footer-btn btn-buy-quick">
-                        <span style="font-size: 1.2em;">&#8226;</span> Mua nhanh
-                    </button>
-                    <button class="footer-btn btn-detail">
-                        <span style="font-size: 1.2em;">&#9900;</span> Xem chi tiết
+                <div class="filter-sidebar-header">
+                    <h5>Bộ Lọc Sản Phẩm</h5>
+                    <button id="reset-filter-btn" class="reset-filter-btn" title="Đặt lại bộ lọc">
+                        &#x21BB;
                     </button>
                 </div>
+
+                <div class="filter-group-item">
+                    <label class="form-label">Thể Loại</label>
+                    <select id="theLoaiSelect" class="form-select filter-trigger">
+                        <option value="">-- Chọn Thể Loại --</option>
+                    </select>
+                </div>
+
+                <div class="filter-group-item">
+                    <label class="form-label">Xuất Xứ</label>
+                    <select id="xuatXuSelect" class="form-select filter-trigger">
+                        <option value="">-- Chọn Xuất Xứ --</option>
+                    </select>
+                </div>
+
+                <div class="filter-group-item">
+                    <label class="form-label">Phân Loại</label>
+                    <select id="phanLoaiSelect" class="form-select filter-trigger">
+                        <option value="">-- Chọn Phân Loại --</option>
+                    </select>
+                </div>
+
+                <div class="filter-group-item">
+                    <label class="form-label">Chất Liệu</label>
+                    <select id="chatLieuSelect" class="form-select filter-trigger">
+                        <option value="">-- Chọn Chất Liệu --</option>
+                    </select>
+                </div>
+
+                <div class="filter-group-item">
+                    <label class="form-label">Khoảng Giá</label>
+                    <select id="priceRangeSelect" class="form-select filter-trigger">
+                        <option value="0,999999999">-- Khoảng Giá --</option>
+                        <option value="0,1000000">Dưới 1 triệu</option>
+                        <option value="1000000,5000000">1 - 5 triệu</option>
+                        <option value="5000000,999999999">Trên 5 triệu</option>
+                    </select>
+                </div>
             </div>
         </div>
 
-    </div>
+        <div class="col-lg-9">
+            <div id="product-list-container">
+                <div class="alert alert-info text-center" id="loading-message" style="display: none;">Đang tải sản phẩm...</div>
+                <div class="row row-cols-2 row-cols-md-3 g-4" id="product-grid">
+                </div>
+            </div>
 
-    <div th:if="${sanPhamPage.totalPages > 0}" class="d-flex flex-column align-items-center mt-5">
-
-        <div class="text-center text-muted mb-3">
-            <span th:text="'Trang ' + ${sanPhamPage.number + 1} + ' / ' + ${sanPhamPage.totalPages} ">
-                Trang 1 / 10
-            </span>
+            <div id="pagination-container" class="d-flex flex-column align-items-center mt-5">
+            </div>
         </div>
-
-        <nav aria-label="Phân trang sản phẩm">
-            <ul class="pagination">
-
-                <li class="page-item" th:classappend="${sanPhamPage.first} ? 'disabled'">
-                    <a class="page-link"
-                       th:href="@{/san-pham(page=${sanPhamPage.number - 1}, size=${sanPhamPage.size}, keyword=${keyword}, trangThai=${trangThai})}"
-                       tabindex="-1" aria-disabled="true">Trước</a>
-                </li>
-
-                <li class="page-item"
-                    th:each="i : ${#numbers.sequence(0, sanPhamPage.totalPages - 1)}"
-                    th:classappend="${i == sanPhamPage.number} ? 'active'">
-                    <a class="page-link"
-                       th:href="@{/san-pham(page=${i}, size=${sanPhamPage.size}, keyword=${keyword}, trangThai=${trangThai})}"
-                       th:text="${i + 1}">1</a>
-                </li>
-
-                <li class="page-item" th:classappend="${sanPhamPage.last} ? 'disabled'">
-                    <a class="page-link"
-                       th:href="@{/san-pham(page=${sanPhamPage.number + 1}, size=${sanPhamPage.size}, keyword=${keyword}, trangThai=${trangThai})}">Sau</a>
-                </li>
-            </ul>
-        </nav>
     </div>
 </div>
 <div th:replace="~{library/footer :: footer}"></div>
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    const API_URL = "/api/san-pham/filter";
+    const CATEGORY_API_URLS = {
+        'theLoaiSelect': { url: '/api/the-loai', nameKey: 'tenTheLoai' },
+        'xuatXuSelect': { url: '/api/xuat-xu', nameKey: 'tenXuatXu' },
+        'phanLoaiSelect': { url: '/api/phan-loai', nameKey: 'phanLoai' },
+        'chatLieuSelect': { url: '/api/chat-lieu', nameKey: 'loaiChatLieu' }
+    };
+
+    let currentPage = 0;
+    let currentSize = 12;
+    let totalPagesCount = 1;
+    let productImagesMap = {};
+
+    let filterParams = {
+        xuatXuIds: null,
+        theLoaiIds: null,
+        phanLoaiIds: null,
+        chatLieuIds: null,
+        minPrice: 0,
+        maxPrice: 999999999,
+        sort: "id,desc"
+    };
+
+    // --- HÀM TẢI VÀ ÁNH XẠ ẢNH ---
+    function loadAllImagesAndMap() {
+        const ALL_IMAGES_API_URL = "/api/hinh-anh/all";
+
+        return new Promise((resolve, reject) => {
+            $.ajax({
+                url: ALL_IMAGES_API_URL,
+                method: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    const images = response.content || response;
+                    productImagesMap = {};
+                    if (Array.isArray(images)) {
+                        images.forEach(image => {
+                            const productId = image.sanPham ? image.sanPham.id : null;
+                            if (productId) {
+                                if (!productImagesMap[productId]) {
+                                    productImagesMap[productId] = [];
+                                }
+                                productImagesMap[productId].push(image);
+                            }
+                        });
+                    }
+                    resolve();
+                },
+                error: function(xhr, status, error) {
+                    console.error("Lỗi khi tải tất cả hình ảnh:", status, error);
+                    resolve();
+                }
+            });
+        });
+    }
+
+    // --- HÀM TẠO CARD SẢN PHẨM ---
+    function createProductCard(product) {
+        const formattedPrice = new Intl.NumberFormat('vi-VN', {
+            style: 'currency',
+            currency: 'VND',
+            minimumFractionDigits: 0
+        }).format(product.giaTien).replace('₫', '') + '₫';
+
+        let imageUrl = '/image/default_no_image.png';
+        if (productImagesMap[product.id] && productImagesMap[product.id].length > 0) {
+            const mainImageName = productImagesMap[product.id][0].tenHinhAnh;
+            imageUrl = '/image/' + mainImageName;
+        }
+
+        return `
+        <div class="col">
+            <div class="product-list-card" data-product-id="${product.id}">
+                <div class="product-list-img-container">
+                    <img src="${imageUrl}" alt="${product.tenSanPham}">
+
+                    <div class="product-list-footer">
+                        <button class="footer-btn btn-add-to-cart">
+                            <span style="font-size: 1.2em;">&#x1F6D2;</span> Mua nhanh
+                        </button>
+                        <button class="footer-btn btn-detail">
+                            <span style="font-size: 1.2em;">&#x1F441;</span> Xem chi tiết
+                        </button>
+                    </div>
+                </div>
+
+                <div class="product-list-text">
+                    <p class="product-list-name">${product.tenSanPham}</p>
+                    <p class="product-list-price">${formattedPrice}</p>
+                </div>
+
+            </div>
+        </div>
+    `;
+    }
+
+    // --- HÀM TẠO PHÂN TRANG ---
+    function createPagination(pageObject) {
+        const totalPages = pageObject.totalPages;
+        const currentPageNumber = pageObject.number;
+        totalPagesCount = totalPages;
+
+        const nav = $('<nav aria-label="Phân trang sản phẩm"></nav>');
+        const ul = $('<ul class="pagination"></ul>');
+
+        if (totalPages <= 1) {
+            $('#pagination-container').empty();
+            return;
+        }
+
+        const info = `<div class="text-center text-muted mb-3">
+            <span>Trang ${currentPageNumber + 1} / ${totalPages}</span>
+        </div>`;
+
+        const prevDisabled = pageObject.first ? 'disabled' : '';
+        const prevItem = $(`<li class="page-item ${prevDisabled}">
+            <a class="page-link page-nav-link" href="#" data-page="${currentPageNumber - 1}" tabindex="-1">Trước</a>
+        </li>`);
+        ul.append(prevItem);
+
+        let startPage = Math.max(0, currentPageNumber - 2);
+        let endPage = Math.min(totalPages - 1, currentPageNumber + 2);
+
+        if (currentPageNumber < 2) endPage = Math.min(totalPages - 1, 4);
+        if (currentPageNumber > totalPages - 3) startPage = Math.max(0, totalPages - 5);
+
+        if (startPage > 0) {
+            ul.append('<li class="page-item disabled"><span class="page-link">...</span></li>');
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+            const activeClass = i === currentPageNumber ? 'active' : '';
+            const pageItem = $(`<li class="page-item ${activeClass}">
+                <a class="page-link page-nav-link" href="#" data-page="${i}">${i + 1}</a>
+            </li>`);
+            ul.append(pageItem);
+        }
+
+        if (endPage < totalPages - 1) {
+            ul.append('<li class="page-item disabled"><span class="page-link">...</span></li>');
+        }
+
+        const nextDisabled = pageObject.last ? 'disabled' : '';
+        const nextItem = $(`<li class="page-item ${nextDisabled}">
+            <a class="page-link page-nav-link" href="#" data-page="${currentPageNumber + 1}">Sau</a>
+        </li>`);
+        ul.append(nextItem);
+
+        nav.append(ul);
+        $('#pagination-container').html(info).append(nav);
+    }
+
+    // --- HÀM TẢI DANH MỤC ---
+    function loadCategory(selectId, apiUrl, nameKey) {
+        const $select = $('#' + selectId);
+
+        return new Promise((resolve, reject) => {
+            $.ajax({
+                url: apiUrl,
+                method: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    const data = response.content || response;
+                    if (Array.isArray(data)) {
+                        data.forEach(item => {
+                            const id = item.id;
+                            const name = item[nameKey] || item.ten;
+                            $select.append(`<option value="${id}">${name}</option>`);
+                        });
+                    }
+                    resolve();
+                },
+                error: function(xhr, status, error) {
+                    console.error(`Lỗi khi tải danh mục ${selectId}:`, status, error);
+                    $select.append(`<option value="" disabled>Lỗi tải data</option>`);
+                    resolve();
+                }
+            });
+        });
+    }
+
+    // --- HÀM GỌI AJAX TẢI SẢN PHẨM ---
+    function loadProducts(page = 0) {
+        currentPage = page;
+
+        $('#product-grid').empty();
+        $('#pagination-container').empty();
+        $('#loading-message').show();
+
+        const params = {
+            ...filterParams,
+            page: currentPage,
+            size: currentSize
+        };
+
+        const finalParams = {};
+        for (const key in params) {
+            const value = params[key];
+            if (value !== null && value !== undefined && !(Array.isArray(value) && value.length === 0)) {
+                finalParams[key] = value;
+            }
+        }
+
+        let queryString = $.param(finalParams, true);
+
+        $.ajax({
+            url: API_URL + '?' + queryString,
+            method: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                $('#loading-message').hide();
+                const products = response.content;
+                const totalPages = response.totalPages;
+
+                if (products.length === 0) {
+                    $('#product-grid').html('<div class="alert alert-info text-center">Không tìm thấy sản phẩm nào.</div>');
+                    $('#pagination-container').empty();
+                    return;
+                }
+
+                let productHtml = '';
+                products.forEach(product => {
+                    productHtml += createProductCard(product);
+                });
+                $('#product-grid').html(productHtml);
+
+                if (totalPages > 1) {
+                    createPagination(response);
+                }
+            },
+            error: function(xhr, status, error) {
+                $('#loading-message').hide();
+                console.error("Lỗi khi tải sản phẩm:", status, error, xhr.responseText);
+                $('#product-grid').html(`<div class="alert alert-danger text-center">
+                    Có lỗi xảy ra khi tải dữ liệu sản phẩm (${xhr.status}).
+                </div>`);
+            }
+        });
+    }
+
+    // --- THIẾT LẬP CÁC SỰ KIỆN LẮNG NGHE ---
+    $(document).ready(function() {
+
+        // --- BƯỚC 1: LOAD DỮ LIỆU KHỞI TẠO ---
+        const initialPromises = [];
+        for (const selectId in CATEGORY_API_URLS) {
+            const apiInfo = CATEGORY_API_URLS[selectId];
+            initialPromises.push(loadCategory(selectId, apiInfo.url, apiInfo.nameKey));
+        }
+        initialPromises.push(loadAllImagesAndMap());
+
+        Promise.all(initialPromises)
+            .then(() => {
+                loadProducts(currentPage);
+            })
+            .catch(error => {
+                console.error("Lỗi khởi tạo:", error);
+                $('#product-grid').html('<div class="alert alert-danger text-center">Không thể tải dữ liệu khởi tạo.</div>');
+            });
+
+
+        // --- BƯỚC 2: XỬ LÝ SỰ KIỆN LỌC VÀ SẮP XẾP ---
+
+        $('#sort-select').on('change', function() {
+            filterParams.sort = $(this).val();
+            loadProducts(0);
+        });
+
+        $('.filter-trigger').on('change', function() {
+            const $this = $(this);
+            const val = $this.val();
+
+            if ($this.is('#xuatXuSelect, #theLoaiSelect, #phanLoaiSelect, #chatLieuSelect')) {
+                const id = $this.attr('id').replace('Select', 'Ids');
+                filterParams[id] = (val === "" || val === null) ? null : [parseInt(val)];
+            }
+
+            if ($this.is('#priceRangeSelect')) {
+                const range = val.split(',');
+                if (range.length === 2) {
+                    filterParams.minPrice = parseFloat(range[0]);
+                    filterParams.maxPrice = parseFloat(range[1]);
+                }
+            }
+            loadProducts(0);
+        });
+
+        // --- BƯỚC 3: XỬ LÝ NÚT RESET BỘ LỌC ---
+        $('#reset-filter-btn').on('click', function() {
+            // 1. Reset các giá trị select box
+            $('.filter-trigger').each(function() {
+                $(this).val($(this).find('option:first').val());
+            });
+            $('#sort-select').val('id,desc'); // Reset sắp xếp
+
+            // 2. Reset filterParams
+            filterParams = {
+                xuatXuIds: null,
+                theLoaiIds: null,
+                phanLoaiIds: null,
+                chatLieuIds: null,
+                minPrice: 0,
+                maxPrice: 999999999,
+                sort: "id,desc"
+            };
+
+            // 3. Tải lại sản phẩm
+            loadProducts(0);
+        });
+
+        // --- BƯỚC 4: XỬ LÝ SỰ KIỆN PHÂN TRANG VÀ CARD ACTION ---
+        $(document).on('click', '.page-nav-link', function(e) {
+            e.preventDefault();
+            const newPage = $(this).data('page');
+            if (!$(this).parent().hasClass('disabled') && newPage >= 0 && newPage < totalPagesCount) {
+                loadProducts(newPage);
+            }
+        });
+
+        $(document).on('click', '.btn-detail', function(e) {
+            e.preventDefault();
+            const productId = $(this).closest('.product-list-card').data('product-id');
+            // TODO: Chuyển hướng đến trang chi tiết
+            console.log('Xem chi tiết sản phẩm ID: ' + productId);
+        });
+
+        $(document).on('click', '.btn-add-to-cart', function(e) {
+            e.preventDefault();
+            const productId = $(this).closest('.product-list-card').data('product-id');
+            // TODO: Thêm sản phẩm vào giỏ hàng
+            console.log('Thêm sản phẩm ID: ' + productId + ' vào giỏ hàng (Mua nhanh).');
+        });
+    });
+</script>
 </body>
 </html>
