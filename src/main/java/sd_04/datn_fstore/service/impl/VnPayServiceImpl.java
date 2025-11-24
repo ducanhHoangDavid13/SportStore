@@ -199,4 +199,45 @@ public class VnPayServiceImpl implements VnPayService {
             return -1; // Lỗi
         }
     }
+
+    public boolean validateHash(Map<String, String> vnpParams) {
+
+        // 1. Lấy hash bảo mật do VNPAY gửi về
+        String receivedHash = vnpParams.get("vnp_SecureHash");
+
+        // 2. Tạo một bản sao các tham số để xử lý
+        //    (Loại bỏ hash và hashType)
+        Map<String, String> fields = new HashMap<>(vnpParams);
+        fields.remove("vnp_SecureHash");
+        fields.remove("vnp_SecureHashType"); // Loại bỏ nếu có
+
+        // 3. Sắp xếp các key theo thứ tự bảng chữ cái
+        List<String> fieldNames = new ArrayList<>(fields.keySet());
+        Collections.sort(fieldNames);
+
+        // 4. Xây dựng chuỗi hash data (key1=value1&key2=value2...)
+        StringBuilder hashData = new StringBuilder();
+        for (String key : fieldNames) {
+            String value = fields.get(key);
+            // Chỉ thêm vào nếu value không rỗng hoặc null
+            if (value != null && value.length() > 0) {
+                if (hashData.length() > 0) {
+                    hashData.append('&');
+                }
+                hashData.append(key);
+                hashData.append('=');
+                hashData.append(value); // Giữ nguyên giá trị, không encode
+            }
+        }
+
+        // 5. TẠO HASH MỚI:
+        //    Sử dụng trực tiếp secretKey và hàm hmacSHA512 từ class Config
+        String generatedHash = VnPayConfig.hmacSHA512(
+                VnPayConfig.secretKey, // Lấy secret key static
+                hashData.toString()    // Dữ liệu đã được sắp xếp
+        );
+
+        // 6. So sánh hash nhận được và hash vừa tạo
+        return generatedHash.equals(receivedHash);
+    }
 }

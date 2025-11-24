@@ -21,4 +21,6 @@ public interface VnPayService {
      * Xử lý kết quả VNPAY trả về (IPN / Return)
      */
     int orderReturn(Map<String, String> vnpParams);
+
+    boolean validateHash(Map<String, String> vnpParams);
 }

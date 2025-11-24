@@ -74,26 +74,10 @@ public class BanHangApiController {
         }
     }
 
+
     /**
      * THÊM MỚI: API NHẬN KẾT QUẢ TỪ VNPAY (IPN / Callback)
      */
-    @GetMapping("/vnpay-callback")
-    public ResponseEntity<Map<String, String>> vnpayCallback(@RequestParam Map<String, String> vnpParams) {
-        try {
-            // Gọi service VNPAY (đã tiêm @Lazy) để xử lý
-            int result = vnPayService.orderReturn(vnpParams);
-
-            if (result == 1) { // Thành công
-                return ResponseEntity.ok(Map.of("RspCode", "00", "Message", "Confirm Success"));
-            } else if (result == 0) { // Thất bại
-                return ResponseEntity.ok(Map.of("RspCode", "99", "Message", "Order failed or Canceled"));
-            } else { // Lỗi
-                return ResponseEntity.ok(Map.of("RspCode", "97", "Message", "Error or Invalid Signature"));
-            }
-        } catch (Exception e) {
-            return ResponseEntity.ok(Map.of("RspCode", "97", "Message", "Exception: " + e.getMessage()));
-        }
-    }
 
     // (Các API /hoa-don-tam giữ nguyên)
     @GetMapping("/hoa-don-tam")
