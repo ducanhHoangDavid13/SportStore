@@ -6,12 +6,11 @@
     <title>Danh Sách Sản Phẩm - Thể Thao</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <!-- Google Fonts: Poppins & Lato -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Lato:wght@300;400;700&display=swap"
+          rel="stylesheet">
 
-    <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 
     <style>
@@ -197,7 +196,6 @@
 </head>
 <body>
 
-<!-- ======================= HEADER ======================= -->
 <header class="header">
     <div class="header-container">
         <a href="/home" class="header-logo">SportGear</a>
@@ -229,7 +227,6 @@
     </div>
 </header>
 
-<!-- ======================= MAIN CONTENT ======================= -->
 <div class="container-section">
     <h2 class="plp-page-title">DANH SÁCH SẢN PHẨM</h2>
 
@@ -244,7 +241,6 @@
     </div>
 
     <div class="row">
-        <!-- BỘ LỌC SIDEBAR -->
         <div class="col-lg-3">
             <div class="filter-sidebar">
                 <div class="filter-sidebar-header">
@@ -255,7 +251,6 @@
                 <div class="filter-group-item">
                     <label class="form-label">Khoảng Giá</label>
                     <div class="filter-options-list" id="priceRangeOptions">
-                        <!-- Dữ liệu giá sẽ được JS chèn vào đây -->
                     </div>
                 </div>
 
@@ -281,10 +276,11 @@
             </div>
         </div>
 
-        <!-- DANH SÁCH SẢN PHẨM -->
         <div class="col-lg-9">
             <div id="product-list-container">
-                <div class="alert alert-info text-center" id="loading-message" style="display: none;">Đang tải sản phẩm...</div>
+                <div class="alert alert-info text-center" id="loading-message" style="display: none;">Đang tải sản
+                    phẩm...
+                </div>
                 <div class="row row-cols-2 row-cols-md-3 g-4" id="product-grid"></div>
             </div>
 
@@ -293,7 +289,6 @@
     </div>
 </div>
 
-<!-- ======================= FOOTER ======================= -->
 <footer class="footer">
     <div class="container">
         <div class="footer-grid">
@@ -402,14 +397,17 @@
             imageUrl = '/image/' + productImagesMap[product.id][0].tenHinhAnh;
         }
 
+        // ĐÃ SỬA: Loại bỏ cú pháp Thymeleaf và chỉ dùng button đơn giản
         return `
         <div class="col">
             <div class="product-list-card" data-product-id="${product.id}">
                 <div class="product-list-img-container">
                     <img src="${imageUrl}" alt="${product.tenSanPham}" loading="lazy">
-                    <div class="product-list-footer">
+                     <div class="product-list-footer">
                         <button class="footer-btn btn-add-to-cart"><i class="fa-solid fa-cart-plus"></i> Mua nhanh</button>
-                        <button class="footer-btn btn-detail"><i class="fa-solid fa-eye"></i> Xem chi tiết</button>
+                        <button class="footer-btn btn-detail">
+                            <span style="font-size: 1.2em;">&#9900;</span> Xem chi tiết
+                        </button>
                     </div>
                 </div>
                 <div class="product-list-text">
@@ -565,7 +563,7 @@
 
             // Xử lý checkboxes
             $('.filter-options-list[data-filter-key]').each(function() {
-                const key = $(this).data('filter-key');
+                const key = $(this).data('filter-filter-key');
                 const selectedIds = $(this).find('input[type="checkbox"]:checked').map(function() {
                     return parseInt($(this).val());
                 }).get();
@@ -602,13 +600,6 @@
             }
         });
 
-        $(document).on('click', '.btn-detail', function(e) {
-            e.stopPropagation();
-            const productId = $(this).closest('.product-list-card').data('product-id');
-            // Chuyển hướng đến trang chi tiết sản phẩm
-            window.location.href = '/san-pham/' + productId;
-        });
-
         $(document).on('click', '.btn-add-to-cart', function(e) {
             e.stopPropagation();
             const productId = $(this).closest('.product-list-card').data('product-id');
@@ -621,11 +612,22 @@
             }, 1500);
         });
 
+        // ĐÃ SỬA: Xử lý click vào toàn bộ card để chuyển hướng đúng
         $(document).on('click', '.product-list-card', function() {
             const productId = $(this).data('product-id');
-            window.location.href = '/san-pham/' + productId;
+            window.location.href = '/san-pham/chi-tiet/' + productId; // Đường dẫn đúng
+        });
+
+        // ĐÃ SỬA: Xử lý click vào nút "Xem chi tiết" để chuyển hướng đúng
+        $(document).on('click', '.btn-detail', function(e) {
+            e.stopPropagation(); // Ngăn sự kiện lan truyền ra card cha
+            const productId = $(this).closest('.product-list-card').data('product-id');
+            if(productId) {
+                window.location.href = `/san-pham/chi-tiet/${productId}`; // Đường dẫn đúng
+            }
         });
     });
+
 </script>
 </body>
 </html>

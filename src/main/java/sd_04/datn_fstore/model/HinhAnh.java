@@ -4,8 +4,9 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString; // ⬅️ Thêm import Lombok ToString
 
-import java.time.LocalDateTime; // 🟢 Import mới
+import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
@@ -24,7 +25,6 @@ public class HinhAnh {
     @Column(name = "moTa")
     private String moTa;
 
-    // 🟢 Dùng LocalDateTime, bỏ @Temporal
     @Column(name = "ngayTao")
     private LocalDateTime ngayTao;
 
@@ -36,5 +36,7 @@ public class HinhAnh {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "idSanPham")
+    // NGẮT VÒNG LẶP: Khi in HinhAnh, không in SanPham để tránh đệ quy
+    @ToString.Exclude
     private SanPham sanPham;
 }
