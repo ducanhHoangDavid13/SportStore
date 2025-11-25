@@ -7,147 +7,253 @@
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 
     <style>
-        /* General Body Styling (Giống form đăng ký) */
         body {
-            background: linear-gradient(to right, #6a11cb, #2575fc); /* Nền gradient */
+            background-color: #f4f5f7; /* Nền xám nhạt sạch sẽ */
+            font-family: 'Poppins', sans-serif;
+            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            overflow: hidden;
         }
 
-        /* Container for the form */
-        .login-container {
-            max-width: 450px;
+        /* Khung bao bọc chính */
+        .login-wrapper {
+            background: #fff;
             width: 100%;
-            padding: 20px;
-            opacity: 0;
-            transform: translateY(20px);
-            animation: fadeInSlideUp 0.8s ease-out forwards;
+            max-width: 900px; /* Độ rộng vừa phải cho layout ngang */
+            border-radius: 25px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08); /* Bóng đổ rất nhẹ */
+            overflow: hidden;
+            margin: 20px;
         }
 
-        /* Card Styling */
-        .card {
-            border: none;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            background-color: rgba(255, 255, 255, 0.95);
+        /* Phần hình ảnh bên trái */
+        .login-image-side {
+            background-color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
         }
 
-        .card-header {
-            background: linear-gradient(to right, #007bff, #0056b3);
-            color: white;
-            border-top-left-radius: 15px;
-            border-top-right-radius: 15px;
-            padding: 20px;
-            font-size: 1.5rem;
-            font-weight: bold;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        .login-image-side img {
+            width: 100%;
+            max-width: 350px;
+            height: auto;
+            object-fit: contain;
         }
 
-        .card-body {
-            padding: 30px;
+        /* Phần form bên phải */
+        .login-form-side {
+            padding: 50px 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
 
-        /* Input Styling */
+        .login-title {
+            font-weight: 700;
+            color: #333;
+            font-size: 2rem;
+            margin-bottom: 30px;
+        }
+
+        /* Custom Input Style: Chỉ gạch chân (Underline) */
+        .form-group {
+            margin-bottom: 25px;
+            position: relative;
+        }
+
         .form-control {
-            border-radius: 8px;
-            padding: 12px 15px;
-            border: 1px solid #ced4da;
-            transition: all 0.3s ease;
+            border: none;
+            border-bottom: 2px solid #e1e1e1; /* Đường kẻ mờ */
+            border-radius: 0;
+            padding: 10px 5px 10px 30px; /* Padding trái để chừa chỗ cho icon */
+            background: transparent;
+            font-size: 0.95rem;
+            color: #555;
+            transition: all 0.3s;
+        }
+
+        .form-control::placeholder {
+            color: #b0b0b0;
+            font-size: 0.9rem;
         }
 
         .form-control:focus {
-            border-color: #007bff;
-            box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.25);
-            background-color: #e9f5ff;
+            box-shadow: none;
+            border-bottom-color: #6c8efc; /* Màu xanh khi focus */
+            background: transparent;
         }
 
-        /* Button Styling */
-        .btn-primary {
-            background: linear-gradient(to right, #007bff, #0056b3); /* Nút Đăng Nhập gradient */
+        /* Icon nằm trong input */
+        .input-icon {
+            position: absolute;
+            left: 0;
+            top: 12px;
+            color: #b0b0b0;
+            font-size: 1rem;
+            transition: 0.3s;
+        }
+
+        .form-control:focus + .input-icon {
+            color: #6c8efc;
+        }
+
+        /* Checkbox */
+        .form-check-input:checked {
+            background-color: #6c8efc;
+            border-color: #6c8efc;
+        }
+
+        /* Button Đăng nhập */
+        .btn-login {
+            background-color: #6c8efc; /* Màu xanh pastel giống ảnh */
             border: none;
             border-radius: 8px;
-            padding: 12px 0;
-            font-size: 1.1rem;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 10px rgba(0, 123, 255, 0.3);
+            padding: 12px;
+            font-weight: 600;
+            color: white;
+            width: 150px; /* Nút gọn gàng */
+            transition: all 0.3s;
+            box-shadow: 0 4px 10px rgba(108, 142, 252, 0.3);
         }
 
-        .btn-primary:hover {
+        .btn-login:hover {
+            background-color: #5a7be6;
             transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(0, 123, 255, 0.5);
-            background: linear-gradient(to right, #0056b3, #004085);
+            box-shadow: 0 6px 15px rgba(108, 142, 252, 0.4);
         }
 
-        /* Animation Keyframes */
-        @keyframes fadeInSlideUp {
-            from {
-                opacity: 0;
-                transform: translateY(50px);
+        /* Social Icons */
+        .social-text {
+            font-size: 0.85rem;
+            color: #888;
+            margin-right: 15px;
+        }
+
+        .social-icons a {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            width: 35px;
+            height: 35px;
+            border-radius: 5px;
+            margin: 0 5px;
+            color: white;
+            font-size: 0.9rem;
+            transition: 0.3s;
+            text-decoration: none;
+        }
+
+        .social-fb { background-color: #3b5998; }
+        .social-tw { background-color: #1da1f2; }
+        .social-gg { background-color: #db4437; }
+
+        .social-icons a:hover {
+            opacity: 0.8;
+            transform: translateY(-2px);
+        }
+
+        .create-acc-link {
+            text-decoration: none;
+            color: #333;
+            font-size: 0.9rem;
+            border-bottom: 1px solid transparent;
+            transition: 0.3s;
+        }
+
+        .create-acc-link:hover {
+            color: #6c8efc;
+            border-bottom: 1px solid #6c8efc;
+        }
+
+        /* Ẩn ảnh trên mobile */
+        @media (max-width: 768px) {
+            .login-image-side {
+                display: none;
             }
-            to {
-                opacity: 1;
-                transform: translateY(0);
+            .login-title {
+                text-align: center;
+            }
+            .btn-login {
+                width: 100%; /* Full width trên mobile */
+            }
+            .action-row {
+                flex-direction: column;
+                align-items: center;
+                gap: 20px;
             }
         }
     </style>
 </head>
 <body>
 
-<div class="container login-container">
-    <div class="card shadow-lg">
-        <div class="card-header text-center">
-            <i class="fas fa-sign-in-alt me-2"></i> Đăng Nhập Hệ Thống
+<div class="login-wrapper">
+    <div class="row g-0">
+        <!-- Cột Trái: Hình ảnh -->
+        <div class="col-md-6 login-image-side">
+            <!-- Hình minh họa người ngồi làm việc giống ảnh mẫu -->
+            <img src="https://cdni.iconscout.com/illustration/premium/thumb/man-working-on-laptop-illustration-download-in-svg-png-gif-file-formats--person-business-activities-pack-people-illustrations-3843586.png?f=webp" alt="Login Illustration">
         </div>
-        <div class="card-body">
 
-            <div th:if="${param.error}" class="alert alert-danger alert-dismissible fade show" role="alert">
-                Tên đăng nhập hoặc mật khẩu không hợp lệ!
+        <!-- Cột Phải: Form Đăng Nhập -->
+        <div class="col-md-6 login-form-side">
+            <h2 class="login-title">Đăng Nhập</h2>
+
+            <!-- Thông báo lỗi -->
+            <div th:if="${param.error}" class="alert alert-danger alert-dismissible fade show py-2" style="font-size: 0.9rem;" role="alert">
+                Sai thông tin đăng nhập!
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
-
-            <div th:if="${param.logout}" class="alert alert-success alert-dismissible fade show" role="alert">
-                Bạn đã đăng xuất thành công.
+            <div th:if="${param.logout}" class="alert alert-success alert-dismissible fade show py-2" style="font-size: 0.9rem;" role="alert">
+                Đăng xuất thành công.
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
 
             <form th:action="@{/login}" method="post">
-
-                <div class="mb-3">
-                    <label for="username" class="form-label visually-hidden">Tên đăng nhập / Email</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="fas fa-user"></i></span>
-                        <input name="username" type="text" class="form-control" id="username" placeholder="Tên đăng nhập / Email" required autofocus>
-                    </div>
+                <!-- Username -->
+                <div class="form-group">
+                    <input name="username" type="text" class="form-control" placeholder="Tên đăng nhập" required autofocus>
+                    <i class="fas fa-user input-icon"></i>
                 </div>
 
+                <!-- Password -->
+                <div class="form-group">
+                    <input name="password" type="password" class="form-control" placeholder="Mật khẩu" required>
+                    <i class="fas fa-lock input-icon"></i>
+                </div>
+
+                <!-- Remember Me -->
+                <div class="mb-4 form-check">
+                    <input type="checkbox" class="form-check-input" id="rememberMe">
+                    <label class="form-check-label text-muted small" for="rememberMe">Ghi nhớ đăng nhập</label>
+                </div>
+
+                <!-- Button Login -->
                 <div class="mb-4">
-                    <label for="password" class="form-label visually-hidden">Mật khẩu</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="fas fa-lock"></i></span>
-                        <input name="password" type="password" class="form-control" id="password" placeholder="Mật khẩu" required>
-                    </div>
-                </div>
-
-                <div class="d-grid gap-2 mb-3">
-                    <button type="submit" class="btn btn-primary btn-lg">
-                        <i class="fas fa-sign-in-alt me-2"></i> Đăng Nhập
+                    <button type="submit" class="btn btn-login">
+                        Đăng nhập
                     </button>
                 </div>
-            </form>
 
-            <div class="text-center mt-3">
-                <a th:href="@{/registration}" class="btn-link">Chưa có tài khoản? Đăng ký ngay</a>
-            </div>
-            <div class="text-center mt-2">
-                <a th:href="@{/}" class="btn-link">Quay về trang chính</a>
-            </div>
+                <!-- Footer: Create Account & Social -->
+                <div class="d-flex justify-content-between align-items-center action-row">
+                    <a th:href="@{/registration}" class="create-acc-link">Tạo tài khoản</a>
+
+                    <div class="d-flex align-items-center">
+                        <span class="social-text">Hoặc:</span>
+                        <div class="social-icons">
+                            <a href="#" class="social-fb"><i class="fab fa-facebook-f"></i></a>
+                            <a href="#" class="social-tw"><i class="fab fa-twitter"></i></a>
+                            <a href="#" class="social-gg"><i class="fab fa-google"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </form>
         </div>
     </div>
 </div>

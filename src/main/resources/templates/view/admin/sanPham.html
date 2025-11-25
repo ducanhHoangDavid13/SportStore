@@ -2,778 +2,527 @@
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Quản lý Sản phẩm</title>
 
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+    <!-- Bootstrap 5 & Libs -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
     <link rel="stylesheet" th:href="@{/css/styles.css}" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.2.0/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" />
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.2/css/dataTables.bootstrap5.min.css" />
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            color: #374151;
+        }
+
+        /* Card Styles */
+        .card-box {
+            background: #ffffff;
+            border-radius: 12px;
+            border: none;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            margin-bottom: 1.5rem;
+        }
+
+        /* Table Styles */
+        .table-custom thead th {
+            background-color: #f9fafb;
+            color: #6b7280;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            border-bottom: 2px solid #e5e7eb;
+            padding: 1rem;
+            vertical-align: middle;
+        }
+        .table-custom tbody td {
+            vertical-align: middle;
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #f3f4f6;
+            font-size: 0.875rem;
+        }
+        .table-custom tbody tr:hover { background-color: #f9fafb; }
+
+        /* Product Image */
+        .product-thumb {
+            width: 48px; height: 48px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+            background-color: #f9fafb;
+        }
+
+        /* Badges & Buttons */
+        .badge-status { padding: 0.35em 0.8em; font-size: 0.75rem; font-weight: 600; border-radius: 99px; }
+        .badge-active { background: #d1fae5; color: #065f46; }
+        .badge-inactive { background: #fee2e2; color: #991b1b; }
+
+        .btn-action { width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 6px; }
+        .btn-action:hover { transform: translateY(-2px); }
+
+        /* Modals */
+        .modal-content { border-radius: 16px; border: none; }
+        .modal-header { border-bottom: 1px solid #f3f4f6; padding: 1.5rem; }
+        .modal-header.bg-primary { background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%); }
+        .modal-header.bg-warning { background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%); }
+        .modal-body { padding: 1.5rem; }
+    </style>
 </head>
 <body>
-<nav th:replace="~{library/navbar :: admin-navbar}"></nav>
-
+<nav th:replace="library/navbar :: admin-navbar"></nav>
 <div class="page-wrapper">
-    <div th:replace="~{library/navbar :: admin-sidebar}"></div>
-    <main class="main-content">
+    <div th:replace="library/navbar :: admin-sidebar"></div>
+    <main class="main-content pt-4 px-4">
 
-        <div class="container">
-            <div class="row mb-3 p-3 border rounded bg-light">
-                <h5 class="mb-3 text-info"><i class="fas fa-filter"></i> Bộ lọc tìm kiếm</h5>
+        <div class="container-fluid">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="fw-bold text-dark mb-0">Quản lý Sản phẩm</h3>
+            </div>
+
+            <!-- Filter -->
+            <div class="card-box p-4">
+                <div class="d-flex align-items-center mb-3 border-bottom pb-2">
+                    <i class="fas fa-filter text-primary me-2"></i> <span class="fw-bold text-secondary">Bộ lọc</span>
+                </div>
                 <form id="filterForm">
-                    <div class="d-flex flex-wrap align-items-end gap-3">
-                        <div class="form-group" style="min-width: 200px;">
-                            <label for="keyword" class="form-label">Theo mã, tên</label>
-                            <input type="text" id="keyword" class="form-control form-control-sm"
-                                   placeholder="Tìm theo mã, tên sản phẩm" th:value="${keyword}">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold text-muted">TỪ KHÓA</label>
+                            <input type="text" id="keyword" class="form-control" placeholder="Mã hoặc Tên sản phẩm...">
                         </div>
-                        <div class="form-group" style="min-width: 150px;">
-                            <label for="trangThaiFilter" class="form-label">Trạng thái</label>
-                            <select id="trangThaiFilter" class="form-select form-select-sm">
-                                <option value="">-- Chọn trạng thái --</option>
-                                <option value="1" th:selected="${trangThai != null and trangThai == 1}">Đang bán</option>
-                                <option value="0" th:selected="${trangThai != null and trangThai == 0}">Ngừng bán</option>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold text-muted">TRẠNG THÁI</label>
+                            <select id="trangThaiFilter" class="form-select">
+                                <option value="">Tất cả</option>
+                                <option value="1">Đang bán</option>
+                                <option value="0">Ngừng bán</option>
                             </select>
                         </div>
-                        <div class="form-group d-flex gap-2">
-                            <button type="submit" class="btn btn-primary btn-sm">
-                                <i class="fas fa-search"></i> Lọc
-                            </button>
-                            <button type="button" class="btn btn-secondary btn-sm" id="btnReset">
-                                <i class="fas fa-redo-alt"></i> Reset
-                            </button>
+                        <div class="col-md-5">
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary px-4"><i class="fas fa-search me-1"></i> Tìm kiếm</button>
+                                <button type="button" class="btn btn-light border px-3" id="btnReset"><i class="fas fa-sync-alt me-1"></i> Reset</button>
+                            </div>
                         </div>
                     </div>
                 </form>
             </div>
 
-            <div class="row">
-                <div class="col-12 data-panel">
-                    <h3 class="mb-3">Quản lý Sản phẩm</h3>
-                    <div class="d-flex justify-content-end mb-3">
-                        <button class="btn btn-success btn-sm me-2" data-bs-toggle="modal"
-                                data-bs-target="#addSanPhamModal">
-                            <i class="fas fa-plus"></i> Thêm Sản phẩm
-                        </button>
-                        <button class="btn btn-info btn-sm" id="btnExportExcel">
-                            <i class="fas fa-file-excel"></i> Xuất Excel
-                        </button>
+            <!-- Table -->
+            <div class="card-box">
+                <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold">Danh sách Sản phẩm</h5>
+                    <div>
+                        <button class="btn btn-success btn-sm shadow-sm me-2" data-bs-toggle="modal" data-bs-target="#addSanPhamModal"><i class="fas fa-plus me-1"></i> Thêm mới</button>
+                        <button class="btn btn-outline-success btn-sm shadow-sm" id="btnExportExcel"><i class="fas fa-file-excel me-1"></i> Excel</button>
                     </div>
-
-                    <div class="table-responsive" style="height: 400px; overflow-y: auto;">
-                        <table class="table table-bordered table-hover table-sm">
-                            <thead class="thead-light table-dark sticky-top">
-                            <tr>
-                                <th>Mã SP (maSanPham)</th>
-                                <th>Ảnh</th> <th>Tên SP (tenSanPham)</th>
-                                <th>Giá tiền (giaTien)</th>
-                                <th>Số lượng (soLuong)</th>
-                                <th>Trạng thái (trangThai)</th>
-                                <th>Ngày tạo (ngayTao)</th>
-                                <th>Thao tác</th>
-                            </tr>
-                            </thead>
-                            <tbody id="sanPhamTableBody">
-                            <tr><td colspan="8" class="text-center">Đang tải dữ liệu...</td></tr> </tbody>
-                        </table>
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center mt-3">
-                        <nav id="paginationNav"></nav>
-                        <div id="pageInfo"></div>
-                    </div>
+                </div>
+                <div class="table-responsive" style="min-height: 350px;">
+                    <table class="table table-custom table-hover mb-0">
+                        <thead>
+                        <tr>
+                            <th>Mã SP</th>
+                            <th class="text-center">Ảnh</th>
+                            <th>Tên Sản Phẩm</th>
+                            <th class="text-end">Giá bán</th>
+                            <th class="text-center">Số lượng</th>
+                            <th class="text-center">Trạng thái</th>
+                            <th class="text-center">Ngày tạo</th>
+                            <th class="text-center" style="width: 140px;">Thao tác</th>
+                        </tr>
+                        </thead>
+                        <tbody id="sanPhamTableBody"></tbody>
+                    </table>
+                </div>
+                <div class="p-3 border-top d-flex justify-content-between align-items-center">
+                    <div id="pageInfo" class="text-muted small"></div>
+                    <nav id="paginationNav"></nav>
                 </div>
             </div>
         </div>
 
-        <div class="modal fade" id="addSanPhamModal" tabindex="-1" aria-labelledby="addSanPhamModalLabel" aria-hidden="true">
+        <!-- ADD MODAL -->
+        <div class="modal fade" id="addSanPhamModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-lg modal-dialog-centered">
                 <div class="modal-content">
-                    <form id="addSanPhamForm" method="post">
-                        <div class="modal-header bg-primary text-white">
-                            <h5 class="modal-title" id="addSanPhamModalLabel"><i class="fas fa-plus me-2"></i> THÊM MỚI SẢN PHẨM</h5>
-                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="newMaSanPham" class="form-label">Mã Sản phẩm (maSanPham)</label>
-                                    <input type="text" class="form-control" id="newMaSanPham" placeholder="Tự động nếu để trống">
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="newTenSanPham" class="form-label">Tên Sản phẩm (tenSanPham) (*)</label>
-                                    <input type="text" class="form-control" id="newTenSanPham" required>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="newGiaTien" class="form-label">Giá tiền (giaTien) (*)</label>
-                                    <input type="number" step="0.01" min="0" class="form-control" id="newGiaTien" required>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="newSoLuong" class="form-label">Số lượng (soLuong) (*)</label>
-                                    <input type="number" min="0" class="form-control" id="newSoLuong" required>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-12 mb-3">
-                                    <label for="newMoTa" class="form-label">Mô tả (moTa)</label>
-                                    <textarea class="form-control" id="newMoTa" rows="3"></textarea>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Trạng thái (trangThai)</label><br>
-                                    <div class="d-flex gap-4 pt-1">
-                                        <div class="form-check form-check-inline">
-                                            <input class="form-check-input" type="radio" name="newTrangThai" id="newTrangThaiOn" value="1" checked>
-                                            <label class="form-check-label" for="newTrangThaiOn">Đang bán (1)</label>
-                                        </div>
-                                        <div class="form-check form-check-inline">
-                                            <input class="form-check-input" type="radio" name="newTrangThai" id="newTrangThaiOff" value="0">
-                                            <label class="form-check-label" for="newTrangThaiOff">Ngừng bán (0)</label>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row mt-3">
-                                <div class="col-md-12">
-                                    <label class="form-label text-info"><i class="fas fa-image"></i> Ảnh đại diện (Tùy chọn)</label>
-                                    <input type="file" class="form-control" id="initialImageUpload" accept="image/*">
-                                    <small class="form-text text-muted">Chọn 1 ảnh để làm ảnh đại diện ban đầu.</small>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="fas fa-times me-1"></i> Đóng</button>
-                            <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i> Lưu Sản phẩm</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        <div class="modal fade" id="editSanPhamModal" tabindex="-1" aria-labelledby="editSanPhamModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-lg modal-dialog-centered">
-                <div class="modal-content">
-                    <form id="editSanPhamForm" method="post">
-                        <input type="hidden" id="editSanPhamId" name="id">
-                        <div class="modal-header bg-warning text-dark">
-                            <h5 class="modal-title" id="editSanPhamModalLabel"><i class="fas fa-edit me-2"></i> CẬP NHẬT SẢN PHẨM</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="editMaSanPham" class="form-label">Mã Sản phẩm (maSanPham)</label>
-                                    <input type="text" class="form-control" id="editMaSanPham">
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="editTenSanPham" class="form-label">Tên Sản phẩm (tenSanPham) (*)</label>
-                                    <input type="text" class="form-control" id="editTenSanPham" required>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="editGiaTien" class="form-label">Giá tiền (giaTien) (*)</label>
-                                    <input type="number" step="0.01" min="0" class="form-control" id="editGiaTien" required>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="editSoLuong" class="form-label">Số lượng (soLuong) (*)</label>
-                                    <input type="number" min="0" class="form-control" id="editSoLuong" required>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-12 mb-3">
-                                    <label for="editMoTa" class="form-label">Mô tả (moTa)</label>
-                                    <textarea class="form-control" id="editMoTa" rows="3"></textarea>
-                                </div>
-                            </div>
-                            <div class="row mb-3">
-                                <div class="col-md-6">
-                                    <label class="form-label">Trạng thái (trangThai)</label><br>
-                                    <div class="d-flex gap-4 pt-1">
-                                        <div class="form-check form-check-inline">
-                                            <input class="form-check-input" type="radio" name="editTrangThai" id="editTrangThaiOn" value="1">
-                                            <label class="form-check-label" for="editTrangThaiOn">Đang bán (1)</label>
-                                        </div>
-                                        <div class="form-check form-check-inline">
-                                            <input class="form-check-input" type="radio" name="editTrangThai" id="editTrangThaiOff" value="0">
-                                            <label class="form-check-label" for="editTrangThaiOff">Ngừng bán (0)</label>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="fas fa-times me-1"></i> Hủy</button>
-                            <button type="submit" class="btn btn-warning"><i class="fas fa-sync-alt me-1"></i> Cập nhật</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        <div class="modal fade" id="manageImagesModal" tabindex="-1" aria-labelledby="manageImagesModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-lg modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header bg-secondary text-white">
-                        <h5 class="modal-title" id="manageImagesModalLabel"><i class="fas fa-camera me-2"></i> QUẢN LÝ HÌNH ẢNH SẢN PHẨM</h5>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <div class="modal-header bg-primary text-white border-0">
+                        <h5 class="modal-title fw-bold"><i class="fas fa-cube me-2"></i> THÊM SẢN PHẨM</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
-                        <h6 class="mb-3">Sản phẩm: <span id="currentProductName" class="text-primary fw-bold"></span></h6>
-
-                        <h6 class="text-info"><i class="fas fa-eye"></i> Ảnh hiện tại</h6>
-                        <div id="image-preview-area-new" class="d-flex flex-wrap gap-2 p-2 border rounded mb-4" style="min-height: 120px; max-height: 400px; overflow-y: auto;">
-                            <p class="text-muted w-100 text-center" id="no-images-msg-new">Đang tải...</p>
-                        </div>
-
-                        <h6 class="text-success"><i class="fas fa-cloud-upload-alt"></i> Tải ảnh mới lên</h6>
-                        <div class="input-group">
-                            <input type="file" class="form-control" id="newImageUploadNew" multiple accept="image/*">
-                            <button class="btn btn-success" type="button" id="btnUploadImagesNew">
-                                <i class="fas fa-upload"></i> Tải lên
-                            </button>
-                        </div>
-                        <small class="form-text text-muted">Có thể chọn nhiều file cùng lúc.</small>
-
+                        <form id="addSanPhamForm" enctype="multipart/form-data">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold small">MÃ SẢN PHẨM</label>
+                                    <input type="text" class="form-control" id="newMaSanPham" placeholder="Tự động tạo">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold small">TÊN SẢN PHẨM <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="newTenSanPham" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold small">GIÁ BÁN (VNĐ) <span class="text-danger">*</span></label>
+                                    <input type="number" class="form-control" id="newGiaTien" min="0" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold small">SỐ LƯỢNG <span class="text-danger">*</span></label>
+                                    <input type="number" class="form-control" id="newSoLuong" min="0" required>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label fw-bold small">MÔ TẢ</label>
+                                    <textarea class="form-control" id="newMoTa" rows="2"></textarea>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold small">TRẠNG THÁI</label>
+                                    <select class="form-select" id="newTrangThaiSelect">
+                                        <option value="1">Đang bán</option>
+                                        <option value="0">Ngừng bán</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold small text-primary">ẢNH ĐẠI DIỆN</label>
+                                    <input type="file" class="form-control" id="initialImageUpload" accept="image/*">
+                                </div>
+                            </div>
+                        </form>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="fas fa-times me-1"></i> Đóng</button>
+                    <div class="modal-footer border-0 pt-0">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" form="addSanPhamForm" class="btn btn-primary px-4">Lưu lại</button>
                     </div>
                 </div>
             </div>
         </div>
+
+        <!-- EDIT MODAL (ĐÃ CẬP NHẬT CHO PHÉP SỬA ẢNH) -->
+        <div class="modal fade" id="editSanPhamModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header bg-warning text-white border-0">
+                        <h5 class="modal-title fw-bold"><i class="fas fa-edit me-2"></i> CẬP NHẬT SẢN PHẨM</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="editSanPhamForm" enctype="multipart/form-data">
+                            <input type="hidden" id="editSanPhamId">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold small">MÃ SẢN PHẨM</label>
+                                    <input type="text" class="form-control bg-light" id="editMaSanPham" readonly>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold small">TÊN SẢN PHẨM <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="editTenSanPham" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold small">GIÁ BÁN</label>
+                                    <input type="number" class="form-control" id="editGiaTien" min="0" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold small">SỐ LƯỢNG</label>
+                                    <input type="number" class="form-control" id="editSoLuong" min="0" required>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label fw-bold small">MÔ TẢ</label>
+                                    <textarea class="form-control" id="editMoTa" rows="2"></textarea>
+                                </div>
+
+                                <!-- PHẦN CẬP NHẬT ẢNH -->
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold small">TRẠNG THÁI</label>
+                                    <select class="form-select" id="editTrangThaiSelect">
+                                        <option value="1">Đang bán</option>
+                                        <option value="0">Ngừng bán</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold small text-primary">CẬP NHẬT ẢNH</label>
+                                    <div class="d-flex align-items-center gap-3">
+                                        <img id="editImagePreview" src="https://via.placeholder.com/60" class="rounded border p-1" style="width: 60px; height: 60px; object-fit: cover;">
+                                        <input type="file" class="form-control" id="editImageUpload" accept="image/*">
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer border-0 pt-0">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Đóng</button>
+                        <button type="submit" form="editSanPhamForm" class="btn btn-warning text-white px-4">Cập nhật</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MANAGE IMAGES MODAL -->
+        <div class="modal fade" id="manageImagesModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header bg-secondary text-white">
+                        <h5 class="modal-title">Quản lý Album Ảnh</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <h6 id="currentProductName" class="mb-3 fw-bold text-primary"></h6>
+                        <div id="image-preview-area-new" class="d-flex flex-wrap gap-2 mb-3"></div>
+                        <div class="input-group">
+                            <input type="file" class="form-control" id="newImageUploadNew" multiple accept="image/*">
+                            <button class="btn btn-success" id="btnUploadImagesNew">Tải lên</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </main>
 </div>
 
+<!-- Scripts -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js"></script>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
-<script th:src="@{/js/my-custom-scripts.js}"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
 <script>
-    // Cấu hình Toastr
-    toastr.options = { "positionClass": "toast-top-right", "timeOut": "3000", "closeButton": true };
+    toastr.options = { "closeButton": true, "progressBar": true, "positionClass": "toast-bottom-right", "timeOut": "3000" };
+
+    function formatCurrency(amount) {
+        return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+    }
+
+    function renderStatusBadge(status) {
+        return status === 1
+            ? '<span class="badge-status badge-active"><i class="fas fa-check-circle me-1"></i>Đang bán</span>'
+            : '<span class="badge-status badge-inactive"><i class="fas fa-ban me-1"></i>Ngừng bán</span>';
+    }
 
     $(document).ready(function() {
-        // Biến lưu trạng thái lọc và phân trang
-        let currentFilter = {
-            page: 1, // Trang hiện tại (1-based for display)
-            keyword: $('#keyword').val() || '', // Lấy từ Thymeleaf nếu có
-            trangThai: $('#trangThaiFilter').val() || '' // Lấy từ Thymeleaf nếu có
-        };
-        let currentPageData = null; // Biến lưu dữ liệu trang hiện tại
-
-        // ===== BIẾN GLOBAL CHO HÌNH ẢNH =====
+        let currentFilter = { page: 1, keyword: '', trangThai: '' };
         let currentEditingSanPhamId = null;
 
-
-        // Hàm gọi API để tải dữ liệu Sản phẩm
+        // --- 1. LOAD DATA ---
         function loadSanPham() {
             let params = {
-                page: currentFilter.page - 1, // API dùng 0-based index
-                size: 5, // Số item mỗi trang (CẬP NHẬT THEO @PageableDefault nếu muốn)
-                keyword: currentFilter.keyword.trim(), // Gửi keyword đã trim()
+                page: currentFilter.page - 1, size: 5,
+                keyword: currentFilter.keyword,
                 trangThai: currentFilter.trangThai === '' ? null : parseInt(currentFilter.trangThai)
             };
 
-            $('#sanPhamTableBody').html('<tr><td colspan="8" class="text-center"><i class="fas fa-spinner fa-spin"></i> Đang tải...</td></tr>');
-            $('#pageInfo').text('');
+            $('#sanPhamTableBody').html('<tr><td colspan="8" class="text-center py-4"><div class="spinner-border text-primary"></div></td></tr>');
             $('#paginationNav').empty();
 
             $.ajax({
-                url: "/api/san-pham", // Endpoint API GET
-                type: "GET",
-                data: params,
-                dataType: "json",
-                success: function(response) {
-                    currentPageData = response;
-                    renderTable(response.content);
-                    renderPagination(response.number + 1, response.totalPages);
-                    updatePageInfo(response);
+                url: "/api/san-pham", type: "GET", data: params, dataType: "json",
+                success: function(res) {
+                    renderTable(res.content);
+                    renderPagination(res.number + 1, res.totalPages);
+                    updatePageInfo(res);
                 },
-                error: function(jqXHR, textStatus, errorThrown) {
-                    console.error("Lỗi tải SP:", textStatus, errorThrown, jqXHR.responseText);
-                    $('#sanPhamTableBody').html('<tr><td colspan="8" class="text-danger text-center">Lỗi tải dữ liệu.</td></tr>');
-                    $('#paginationNav').empty();
-                    toastr.error("Lỗi tải dữ liệu sản phẩm.");
-                }
+                error: function() { $('#sanPhamTableBody').html('<tr><td colspan="8" class="text-center text-danger">Lỗi tải dữ liệu</td></tr>'); }
             });
         }
 
-        // Hàm vẽ bảng dữ liệu
-        function renderTable(sanPhamList) {
-            let html = '';
-            if (!sanPhamList || sanPhamList.length === 0) {
-                html = '<tr><td colspan="8" class="text-center">Không có sản phẩm nào khớp với bộ lọc.</td></tr>';
-            } else {
-                sanPhamList.forEach(function(sp) {
-
-                    // ========================= CODE XỬ LÝ ẢNH CHÍNH =========================
-                    let imageHtml = '<div style="...N/A..."></div>'; // (Giữ nguyên code N/A của bạn)
-
-// Đọc trường transient mới được gửi từ Backend
-                    if (sp.tenHinhAnhChinh) {
-
-                        // ----- SỬA LẠI DÒNG NÀY -----
-                        // Lỗi: const imageUrl = `/api/hinh-anh/download/${sp.tenHinhAnhChinh}`;
-                        // Đúng:
-                        // const imageUrl = `/api/hinh-anh/download/${sp.tenHinhAnhChinh}`; // (SAI)
-                        const imageUrl = `/uploads/${sp.tenHinhAnhChinh}`; // (ĐÚNG)
-                        imageHtml = `<img src="${imageUrl}" ...>`;  // <-- Trỏ thẳng vào file tĩnh
-                        // ----------------------------
-
-                        imageHtml = `<img src="${imageUrl}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px;" alt="SP Image">`;
-                    }
-                    let trangThaiBadge = sp.trangThai === 1 ? '<span class="badge bg-success">Đang bán</span>' : '<span class="badge bg-danger">Ngừng bán</span>';
-
-                    let giaTienFormatted = 'N/A';
-                    if (sp.giaTien != null) {
-                        try {
-                            const giaTienFloat = parseFloat(sp.giaTien);
-                            if (!isNaN(giaTienFloat)) {
-                                giaTienFormatted = giaTienFloat.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
-                            } else {
-                                giaTienFormatted = sp.giaTien + ' ₫';
-                            }
-                        } catch (e) {
-                            giaTienFormatted = sp.giaTien + ' ₫';
-                        }
-                    }
-                    let ngayTaoFormatted = 'N/A';
-                    if (sp.ngayTao) {
-                        try {
-                            const dateObj = new Date(sp.ngayTao);
-                            if (!isNaN(dateObj)) {
-                                ngayTaoFormatted = dateObj.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
-                            } else {
-                                ngayTaoFormatted = sp.ngayTao.toString();
-                            }
-                        } catch (e) {
-                            ngayTaoFormatted = sp.ngayTao.toString();
-                        }
-                    }
-                    let maSpDisplay = sp.maSanPham || '';
-                    let tenSpDisplay = sp.tenSanPham || '';
-                    let soLuongDisplay = sp.soLuong != null ? sp.soLuong : '';
-
-                    html += `<tr data-id="${sp.id}">
-                                <td>${maSpDisplay}</td>
-                                <td class="text-center">${imageHtml}</td>
-                                 <td>${tenSpDisplay}</td>
-                                <td class="text-end">${giaTienFormatted}</td>
-                                <td class="text-center">${soLuongDisplay}</td>
-                                <td class="text-center">${trangThaiBadge}</td>
-                                <td class="text-center">${ngayTaoFormatted}</td>
-                                <td class="text-center">
-                                    <button class="btn btn-warning btn-sm me-1 btn-edit" data-id="${sp.id}" title="Sửa thông tin cơ bản"><i class="fas fa-edit"></i></button>
-                                    <button class="btn btn-secondary btn-sm me-1 btn-manage-images" data-id="${sp.id}" data-name="${sp.tenSanPham}" title="Quản lý hình ảnh"><i class="fas fa-images"></i></button>
-                                    <button class="btn btn-danger btn-sm btn-delete" data-id="${sp.id}" title="Xóa sản phẩm"><i class="fas fa-trash"></i></button>
-                                </td>
-                             </tr>`;
-                });
+        function renderTable(list) {
+            if (!list || list.length === 0) {
+                $('#sanPhamTableBody').html('<tr><td colspan="8" class="text-center py-4 text-muted">Không có sản phẩm nào</td></tr>');
+                return;
             }
+            let html = '';
+            list.forEach(sp => {
+                // Fix ảnh: Dùng API download hoặc fallback
+                let imgUrl = sp.tenHinhAnhChinh ? `/api/hinh-anh/download/${sp.tenHinhAnhChinh}` : 'https://via.placeholder.com/50x50?text=NoImg';
+                let dateStr = sp.ngayTao ? new Date(sp.ngayTao).toLocaleDateString('vi-VN') : '-';
+
+                html += `
+                <tr>
+                    <td class="fw-bold text-primary">#${sp.maSanPham || 'N/A'}</td>
+                    <td class="text-center"><img src="${imgUrl}" class="product-thumb" onerror="this.src='https://via.placeholder.com/50x50?text=Error'"></td>
+                    <td class="fw-semibold">${sp.tenSanPham}</td>
+                    <td class="text-end fw-bold text-dark">${formatCurrency(sp.giaTien)}</td>
+                    <td class="text-center">${sp.soLuong}</td>
+                    <td class="text-center">${renderStatusBadge(sp.trangThai)}</td>
+                    <td class="text-center small text-muted">${dateStr}</td>
+                    <td class="text-center">
+                        <button class="btn btn-action btn-light text-warning border me-1 btn-edit" data-id="${sp.id}"><i class="fas fa-edit"></i></button>
+                        <button class="btn btn-action btn-light text-secondary border me-1 btn-manage-images" data-id="${sp.id}" data-name="${sp.tenSanPham}"><i class="fas fa-images"></i></button>
+                        <button class="btn btn-action btn-light text-danger border btn-delete" data-id="${sp.id}"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>`;
+            });
             $('#sanPhamTableBody').html(html);
         }
 
-        // Hàm vẽ phân trang
         function renderPagination(currentPage, totalPages) {
-            if (totalPages <= 1) { $('#paginationNav').empty(); return; }
-            let paginationHtml = '<ul class="pagination pagination-sm mb-0">';
-            let prevDisabled = currentPage === 1 ? 'disabled' : '';
-            paginationHtml += `<li class="page-item ${prevDisabled}"><a class="page-link" href="#" data-page="${currentPage - 1}">&laquo;</a></li>`;
-            let startPage = Math.max(1, currentPage - 2);
-            let endPage = Math.min(totalPages, currentPage + 2);
-
-            if (startPage > 1) {
-                paginationHtml += `<li class="page-item"><a class="page-link" href="#" data-page="1">1</a></li>`;
-                if (startPage > 2) {
-                    paginationHtml += '<li class="page-item disabled"><span class="page-link">...</span></li>';
-                }
+            if (totalPages <= 1) return;
+            let nav = '<ul class="pagination pagination-sm mb-0">';
+            nav += `<li class="page-item ${currentPage===1?'disabled':''}"><a class="page-link" href="#" data-page="${currentPage-1}">&laquo;</a></li>`;
+            for(let i=1; i<=totalPages; i++) {
+                if(i===1 || i===totalPages || (i>=currentPage-1 && i<=currentPage+1))
+                    nav += `<li class="page-item ${i===currentPage?'active':''}"><a class="page-link" href="#" data-page="${i}">${i}</a></li>`;
+                else if (i===currentPage-2 || i===currentPage+2) nav += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
             }
-
-            for (let i = startPage; i <= endPage; i++) {
-                let active = currentPage === i ? 'active' : '';
-                paginationHtml += `<li class="page-item ${active}"><a class="page-link" href="#" data-page="${i}">${i}</a></li>`;
-            }
-
-            if (endPage < totalPages) {
-                if (endPage < totalPages - 1) {
-                    paginationHtml += '<li class="page-item disabled"><span class="page-link">...</span></li>';
-                }
-                paginationHtml += `<li class="page-item"><a class="page-link" href="#" data-page="${totalPages}">${totalPages}</a></li>`;
-            }
-
-            let nextDisabled = currentPage === totalPages ? 'disabled' : '';
-            paginationHtml += `<li class="page-item ${nextDisabled}"><a class="page-link" href="#" data-page="${currentPage + 1}">&raquo;</a></li>`;
-            paginationHtml += '</ul>';
-            $('#paginationNav').html(paginationHtml);
+            nav += `<li class="page-item ${currentPage===totalPages?'disabled':''}"><a class="page-link" href="#" data-page="${currentPage+1}">&raquo;</a></li></ul>`;
+            $('#paginationNav').html(nav);
         }
 
-        // Hàm cập nhật thông tin trang
-        function updatePageInfo(pageData) {
-            if (!pageData || pageData.totalElements === 0) {
-                $('#pageInfo').text('Không có dữ liệu');
-                return;
-            }
-            const startItem = pageData.number * pageData.size + 1;
-            const endItem = startItem + pageData.numberOfElements - 1;
-            $('#pageInfo').text(`Hiển thị ${startItem}-${endItem} của ${pageData.totalElements} mục`);
+        function updatePageInfo(data) {
+            if(data.totalElements > 0) $('#pageInfo').html(`Hiển thị <strong>${data.numberOfElements}</strong> trên <strong>${data.totalElements}</strong> sản phẩm`);
         }
 
-        // Hàm tải ảnh từ API và hiển thị cho MODAL MỚI
-        function loadProductImagesForNewModal(sanPhamId, productName) {
-            currentEditingSanPhamId = sanPhamId;
-            $('#currentProductName').text(productName); // Hiển thị tên sản phẩm
+        // --- EVENTS ---
+        $('#filterForm').submit(e => { e.preventDefault(); currentFilter.keyword = $('#keyword').val().trim(); currentFilter.trangThai = $('#trangThaiFilter').val(); currentFilter.page=1; loadSanPham(); });
+        $('#btnReset').click(() => { $('#keyword').val(''); $('#trangThaiFilter').val(''); currentFilter = {page:1, keyword:'', trangThai:''}; loadSanPham(); });
+        $(document).on('click', '.page-link', function(e) { e.preventDefault(); if(!$(this).parent().hasClass('disabled')) { currentFilter.page = $(this).data('page'); loadSanPham(); }});
 
-            const $area = $('#image-preview-area-new');
-            $area.html('<p class="text-muted w-100 text-center"><i class="fas fa-spinner fa-spin"></i> Đang tải ảnh...</p>');
-
-            $.ajax({
-                url: "/api/hinh-anh/san-pham/" + sanPhamId,
-                type: "GET",
-                success: function(hinhAnhList) {
-                    let html = '';
-                    if (hinhAnhList && hinhAnhList.length > 0) {
-                        hinhAnhList.forEach(function(img) {
-                            const imageUrl = `/api/hinh-anh/download/${img.tenHinhAnh}`;
-                            html += `
-                                <div class="position-relative border rounded p-1" style="width: 100px; height: 100px;">
-                                    <img src="${imageUrl}" alt="Ảnh sản phẩm" class="w-100 h-100 object-fit-cover rounded" />
-                                    <button type="button" class="btn btn-danger btn-sm p-0 delete-image-btn-new"
-                                            data-id="${img.id}"
-                                            style="position: absolute; top: -5px; right: -5px; height: 20px; width: 20px; font-size: 10px; line-height: 1;">
-                                        <i class="fas fa-times"></i>
-                                    </button>
-                                </div>`;
-                        });
-                    } else {
-                        html = '<p class="text-muted w-100 text-center" id="no-images-msg-new">Chưa có hình ảnh nào.</p>';
-                    }
-                    $area.html(html);
-                },
-                error: function() {
-                    $area.html('<p class="text-danger w-100 text-center">Lỗi tải ảnh!</p>');
-                    toastr.error("Lỗi khi tải danh sách hình ảnh.");
-                }
-            });
-        }
-
-        // Sự kiện click phân trang
-        $('#paginationNav').on('click', 'a.page-link', function(e) {
+        // --- ADD ---
+        $('#addSanPhamForm').submit(function(e) {
             e.preventDefault();
-            const newPage = $(this).data('page');
-            if (!newPage || $(this).parent().hasClass('disabled') || $(this).parent().hasClass('active')) return;
-            currentFilter.page = newPage;
-            loadSanPham();
-        });
-
-        // Sự kiện submit form lọc
-        $('#filterForm').on('submit', function(e) {
-            e.preventDefault();
-            currentFilter.keyword = $('#keyword').val().trim();
-            currentFilter.trangThai = $('#trangThaiFilter').val();
-            currentFilter.page = 1;
-            loadSanPham();
-        });
-
-        // Sự kiện click nút Reset
-        $('#btnReset').on('click', function() {
-            $('#keyword').val('');
-            $('#trangThaiFilter').val('');
-            currentFilter = { page: 1, keyword: '', trangThai: '' };
-            loadSanPham();
-        });
-
-        // Sự kiện submit form Thêm mới (ĐÃ SỬA để hỗ trợ FILES)
-        $('#addSanPhamForm').on('submit', function(e) {
-            e.preventDefault();
-
-            const $newTenSanPham = $('#newTenSanPham').val().trim();
-            const $newGiaTien = $('#newGiaTien').val();
-            const $newSoLuong = $('#newSoLuong').val();
-            const imageFile = $('#initialImageUpload')[0].files[0];
-
-            // Validation cơ bản
-            if (!$newTenSanPham) { toastr.warning("Tên sản phẩm là bắt buộc."); return; }
-            if ($newGiaTien == null || isNaN(Number($newGiaTien)) || Number($newGiaTien) < 0) { toastr.warning("Giá tiền không hợp lệ."); return; }
-            if ($newSoLuong == null || isNaN(Number($newSoLuong)) || Number($newSoLuong) < 0 || Number($newSoLuong) % 1 !== 0) { toastr.warning("Số lượng không hợp lệ."); return; }
-
-            // Dữ liệu sản phẩm dưới dạng JSON string
-            const sanPhamJson = JSON.stringify({
-                maSanPham: $('#newMaSanPham').val().trim() || null,
-                tenSanPham: $newTenSanPham,
-                giaTien: Number($newGiaTien),
-                soLuong: Number($newSoLuong),
-                moTa: $('#newMoTa').val().trim(),
-                trangThai: parseInt($('input[name="newTrangThai"]:checked').val())
-            });
-
             const formData = new FormData();
-            formData.append('sanPhamData', sanPhamJson); // Dữ liệu JSON
-
-            if (imageFile) {
-                formData.append('file', imageFile); // File ảnh
-            }
-
+            const spData = {
+                maSanPham: $('#newMaSanPham').val().trim(),
+                tenSanPham: $('#newTenSanPham').val().trim(),
+                giaTien: parseFloat($('#newGiaTien').val()),
+                soLuong: parseInt($('#newSoLuong').val()),
+                moTa: $('#newMoTa').val().trim(),
+                trangThai: parseInt($('#newTrangThaiSelect').val())
+            };
+            formData.append('sanPhamData', JSON.stringify(spData));
+            const file = $('#initialImageUpload')[0].files[0];
+            if(file) formData.append('file', file);
 
             $.ajax({
-                // LƯU Ý QUAN TRỌNG: Bạn cần tạo API backend MỚI
                 url: "/api/san-pham/create-with-image",
-                type: "POST",
-                data: formData,
-                contentType: false, // Bắt buộc cho FormData
-                processData: false, // Bắt buộc cho FormData
-
-                beforeSend: function() {
-                    $('#addSanPhamForm button[type="submit"]').prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i> Đang lưu...');
-                },
-                complete: function() {
-                    $('#addSanPhamForm button[type="submit"]').prop('disabled', false).html('<i class="fas fa-save me-1"></i> Lưu Sản phẩm');
-                },
-                success: function(response) {
-                    toastr.success("Thêm sản phẩm và ảnh thành công!");
-
-                    $('#addSanPhamModal').one('hidden.bs.modal', function () {
-                        $('#addSanPhamForm')[0].reset();
-                        currentFilter.page = 1;
-                        loadSanPham();
-                    });
-
-                    $('#addSanPhamModal').modal('hide');
-                },
-                error: function(jqXHR) {
-                    let errorMessage = jqXHR.responseJSON?.message || jqXHR.responseText || "Lỗi thêm sản phẩm.";
-                    toastr.error(errorMessage);
-                }
+                type: "POST", data: formData, contentType: false, processData: false,
+                success: () => { toastr.success("Thêm thành công"); $('#addSanPhamModal').modal('hide'); $('#addSanPhamForm')[0].reset(); loadSanPham(); },
+                error: (err) => toastr.error(err.responseJSON?.message || "Lỗi thêm mới")
             });
         });
 
-        // Sự kiện click nút Sửa (mở modal)
+        // --- EDIT (LOAD DATA & SHOW IMAGE) ---
         $(document).on('click', '.btn-edit', function() {
-            let sanPhamId = $(this).data('id');
-            // Cài đặt ID sản phẩm đang chỉnh sửa
-            currentEditingSanPhamId = sanPhamId;
+            const id = $(this).data('id');
+            $.get(`/api/san-pham/${id}`, function(sp) {
+                $('#editSanPhamId').val(sp.id);
+                $('#editMaSanPham').val(sp.maSanPham);
+                $('#editTenSanPham').val(sp.tenSanPham);
+                $('#editGiaTien').val(sp.giaTien);
+                $('#editSoLuong').val(sp.soLuong);
+                $('#editMoTa').val(sp.moTa);
+                $('#editTrangThaiSelect').val(sp.trangThai);
 
-            $.ajax({
-                url: "/api/san-pham/" + sanPhamId, type: "GET", dataType: "json",
-                success: function(sp) {
-                    // Đổ dữ liệu vào form
-                    $('#editSanPhamId').val(sp.id);
-                    $('#editMaSanPham').val(sp.maSanPham || '');
-                    $('#editTenSanPham').val(sp.tenSanPham || '');
-                    $('#editGiaTien').val(sp.giaTien);
-                    $('#editSoLuong').val(sp.soLuong);
-                    $('#editMoTa').val(sp.moTa || '');
-                    if (sp.trangThai === 1) $('#editTrangThaiOn').prop('checked', true);
-                    else $('#editTrangThaiOff').prop('checked', true);
+                // Reset input file
+                $('#editImageUpload').val('');
 
-                    // Khởi tạo và mở modal
-                    var editModal = new bootstrap.Modal(document.getElementById('editSanPhamModal'));
-                    editModal.show();
-                },
-                error: function(jqXHR) {
-                    toastr.error("Không tải được dữ liệu để sửa.");
-                }
+                // Hiển thị ảnh hiện tại
+                let imgUrl = 'https://via.placeholder.com/60?text=NoImg';
+                if(sp.tenHinhAnhChinh) imgUrl = `/api/hinh-anh/download/${sp.tenHinhAnhChinh}`;
+                $('#editImagePreview').attr('src', imgUrl);
+
+                new bootstrap.Modal(document.getElementById('editSanPhamModal')).show();
             });
         });
 
-        // SỰ KIỆN MỚI: Click nút Quản lý Hình ảnh
-        $(document).on('click', '.btn-manage-images', function() {
-            const sanPhamId = $(this).data('id');
-            const sanPhamName = $(this).data('name');
-
-            loadProductImagesForNewModal(sanPhamId, sanPhamName);
-
-            // Mở modal mới
-            var manageModal = new bootstrap.Modal(document.getElementById('manageImagesModal'));
-            manageModal.show();
-        });
-
-
-        // Sự kiện submit form Cập nhật (ĐÃ SỬA)
-        $('#editSanPhamForm').on('submit', function(e) {
+        // --- UPDATE (SEND FORM DATA) ---
+        $('#editSanPhamForm').submit(function(e) {
             e.preventDefault();
-            let sanPhamId = $('#editSanPhamId').val();
-            const $editGiaTien = $('#editGiaTien').val();
-            const $editSoLuong = $('#editSoLuong').val();
+            const id = $('#editSanPhamId').val();
+            const formData = new FormData();
 
-            let updatedSanPham = {
-                maSanPham: $('#editMaSanPham').val().trim(),
-                tenSanPham: $('#editTenSanPham').val().trim(),
-                giaTien: $editGiaTien ? Number($editGiaTien) : null,
-                soLuong: $editSoLuong ? Number($editSoLuong) : null,
-                moTa: $('#editMoTa').val().trim(),
-                trangThai: parseInt($('input[name="editTrangThai"]:checked').val())
+            const data = {
+                maSanPham: $('#editMaSanPham').val(),
+                tenSanPham: $('#editTenSanPham').val(),
+                giaTien: parseFloat($('#editGiaTien').val()),
+                soLuong: parseInt($('#editSoLuong').val()),
+                moTa: $('#editMoTa').val(),
+                trangThai: parseInt($('#editTrangThaiSelect').val())
             };
 
-            // Validation
-            if (!updatedSanPham.tenSanPham) { toastr.warning("Tên sản phẩm là bắt buộc."); return; }
-            if (updatedSanPham.giaTien == null || isNaN(updatedSanPham.giaTien) || updatedSanPham.giaTien < 0) { toastr.warning("Giá tiền không hợp lệ."); return; }
-            if (updatedSanPham.soLuong == null || isNaN(updatedSanPham.soLuong) || updatedSanPham.soLuong < 0 || updatedSanPham.soLuong % 1 !== 0) { toastr.warning("Số lượng không hợp lệ (phải là số nguyên không âm)."); return; }
+            // Gửi JSON data
+            formData.append('sanPhamData', JSON.stringify(data));
 
+            // Kiểm tra nếu có file ảnh mới thì gửi kèm
+            const file = $('#editImageUpload')[0].files[0];
+            if(file) {
+                formData.append('file', file);
+            }
+
+            // GỌI API UPDATE CÓ ẢNH (Backend cần hỗ trợ PUT multipart hoặc dùng POST update)
             $.ajax({
-                url: "/api/san-pham/" + sanPhamId, type: "PUT", contentType: "application/json", data: JSON.stringify(updatedSanPham),
-                beforeSend: function() {
-                    $('#editSanPhamForm button[type="submit"]').prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i> Đang cập nhật...');
-                },
-                complete: function() {
-                    $('#editSanPhamForm button[type="submit"]').prop('disabled', false).html('<i class="fas fa-sync-alt me-1"></i> Cập nhật');
-                },
-                success: function(response) {
-                    toastr.success("Cập nhật thành công!");
-
-                    // 1. Lắng nghe sự kiện KHI modal đã đóng xong
-                    $('#editSanPhamModal').one('hidden.bs.modal', function () {
-                        // 2. Sau khi modal đã đóng, mới tải lại bảng
-                        loadSanPham();
-                    });
-
-                    // 3. Bây giờ mới ra lệnh cho modal bắt đầu đóng
-                    $('#editSanPhamModal').modal('hide');
-                },
-                error: function(jqXHR) {
-                    let errorMessage = jqXHR.responseJSON?.message || jqXHR.responseText || "Lỗi cập nhật sản phẩm.";
-                    toastr.error(errorMessage);
-                }
+                url: `/api/san-pham/update-with-image/${id}`, // Cần đảm bảo Backend có API này
+                type: 'PUT',
+                data: formData,
+                contentType: false,
+                processData: false,
+                success: () => { toastr.success("Cập nhật thành công"); $('#editSanPhamModal').modal('hide'); loadSanPham(); },
+                error: (err) => toastr.error(err.responseJSON?.message || "Lỗi cập nhật")
             });
         });
 
-        // Sự kiện click nút Xóa
+        // --- DELETE ---
         $(document).on('click', '.btn-delete', function() {
-            let idToDelete = $(this).data('id');
-            if (confirm(`Bạn chắc chắn muốn xóa Sản phẩm ID: ${idToDelete}? Thao tác này không thể hoàn tác.`)) {
+            const id = $(this).data('id');
+            if(confirm(`Xóa sản phẩm ID: ${id}?`)) {
                 $.ajax({
-                    url: "/api/san-pham/" + idToDelete, type: "DELETE",
-                    success: function() {
-                        toastr.success("Xóa thành công!");
-                        // Nếu trang hiện tại chỉ còn 1 mục và đó là mục vừa xóa, quay lại trang trước
-                        if (currentPageData && currentPageData.numberOfElements === 1 && currentFilter.page > 1) {
-                            currentFilter.page--;
-                        }
-                        loadSanPham();
-                    },
-                    error: function(jqXHR) {
-                        if (jqXHR.status === 409) {
-                            toastr.error("Không thể xóa sản phẩm này vì đang được sử dụng ở nơi khác.");
-                        } else {
-                            toastr.error("Lỗi xóa sản phẩm.");
-                        }
-                    }
+                    url: `/api/san-pham/${id}`, type: 'DELETE',
+                    success: () => { toastr.success("Đã xóa"); loadSanPham(); },
+                    error: () => toastr.error("Lỗi xóa")
                 });
             }
         });
 
-        // =============== (CODE BỔ SUNG CHO EXCEL VÀ HÌNH ẢNH) ===============
+        // --- MANAGE IMAGES (ALBUM) ---
+        function loadProductImagesForNewModal(id, name) {
+            currentEditingSanPhamId = id;
+            $('#currentProductName').text(name);
+            $('#image-preview-area-new').html('<div class="spinner-border text-primary spinner-border-sm"></div>');
 
-        // Sự kiện click nút Xuất Excel
-        $('#btnExportExcel').on('click', function() {
-            const $btn = $(this);
+            $.get(`/api/hinh-anh/san-pham/${id}`, function(list) {
+                let html = '';
+                if(list.length) {
+                    list.forEach(img => {
+                        html += `
+                        <div class="position-relative border rounded" style="width: 80px; height: 80px;">
+                            <img src="/api/hinh-anh/download/${img.tenHinhAnh}" class="w-100 h-100 object-fit-cover rounded">
+                            <button class="btn btn-danger btn-sm p-0 position-absolute top-0 end-0 delete-image-btn-new" data-id="${img.id}" style="width:20px;height:20px;">&times;</button>
+                        </div>`;
+                    });
+                } else html = '<span class="text-muted small">Chưa có ảnh</span>';
+                $('#image-preview-area-new').html(html);
+            });
+        }
 
-            const keyword = currentFilter.keyword.trim();
-            const trangThai = currentFilter.trangThai;
-
-            let url = "/api/san-pham/export/excel";
-            let params = [];
-
-            if (keyword) {
-                params.push("keyword=" + encodeURIComponent(keyword));
-            }
-            if (trangThai !== '') {
-                params.push("trangThai=" + encodeURIComponent(trangThai));
-            }
-
-            if (params.length > 0) {
-                url += "?" + params.join("&");
-            }
-
-            $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Đang xuất...');
-            toastr.info("Đang chuẩn bị file, vui lòng chờ...");
-
-            window.location.href = url;
-
-            setTimeout(function() {
-                $btn.prop('disabled', false).html('<i class="fas fa-file-excel"></i> Xuất Excel');
-            }, 10000); // 10 giây
+        $(document).on('click', '.btn-manage-images', function() {
+            loadProductImagesForNewModal($(this).data('id'), $(this).data('name'));
+            new bootstrap.Modal(document.getElementById('manageImagesModal')).show();
         });
 
-
-        // Xử lý nút Tải lên (Upload) trong modal mới
-        $('#btnUploadImagesNew').on('click', function() {
-            if (!currentEditingSanPhamId) {
-                toastr.warning("ID Sản phẩm không xác định.");
-                return;
-            }
-
-            const files = $('#newImageUploadNew')[0].files; // <-- ID mới
-            if (files.length === 0) {
-                toastr.warning("Vui lòng chọn file để tải lên.");
-                return;
-            }
-
-            const formData = new FormData();
-            for (let i = 0; i < files.length; i++) {
-                formData.append('file', files[i]);
-            }
-            formData.append('idSanPham', currentEditingSanPhamId);
-
-            const $btn = $(this);
-            $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Tải...');
+        $('#btnUploadImagesNew').click(function() {
+            const files = $('#newImageUploadNew')[0].files;
+            if(!files.length) return toastr.warning("Chọn ảnh để tải lên");
+            const fd = new FormData();
+            for(let f of files) fd.append('file', f);
+            fd.append('idSanPham', currentEditingSanPhamId);
 
             $.ajax({
-                url: "/api/hinh-anh/upload",
-                type: "POST",
-                data: formData,
-                contentType: false,
-                processData: false,
-                success: function(response) {
-                    toastr.success("Tải ảnh lên thành công!");
-                    $('#newImageUploadNew').val(''); // Reset input file
-                    loadProductImagesForNewModal(currentEditingSanPhamId, $('#currentProductName').text()); // Tải lại danh sách ảnh
-                    loadSanPham(); // Cập nhật bảng chính để thấy ảnh đại diện nếu ảnh vừa tải lên là ảnh chính
-                },
-                error: function(jqXHR) {
-                    const errorMsg = jqXHR.responseJSON?.message || jqXHR.responseText || "Lỗi tải ảnh.";
-                    toastr.error(errorMsg);
-                },
-                complete: function() {
-                    $btn.prop('disabled', false).html('<i class="fas fa-upload"></i> Tải lên');
-                }
+                url: '/api/hinh-anh/upload', type: 'POST', data: fd, contentType: false, processData: false,
+                success: () => { toastr.success("Tải ảnh thành công"); $('#newImageUploadNew').val(''); loadProductImagesForNewModal(currentEditingSanPhamId, $('#currentProductName').text()); loadSanPham(); },
+                error: () => toastr.error("Lỗi tải ảnh")
             });
         });
 
-
-        // Xử lý nút Xóa ảnh (Sử dụng delegation) trong modal mới
-        $(document).on('click', '.delete-image-btn-new', function() { // <-- CLASS mới
-            const imageId = $(this).data('id');
-            if (!confirm("Bạn có chắc chắn muốn xóa hình ảnh này? Thao tác này không thể hoàn tác.")) {
-                return;
-            }
-
+        $(document).on('click', '.delete-image-btn-new', function() {
+            if(!confirm("Xóa ảnh này?")) return;
             $.ajax({
-                url: "/api/hinh-anh/" + imageId,
-                type: "DELETE",
-                success: function() {
-                    toastr.success("Xóa ảnh thành công!");
-                    loadProductImagesForNewModal(currentEditingSanPhamId, $('#currentProductName').text()); // Tải lại danh sách ảnh
-                    loadSanPham(); // Cập nhật bảng chính
-                },
-                error: function() {
-                    toastr.error("Lỗi khi xóa hình ảnh.");
-                }
+                url: `/api/hinh-anh/${$(this).data('id')}`, type: 'DELETE',
+                success: () => { toastr.success("Đã xóa ảnh"); loadProductImagesForNewModal(currentEditingSanPhamId, $('#currentProductName').text()); loadSanPham(); },
+                error: () => toastr.error("Lỗi xóa ảnh")
             });
         });
 
-        // =============== (KẾT THÚC CODE BỔ SUNG) ===============
-
-
-        // --- KHỞI TẠO ---
         loadSanPham();
     });
 </script>

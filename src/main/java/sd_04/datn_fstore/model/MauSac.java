@@ -1,12 +1,15 @@
 package sd_04.datn_fstore.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import java.util.Date;
+
+import java.time.LocalDateTime; // 🟢 Import mới
 import java.util.List;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -19,26 +22,25 @@ public class MauSac {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "maMau", length = 100)
+    @Column(name = "maMau", length = 100, unique = true)
+    @NotBlank(message = "Mã màu không được để trống")
     private String maMau;
 
     @Column(name = "tenMauSac", length = 255)
+    @NotBlank(message = "Tên màu sắc không được để trống")
     private String tenMauSac;
 
-    @Temporal(TemporalType.TIMESTAMP)
+    // 🟢 Dùng LocalDateTime
     @Column(name = "ngayTao")
-    private Date ngayTao;
+    private LocalDateTime ngayTao;
 
     @Column(name = "trangThai")
     private Integer trangThai;
 
     @Column(name = "moTa")
     private String moTa;
-// Đây là code từ file MauSac.java của bạn:
 
-    // Mối quan hệ: Một màu sắc có trong nhiều sản phẩm chi tiết
     @JsonIgnore
     @OneToMany(mappedBy = "mauSac", fetch = FetchType.LAZY)
     private List<SanPhamChiTiet> sanPhamChiTiets;
-
 }

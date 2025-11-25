@@ -32,4 +32,5 @@ public interface SanPhamCTService {
             String keyword      // Đã thêm
     );
     List<SanPhamChiTiet> getAvailableProducts();
+    List<SanPhamChiTiet> searchBySanPhamTen(String tenSp);
 }

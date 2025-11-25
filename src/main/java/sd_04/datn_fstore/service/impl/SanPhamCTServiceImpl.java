@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import sd_04.datn_fstore.model.SanPhamChiTiet;
 import sd_04.datn_fstore.repository.SanPhamCTRepository;
 import sd_04.datn_fstore.service.SanPhamCTService;
@@ -16,10 +17,8 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class SanPhamCTServiceImpl implements SanPhamCTService {
 
-    // Đổi tên repo cho khớp với file service impl cũ của bạn
     private final SanPhamCTRepository sanPhamChiTietRepository;
 
-    // --- CÁC PHƯƠNG THỨC CŨ (Giữ nguyên) ---
     @Override
     public List<SanPhamChiTiet> getAll() {
         return sanPhamChiTietRepository.findAll();
@@ -36,36 +35,47 @@ public class SanPhamCTServiceImpl implements SanPhamCTService {
     }
 
     @Override
+    @Transactional // Đảm bảo tính toàn vẹn dữ liệu khi thêm/sửa
     public SanPhamChiTiet save(SanPhamChiTiet sanPhamChiTiet) {
         return sanPhamChiTietRepository.save(sanPhamChiTiet);
     }
 
-
+    /**
+     * XÓA MỀM (Soft Delete)
+     * Chuyển trạng thái về 0 thay vì xóa khỏi DB để giữ lịch sử hóa đơn.
+     */
     @Override
+    @Transactional // QUAN TRỌNG: Cần có để commit thay đổi xuống DB
     public void delete(Integer id) {
-        if (sanPhamChiTietRepository.existsById(id)) {
-            sanPhamChiTietRepository.deleteById(id);
+        Optional<SanPhamChiTiet> optional = sanPhamChiTietRepository.findById(id);
+        if (optional.isPresent()) {
+            SanPhamChiTiet spct = optional.get();
+            spct.setTrangThai(0); // 0: Ngừng hoạt động
+            sanPhamChiTietRepository.save(spct);
         }
+        // Nếu muốn xóa cứng (hard delete) thì dùng:
+        // sanPhamChiTietRepository.deleteById(id);
     }
 
-    // --- PHƯƠNG THỨC SEARCH ĐÃ CẬP NHẬT (12 THAM SỐ) ---
+    /**
+     * TÌM KIẾM NÂNG CAO (Admin)
+     * Khớp với câu Query 12 tham số trong Repository
+     */
     @Override
     public Page<SanPhamChiTiet> search(
             Pageable pageable,
             Integer idSanPham,
             Integer idKichThuoc,
-            Integer idChatLieu,  // <-- Đã khớp thứ tự với Interface
-            Integer idTheLoai,   // <-- Đã khớp thứ tự với Interface
+            Integer idChatLieu,
+            Integer idTheLoai,
             Integer idXuatXu,
             Integer idMauSac,
-            Integer idPhanLoai,  // <-- Đã khớp thứ tự với Interface
-            BigDecimal minPrice, // <-- Đã khớp tên với Interface
-            BigDecimal maxPrice, // <-- Đã khớp tên với Interface
+            Integer idPhanLoai,
+            BigDecimal minPrice,
+            BigDecimal maxPrice,
             Integer trangThai,
             String keyword
     ) {
-
-        // Bây giờ chúng ta gọi Repository với ĐÚNG 12 tham số
         return sanPhamChiTietRepository.search(
                 pageable,
                 idSanPham,
@@ -81,13 +91,20 @@ public class SanPhamCTServiceImpl implements SanPhamCTService {
                 keyword
         );
     }
+
+    /**
+     * API CHO TRANG BÁN HÀNG (POS)
+     * Gọi hàm tối ưu trong Repository để lấy full thông tin (Ảnh, Màu, Size...)
+     * Trạng thái = 1 (Đang bán) và Số lượng > 0
+     */
     @Override
     public List<SanPhamChiTiet> getAvailableProducts() {
-
-        // SỬA LẠI DÒNG NÀY:
-        // return sanPhamCTRepository.findAllByTrangThaiAndSoLuongGreaterThan(1, 0);
-
-        // THÀNH DÒNG NÀY:
+        // Gọi đúng tên hàm mới trong Repository
         return sanPhamChiTietRepository.getAvailableProductsWithDetails(1, 0);
+    }
+
+    @Override
+    public List<SanPhamChiTiet> searchBySanPhamTen(String tenSp) {
+        return sanPhamChiTietRepository.findBySanPhamTenSanPham(tenSp);
     }
 }

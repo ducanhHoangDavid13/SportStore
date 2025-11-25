@@ -5,374 +5,308 @@
     <title>Thống kê hệ thống</title>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
 
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+    <!-- Bootstrap 5 & Libs -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" />
+    <link rel="stylesheet" th:href="@{/css/styles.css}" />
+
     <style>
-        /* ==============================================
-   BIẾN MÀU CHỦ ĐẠO (THEME TRẮNG - XANH - ĐỎ)
-   ============================================== */
-        :root {
-            --sidebar-width: 260px;
-            --navbar-height: 60px;
-
-            /* Bảng màu (Trắng - Xanh - Đỏ) */
-            --primary-color: #007bff;     /* XANH DƯƠNG (Chủ đạo) */
-            --primary-light-bg: #e6f2ff;  /* Xanh dương rất nhạt cho hover */
-            --danger-color: #dc3545;      /* ĐỎ (Phụ) */
-
-            --sidebar-bg: #ffffff;       /* Nền Sidebar trắng */
-            --navbar-bg: #ffffff;        /* Nền Navbar trắng */
-            --content-bg: #f4f7f6;       /* Nền nội dung chính (xám nhạt) */
-
-            --text-dark: #343a40;        /* Màu chữ chính (đậm) */
-            --text-muted: #6c757d;     /* Màu chữ phụ (xám) */
-
-            --border-color: #dee2e6;     /* Màu viền */
-            --shadow-light: 0 2px 12px rgba(0, 0, 0, 0.06); /* Đổ bóng nhẹ */
-        }
-
-        /* ==============================================
-           LAYOUT CHÍNH (Navbar, Sidebar, Content)
-           ============================================== */
         body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            color: #374151;
             overflow-x: hidden;
-            background-color: var(--content-bg);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
         }
 
-        /* Navbar (Thanh ngang trên cùng) */
-        .navbar-admin {
-            height: var(--navbar-height);
-            background-color: var(--navbar-bg) !important;
-            border-bottom: 1px solid var(--border-color);
-            box-shadow: var(--shadow-light);
-            z-index: 1001;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-        }
+        /* --- LAYOUT SIDEBAR --- */
+        #wrapper { display: flex; width: 100%; height: 100vh; overflow: hidden; }
+        #sidebar-wrapper { min-height: 100vh; width: 250px; background-color: #fff; border-right: 1px solid #e5e7eb; display: flex; flex-direction: column; flex-shrink: 0; transition: margin 0.25s ease-out; }
+        #page-content-wrapper { flex-grow: 1; background-color: #f3f4f6; overflow-y: auto; display: flex; flex-direction: column; }
 
-        /* Sidebar (Menu trái) */
-        .sidebar-wrapper {
-            width: var(--sidebar-width);
-            position: fixed;
-            top: var(--navbar-height);
-            left: 0;
-            bottom: 0;
-            overflow-y: auto;
-            z-index: 1000;
+        /* Top Navbar */
+        .top-navbar { background: white; height: 60px; border-bottom: 1px solid #e5e7eb; display: flex; align-items: center; padding: 0 20px; flex-shrink: 0; justify-content: space-between; }
 
-            background-color: var(--sidebar-bg); /* Nền trắng */
-            border-right: 1px solid var(--border-color);
-            transition: margin-left 0.3s ease-in-out; /* Hiệu ứng mượt */
-        }
-
-        /* Nội dung chính (Bên phải) */
-        .main-content {
-            margin-left: var(--sidebar-width);
-            padding: 1.5rem;
-            padding-top: calc(var(--navbar-height) + 1.5rem);
-            min-height: 100vh;
-            transition: margin-left 0.3s ease-in-out; /* Hiệu ứng mượt */
-        }
-
-        /* ==============================================
-           CÁC LINK TRONG SIDEBAR (Theme Xanh)
-           ============================================== */
-
-        /* Header của Sidebar (Logo) */
-        .sidebar-header {
-            padding: 1rem 1.25rem;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        /* Tiêu đề (ví dụ: "SẢN PHẨM") */
-        .nav-item-header {
-            padding: 0.5rem 1.25rem;
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            margin-top: 1rem;
-        }
-
-        /* Các link */
-        .nav-link {
-            color: var(--text-dark);
-            padding: 0.85rem 1.25rem;
-            margin: 0.25rem 0.5rem;
-            transition: all 0.2s ease-in-out;
-            display: flex;
-            align-items: center;
-            text-decoration: none;
-            cursor: pointer;
-            font-weight: 500;
-            border-radius: 6px;
-        }
-
-        /* Hiệu ứng HOVER (Xanh nhạt) */
-        .nav-link:hover {
-            color: var(--primary-color) !important;
-            background-color: var(--primary-light-bg);
-            transform: translateX(3px);
-        }
-
-        /* Hiệu ứng ACTIVE (Xanh đậm) */
-        .nav-link.active {
-            color: #ffffff !important;
-            background-color: var(--primary-color);
-            font-weight: 600;
-            box-shadow: 0 4px 10px rgba(0, 123, 255, 0.3);
-        }
-
-        .nav-link i.fa-fw {
-            margin-top: 0;
-            margin-right: 12px;
-            font-size: 1.1rem;
-        }
-
-        /* Submenu (Menu con) */
-        .submenu-item a.nav-link {
-            padding-left: 2.75rem;
-            font-size: 0.9rem;
-            color: var(--text-muted);
-            font-weight: 400;
-            box-shadow: none;
-        }
-        .submenu-item a.nav-link:hover {
-            transform: none;
-        }
-
-        /* ==============================================
-           CSS CHO THU NHỎ SIDEBAR
-           ============================================== */
-        /* (Script JS của bạn sẽ thêm class 'sidebar-toggled' vào <body>) */
-
-        .sidebar-toggled .sidebar-wrapper {
-            /* Đẩy sidebar ra khỏi màn hình về bên trái */
-            margin-left: calc(var(--sidebar-width) * -1);
-        }
-
-        .sidebar-toggled .main-content {
-            /* Cho nội dung chiếm lại toàn bộ không gian */
-            margin-left: 0;
-        }
-
-        /* ==============================================
-           CSS CHO TRANG DASHBOARD (CÁC THẺ)
-           ============================================== */
-
-        /* Lưới 4 thẻ thống kê */
-        .stats-grid {
-            display: grid;
-            /* 4 cột trên PC, 2 cột trên Tablet, 1 cột trên Mobile */
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        /* Tùy chỉnh thẻ (card) */
-        .stats-grid .card {
-            background-color: #fff;
+        /* Card Styles */
+        .card-box {
+            background: #ffffff;
+            border-radius: 16px;
             border: none;
-            border-radius: 10px;
-            box-shadow: var(--shadow-light);
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
             padding: 1.5rem;
+            height: 100%;
+            transition: transform 0.2s;
         }
+        .card-box:hover { transform: translateY(-2px); }
 
-        .stats-grid .card h3 {
-            font-size: 1rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
+        /* Stats Card Styling */
+        .stat-icon {
+            width: 48px; height: 48px;
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.5rem; margin-bottom: 1rem;
         }
+        .stat-title { color: #6b7280; font-size: 0.875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; }
+        .stat-value { color: #111827; font-size: 1.75rem; font-weight: 700; }
 
-        .stats-grid .card .value {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: var(--text-dark);
-        }
+        /* Colors for Stats */
+        .bg-blue-soft { background-color: #eff6ff; color: #3b82f6; }
+        .bg-green-soft { background-color: #ecfdf5; color: #10b981; }
+        .bg-purple-soft { background-color: #f3e8ff; color: #8b5cf6; }
+        .bg-orange-soft { background-color: #fff7ed; color: #f97316; }
 
-        /* Lưới 2 biểu đồ */
-        .charts {
-            display: grid;
-            grid-template-columns: 2fr 1fr; /* Biểu đồ đường rộng hơn */
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        /* Tùy chỉnh thẻ biểu đồ */
-        .chart-card {
-            background-color: #fff;
-            border: none;
-            border-radius: 10px;
-            box-shadow: var(--shadow-light);
-            padding: 1.5rem;
-        }
-        .chart-card h3 {
-            font-size: 1.2rem;
-            font-weight: 600;
-            margin-bottom: 1.5rem;
-        }
+        /* Charts */
+        .chart-header { font-size: 1.1rem; font-weight: 700; color: #374151; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 8px; }
 
         /* Footer */
-        .footer {
-            padding: 1rem;
-            text-align: center;
-            color: var(--text-muted);
-            font-size: 0.9rem;
-            margin-top: 2rem;
-        }
-
-        /* CSS cho màn hình nhỏ (Mobile) */
-        @media (max-width: 992px) {
-            .charts {
-                grid-template-columns: 1fr; /* 1 cột trên mobile */
-            }
-        }
+        .footer { text-align: center; padding: 1.5rem; color: #9ca3af; font-size: 0.85rem; }
     </style>
-    <link rel="stylesheet" th:href="@{/css/styles.css}" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"/>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.2.0/css/bootstrap.min.css"/>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css"/>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css"/>
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.2/css/dataTables.bootstrap5.min.css"/>
 </head>
 <body>
 
-<nav th:replace="~{library/navbar :: admin-navbar}"></nav>
+<div id="wrapper">
 
-<div class="page-wrapper">
-    <div th:replace="~{library/navbar :: admin-sidebar}"></div>
-    <main class="main-content">
+    <!-- 1. SIDEBAR -->
+    <div id="sidebar-wrapper">
+        <div th:replace="~{library/navbar :: admin-sidebar}"></div>
+    </div>
 
+    <!-- 2. MAIN CONTENT -->
+    <div id="page-content-wrapper">
 
-        <!-- Nếu KHÔNG phải ADMIN thì redirect về trang chủ -->
-        <div sec:authorize="!hasRole('ADMIN')">
-            <script th:inline="javascript">
-                /*<![CDATA[*/
-                const href = 'home';
-                window.location.href = /*[[@{/home}]]*/ '/' + href;
-                /*]]>*/
-            </script>
-        </div>
-
-        <div class="container">
-            <h1>Thống kê tổng quan</h1>
-            <!-- Các chỉ số -->
-            <div class="stats-grid">
-                <div class="card">
-                    <h3>Tổng người dùng</h3>
-                    <div class="value" th:text="${totalUsers}">0</div>
+        <!-- Top Navbar -->
+        <nav class="top-navbar">
+            <div class="d-flex align-items-center">
+                <button class="btn btn-light btn-sm me-3 border" id="menu-toggle"><i class="fas fa-bars"></i></button>
+                <h5 class="mb-0 text-dark fw-bold">Dashboard</h5>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <div sec:authorize="isAuthenticated()" class="fw-bold text-secondary">
+                    <i class="fas fa-user-circle text-primary me-1"></i>
+                    <span th:text="${#authentication.name}">Admin</span>
                 </div>
-                <div class="card">
-                    <h3>Tổng đơn hàng</h3>
-                    <div class="value" th:text="${totalOrders}">0</div>
+                <form th:action="@{/logout}" method="post" class="m-0">
+                    <button class="btn btn-sm btn-outline-danger border-0" title="Đăng xuất"><i class="fas fa-power-off"></i></button>
+                </form>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="container-fluid px-4 py-4">
+
+            <!-- Security Check -->
+            <div sec:authorize="!hasRole('ADMIN')">
+                <script th:inline="javascript">window.location.href = '/home';</script>
+            </div>
+
+            <h3 class="fw-bold text-dark mb-4">Tổng quan hệ thống</h3>
+
+            <!-- 1. Stats Row -->
+            <div class="row g-4 mb-4">
+                <!-- Doanh thu -->
+                <div class="col-12 col-md-6 col-xl-3">
+                    <div class="card-box">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <div class="stat-title">Doanh thu hôm nay</div>
+                                <div class="stat-value text-primary" th:text="${todayRevenue}">0 ₫</div>
+                            </div>
+                            <div class="stat-icon bg-blue-soft"><i class="fas fa-dollar-sign"></i></div>
+                        </div>
+                    </div>
                 </div>
-                <div class="card">
-                    <h3>Doanh thu hôm nay</h3>
-                    <div class="value" th:text="${todayRevenue}">0 VNĐ</div>
+                <!-- Đơn hàng -->
+                <div class="col-12 col-md-6 col-xl-3">
+                    <div class="card-box">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <div class="stat-title">Tổng đơn hàng</div>
+                                <div class="stat-value text-success" th:text="${totalOrders}">0</div>
+                            </div>
+                            <div class="stat-icon bg-green-soft"><i class="fas fa-shopping-cart"></i></div>
+                        </div>
+                    </div>
                 </div>
-                <div class="card">
-                    <h3>Khách hàng mới</h3>
-                    <div class="value" th:text="${newCustomers}">0</div>
+                <!-- Người dùng -->
+                <div class="col-12 col-md-6 col-xl-3">
+                    <div class="card-box">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <div class="stat-title">Tổng người dùng</div>
+                                <div class="stat-value text-purple" th:text="${totalUsers}">0</div>
+                            </div>
+                            <div class="stat-icon bg-purple-soft"><i class="fas fa-users"></i></div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Khách mới -->
+                <div class="col-12 col-md-6 col-xl-3">
+                    <div class="card-box">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <div class="stat-title">Khách hàng mới</div>
+                                <div class="stat-value text-warning" th:text="${newCustomers}">0</div>
+                            </div>
+                            <div class="stat-icon bg-orange-soft"><i class="fas fa-user-plus"></i></div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Biểu đồ -->
-            <div class="charts">
-                <div class="chart-card">
-                    <h3>📈 Doanh thu 7 ngày gần nhất</h3>
-                    <canvas id="revenueChart"></canvas>
+            <!-- 2. Charts Row -->
+            <div class="row g-4">
+                <!-- Line Chart -->
+                <div class="col-12 col-lg-8">
+                    <div class="card-box">
+                        <div class="chart-header"><i class="fas fa-chart-line text-primary"></i> Doanh thu 7 ngày gần nhất</div>
+                        <canvas id="revenueChart" style="height: 300px; width: 100%;"></canvas>
+                    </div>
                 </div>
-
-                <div class="chart-card">
-                    <h3>📦 Phân bố trạng thái đơn hàng</h3>
-                    <canvas id="orderStatusChart"></canvas>
+                <!-- Doughnut Chart -->
+                <div class="col-12 col-lg-4">
+                    <div class="card-box">
+                        <div class="chart-header"><i class="fas fa-chart-pie text-info"></i> Trạng thái đơn hàng</div>
+                        <div style="position: relative; height: 250px;">
+                            <canvas id="orderStatusChart"></canvas>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div class="footer">
-            © 2025 - Dashboard by Banana Dev
-        </div>
-    </main>
+            <div class="footer">
+                © 2025 F-Store Admin Dashboard
+            </div>
+        </main>
+    </div>
+</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script th:inline="javascript">
-        /*<![CDATA[*/
-        const labels = [[${dayLabels}]];
-        const revenueData = [[${revenueList}]];
-        const orderStatusLabels = [[${orderStatusLabels}]];
-        const orderStatusValues = [[${orderStatusValues}]];
+<!-- Scripts -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-        // Chart 1: Revenue
-        const ctx1 = document.getElementById('revenueChart').getContext('2d');
-        new Chart(ctx1, {
-            type: 'line',
-            data: {
-                labels: labels || ['T2','T3','T4','T5','T6','T7','CN'],
-                datasets: [{
-                    label: 'Doanh thu (VNĐ)',
-                    data: revenueData || [0, 0, 0, 0, 0, 0, 0],
-                    borderColor: '#1e90ff',
-                    backgroundColor: 'rgba(30,144,255,0.2)',
-                    fill: true,
-                    tension: 0.35,
-                    pointRadius: 4,
-                    pointBackgroundColor: '#1e90ff'
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: { y: { beginAtZero: true } },
-                plugins: { legend: { display: false } }
+<script th:inline="javascript">
+    $(document).ready(function() {
+        // Toggle Sidebar
+        $("#menu-toggle").click(function(e) {
+            e.preventDefault();
+            $("#wrapper").toggleClass("toggled");
+            // Logic ẩn hiện sidebar thủ công (nếu cần CSS hỗ trợ)
+            const sidebar = $("#sidebar-wrapper");
+            if (sidebar.css("margin-left") === "0px") {
+                sidebar.css("margin-left", "-250px");
+            } else {
+                sidebar.css("margin-left", "0px");
             }
         });
 
-        // Chart 2: Order Status
-        const ctx2 = document.getElementById('orderStatusChart').getContext('2d');
-        new Chart(ctx2, {
-            type: 'doughnut',
+        // Data from Backend
+        /*<![CDATA[*/
+        const labels = [[${dayLabels}]] || ['T2','T3','T4','T5','T6','T7','CN'];
+        const revenueData = [[${revenueList}]] || [0, 0, 0, 0, 0, 0, 0];
+        const orderStatusLabels = [[${orderStatusLabels}]] || ['Chờ xác nhận', 'Đã giao', 'Hủy'];
+        const orderStatusValues = [[${orderStatusValues}]] || [10, 20, 5];
+        /*]]>*/
+
+        // 1. Revenue Chart (Line)
+        const ctx1 = document.getElementById('revenueChart').getContext('2d');
+
+        // Tạo Gradient cho đẹp
+        let gradient = ctx1.createLinearGradient(0, 0, 0, 400);
+        gradient.addColorStop(0, 'rgba(59, 130, 246, 0.5)'); // Xanh dương đậm
+        gradient.addColorStop(1, 'rgba(59, 130, 246, 0.0)'); // Trong suốt
+
+        new Chart(ctx1, {
+            type: 'line',
             data: {
-                labels: orderStatusLabels || ['Đang xử lý','Hoàn tất','Đã hủy'],
+                labels: labels,
                 datasets: [{
-                    data: orderStatusValues || [10, 7, 3],
-                    backgroundColor: ['#1e90ff', '#32cd32', '#ff6347'],
-                    borderWidth: 1
+                    label: 'Doanh thu (VNĐ)',
+                    data: revenueData,
+                    borderColor: '#3b82f6',
+                    backgroundColor: gradient,
+                    fill: true,
+                    tension: 0.4, // Đường cong mềm mại
+                    pointRadius: 4,
+                    pointBackgroundColor: '#ffffff',
+                    pointBorderColor: '#3b82f6',
+                    pointBorderWidth: 2
                 }]
             },
             options: {
                 responsive: true,
+                maintainAspectRatio: false,
                 plugins: {
-                    legend: { position: 'bottom' }
+                    legend: { display: false },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        backgroundColor: '#fff',
+                        titleColor: '#374151',
+                        bodyColor: '#374151',
+                        borderColor: '#e5e7eb',
+                        borderWidth: 1,
+                        callbacks: {
+                            label: function(context) {
+                                return ' ' + context.parsed.y.toLocaleString('vi-VN') + ' ₫';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { borderDash: [2, 4], color: '#f3f4f6' },
+                        ticks: { font: { family: 'Inter', size: 11 } }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { font: { family: 'Inter', size: 11 } }
+                    }
                 }
             }
         });
 
-        /*]]>*/
-        document.addEventListener("DOMContentLoaded", function() {
-
-            // 1. Tìm nút bấm
-            const toggleButton = document.getElementById('sidebarToggleBtn');
-
-            if (toggleButton) {
-                // 2. Thêm sự kiện click
-                toggleButton.addEventListener('click', function(e) {
-                    e.preventDefault(); // Ngăn trình duyệt nhảy link
-
-                    // 3. Thêm/Xóa class 'sidebar-toggled' trên thẻ <body>
-                    document.body.classList.toggle('sidebar-toggled');
-                });
+        // 2. Order Status Chart (Doughnut)
+        const ctx2 = document.getElementById('orderStatusChart').getContext('2d');
+        new Chart(ctx2, {
+            type: 'doughnut',
+            data: {
+                labels: orderStatusLabels,
+                datasets: [{
+                    data: orderStatusValues,
+                    backgroundColor: [
+                        '#fbbf24', // Cam (Chờ)
+                        '#10b981', // Xanh lá (Thành công)
+                        '#ef4444', // Đỏ (Hủy)
+                        '#3b82f6', // Xanh dương
+                        '#8b5cf6'  // Tím
+                    ],
+                    borderWidth: 0,
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 20,
+                            font: { family: 'Inter', size: 12 }
+                        }
+                    }
+                },
+                cutout: '70%' // Làm vòng tròn mỏng hơn
             }
-
         });
-    </script>
+    });
+</script>
 
 </body>
 </html>

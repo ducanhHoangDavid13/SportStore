@@ -18,7 +18,7 @@ import sd_04.datn_fstore.service.SanPhamService;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.Date;
+import java.time.LocalDateTime; // <-- Đã thay đổi import
 import java.util.List;
 
 @RestController
@@ -32,9 +32,8 @@ public class HinhAnhApiController {
     private final FileStorageService fileStorageService;
     private final SanPhamService sanPhamService;
 
-    /**
-     * API 1: Lấy TẤT CẢ Hình ảnh (Ít dùng, thường là cho dropdown)
-     */
+    // ... (API 1 và API 2 giữ nguyên) ...
+
     @GetMapping("/all")
     public ResponseEntity<List<HinhAnh>> getAllHinhAnh() {
         try {
@@ -46,13 +45,9 @@ public class HinhAnhApiController {
         }
     }
 
-    /**
-     * API 2: Lấy danh sách ảnh chi tiết theo ID Sản phẩm (Dùng cho Modal Frontend)
-     */
     @GetMapping("/san-pham/{idSanPham}")
     public ResponseEntity<List<HinhAnh>> getImagesBySanPhamId(@PathVariable Integer idSanPham) {
         try {
-            // Sử dụng Service để lấy tất cả ảnh của sản phẩm
             List<HinhAnh> hinhAnhs = hinhAnhService.getBySanPhamId(idSanPham);
             return ResponseEntity.ok(hinhAnhs);
         } catch (Exception e) {
@@ -62,7 +57,7 @@ public class HinhAnhApiController {
     }
 
     /**
-     * API 3: Xử lý Upload file (lưu file và tạo entity HinhAnh)
+     * API 3: Xử lý Upload file
      */
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> uploadFile(@RequestParam("file") MultipartFile file,
@@ -72,15 +67,18 @@ public class HinhAnhApiController {
             return ResponseEntity.badRequest().body("File không được để trống.");
         }
         try {
-            // 1. Lưu file vật lý, trả về tên file duy nhất
+            // 1. Lưu file vật lý
             String fileName = fileStorageService.storeFile(file);
 
             // 2. Tạo Entity HinhAnh
             HinhAnh hinhAnh = new HinhAnh();
             hinhAnh.setTenHinhAnh(fileName);
             hinhAnh.setMoTa(moTa);
-            hinhAnh.setTrangThai(1); // Mặc định là đang hoạt động
-            hinhAnh.setNgayTao(new Date());
+            hinhAnh.setTrangThai(1);
+
+            // --- SỬA ĐỔI TẠI ĐÂY ---
+            hinhAnh.setNgayTao(LocalDateTime.now()); // Sử dụng LocalDateTime.now()
+            // -----------------------
 
             // 3. Gán SanPham
             if (idSanPham != null) {
@@ -103,39 +101,35 @@ public class HinhAnhApiController {
         }
     }
 
-    /**
-     * API 4: Tải file (dùng để hiển thị ảnh trên web)
-     */
+    // ... (API 4 và API 5 giữ nguyên) ...
+
     @GetMapping("/download/{fileName:.+}")
     public ResponseEntity<Resource> downloadFile(@PathVariable String fileName) {
         Resource resource = fileStorageService.loadFileAsResource(fileName);
 
-        String contentType = "application/octet-stream";
-        try {
-            // Cố gắng xác định Content Type
-            contentType = Files.probeContentType(resource.getFile().toPath());
-        } catch (IOException ex) {
-            log.warn("Không thể xác định loại file cho: " + fileName + ". Sử dụng mặc định.");
-        } catch (Exception e) {
-            log.warn("Lỗi khi lấy File từ Resource để probe ContentType: " + e.getMessage());
+        // Thêm kiểm tra null để tránh lỗi RuntimeException nếu file không tồn tại
+        if (resource == null) {
+            return ResponseEntity.notFound().build();
         }
 
-        // Trả về file
+        String contentType = "application/octet-stream";
+        try {
+            contentType = Files.probeContentType(resource.getFile().toPath());
+        } catch (IOException ex) {
+            log.warn("Không thể xác định loại file cho: " + fileName);
+        }
+
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(contentType))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
                 .body(resource);
     }
 
-    /**
-     * API 5: Xóa hình ảnh theo ID (Xóa file vật lý và record DB)
-     */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteHinhAnh(@PathVariable Integer id) {
         try {
-            // Đã đồng bộ với Service: deleteById
             hinhAnhService.deleteById(id);
-            return ResponseEntity.noContent().build(); // 204 No Content
+            return ResponseEntity.noContent().build();
         } catch (Exception e) {
             log.error("Lỗi khi xóa Hình ảnh ID " + id + ": ", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();

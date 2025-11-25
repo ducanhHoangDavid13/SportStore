@@ -1,7 +1,7 @@
 package sd_04.datn_fstore.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-// import java.util.Date; // Bỏ
 import java.util.List;
 
 @Data
@@ -27,7 +26,6 @@ public class HoaDon {
     @Column(name = "maHoaDon", length = 100)
     private String maHoaDon;
 
-    // @Temporal(TemporalType.TIMESTAMP) // Bỏ annotation này, không cần cho LocalDateTime
     @Column(name = "ngayTao")
     private LocalDateTime ngayTao;
 
@@ -67,12 +65,7 @@ public class HoaDon {
     @JsonIgnoreProperties({"hoaDons", "hibernateLazyInitializer", "handler"})
     private PhieuGiamGia phieuGiamGia;
 
-    // ----- XÓA LIÊN KẾT SAI LOGIC TỚI GIỎ HÀNG -----
-    // @OneToMany(mappedBy = "hoaDon", fetch = FetchType.LAZY)
-    // @JsonIgnore
-    // private List<GioHang> gioHangs; // <-- XÓA CÁI NÀY
-
     @OneToMany(mappedBy = "hoaDon", fetch = FetchType.LAZY)
-    @JsonIgnore
+    @JsonManagedReference
     private List<HoaDonChiTiet> hoaDonChiTiets;
 }

@@ -9,7 +9,7 @@ import sd_04.datn_fstore.repository.HinhAnhRepository;
 import sd_04.datn_fstore.service.FileStorageService;
 import sd_04.datn_fstore.service.HinhAnhService;
 
-import java.util.Date;
+import java.time.LocalDateTime; // <--- Import mới
 import java.util.List;
 import java.util.Optional;
 
@@ -18,90 +18,74 @@ import java.util.Optional;
 public class HinhAnhServiceImpl implements HinhAnhService {
 
     private final HinhAnhRepository hinhAnhRepo;
-    private final FileStorageService fileStorageService; // Cần thiết để xóa file vật lý
+    private final FileStorageService fileStorageService;
 
     @Override
     public List<HinhAnh> getAll() {
         return hinhAnhRepo.findAll();
     }
 
-//    @Override
-//    public Optional<HinhAnh> getById(Integer id) { // <-- Đồng bộ với HinhAnhService
-//        return hinhAnhRepo.findById(id);
-//    }
-
     @Override
     public List<HinhAnh> getBySanPhamId(Integer sanPhamId) {
         return hinhAnhRepo.findAllBySanPhamId(sanPhamId);
     }
 
-    /**
-     * Đã áp dụng FIX LỖI NonUniqueResultException:
-     * Dùng findFirstBy... trên Repository để giới hạn kết quả trả về là 1.
-     */
     @Override
     public Optional<HinhAnh> getAvatar(Integer sanPhamId) {
-        // Gọi phương thức Repository đã được sửa
-        // Giả định trangThai = 1 là ảnh đại diện
         return hinhAnhRepo.findFirstBySanPhamIdAndTrangThai(sanPhamId, 1);
     }
 
     @Override
     public Optional<HinhAnh> findById(Integer id) {
-        return Optional.empty();
+        // --- ĐÃ SỬA LẠI (Code cũ trả về empty là sai logic) ---
+        return hinhAnhRepo.findById(id);
     }
 
     @Override
     @Transactional
     public HinhAnh save(HinhAnh hinhAnh) {
+        // --- SỬA ĐỔI LocalDateTime ---
         if (hinhAnh.getId() == null) {
-            hinhAnh.setNgayTao(new Date());
+            hinhAnh.setNgayTao(LocalDateTime.now()); // Thay new Date()
         }
-        hinhAnh.setNgaySua(new Date());
+        hinhAnh.setNgaySua(LocalDateTime.now());     // Thay new Date()
+        // -----------------------------
+
         return hinhAnhRepo.save(hinhAnh);
     }
-    /**
-     * Xóa 1 ảnh: Xóa file vật lý trên server và record DB
-     */
+
     @Override
     @Transactional
-    public void deleteById(Integer id) { // <-- Đồng bộ với HinhAnhService
+    public void deleteById(Integer id) {
         Optional<HinhAnh> opt = hinhAnhRepo.findById(id);
         if (opt.isPresent()) {
             HinhAnh hinhAnh = opt.get();
             String tenHinhAnh = hinhAnh.getTenHinhAnh();
 
-            // 1. Xóa file vật lý khỏi server
+            // 1. Xóa file vật lý
             try {
                 fileStorageService.deleteFile(tenHinhAnh);
             } catch (Exception e) {
                 System.err.println("Lỗi khi xóa file vật lý: " + tenHinhAnh + " | Error: " + e.getMessage());
             }
 
-            // 2. Xóa record trong CSDL
+            // 2. Xóa record DB
             hinhAnhRepo.delete(hinhAnh);
         }
     }
 
-    /**
-     * Xóa tất cả ảnh của 1 sản phẩm: Dùng khi xóa SanPham
-     */
     @Override
     @Transactional
     public void deleteBySanPham(SanPham sanPham) {
-        // 1. Lấy danh sách tất cả ảnh của sản phẩm
         List<HinhAnh> hinhAnhs = hinhAnhRepo.findBySanPham(sanPham);
 
-        // 2. Lặp qua và xóa từng file vật lý
         for (HinhAnh img : hinhAnhs) {
             try {
                 fileStorageService.deleteFile(img.getTenHinhAnh());
             } catch (Exception e) {
-                System.err.println("Lỗi khi xóa file vật lý (Batch Delete): " + img.getTenHinhAnh() + " | Error: " + e.getMessage());
+                System.err.println("Lỗi xóa file batch: " + img.getTenHinhAnh());
             }
         }
-
-        // 3. Xóa tất cả record DB liên quan
         hinhAnhRepo.deleteAll(hinhAnhs);
     }
 }

@@ -137,9 +137,29 @@ public class BanHangServiceImpl implements BanHangService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void decrementInventory(List<CreateOrderRequest.Item> items) {
-        // (Giả sử KhoService đã được tiêm và có hàm truTonKho)
         for (CreateOrderRequest.Item item : items) {
-            khoService.truTonKho(item.getSanPhamChiTietId(), item.getSoLuong());
+            // 1. Tìm sản phẩm chi tiết trong DB
+            SanPhamChiTiet spct = sanPhamCTRepository.findById(item.getSanPhamChiTietId())
+                    .orElseThrow(() -> new RuntimeException("Sản phẩm không tồn tại (ID: " + item.getSanPhamChiTietId() + ")"));
+
+            // 2. Kiểm tra số lượng tồn kho
+            int soLuongMua = item.getSoLuong();
+            int soLuongTon = spct.getSoLuong();
+
+            if (soLuongTon < soLuongMua) {
+                throw new RuntimeException("Sản phẩm '" + spct.getSanPham().getTenSanPham() + "' không đủ hàng. (Còn: " + soLuongTon + ")");
+            }
+
+            // 3. Trừ kho
+            spct.setSoLuong(soLuongTon - soLuongMua);
+
+            // 4. (Tùy chọn) Nếu hết hàng thì đổi trạng thái thành Ngừng bán hoặc Hết hàng
+            if (spct.getSoLuong() == 0) {
+                // spct.setTrangThai(0); // Nếu muốn tự động ẩn
+            }
+
+            // 5. Lưu lại vào DB
+            sanPhamCTRepository.save(spct);
         }
     }
 

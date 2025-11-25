@@ -4,167 +4,264 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <title>Quản lý Xuất Xứ</title>
-  <link rel="stylesheet" th:href="@{/css/styles.css}" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.2.0/css/bootstrap.min.css" />
+
+  <!-- Fonts & Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <!-- Bootstrap 5 & Libs -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" />
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" th:href="@{/css/styles.css}" />
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f3f4f6;
+      color: #374151;
+    }
+
+    /* Card Styles */
+    .card-box {
+      background: #ffffff;
+      border-radius: 12px;
+      border: none;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      margin-bottom: 1.5rem;
+      transition: all 0.3s ease;
+    }
+
+    /* Filter Header */
+    .filter-header {
+      border-bottom: 1px solid #f3f4f6;
+      padding-bottom: 1rem;
+      margin-bottom: 1rem;
+      font-weight: 600;
+      color: #4b5563;
+    }
+
+    /* Table Styles */
+    .table-custom thead th {
+      background-color: #f9fafb;
+      color: #6b7280;
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      letter-spacing: 0.05em;
+      border-bottom: 2px solid #e5e7eb;
+      padding: 1rem 0.75rem;
+    }
+    .table-custom tbody td {
+      vertical-align: middle;
+      padding: 1rem 0.75rem;
+      border-bottom: 1px solid #f3f4f6;
+      font-size: 0.875rem;
+    }
+    .table-custom tbody tr:hover { background-color: #f9fafb; }
+
+    /* Badges */
+    .badge-status {
+      padding: 0.35em 0.8em;
+      font-size: 0.75rem;
+      font-weight: 600;
+      border-radius: 9999px;
+    }
+    .badge-active { background-color: #d1fae5; color: #065f46; }
+    .badge-inactive { background-color: #fee2e2; color: #991b1b; }
+
+    /* Action Buttons */
+    .btn-action {
+      width: 32px; height: 32px; padding: 0;
+      display: inline-flex; align-items: center; justify-content: center;
+      border-radius: 6px; transition: all 0.2s;
+    }
+    .btn-action:hover { transform: translateY(-2px); }
+
+    /* Modals */
+    .modal-content { border-radius: 16px; border: none; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
+    .modal-header { border-bottom: 1px solid #f3f4f6; padding: 1.5rem; }
+    .modal-header.bg-primary { background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%) !important; }
+    .modal-header.bg-warning { background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%) !important; color: white !important; }
+    .modal-body { padding: 1.5rem; }
+
+    .form-control:focus, .form-select:focus {
+      border-color: #6366f1; box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+    }
+  </style>
 </head>
 <body>
 <nav th:replace="~{library/navbar :: admin-navbar}"></nav>
 
 <div class="page-wrapper">
   <div th:replace="~{library/navbar :: admin-sidebar}"></div>
-  <main class="main-content">
+  <main class="main-content pt-4 px-4">
 
-    <div class="container">
-      <div class="row mb-3 p-3 border rounded bg-light">
-        <h5 class="mb-3 text-info"><i class="fas fa-filter"></i> Bộ lọc tìm kiếm</h5>
+    <div class="container-fluid">
+      <!-- Header -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="fw-bold text-dark mb-0">Quản lý Xuất Xứ</h3>
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a href="#" class="text-decoration-none">Admin</a></li>
+            <li class="breadcrumb-item active">Xuất xứ</li>
+          </ol>
+        </nav>
+      </div>
+
+      <!-- 1. Filter Card -->
+      <div class="card-box p-4">
+        <div class="filter-header d-flex align-items-center">
+          <i class="fas fa-filter text-primary me-2"></i> Bộ lọc tìm kiếm
+        </div>
         <form id="filterForm">
-          <div class="d-flex flex-wrap align-items-end gap-3">
-            <div class="form-group" style="min-width: 200px;">
-              <label for="keyword" class="form-label">Theo tên xuất xứ</label>
-              <input type="text" id="keyword" class="form-control form-control-sm"
-                     placeholder="Tìm theo tên xuất xứ" th:value="${keyword}">
+          <div class="row g-3 align-items-end">
+            <div class="col-md-4">
+              <label for="keyword" class="form-label text-muted small fw-bold">TỪ KHÓA</label>
+              <div class="input-group">
+                <span class="input-group-text bg-light border-end-0"><i class="fas fa-search text-muted"></i></span>
+                <input type="text" id="keyword" class="form-control border-start-0"
+                       placeholder="Nhập tên xuất xứ..." th:value="${keyword}">
+              </div>
             </div>
-            <div class="form-group" style="min-width: 150px;">
-              <label for="trangThaiFilter" class="form-label">Trạng thái</label>
-              <select id="trangThaiFilter" class="form-select form-select-sm">
-                <option value="">-- Chọn trạng thái --</option>
+            <div class="col-md-3">
+              <label for="trangThaiFilter" class="form-label text-muted small fw-bold">TRẠNG THÁI</label>
+              <select id="trangThaiFilter" class="form-select">
+                <option value="">Tất cả trạng thái</option>
                 <option value="1" th:selected="${trangThai != null and trangThai == 1}">Hoạt động</option>
                 <option value="0" th:selected="${trangThai != null and trangThai == 0}">Ngừng hoạt động</option>
               </select>
             </div>
-            <div class="form-group d-flex gap-2">
-              <button type="submit" class="btn btn-primary btn-sm">
-                <i class="fas fa-search"></i> Lọc
-              </button>
-              <button type="button" class="btn btn-secondary btn-sm" id="btnReset">
-                <i class="fas fa-redo-alt"></i> Reset
-              </button>
+            <div class="col-md-5">
+              <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary px-4"><i class="fas fa-check me-1"></i> Áp dụng</button>
+                <button type="button" class="btn btn-light border px-3" id="btnReset"><i class="fas fa-sync-alt text-muted me-1"></i> Làm mới</button>
+              </div>
             </div>
           </div>
         </form>
       </div>
 
-      <div class="row">
-        <div class="col-12 data-panel">
-          <h3 class="mb-3">Quản lý Xuất Xứ</h3>
-          <div class="d-flex justify-content-end mb-3">
-            <button class="btn btn-success btn-sm me-2" data-bs-toggle="modal"
-                    data-bs-target="#addXuatXuModal">
-              <i class="fas fa-plus"></i> Thêm Xuất Xứ
-            </button>
-          </div>
+      <!-- 2. Table Card -->
+      <div class="card-box">
+        <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
+          <h5 class="mb-0 fw-bold text-dark">Danh sách Xuất xứ</h5>
+          <button class="btn btn-success btn-sm shadow-sm" data-bs-toggle="modal" data-bs-target="#addXuatXuModal">
+            <i class="fas fa-plus-circle me-2"></i> Thêm mới
+          </button>
+        </div>
 
-          <div class="table-responsive" style="height: 400px; overflow-y: auto;">
-            <table class="table table-bordered table-hover table-sm">
-              <thead class="thead-light table-dark sticky-top">
-              <tr>
-                <th>ID</th>
-                <th>Tên Xuất Xứ (tenXuatXu)</th>
-                <th>Trạng thái (trangThai)</th>
-                <th>Ngày tạo (ngayTao)</th>
-                <th>Thao tác</th>
-              </tr>
-              </thead>
-              <tbody id="xuatXuTableBody">
-              <tr><td colspan="5" class="text-center">Đang tải dữ liệu...</td></tr>
-              </tbody>
-            </table>
-          </div>
-          <div class="d-flex justify-content-between align-items-center mt-3">
-            <nav id="paginationNav"></nav>
-            <div id="pageInfo"></div>
-          </div>
+        <div class="table-responsive">
+          <table class="table table-custom table-hover mb-0">
+            <thead>
+            <tr>
+              <th class="text-center" style="width: 80px;">ID</th>
+              <th>Tên Xuất Xứ</th>
+              <th class="text-center">Trạng thái</th>
+              <th class="text-center">Ngày tạo</th>
+              <th class="text-center" style="width: 150px;">Thao tác</th>
+            </tr>
+            </thead>
+            <tbody id="xuatXuTableBody">
+            <!-- Data loaded via AJAX -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="p-3 border-top d-flex justify-content-between align-items-center bg-light bg-opacity-25">
+          <div id="pageInfo" class="text-muted small"></div>
+          <nav id="paginationNav"></nav>
         </div>
       </div>
     </div>
 
-    <div class="modal fade" id="addXuatXuModal" tabindex="-1" aria-labelledby="addXuatXuModalLabel" aria-hidden="true">
+    <!-- ADD MODAL -->
+    <div class="modal fade" id="addXuatXuModal" tabindex="-1" aria-hidden="true">
       <div class="modal-dialog modal-md modal-dialog-centered">
         <div class="modal-content">
           <form id="addXuatXuForm" method="post">
-            <div class="modal-header bg-primary text-white">
-              <h5 class="modal-title" id="addXuatXuModalLabel"><i class="fas fa-plus me-2"></i> THÊM MỚI XUẤT XỨ</h5>
-              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-header bg-primary text-white border-0">
+              <h5 class="modal-title fw-bold"><i class="fas fa-plus-circle me-2"></i>THÊM XUẤT XỨ</h5>
+              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
               <div class="mb-3">
-                <label for="newTenXuatXu" class="form-label">Tên Xuất Xứ (*)</label>
-                <input type="text" class="form-control" id="newTenXuatXu" maxlength="500">
-                <small class="form-text text-muted">Tối đa 500 ký tự.</small>
+                <label for="newTenXuatXu" class="form-label fw-bold">Tên Xuất Xứ <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="newTenXuatXu" required placeholder="Nhập tên xuất xứ...">
               </div>
               <div class="mb-3">
-                <label for="newNgayTao" class="form-label">Ngày tạo (*)</label>
+                <label for="newNgayTao" class="form-label fw-bold">Ngày tạo <span class="text-danger">*</span></label>
                 <input type="datetime-local" class="form-control" id="newNgayTao">
               </div>
               <div class="mb-3">
-                <label for="newMoTa" class="form-label">Mô tả</label>
-                <textarea class="form-control" id="newMoTa" rows="2"></textarea>
+                <label for="newMoTa" class="form-label fw-bold">Mô tả</label>
+                <textarea class="form-control" id="newMoTa" rows="3" placeholder="Nhập mô tả..."></textarea>
               </div>
-              <div>
-                <label class="form-label">Trạng thái</label><br>
-                <div class="d-flex gap-4 pt-1">
-                  <div class="form-check form-check-inline">
+              <div class="mb-1">
+                <label class="form-label fw-bold">Trạng thái</label>
+                <div class="d-flex gap-3 p-2 border rounded bg-light">
+                  <div class="form-check">
                     <input class="form-check-input" type="radio" name="newTrangThai" id="newTrangThaiOn" value="1" checked>
-                    <label class="form-check-label" for="newTrangThaiOn">Hoạt động (1)</label>
+                    <label class="form-check-label text-success fw-semibold" for="newTrangThaiOn"><i class="fas fa-check-circle me-1"></i> Hoạt động</label>
                   </div>
-                  <div class="form-check form-check-inline">
+                  <div class="form-check">
                     <input class="form-check-input" type="radio" name="newTrangThai" id="newTrangThaiOff" value="0">
-                    <label class="form-check-label" for="newTrangThaiOff">Ngừng hoạt động (0)</label>
+                    <label class="form-check-label text-danger fw-semibold" for="newTrangThaiOff"><i class="fas fa-times-circle me-1"></i> Ngừng hoạt động</label>
                   </div>
                 </div>
               </div>
             </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="fas fa-times me-1"></i> Đóng</button>
-              <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i> Lưu Xuất Xứ</button>
+            <div class="modal-footer border-0 pt-0">
+              <button type="button" class="btn btn-light" data-bs-dismiss="modal">Đóng</button>
+              <button type="submit" class="btn btn-primary px-4">Lưu lại</button>
             </div>
           </form>
         </div>
       </div>
     </div>
 
-    <div class="modal fade" id="editXuatXuModal" tabindex="-1" aria-labelledby="editXuatXuModalLabel" aria-hidden="true">
+    <!-- EDIT MODAL -->
+    <div class="modal fade" id="editXuatXuModal" tabindex="-1" aria-hidden="true">
       <div class="modal-dialog modal-md modal-dialog-centered">
         <div class="modal-content">
           <form id="editXuatXuForm" method="post">
             <input type="hidden" id="editXuatXuId" name="id">
-            <div class="modal-header bg-warning text-dark">
-              <h5 class="modal-title" id="editXuatXuModalLabel"><i class="fas fa-edit me-2"></i> CẬP NHẬT XUẤT XỨ</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-header bg-warning text-white border-0">
+              <h5 class="modal-title fw-bold"><i class="fas fa-pen-to-square me-2"></i>CẬP NHẬT XUẤT XỨ</h5>
+              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
               <div class="mb-3">
-                <label for="editTenXuatXu" class="form-label">Tên Xuất Xứ (*)</label>
-                <input type="text" class="form-control" id="editTenXuatXu" maxlength="500">
-                <small class="form-text text-muted">Tối đa 500 ký tự.</small>
+                <label for="editTenXuatXu" class="form-label fw-bold">Tên Xuất Xứ <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="editTenXuatXu" required>
               </div>
               <div class="mb-3">
-                <label for="editNgayTao" class="form-label">Ngày tạo (*)</label>
+                <label for="editNgayTao" class="form-label fw-bold">Ngày tạo <span class="text-danger">*</span></label>
                 <input type="datetime-local" class="form-control" id="editNgayTao">
               </div>
               <div class="mb-3">
-                <label for="editMoTa" class="form-label">Mô tả</label>
-                <textarea class="form-control" id="editMoTa" rows="2"></textarea>
+                <label for="editMoTa" class="form-label fw-bold">Mô tả</label>
+                <textarea class="form-control" id="editMoTa" rows="3"></textarea>
               </div>
-              <div>
-                <label class="form-label">Trạng thái</label><br>
-                <div class="d-flex gap-4 pt-1">
-                  <div class="form-check form-check-inline">
+              <div class="mb-1">
+                <label class="form-label fw-bold">Trạng thái</label>
+                <div class="d-flex gap-3 p-2 border rounded bg-light">
+                  <div class="form-check">
                     <input class="form-check-input" type="radio" name="editTrangThai" id="editTrangThaiOn" value="1">
-                    <label class="form-check-label" for="editTrangThaiOn">Hoạt động (1)</label>
+                    <label class="form-check-label text-success fw-semibold" for="editTrangThaiOn">Hoạt động</label>
                   </div>
-                  <div class="form-check form-check-inline">
+                  <div class="form-check">
                     <input class="form-check-input" type="radio" name="editTrangThai" id="editTrangThaiOff" value="0">
-                    <label class="form-check-label" for="editTrangThaiOff">Ngừng hoạt động (0)</label>
+                    <label class="form-check-label text-danger fw-semibold" for="editTrangThaiOff">Ngừng hoạt động</label>
                   </div>
                 </div>
               </div>
             </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="fas fa-times me-1"></i> Hủy</button>
-              <button type="submit" class="btn btn-warning"><i class="fas fa-sync-alt me-1"></i> Cập nhật</button>
+            <div class="modal-footer border-0 pt-0">
+              <button type="button" class="btn btn-light" data-bs-dismiss="modal">Hủy bỏ</button>
+              <button type="submit" class="btn btn-warning text-white px-4">Cập nhật</button>
             </div>
           </form>
         </div>
@@ -174,13 +271,14 @@
   </main>
 </div>
 
+<!-- Scripts -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
 <script th:src="@{/js/my-custom-scripts.js}"></script>
 
 <script>
-  toastr.options = { "positionClass": "toast-top-right", "timeOut": "3000", "closeButton": true };
+  toastr.options = { "positionClass": "toast-bottom-right", "timeOut": "3000", "closeButton": true, "progressBar": true };
 
   function formatDateForInput(isoString) {
     if (!isoString) return null;
@@ -190,6 +288,12 @@
       console.error("Lỗi định dạng ngày:", e);
       return null;
     }
+  }
+
+  function renderStatusBadge(status) {
+    return status === 1
+            ? '<span class="badge-status badge-active"><i class="fas fa-check-circle me-1"></i>Hoạt động</span>'
+            : '<span class="badge-status badge-inactive"><i class="fas fa-times-circle me-1"></i>Ngừng hoạt động</span>';
   }
 
   $(document).ready(function() {
@@ -226,7 +330,7 @@
         trangThai: currentFilter.trangThai === '' ? null : parseInt(currentFilter.trangThai)
       };
 
-      $(TABLE_BODY_ID).html('<tr><td colspan="5" class="text-center"><i class="fas fa-spinner fa-spin"></i> Đang tải...</td></tr>');
+      $(TABLE_BODY_ID).html('<tr><td colspan="5" class="text-center py-4"><div class="spinner-border text-primary" role="status"></div><div class="mt-2 text-muted">Đang tải dữ liệu...</div></td></tr>');
       $('#pageInfo').text(''); $('#paginationNav').empty();
       $.ajax({
         url: API_URL, type: "GET", data: params, dataType: "json",
@@ -237,7 +341,7 @@
           updatePageInfo(response);
         },
         error: function() {
-          $(TABLE_BODY_ID).html('<tr><td colspan="5" class="text-danger text-center">Lỗi tải dữ liệu.</td></tr>');
+          $(TABLE_BODY_ID).html('<tr><td colspan="5" class="text-danger text-center py-4"><i class="fas fa-exclamation-triangle me-2"></i>Lỗi kết nối server.</td></tr>');
           toastr.error("Lỗi tải dữ liệu " + MODEL_NAME.toLowerCase() + ".");
         }
       });
@@ -247,28 +351,47 @@
     function renderTable(list) {
       let html = '';
       if (!list || list.length === 0) {
-        html = `<tr><td colspan="5" class="text-center">Không có ${MODEL_NAME.toLowerCase()} nào khớp với bộ lọc.</td></tr>`;
+        html = `<tr><td colspan="5" class="text-center py-4 text-muted"><img src="https://cdn-icons-png.flaticon.com/512/7486/7486754.png" width="64" class="mb-2 opacity-50"><br>Không tìm thấy dữ liệu phù hợp</td></tr>`;
       } else {
         list.forEach(function(item) {
-          let trangThaiBadge = item.trangThai === 1 ? '<span class="badge bg-success">Hoạt động</span>' : '<span class="badge bg-danger">Ngừng hoạt động</span>';
-          let ngayTaoFormatted = item.ngayTao ? new Date(item.ngayTao).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' }) : 'N/A';
+          let trangThaiBadge = renderStatusBadge(item.trangThai);
+          let ngayTaoFormatted = item.ngayTao ? new Date(item.ngayTao).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour:'2-digit', minute:'2-digit' }) : 'N/A';
           let tenDisplay = item.tenXuatXu || '';
           html += `<tr data-id="${item.id}">
-                                <td>${item.id}</td>
-                                <td>${tenDisplay}</td>
+                                <td class="text-center fw-bold text-muted">#${item.id}</td>
+                                <td class="fw-semibold text-dark">${tenDisplay}</td>
                                 <td class="text-center">${trangThaiBadge}</td>
-                                <td class="text-center">${ngayTaoFormatted}</td>
+                                <td class="text-center text-secondary small">${ngayTaoFormatted}</td>
                                 <td class="text-center">
-                                    <button class="btn btn-warning btn-sm me-1 btn-edit" data-id="${item.id}" title="Sửa"><i class="fas fa-edit"></i></button>
-                                    <button class="btn btn-danger btn-sm btn-delete" data-id="${item.id}" title="Xóa"><i class="fas fa-trash"></i></button>
+                                    <button class="btn btn-action btn-light text-warning border me-1 btn-edit" data-id="${item.id}" title="Sửa"><i class="fas fa-pen"></i></button>
+                                    <button class="btn btn-action btn-light text-danger border btn-delete" data-id="${item.id}" title="Xóa"><i class="fas fa-trash-alt"></i></button>
                                 </td>
                              </tr>`;
         });
       }
       $(TABLE_BODY_ID).html(html);
     }
-    function renderPagination(currentPage, totalPages) { /* Logic giữ nguyên */ }
-    function updatePageInfo(pageData) { /* Logic giữ nguyên */ }
+
+    function renderPagination(currentPage, totalPages) {
+      if (totalPages <= 1) return;
+      let nav = '<ul class="pagination justify-content-end mb-0">';
+      nav += `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}"><a class="page-link" href="#" data-page="${currentPage - 1}"><i class="fas fa-chevron-left"></i></a></li>`;
+      for (let i = 1; i <= totalPages; i++) {
+        if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
+          nav += `<li class="page-item ${i === currentPage ? 'active' : ''}"><a class="page-link" href="#" data-page="${i}">${i}</a></li>`;
+        } else if (i === currentPage - 2 || i === currentPage + 2) {
+          nav += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+        }
+      }
+      nav += `<li class="page-item ${currentPage === totalPages ? 'disabled' : ''}"><a class="page-link" href="#" data-page="${currentPage + 1}"><i class="fas fa-chevron-right"></i></a></li></ul>`;
+      $('#paginationNav').html(nav);
+    }
+
+    function updatePageInfo(data) {
+      if(data.totalElements > 0) {
+        $('#pageInfo').html(`Hiển thị <strong>${data.numberOfElements}</strong> trên tổng <strong>${data.totalElements}</strong> bản ghi`);
+      }
+    }
 
     // --- SỰ KIỆN LỌC & PHÂN TRANG (Giữ nguyên) ---
     $('#paginationNav').on('click', 'a.page-link', function(e) {
