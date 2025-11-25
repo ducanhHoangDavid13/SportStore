@@ -1,15 +1,15 @@
 package sd_04.datn_fstore.model;
 
-
-
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.Date;
 
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
@@ -37,8 +37,23 @@ public class HinhAnh {
     @Column(name = "trangThai")
     private Integer trangThai;
 
-    // Foreign Key: FK_HinhAnh_SanPham
+    // Quan hệ ManyToOne với SanPham
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "idSanPham")
     private SanPham sanPham;
+
+    // Custom toString() an toàn, chỉ hiển thị thông tin quan trọng của SanPham
+    @Override
+    public String toString() {
+        return "HinhAnh{" +
+                "id=" + id +
+                ", tenHinhAnh='" + tenHinhAnh + '\'' +
+                ", moTa='" + moTa + '\'' +
+                ", ngayTao=" + ngayTao +
+                ", ngaySua=" + ngaySua +
+                ", trangThai=" + trangThai +
+                ", sanPhamId=" + (sanPham != null ? sanPham.getId() : null) +
+                ", sanPhamTen=" + (sanPham != null ? sanPham.getTenSanPham() : null) +
+                '}';
+    }
 }

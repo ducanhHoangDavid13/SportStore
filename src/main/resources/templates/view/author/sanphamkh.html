@@ -374,9 +374,13 @@
                         <button class="footer-btn btn-add-to-cart">
                             <span style="font-size: 1.2em;">&#x1F6D2;</span> Mua nhanh
                         </button>
-                        <button class="footer-btn btn-detail">
-                            <span style="font-size: 1.2em;">&#x1F441;</span> Xem chi tiết
-                        </button>
+                         <button class="footer-btn btn-detail" >
+                        <a class="footer-btn btn-detail"
+                           th:href="@{/san-pham/chi-tiet/{id}(id=${product.id})}">
+                            <span style="font-size: 1.2em;">&#9900;</span> Xem chi tiết
+                        </a>
+                    </button>
+
                     </div>
                 </div>
 
@@ -627,6 +631,15 @@
             console.log('Thêm sản phẩm ID: ' + productId + ' vào giỏ hàng (Mua nhanh).');
         });
     });
+    // Chỉ xử lý nút Xem chi tiết sản phẩm
+    $(document).on('click', '.btn-detail', function(e) {
+        e.preventDefault(); // ngăn mặc định, để JS điều khiển
+        const productId = $(this).closest('.product-list-card').data('product-id');
+        if(productId) {
+            window.location.href = `/san-pham/chi-tiet/${productId}`; // chuyển trang tới chi tiết
+        }
+    });
+
 </script>
 </body>
 </html>
