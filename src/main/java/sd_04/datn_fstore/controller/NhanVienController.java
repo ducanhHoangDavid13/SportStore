@@ -1,19 +1,13 @@
 
 package sd_04.datn_fstore.controller;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
-import sd_04.datn_fstore.dto.NhanVienRequest;
-import sd_04.datn_fstore.enums.RoleEnum;
-import sd_04.datn_fstore.model.Account;
 import sd_04.datn_fstore.model.NhanVien;
-import sd_04.datn_fstore.repository.AccountRepository;
 import sd_04.datn_fstore.repository.NhanVienRepository;
 
-import java.time.LocalDateTime;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -21,14 +15,10 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/nhanvien")
 @CrossOrigin(origins = "*") // Cho phép frontend truy cập
-@RequiredArgsConstructor
 public class NhanVienController {
 
     @Autowired
     private NhanVienRepository nhanVienRepository;
-
-    private final AccountRepository accountRepository;
-    private final PasswordEncoder passwordEncoder;
 
     // ✅ 1. Lấy toàn bộ danh sách nhân viên
     @GetMapping("/list")
@@ -78,35 +68,12 @@ public class NhanVienController {
 
     // ✅ 4. Thêm mới nhân viên
     @PostMapping("/add")
-    public ResponseEntity<NhanVien> add(@RequestBody NhanVienRequest nhanVien) {
+    public ResponseEntity<NhanVien> add(@RequestBody NhanVien nhanVien) {
         if (nhanVien.getMaNhanVien() == null || nhanVien.getTenNhanVien() == null) {
             return ResponseEntity.badRequest().build();
         }
-
-        Optional<Account> account = accountRepository.findByEmail(nhanVien.getEmail());
-        if (account.isEmpty()) {
-            accountRepository.save(Account.builder()
-                    .email(nhanVien.getEmail())
-                    .password(passwordEncoder.encode(nhanVien.getPassword()))
-                    .role(RoleEnum.EMPLOYEE)
-                    .createdAt(LocalDateTime.now())
-                    .updatedAt(LocalDateTime.now())
-                    .build());
-        }
-
-        NhanVien save = new NhanVien();
-        save.setMaNhanVien(nhanVien.getMaNhanVien());
-        save.setTenNhanVien(nhanVien.getTenNhanVien());
-        save.setEmail(nhanVien.getEmail());
-        save.setSoDienThoai(nhanVien.getSoDienThoai());
-        save.setDiaChi(nhanVien.getDiaChi());
-        save.setVaiTro(nhanVien.getVaiTro());
-        save.setTrangThai(nhanVien.getTrangThai());
-        save.setGioiTinh(nhanVien.getGioiTinh());
-        save.setCccd(nhanVien.getCccd());
-        save.setHinhAnh(nhanVien.getHinhAnh());
-        NhanVien response = nhanVienRepository.save(save);
-        return ResponseEntity.ok(response);
+        NhanVien saved = nhanVienRepository.save(nhanVien);
+        return ResponseEntity.ok(saved);
     }
 
     // ✅ 5. Cập nhật nhân viên

@@ -16,7 +16,6 @@ import sd_04.datn_fstore.repository.KhachHangRepo; // Keeping this one, assuming
 import sd_04.datn_fstore.repository.AccountRepository;
 import sd_04.datn_fstore.repository.NhanVienRepository;
 
-import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Service
@@ -31,8 +30,7 @@ public class AuthenticationServiceImpl {
     @PostConstruct
     public void postConstruct() {
         createAccount("admin@gmail.com", "admin", RoleEnum.ADMIN);
-        createAccount("employee@gmail.com", "employee", RoleEnum.EMPLOYEE);
-        createAccount("user@gmail.com", "user", RoleEnum.USER);
+        createAccount("user@gmail.com", "user", RoleEnum.USDE);
     }
 
 
@@ -43,8 +41,6 @@ public class AuthenticationServiceImpl {
                     .email(email)
                     .password(passwordEncoder.encode(password))
                     .role(roleEnum)
-                    .createdAt(LocalDateTime.now())
-                    .updatedAt(LocalDateTime.now())
                     .build());
         }
 
@@ -58,17 +54,7 @@ public class AuthenticationServiceImpl {
             }
         }
 
-        if(RoleEnum.EMPLOYEE == roleEnum){
-            Optional<NhanVien> nhanVien = nhanVienRepository.findByEmail(email);
-            if (nhanVien.isEmpty()) {
-                NhanVien user = new NhanVien();
-                user.setTenNhanVien(email);
-                user.setEmail(email);
-                nhanVienRepository.save(user);
-            }
-        }
-
-        if(RoleEnum.USER == roleEnum){
+        if(RoleEnum.USDE == roleEnum){
             Optional<KhachHang> khachHang = khachHangRepo.findByEmail(email);
             if (khachHang.isEmpty()) {
                 KhachHang user = new KhachHang();

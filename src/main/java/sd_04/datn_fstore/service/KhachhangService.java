@@ -1,31 +1,20 @@
 package sd_04.datn_fstore.service;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import sd_04.datn_fstore.dto.KhachHangRequest;
-import sd_04.datn_fstore.enums.RoleEnum;
-import sd_04.datn_fstore.model.Account;
 import sd_04.datn_fstore.model.KhachHang;
-import sd_04.datn_fstore.repository.AccountRepository;
 import sd_04.datn_fstore.repository.KhachHangRepo;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 @Service
-@RequiredArgsConstructor
 public class KhachhangService {
     @Autowired
     private KhachHangRepo khachHangRepo;
-
-    private final AccountRepository accountRepository;
-    private final PasswordEncoder passwordEncoder;
 
     // Hàm chính: Lấy danh sách khách hàng đã được LỌC và PHÂN TRANG
     public Page<KhachHang> getFilteredKhachHang(
@@ -41,40 +30,7 @@ public class KhachhangService {
         return khachHangRepo.findFilteredKhachHang(searchKeyword, searchSdt, gioiTinh, pageable);
     }
 
-    public KhachHang save(KhachHangRequest khachhang) {
-        // Nếu là thêm mới (id == null), thiết lập trạng thái mặc định là 1 (Hoạt động)
-        if (khachhang.getId() == null) {
-            khachhang.setTrangThai(1);
-            // Có thể thêm logic set vai trò mặc định nếu cần
-            // khachhang.setVaiTro("KHACH_HANG");
-        }
-
-        Optional<Account> account = accountRepository.findByEmail(khachhang.getEmail());
-        if (account.isEmpty()) {
-            accountRepository.save(Account.builder()
-                    .email(khachhang.getEmail())
-                    .password(passwordEncoder.encode(khachhang.getPassword()))
-                    .role(RoleEnum.USER)
-                    .createdAt(LocalDateTime.now())
-                    .updatedAt(LocalDateTime.now())
-                    .build());
-        }
-
-        KhachHang save = KhachHang.builder()
-                .maKhachHang(khachhang.getMaKhachHang())
-                .tenKhachHang(khachhang.getTenKhachHang())
-                .trangThai(khachhang.getTrangThai())
-                .email(khachhang.getEmail())
-                .gioiTinh(khachhang.getGioiTinh())
-                .soDienThoai(khachhang.getSoDienThoai())
-                .namSinh(khachhang.getNamSinh())
-                .vaiTro(khachhang.getVaiTro())
-                .build();
-
-        return khachHangRepo.save(save);
-    }
-
-    public KhachHang update(KhachHang khachhang) {
+    public KhachHang save(KhachHang khachhang) {
         // Nếu là thêm mới (id == null), thiết lập trạng thái mặc định là 1 (Hoạt động)
         if (khachhang.getId() == null) {
             khachhang.setTrangThai(1);
@@ -104,7 +60,6 @@ public class KhachhangService {
     public List<KhachHang> findAll() {
         return khachHangRepo.findAll();
     }
-
     public List<KhachHang> searchCustomerByNameOrPhone(String keyword) {
         // Chuẩn hóa keyword
         String searchKeyword = (keyword != null && !keyword.trim().isEmpty()) ? "%" + keyword.trim() + "%" : null;
