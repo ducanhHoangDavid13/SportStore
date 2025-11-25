@@ -4,7 +4,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import sd_04.datn_fstore.dto.KhachHangRequest;
 import sd_04.datn_fstore.model.KhachHang;
 // import org.springframework.beans.factory.annotation.Autowired; // <-- 1. XÓA DÒNG NÀY
 import sd_04.datn_fstore.service.KhachhangService;
@@ -42,7 +41,7 @@ public class KhachHangApi {
 
     // (Hàm này dùng cho Admin)
     @PostMapping
-    public ResponseEntity<KhachHang> addKhachHang(@RequestBody KhachHangRequest khachhang) {
+    public ResponseEntity<KhachHang> addKhachHang(@RequestBody KhachHang khachhang) {
         try {
             KhachHang newKh = khachHangService.save(khachhang);
             return new ResponseEntity<>(newKh, HttpStatus.CREATED);
@@ -60,7 +59,7 @@ public class KhachHangApi {
                     khachhang.setMaKhachHang(khachhangDetails.getMaKhachHang());
                     khachhang.setTenKhachHang(khachhangDetails.getTenKhachHang());
                     // ...
-                    KhachHang updatedKh = khachHangService.update(khachhang);
+                    KhachHang updatedKh = khachHangService.save(khachhang);
                     return new ResponseEntity<>(updatedKh, HttpStatus.OK);
                 })
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));

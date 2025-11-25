@@ -275,7 +275,6 @@
 
         // Data from Backend (Thymeleaf injection)
         /*<![CDATA[*/
-        // Sử dụng toán tử OR để cung cấp dữ liệu mặc định nếu biến rỗng
         const labels = [[${dayLabels}]] || ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
         const revenueData = [[${revenueList}]] || [0, 0, 0, 0, 0, 0, 0];
         const orderStatusLabels = [[${orderStatusLabels}]] || ['Chờ xác nhận', 'Thành công', 'Hủy'];
@@ -324,7 +323,6 @@
                         padding: 10,
                         displayColors: false,
                         callbacks: {
-                            // Định dạng tiền tệ Việt Nam (1.000.000 ₫)
                             label: function(context) {
                                 return context.parsed.y.toLocaleString('vi-VN') + ' ₫';
                             }
@@ -336,7 +334,7 @@
                         beginAtZero: true,
                         grid: {
                             borderDash: [4, 4],
-                            color: '#e5e7eb' // Màu grid nhạt hơn
+                            color: '#f3f4f6'
                         },
                         ticks: {
                             font: {
@@ -345,7 +343,6 @@
                             },
                             color: '#9ca3af',
                             callback: function(value) {
-                                // Rút gọn đơn vị (k=nghìn, M=triệu)
                                 if (value >= 1000000) return value / 1000000 + 'M';
                                 if (value >= 1000) return value / 1000 + 'k';
                                 return value;
@@ -377,10 +374,10 @@
                 datasets: [{
                     data: orderStatusValues,
                     backgroundColor: [
-                        '#fbbf24', // Warning (Yellow) - Chờ xác nhận
-                        '#10b981', // Success (Green) - Thành công
-                        '#ef4444', // Danger (Red) - Hủy
-                        '#3b82f6', // Primary (Blue) - (Dùng cho các trạng thái khác nếu có)
+                        '#fbbf24', // Warning (Yellow)
+                        '#10b981', // Success (Green)
+                        '#ef4444', // Danger (Red)
+                        '#3b82f6', // Primary (Blue)
                         '#8b5cf6', // Purple
                         '#6b7280'  // Gray
                     ],
@@ -407,16 +404,7 @@
                     },
                     tooltip: {
                         backgroundColor: 'rgba(0,0,0,0.8)',
-                        padding: 10,
-                        callbacks: {
-                            // Hiển thị phần trăm trong tooltip
-                            label: function(context) {
-                                let total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                let value = context.parsed;
-                                let percentage = ((value / total) * 100).toFixed(1) + '%';
-                                return context.label + ': ' + value + ' (' + percentage + ')';
-                            }
-                        }
+                        padding: 10
                     }
                 },
                 cutout: '75%', // Thickness

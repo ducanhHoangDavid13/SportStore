@@ -404,22 +404,17 @@
 
         return `
         <div class="col">
-         <div class="product-list-card" data-product-id="${product.id}">
+            <div class="product-list-card" data-product-id="${product.id}">
                 <div class="product-list-img-container">
-                    <img src="${imageUrl}" alt="${product.tenSanPham}">
-
+                    <img src="${imageUrl}" alt="${product.tenSanPham}" loading="lazy">
                     <div class="product-list-footer">
-                        <button class="footer-btn btn-add-to-cart">
-                            <span style="font-size: 1.2em;">&#x1F6D2;</span> Mua nhanh
-                        </button>
-                         <button class="footer-btn btn-detail" >
-                        <a class="footer-btn btn-detail"
-                           th:href="@{/san-pham/chi-tiet/{id}(id=${product.id})}">
-                            <span style="font-size: 1.2em;">&#9900;</span> Xem chi tiết
-                        </a>
-                    </button>
-
+                        <button class="footer-btn btn-add-to-cart"><i class="fa-solid fa-cart-plus"></i> Mua nhanh</button>
+                        <button class="footer-btn btn-detail"><i class="fa-solid fa-eye"></i> Xem chi tiết</button>
                     </div>
+                </div>
+                <div class="product-list-text">
+                    <p class="product-list-name">${product.tenSanPham}</p>
+                    <p class="product-list-price">${formattedPrice}</p>
                 </div>
             </div>
         </div>`;
@@ -611,7 +606,7 @@
             e.stopPropagation();
             const productId = $(this).closest('.product-list-card').data('product-id');
             // Chuyển hướng đến trang chi tiết sản phẩm
-            window.location.href = '/san-pham-chi-tiet/' + productId;
+            window.location.href = '/san-pham/' + productId;
         });
 
         $(document).on('click', '.btn-add-to-cart', function(e) {
@@ -628,7 +623,7 @@
 
         $(document).on('click', '.product-list-card', function() {
             const productId = $(this).data('product-id');
-            window.location.href = '/san-pham-chi-tiet/' + productId;
+            window.location.href = '/san-pham/' + productId;
         });
     });
 </script>
