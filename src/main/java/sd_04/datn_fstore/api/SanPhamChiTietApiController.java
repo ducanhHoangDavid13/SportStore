@@ -11,7 +11,9 @@ import sd_04.datn_fstore.model.SanPhamChiTiet;
 import sd_04.datn_fstore.service.SanPhamCTService;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -57,6 +59,20 @@ public class SanPhamChiTietApiController {
             e.printStackTrace(); // In lỗi ra console để debug
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("Thêm mới thất bại: " + e.getMessage());
+        }
+    }
+    @PutMapping("/{id}/trang-thai")
+    public ResponseEntity<?> updateTrangThai(
+            @PathVariable("id") Integer id,
+            @RequestParam("trangThai") Integer trangThai) {
+        try {
+            return ResponseEntity.ok(sanPhamCTService.updateTrangThai(id, trangThai));
+        } catch (RuntimeException e) {
+            Map<String, String> err = new HashMap<>();
+            err.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(err);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Lỗi server: " + e.getMessage());
         }
     }
 

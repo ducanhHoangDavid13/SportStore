@@ -19,4 +19,6 @@ public interface PhanLoaiService {
     List<PhanLoai> searchByTen(String ten);
     List<PhanLoai> filterByTrangThai(Integer trangThai);
     List<PhanLoai> searchAndFilter(String ten, Integer trangThai);
+    // ... các hàm cũ
+    PhanLoai updateTrangThai(Integer id, Integer newStatus);
 }

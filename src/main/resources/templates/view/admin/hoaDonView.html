@@ -1,112 +1,257 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Quản Lý Hóa Đơn</title>
 
-    <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" rel="stylesheet" />
-
-    <!-- Link CSS gốc (nếu có) -->
-    <link rel="stylesheet" th:href="@{/css/styles.css}" />
-
+    <link rel="stylesheet" th:href="@{/css/navbar.css}" />
     <style>
+        /* --- 1. GLOBAL LAYOUT (FLEXBOX) --- */
+        * { box-sizing: border-box; }
+
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f3f4f6;
             color: #374151;
-            overflow-x: hidden;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            overflow: hidden; /* Body không cuộn */
         }
 
-        /* --- LAYOUT SIDEBAR --- */
-        #wrapper { display: flex; width: 100%; height: 100vh; overflow: hidden; }
-        #sidebar-wrapper { min-height: 100vh; width: 250px; background-color: #fff; border-right: 1px solid #e5e7eb; display: flex; flex-direction: column; flex-shrink: 0; }
-        #page-content-wrapper { flex-grow: 1; background-color: #f3f4f6; overflow-y: auto; display: flex; flex-direction: column; }
+        .app-wrapper {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
 
-        /* Top Navbar */
-        .top-navbar { background: white; height: 60px; border-bottom: 1px solid #e5e7eb; display: flex; align-items: center; padding: 0 20px; flex-shrink: 0; justify-content: space-between; }
+        /* Sidebar Trái */
+        .app-sidebar {
+            width: 260px;
+            min-width: 260px;
+            background: #fff;
+            border-right: 1px solid #e5e7eb;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow-y: auto;
+            z-index: 100;
+            transition: margin-left 0.3s ease;
+        }
+        /* Ẩn thanh cuộn sidebar */
+        .app-sidebar::-webkit-scrollbar { display: none; }
 
-        /* Card Styles */
-        .card-box { background: #ffffff; border-radius: 12px; border: none; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 1.5rem; }
+        /* Khu vực chính Phải */
+        .app-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            height: 100%;
+            position: relative;
+        }
 
-        /* Table Styles */
-        .table-custom thead th { background: #f9fafb; color: #6b7280; font-size: 0.75rem; text-transform: uppercase; padding: 1rem; border-bottom: 2px solid #e5e7eb; vertical-align: middle; }
-        .table-custom tbody td { vertical-align: middle; padding: 0.75rem; border-bottom: 1px solid #f3f4f6; font-size: 0.875rem; }
-        .table-custom tbody tr:hover { background-color: #f9fafb; }
+        /* Header */
+        .app-header {
+            height: 64px;
+            min-height: 64px;
+            background: #fff;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            flex-shrink: 0;
+        }
 
-        /* Badges */
-        .badge-status { padding: 0.35em 0.8em; border-radius: 99px; font-size: 0.75rem; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; }
-        .bg-status-0 { background: #fff7ed; color: #c2410c; } /* Chờ xác nhận */
-        .bg-status-1 { background: #e0f2fe; color: #0369a1; } /* Đã xác nhận */
-        .bg-status-2 { background: #f0f9ff; color: #0284c7; } /* Đang chuẩn bị */
-        .bg-status-3 { background: #e0e7ff; color: #4338ca; } /* Đang giao */
-        .bg-status-4 { background: #dcfce7; color: #15803d; } /* Hoàn thành */
-        .bg-status-5 { background: #fee2e2; color: #991b1b; } /* Hủy */
-        .bg-status-6 { background: #f3e8ff; color: #6b21a8; } /* Chờ TT */
+        /* Nội dung (Scrollable) */
+        .app-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+            background-color: #f3f4f6;
+        }
 
-        /* Button Styles */
-        .col-action { width: 280px; min-width: 280px; }
-        .action-group { display: flex; justify-content: center; gap: 6px; }
-        .btn-custom { display: inline-flex; align-items: center; justify-content: center; gap: 5px; padding: 6px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; border: 1px solid transparent; transition: .2s; min-width: 85px; }
-        .btn-custom:hover { transform: translateY(-2px); }
+        /* --- 2. COMPONENT STYLES --- */
 
-        .btn-view { background: #f8f9fa; color: #333; border-color: #e9ecef; }
-        .btn-confirm { background: #d1fae5; color: #047857; border-color: #a7f3d0; }
-        .btn-prepare { background: #e0f2fe; color: #0284c7; border-color: #bae6fd; }
-        .btn-ship { background: #e0e7ff; color: #4338ca; border-color: #c7d2fe; }
-        .btn-complete { background: #dcfce7; color: #15803d; border-color: #bbf7d0; }
-        .btn-cancel { background: #fee2e2; color: #b91c1c; border-color: #fecaca; }
+        /* Card Box */
+        .card-box {
+            background: #fff;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
 
-        /* Tabs */
-        .nav-pills .nav-link { color: #6b7280; font-weight: 500; margin-right: 5px; white-space: nowrap; }
-        .nav-pills .nav-link.active { background-color: #4f46e5; color: white; }
-        .nav-scroll { overflow-x: auto; white-space: nowrap; padding-bottom: 5px; }
+        /* Table */
+        .table-custom thead th {
+            background: #f9fafb;
+            color: #6b7280;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            font-weight: 600;
+            padding: 12px 16px;
+            border-bottom: 2px solid #e5e7eb;
+            white-space: nowrap;
+        }
+        .table-custom tbody td {
+            vertical-align: middle;
+            padding: 14px 16px;
+            border-bottom: 1px solid #f3f4f6;
+            font-size: 0.875rem;
+            color: #1f2937;
+        }
 
-        /* Modal */
-        .modal-content { border-radius: 16px; border: none; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
-        .modal-header { border-bottom: 1px solid #f3f4f6; padding: 1.5rem; }
-        .modal-body { padding: 1.5rem; }
+        /* Badges Status */
+        .badge-status {
+            padding: 6px 12px;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-flex; align-items: center; gap: 6px;
+        }
+        .bg-status-0 { background: #fff7ed; color: #c2410c; border: 1px solid #ffedd5; }
+        .bg-status-1 { background: #eff6ff; color: #1d4ed8; border: 1px solid #dbeafe; }
+        .bg-status-2 { background: #f0f9ff; color: #0284c7; border: 1px solid #bae6fd; }
+        .bg-status-3 { background: #eef2ff; color: #4338ca; border: 1px solid #c7d2fe; }
+        .bg-status-4 { background: #ecfdf5; color: #047857; border: 1px solid #d1fae5; }
+        .bg-status-5 { background: #fef2f2; color: #b91c1c; border: 1px solid #fee2e2; }
+        .bg-status-6 { background: #faf5ff; color: #7e22ce; border: 1px solid #f3e8ff; }
+
+        /* --- 3. BUTTON STYLES (MỚI CẬP NHẬT) --- */
+
+        /* Nút Chính (Primary) - Xanh đậm */
+        .btn-primary {
+            background-color: #0d6efd !important;
+            border-color: #0d6efd !important;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .btn-primary:hover {
+            background-color: #0b5ed7 !important;
+            box-shadow: 0 4px 6px rgba(13, 110, 253, 0.2);
+            transform: translateY(-1px);
+        }
+
+        /* Nút Phụ (Light) */
+        .btn-light {
+            background-color: #f8f9fa;
+            border-color: #e9ecef;
+            color: #495057;
+        }
+        .btn-light:hover { background-color: #e2e6ea; }
+
+        /* Nút Thao Tác Trong Bảng */
+        .col-action { width: 220px; text-align: center; }
+        .action-group { display: flex; justify-content: center; gap: 8px; }
+
+        .btn-custom {
+            display: inline-flex; align-items: center; justify-content: center;
+            gap: 5px; padding: 6px 12px; border-radius: 6px;
+            font-size: 0.8rem; font-weight: 600;
+            border: 1px solid transparent; transition: all 0.2s;
+            cursor: pointer; text-decoration: none; white-space: nowrap;
+        }
+        .btn-custom:hover { transform: translateY(-2px); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+
+        /* Màu nút thao tác riêng biệt */
+        .btn-view { background: #f3f4f6; color: #374151; border-color: #e5e7eb; }
+        .btn-view:hover { background: #e5e7eb; }
+
+        .btn-confirm { background: #dcfce7; color: #166534; border-color: #bbf7d0; } /* Xanh lá */
+        .btn-prepare { background: #e0f2fe; color: #075985; border-color: #bae6fd; } /* Xanh dương */
+        .btn-ship { background: #e0e7ff; color: #3730a3; border-color: #c7d2fe; } /* Tím */
+        .btn-complete { background: #d1fae5; color: #065f46; border-color: #a7f3d0; }
+        .btn-cancel { background: #fee2e2; color: #991b1b; border-color: #fecaca; } /* Đỏ */
+
+        /* --- 4. HEADER COMPONENTS --- */
+        .user-avatar {
+            width: 36px; height: 36px;
+            background-color: #4f46e5;
+            color: white;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: bold; font-size: 14px;
+        }
+
+        /* Tabs Scroll */
+        .nav-scroll { display: flex; overflow-x: auto; gap: 8px; padding-bottom: 8px; border-bottom: 1px solid #e5e7eb; margin-bottom: 20px; scrollbar-width: none; }
+        .nav-pills .nav-link { color: #6b7280; border-radius: 8px; padding: 8px 16px; white-space: nowrap; }
+        .nav-pills .nav-link.active { background-color: #0d6efd; color: white; }
+
     </style>
 </head>
+
 <body>
 
-<div id="wrapper">
+<div class="app-wrapper">
 
-    <!-- 1. SIDEBAR -->
-    <div id="sidebar-wrapper">
+    <aside class="app-sidebar">
         <div th:replace="~{library/navbar :: admin-sidebar}"></div>
-    </div>
+    </aside>
 
-    <!-- 2. MAIN CONTENT -->
-    <div id="page-content-wrapper">
+    <div class="app-main">
 
-        <!-- Top Navbar -->
-        <nav class="top-navbar">
+        <header class="app-header">
             <div class="d-flex align-items-center">
-                <button class="btn btn-light btn-sm me-3 border" id="menu-toggle"><i class="fas fa-bars"></i></button>
-                <h5 class="mb-0 text-dark fw-bold">Quản lý Hóa đơn</h5>
-            </div>
-            <!-- User Info (Optional) -->
-            <div class="d-flex align-items-center">
-                <div class="dropdown">
-                    <a class="text-decoration-none text-dark fw-bold dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                        <i class="fas fa-user-circle fs-4 me-1 text-primary"></i> Admin
-                    </a>
-                    <!-- Dropdown menu if needed -->
+                <button class="btn btn-light btn-sm border me-3 d-md-none" onclick="document.querySelector('.app-sidebar').classList.toggle('d-none')">
+                    <i class="fas fa-bars"></i>
+                </button>
+
+                <div class="d-none d-md-block" style="width: 300px;">
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0"><i class="fas fa-search text-muted"></i></span>
+                        <input type="text" class="form-control bg-light border-start-0" placeholder="Tìm kiếm chức năng...">
+                    </div>
                 </div>
             </div>
-        </nav>
 
-        <!-- Content Body -->
-        <main class="container-fluid px-4 py-4">
+            <div class="d-flex align-items-center gap-4">
 
-            <!-- 1. Bộ lọc -->
-            <div class="card-box p-4">
-                <!-- Tabs -->
-                <div class="mb-4 border-bottom pb-3 nav-scroll">
+                <div class="position-relative cursor-pointer" id="notificationBtn" title="Thông báo">
+                    <i class="far fa-bell fs-5 text-secondary"></i>
+                    <span id="notificationCount" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem; display: none;">
+                        0
+                    </span>
+                </div>
+
+                <div class="dropdown">
+                    <a href="#" class="d-flex align-items-center text-decoration-none text-dark dropdown-toggle" data-bs-toggle="dropdown">
+                        <div class="text-end me-2 d-none d-sm-block">
+                            <div class="fw-bold small">Admin User</div>
+                            <div class="text-muted" style="font-size: 11px;">Quản trị viên</div>
+                        </div>
+                        <div class="user-avatar">AD</div>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
+                        <li><a class="dropdown-item" href="#"><i class="far fa-user-circle me-2"></i>Hồ sơ</a></li>
+                        <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i>Cài đặt</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <form th:action="@{/logout}" method="post" class="m-0">
+                                <button class="dropdown-item text-danger"><i class="fas fa-sign-out-alt me-2"></i>Đăng xuất</button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+
+        <div class="app-content">
+
+            <div class="card-box">
+                <div class="d-flex align-items-center mb-3 fw-bold text-primary pb-2 border-bottom">
+                    <i class="fas fa-filter me-2"></i> BỘ LỌC TÌM KIẾM
+                </div>
+
+                <div class="nav-scroll">
                     <ul class="nav nav-pills" id="statusTabs">
                         <li class="nav-item"><button class="nav-link active tab-btn" data-status="all">Tất cả</button></li>
                         <li class="nav-item"><button class="nav-link tab-btn" data-status="0">Chờ xác nhận</button></li>
@@ -119,74 +264,79 @@
                     </ul>
                 </div>
 
-                <!-- Search -->
-                <div class="row g-3">
+                <div class="row g-3 mt-2">
                     <div class="col-md-4">
+                        <label class="small fw-bold text-muted mb-1">TỪ KHÓA</label>
                         <div class="input-group">
                             <span class="input-group-text bg-white"><i class="fas fa-search text-muted"></i></span>
-                            <input type="text" class="form-control border-start-0" id="keywordSearch" placeholder="Mã HĐ, Tên KH, SĐT...">
+                            <input type="text" class="form-control border-start-0" id="keywordSearch" placeholder="Mã hóa đơn, Tên khách hàng...">
                         </div>
                     </div>
-                    <div class="col-md-2"><input type="date" class="form-control" id="startDate"></div>
-                    <div class="col-md-2"><input type="date" class="form-control" id="endDate"></div>
-                    <div class="col-md-4 text-end">
-                        <button class="btn btn-light border me-2" id="btnReset"><i class="fas fa-sync-alt text-muted"></i> Reset</button>
-                        <button class="btn btn-primary px-4" id="btnSearch"><i class="fas fa-search me-1"></i> Tìm kiếm</button>
+                    <div class="col-md-3">
+                        <label class="small fw-bold text-muted mb-1">TỪ NGÀY</label>
+                        <input type="date" class="form-control" id="startDate">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="small fw-bold text-muted mb-1">ĐẾN NGÀY</label>
+                        <input type="date" class="form-control" id="endDate">
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <div class="d-flex w-100 gap-2">
+                            <button class="btn btn-primary w-100" id="btnSearch">Tìm kiếm</button>
+                            <button class="btn btn-light w-50" id="btnReset"><i class="fas fa-sync-alt"></i></button>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- 2. Bảng dữ liệu -->
-            <div class="card-box">
+            <div class="card-box p-0">
                 <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0 fw-bold text-dark">Danh sách Đơn hàng</h5>
-                    <span class="badge bg-light text-dark border" id="recordCount">Loading...</span>
+                    <h6 class="mb-0 fw-bold text-dark">DANH SÁCH ĐƠN HÀNG</h6>
+                    <span class="badge bg-light text-dark border fw-normal" id="recordCount">0 bản ghi</span>
                 </div>
 
-                <div class="table-responsive" style="min-height: 350px;">
-                    <table class="table table-custom table-hover mb-0 text-center">
+                <div class="table-responsive">
+                    <table class="table table-custom table-hover mb-0">
                         <thead>
                         <tr>
-                            <th style="width: 50px;">STT</th>
-                            <th>Mã HĐ</th>
-                            <th class="text-start">Khách Hàng</th>
+                            <th>Khách hàng</th>
                             <th>Loại đơn</th>
-                            <th>Ngày Tạo</th>
-                            <th class="text-end">Tổng Tiền</th>
-                            <th>Trạng Thái</th>
-                            <th class="col-action">Thao Tác</th>
+                            <th>Ngày tạo</th>
+                            <th class="text-end">Tổng tiền</th>
+                            <th class="text-center">Trạng thái</th>
+                            <th class="text-center">Thao tác</th>
                         </tr>
                         </thead>
-                        <tbody id="hoaDonTableBody"></tbody>
+                        <tbody id="hoaDonTableBody">
+                        </tbody>
                     </table>
                 </div>
 
-                <div class="p-3 border-top bg-light bg-opacity-25 d-flex justify-content-end">
+                <div class="p-3 d-flex justify-content-end border-top bg-light bg-opacity-10">
                     <nav><ul class="pagination pagination-sm mb-0" id="pagination"></ul></nav>
                 </div>
             </div>
-        </main>
+
+        </div>
     </div>
 </div>
 
-<!-- Modal Chi Tiết -->
 <div class="modal fade" id="invoiceDetailModal" tabindex="-1">
     <div class="modal-dialog modal-xl modal-dialog-scrollable">
         <div class="modal-content">
-            <div class="modal-header bg-light">
-                <h5 class="modal-title fw-bold text-dark"><i class="fas fa-file-invoice me-2"></i>Chi Tiết Hóa Đơn: <span id="detail-maHoaDon" class="text-primary"></span></h5>
+            <div class="modal-header bg-white">
+                <h5 class="modal-title fw-bold text-primary"><i class="fas fa-file-invoice me-2"></i>Chi Tiết Hóa Đơn: <span id="detail-maHoaDon"></span></h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body" id="invoice-detail-content"></div>
-            <div class="modal-footer bg-light">
-                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Đóng</button>
-                <button type="button" class="btn btn-danger btn-sm" id="btnPrintPdf"><i class="fas fa-file-pdf me-1"></i> Xuất PDF</button>
+            <div class="modal-body bg-light" id="invoice-detail-content"></div>
+            <div class="modal-footer bg-white">
+                <button type="button" class="btn btn-light border btn-sm fw-bold" data-bs-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-danger btn-sm fw-bold" id="btnPrintPdf"><i class="fas fa-file-pdf me-1"></i> Xuất PDF</button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Scripts -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
@@ -196,41 +346,40 @@
     toastr.options = { "positionClass": "toast-top-right", "timeOut": "3000" };
     let state = { page: 0, size: 10, status: 'all', keyword: '', startDate: '', endDate: '' };
 
-    // Sidebar Toggle
+    // Toggle Sidebar Mobile
     $("#menu-toggle").click(function(e) {
         e.preventDefault();
-        $("#sidebar-wrapper").toggle(); // Hoặc toggle class nếu dùng CSS ẩn hiện
+        $(".app-sidebar").toggle();
     });
 
     // Render Badge
-    function renderStatusBadge(status) {
+    function getStatusBadge(status) {
         const map = {
-            0: { text: 'Chờ Xác Nhận', cls: 'bg-status-0', icon: 'fa-hourglass-start' },
-            1: { text: 'Đã Xác Nhận', cls: 'bg-status-1', icon: 'fa-clipboard-check' },
-            2: { text: 'Đang Chuẩn Bị', cls: 'bg-status-2', icon: 'fa-box' },
-            3: { text: 'Đang Giao Hàng', cls: 'bg-status-3', icon: 'fa-shipping-fast' },
+            0: { text: 'Chờ Xác Nhận', cls: 'bg-status-0', icon: 'fa-clock' },
+            1: { text: 'Đã Xác Nhận', cls: 'bg-status-1', icon: 'fa-check' },
+            2: { text: 'Đang Chuẩn Bị', cls: 'bg-status-2', icon: 'fa-box-open' },
+            3: { text: 'Đang Giao', cls: 'bg-status-3', icon: 'fa-truck' },
             4: { text: 'Hoàn Thành', cls: 'bg-status-4', icon: 'fa-check-circle' },
             5: { text: 'Đã Hủy', cls: 'bg-status-5', icon: 'fa-times-circle' },
-            6: { text: 'Chờ Thanh Toán', cls: 'bg-status-6', icon: 'fa-credit-card' }
+            6: { text: 'Chờ Thanh Toán', cls: 'bg-status-6', icon: 'fa-wallet' }
         };
         const s = map[status] || { text: 'Khác', cls: 'bg-secondary text-white', icon: 'fa-question' };
         return `<span class="badge-status ${s.cls}"><i class="fas ${s.icon}"></i> ${s.text}</span>`;
     }
 
-    // Render Actions
+    // Render Actions Buttons
     function renderActionButtons(hd) {
         let btns = `<div class="action-group">`;
         btns += `<button class="btn-custom btn-view btn-view-detail" data-id="${hd.id}"><i class="fas fa-eye"></i> Xem</button>`;
-
         if (hd.trangThai === 0) {
-            btns += `<button class="btn-custom btn-confirm btn-update-status" data-id="${hd.id}" data-status="1"><i class="fas fa-check"></i> Xác nhận</button>
+            btns += `<button class="btn-custom btn-confirm btn-update-status" data-id="${hd.id}" data-status="1"><i class="fas fa-check"></i> Duyệt</button>
                      <button class="btn-custom btn-cancel btn-update-status" data-id="${hd.id}" data-status="5"><i class="fas fa-times"></i> Hủy</button>`;
         } else if (hd.trangThai === 1) {
-            btns += `<button class="btn-custom btn-prepare btn-update-status" data-id="${hd.id}" data-status="2"><i class="fas fa-box-open"></i> Soạn hàng</button>`;
+            btns += `<button class="btn-custom btn-prepare btn-update-status" data-id="${hd.id}" data-status="2"><i class="fas fa-box-open"></i> Soạn</button>`;
         } else if (hd.trangThai === 2) {
-            btns += `<button class="btn-custom btn-ship btn-update-status" data-id="${hd.id}" data-status="3"><i class="fas fa-truck"></i> Giao hàng</button>`;
+            btns += `<button class="btn-custom btn-ship btn-update-status" data-id="${hd.id}" data-status="3"><i class="fas fa-truck"></i> Giao</button>`;
         } else if (hd.trangThai === 3) {
-            btns += `<button class="btn-custom btn-complete btn-update-status" data-id="${hd.id}" data-status="4"><i class="fas fa-check-double"></i> Hoàn tất</button>`;
+            btns += `<button class="btn-custom btn-complete btn-update-status" data-id="${hd.id}" data-status="4"><i class="fas fa-check-double"></i> Xong</button>`;
         } else if (hd.trangThai === 6) {
             btns += `<button class="btn-custom btn-confirm btn-update-status" data-id="${hd.id}" data-status="1"><i class="fas fa-check"></i> Đã TT</button>
                      <button class="btn-custom btn-cancel btn-update-status" data-id="${hd.id}" data-status="5"><i class="fas fa-times"></i> Hủy</button>`;
@@ -239,7 +388,6 @@
         return btns;
     }
 
-    // Load Data
     async function loadHoaDon() {
         const params = new URLSearchParams({ page: state.page, size: state.size });
         if (state.status !== 'all') params.append('trangThaiList', state.status);
@@ -256,9 +404,7 @@
             renderTable(data.content);
             renderPagination(data.totalPages);
             document.getElementById("recordCount").innerText = `${data.totalElements} đơn hàng`;
-        } catch {
-            $('#hoaDonTableBody').html('<tr><td colspan="8" class="text-center text-danger py-5">Lỗi tải dữ liệu</td></tr>');
-        }
+        } catch { $('#hoaDonTableBody').html('<tr><td colspan="8" class="text-center text-danger py-5">Lỗi tải dữ liệu</td></tr>'); }
     }
 
     function renderTable(data) {
@@ -270,14 +416,13 @@
         }
         const html = data.map((hd, i) => `
             <tr>
-                <td class="text-muted small">${(state.page * state.size) + i + 1}</td>
-                <td class="fw-bold text-dark">#${hd.maHoaDon || 'HD'+hd.id}</td>
-                <td class="text-start fw-semibold text-secondary">${hd.khachHang ? hd.khachHang.tenKhachHang : 'Khách lẻ'}</td>
-                <td>${hd.hinhThucBanHang === 1 ? '<span class="badge bg-light text-dark border">Tại quầy</span>' : '<span class="badge bg-light text-dark border">Online</span>'}</td>
+                <td><div class="fw-bold text-dark">${hd.khachHang ? hd.khachHang.tenKhachHang : 'Khách lẻ'}</div>
+                    <small class="text-muted fw-bold text-primary">#${hd.maHoaDon}</small></td>
+                <td><span class="badge bg-light text-dark border">${hd.hinhThucBanHang === 1 ? 'Tại quầy' : 'Online'}</span></td>
                 <td class="small text-muted">${new Date(hd.ngayTao).toLocaleDateString('vi-VN')}</td>
                 <td class="text-end fw-bold text-dark">${(hd.tongTienSauGiam || hd.tongTien).toLocaleString('vi-VN')} ₫</td>
-                <td>${renderStatusBadge(hd.trangThai)}</td>
-                <td>${renderActionButtons(hd)}</td>
+                <td class="text-center">${getStatusBadge(hd.trangThai)}</td>
+                <td class="col-action">${renderActionButtons(hd)}</td>
             </tr>
         `).join('');
         tbody.innerHTML = html;
@@ -288,65 +433,55 @@
         pagEl.innerHTML = "";
         if (totalPages <= 1) return;
         let html = `<li class="page-item ${state.page===0?'disabled':''}"><button class="page-link" onclick="changePage(${state.page-1})">&laquo;</button></li>`;
-        for (let i = 0; i < totalPages; i++) {
-            if(i===0 || i===totalPages-1 || (i>=state.page-1 && i<=state.page+1)){
-                html += `<li class="page-item ${i===state.page?'active':''}"><button class="page-link" onclick="changePage(${i})">${i+1}</button></li>`;
-            } else if (i===state.page-2 || i===state.page+2) html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
-        }
+        for (let i = 0; i < totalPages; i++) html += `<li class="page-item ${i===state.page?'active':''}"><button class="page-link" onclick="changePage(${i})">${i+1}</button></li>`;
         html += `<li class="page-item ${state.page===totalPages-1?'disabled':''}"><button class="page-link" onclick="changePage(${state.page+1})">&raquo;</button></li>`;
         pagEl.innerHTML = html;
     }
-
     function changePage(p) { state.page = p; loadHoaDon(); }
 
-    // Update Status Logic
     async function updateStatus(id, st) {
-        let msg = "Xác nhận chuyển trạng thái?";
-        if (st == 5) msg = "Bạn có chắc chắn muốn HỦY đơn hàng này?";
-        else if (st == 4) msg = "Xác nhận đơn hàng đã HOÀN THÀNH?";
-
-        if(!confirm(msg)) return;
+        if(!confirm("Xác nhận cập nhật trạng thái?")) return;
         try {
             const form = new FormData(); form.append('hoaDonId', id); form.append('newTrangThai', st);
             const res = await fetch(`${API_BASE}/update-status`, {method:'POST', body:form});
-            if(res.ok) { toastr.success('Cập nhật trạng thái thành công'); loadHoaDon(); }
-            else toastr.error('Lỗi cập nhật');
-        } catch { toastr.error('Lỗi kết nối server'); }
+            if(res.ok) { toastr.success('Thành công!'); loadHoaDon(); } else toastr.error('Lỗi');
+        } catch { toastr.error('Lỗi server'); }
     }
 
-    // View Detail
     async function viewDetail(id) {
         const modal = new bootstrap.Modal(document.getElementById('invoiceDetailModal'));
         const contentEl = document.getElementById('invoice-detail-content');
-        const btnPdf = document.getElementById('btnPrintPdf');
+        document.getElementById('btnPrintPdf').dataset.id = id;
         modal.show();
         contentEl.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary"></div></div>';
-        btnPdf.dataset.id = id;
-
         try {
-            const [resInfo, resDetail] = await Promise.all([
-                fetch(`${API_BASE}/${id}`), fetch(`${API_BASE}/${id}/chi-tiet`)
-            ]);
+            const [resInfo, resDetail] = await Promise.all([fetch(`${API_BASE}/${id}`), fetch(`${API_BASE}/${id}/chi-tiet`)]);
             const hd = await resInfo.json();
-            const items = resDetail.ok ? await resDetail.json() : [];
+            const items = await resDetail.json();
             document.getElementById('detail-maHoaDon').innerText = '#' + hd.maHoaDon;
-
-            let rows = items.map((t,i)=>`<tr><td class="text-center">${i+1}</td><td><b>${t.sanPhamChiTiet?.sanPham?.tenSanPham}</b><br><small>Màu: ${t.sanPhamChiTiet?.mauSac?.tenMauSac} | Size: ${t.sanPhamChiTiet?.kichThuoc?.tenKichThuoc}</small></td><td class="text-center">${t.soLuong}</td><td class="text-end">${t.donGia.toLocaleString()} ₫</td><td class="text-end fw-bold">${(t.donGia*t.soLuong).toLocaleString()} ₫</td></tr>`).join('');
-
-            contentEl.innerHTML = `
-                <div class="row mb-3">
-                    <div class="col-6"><p>KH: <b>${hd.khachHang?.tenKhachHang||'Khách lẻ'}</b></p><p>SĐT: ${hd.khachHang?.sdt||'-'}</p></div>
-                    <div class="col-6 text-end"><p>Ngày: ${new Date(hd.ngayTao).toLocaleString('vi-VN')}</p><p>Trạng thái: ${renderStatusBadge(hd.trangThai)}</p></div>
-                </div>
-                <div class="table-responsive border rounded"><table class="table table-sm mb-0 align-middle"><thead class="table-light"><tr><th class="text-center">#</th><th>Sản phẩm</th><th class="text-center">SL</th><th class="text-end">Đơn giá</th><th class="text-end">Thành tiền</th></tr></thead><tbody>${rows}</tbody></table></div>
-                <div class="text-end mt-3"><h5 class="fw-bold text-danger">TỔNG: ${(hd.tongTienSauGiam||hd.tongTien).toLocaleString()} ₫</h5></div>`;
-        } catch { contentEl.innerHTML = '<p class="text-danger text-center">Lỗi tải chi tiết</p>'; }
+            let rows = items.map((t,i)=>`<tr><td class="text-center">${i+1}</td><td><b>${t.sanPhamChiTiet?.sanPham?.tenSanPham}</b><br><small>${t.sanPhamChiTiet?.mauSac?.tenMauSac} | ${t.sanPhamChiTiet?.kichThuoc?.tenKichThuoc}</small></td><td class="text-center">${t.soLuong}</td><td class="text-end">${t.donGia.toLocaleString()}</td><td class="text-end fw-bold">${(t.donGia*t.soLuong).toLocaleString()}</td></tr>`).join('');
+            contentEl.innerHTML = `<div class="row mb-3"><div class="col-6"><h6>Khách hàng</h6><p>${hd.khachHang?.tenKhachHang||'Khách lẻ'}<br>${hd.khachHang?.sdt||''}</p></div><div class="col-6 text-end"><h6>Thông tin</h6><p>${new Date(hd.ngayTao).toLocaleString('vi-VN')}<br>${getStatusBadge(hd.trangThai)}</p></div></div><table class="table table-sm table-bordered"><thead><tr class="table-light"><th>#</th><th>Sản phẩm</th><th>SL</th><th>Đơn giá</th><th>Thành tiền</th></tr></thead><tbody>${rows}</tbody></table><h5 class="text-end text-danger mt-3">Tổng: ${(hd.tongTienSauGiam||hd.tongTien).toLocaleString()} ₫</h5>`;
+        } catch { contentEl.innerHTML = '<p class="text-danger text-center">Lỗi tải</p>'; }
     }
 
-    // Events
+    // --- POLLING NOTIFICATION (Check đơn chờ mỗi 10s) ---
+    function checkNotifications() {
+        $.ajax({
+            url: '/api/admin/hoadon/count-pending', // Đảm bảo bạn đã tạo API này
+            type: 'GET',
+            success: function(count) {
+                const badge = $('#notificationCount');
+                if (count > 0) { badge.text(count); badge.show(); }
+                else { badge.hide(); }
+            }
+        });
+    }
+    setInterval(checkNotifications, 10000); // 10s check 1 lần
+
     $('.tab-btn').click(function() { $('.tab-btn').removeClass('active'); $(this).addClass('active'); state.status = $(this).data('status'); state.page=0; loadHoaDon(); });
     $('#btnSearch').click(() => { state.keyword = $('#keywordSearch').val(); state.startDate = $('#startDate').val(); state.endDate = $('#endDate').val(); state.page=0; loadHoaDon(); });
     $('#btnReset').click(() => { $('#keywordSearch').val(''); $('#startDate').val(''); $('#endDate').val(''); state={page:0,size:10,status:'all'}; $('.tab-btn').removeClass('active').first().addClass('active'); loadHoaDon(); });
+
     $('#hoaDonTableBody').click(e => {
         const btnStatus = e.target.closest('.btn-update-status');
         const btnView = e.target.closest('.btn-view-detail');
@@ -355,8 +490,8 @@
     });
     $('#btnPrintPdf').click(function() { if(this.dataset.id) window.location.href=`${API_BASE}/export/pdf/${this.dataset.id}`; });
 
-    // Init
-    loadHoaDon();
+    $(document).ready(function() { loadHoaDon(); checkNotifications(); });
 </script>
+
 </body>
 </html>

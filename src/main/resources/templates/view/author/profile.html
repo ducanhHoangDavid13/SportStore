@@ -1,102 +1,106 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Thông tin cá nhân</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="stylesheet" th:href="@{/css/header.css}">
-    <link rel="stylesheet" th:href="@{/css/footer.css}">
+    <div th:fragment="head-links">
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+
+        <link rel="stylesheet" th:href="@{/css/styles.css}">
+        <link rel="stylesheet" th:href="@{/css/header.css}">
+    </div>
+    <title>Thông Tin Cá Nhân</title>
     <style>
-        /* ======================================================= */
-        /* CSS CHUNG CHO DASHBOARD & MENU */
-        /* ======================================================= */
-        .account-menu { border: none; }
-        .account-menu .list-group-item { border: none; padding: 10px 15px; color: #333; cursor: pointer; font-size: 14px; }
-        .account-menu .list-group-item:hover { background-color: #f8f9fa; }
-        .account-menu .list-group-item.active {
-            background-color: #fef4f4; color: #e5101d; border-left: 5px solid #e5101d; font-weight: bold; border-radius: 0;
-        }
-        .account-menu .list-group-item a { color: inherit; text-decoration: none; display: block; }
-        .account-menu .list-group-item.active a { color: #e5101d !important; }
-        .account-menu i { color: #e5101d; width: 20px; }
-        .border-start { border-left: 1px solid #dee2e6 !important; }
-
-        /* ======================================================= */
-        /* CSS TRANG PROFILE */
-        /* ======================================================= */
-        .avatar-placeholder {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            background-color: #fcece7;
-            position: relative;
-            overflow: hidden;
-            border: 1px solid #fcece7;
-            box-shadow: inset -20px 20px 0 0px #ff7b32;
-        }
-        .avatar-placeholder::before { /* Thân người */
-            content: ''; position: absolute; width: 60px; height: 60px;
-            background-color: #3f3950; border-radius: 50%; bottom: 10px; left: 50%;
-            transform: translateX(-50%);
-        }
-        .avatar-placeholder::after { /* Đầu người */
-            content: ''; position: absolute; width: 40px; height: 40px;
-            background-color: #3f3950; border-radius: 50%; top: 30px; left: 50%;
-            transform: translateX(-50%); border: 3px solid #fcece7;
-        }
-
-        .info-list .text-muted { color: #6c757d !important; }
-        .btn-danger {
-            background-color: #e5101d !important;
-            border-color: #e5101d !important;
-            font-weight: bold;
-        }
-        .profile-card { max-width: 600px; margin: auto; padding: 50px; }
+        .account-page-wrapper { background-color: #f8f9fa; padding: 40px 0; }
+        .main-content-panel { background-color: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
+        .form-control:focus { border-color: #e5101d; box-shadow: 0 0 0 0.25rem rgba(229, 16, 29, 0.25); }
+        .btn-submit { background-color: #e5101d; color: white; font-weight: 600; padding: 10px 25px; border: none; }
+        .btn-submit:hover { background-color: #c40e18; }
+        .avatar-upload { position: relative; width: 120px; height: 120px; margin: 0 auto 20px; }
+        .avatar-upload .avatar-preview { width: 100%; height: 100%; border-radius: 50%; border: 4px solid #fff; box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.1); background-size: cover; background-repeat: no-repeat; background-position: center; }
+        .avatar-upload .avatar-edit { position: absolute; right: 0; bottom: 0; }
+        .avatar-upload .avatar-edit input { display: none; }
+        .avatar-upload .avatar-edit label { display: inline-block; width: 34px; height: 34px; margin-bottom: 0; border-radius: 50%; background: #FFFFFF; border: 1px solid #d2d6de; box-shadow: 0px 2px 4px 0px rgba(0, 0, 0, 0.1); cursor: pointer; font-weight: normal; transition: all .2s ease-in-out; display: flex; align-items: center; justify-content: center; }
+        .avatar-upload .avatar-edit label:hover { background: #f1f1f1; border-color: #d2d6de; }
     </style>
 </head>
 <body>
-<div th:replace="~{library/header :: header}"></div>
-<div class="container-fluid bg-light py-3">
-    <div class="container bg-white p-4 shadow-sm rounded">
 
-        <h2 class="h4 mb-4 fw-bold">Quản lý tài khoản</h2>
-        <hr class="mb-4">
+<header th:replace="~{library/header :: header}"></header>
 
+<div class="account-page-wrapper">
+    <div class="container" style="max-width: 1200px;">
         <div class="row">
+            <!-- Sidebar -->
+            <div class="col-lg-3">
+                <div th:replace="~{/library/hosoUser :: account-sidebar(activePage='profile')}"></div>
+            </div>
 
-            <div th:replace="~{library/hosouser :: account-sidebar('profile')}"></div>
-
-            <div class="col-md-9 border-start p-4">
-                <div class="personal-info-container">
-                    <h2 class="h4 mb-4 fw-bold">Thông tin cá nhân</h2>
-
-                    <div class="card border-0 profile-card bg-white shadow-sm">
-                        <div class="card-body text-center">
-
-                            <div class="avatar-placeholder mx-auto mb-5"></div>
-
-                            <div class="info-list mx-auto">
-
-                                <div class="row align-items-center border-bottom py-3">
-                                    <div class="col-6 text-start text-muted">Họ và tên</div>
-                                    <div class="col-6 text-end fw-bold">a chiến</div>
+            <!-- Main Content -->
+            <div class="col-lg-9">
+                <div class="main-content-panel">
+                    <h3 class="fw-bold mb-1">Hồ Sơ Của Tôi</h3>
+                    <p class="text-muted mb-4">Quản lý thông tin hồ sơ để bảo mật tài khoản</p>
+                    <hr>
+                    <div class="row">
+                        <div class="col-md-8">
+                            <form th:action="@{/profile/update}" method="post">
+                                <div class="mb-3 row">
+                                    <label for="username" class="col-sm-3 col-form-label">Tên đăng nhập</label>
+                                    <div class="col-sm-9">
+                                        <input type="text" readonly class="form-control-plaintext" id="username" th:value="${user?.username ?: 'achien'}">
+                                    </div>
                                 </div>
-
-                                <div class="row align-items-center border-bottom py-3">
-                                    <div class="col-6 text-start text-muted">Số điện thoại</div>
-                                    <div class="col-6 text-end fw-bold">0338783110</div>
+                                <div class="mb-3 row">
+                                    <label for="fullName" class="col-sm-3 col-form-label">Tên</label>
+                                    <div class="col-sm-9">
+                                        <input type="text" class="form-control" id="fullName" name="fullName" th:value="${user?.name ?: 'A Chiến'}">
+                                    </div>
                                 </div>
-
-                                <div class="row align-items-center border-bottom py-3 mb-5">
-                                    <div class="col-6 text-start text-muted">Giới tính</div>
-                                    <div class="col-6 text-end fw-bold"></div>
+                                <div class="mb-3 row">
+                                    <label for="email" class="col-sm-3 col-form-label">Email</label>
+                                    <div class="col-sm-9">
+                                        <input type="email" class="form-control" id="email" name="email" th:value="${user?.email ?: 'achien@example.com'}">
+                                    </div>
                                 </div>
-
-                                <button class="btn btn-danger btn-lg w-50">
-                                    Chỉnh sửa thông tin
-                                </button>
+                                <div class="mb-3 row">
+                                    <label for="phone" class="col-sm-3 col-form-label">Số điện thoại</label>
+                                    <div class="col-sm-9">
+                                        <input type="text" class="form-control" id="phone" name="phone" th:value="${user?.phone ?: '0338783110'}">
+                                    </div>
+                                </div>
+                                <div class="mb-4 row">
+                                    <label class="col-sm-3 col-form-label">Giới tính</label>
+                                    <div class="col-sm-9 d-flex align-items-center">
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="gender" id="male" value="MALE" th:checked="${user?.gender == 'MALE'}">
+                                            <label class="form-check-label" for="male">Nam</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="gender" id="female" value="FEMALE" th:checked="${user?.gender == 'FEMALE'}">
+                                            <label class="form-check-label" for="female">Nữ</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-9 offset-sm-3">
+                                        <button type="submit" class="btn btn-submit">Lưu Thay Đổi</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="col-md-4 d-flex justify-content-center align-items-center">
+                            <div class="avatar-upload">
+                                <div class="avatar-preview" style="background-image: url(/image/avatar-placeholder.png);"></div>
+                                <div class="avatar-edit">
+                                    <input type='file' id="imageUpload" accept=".png, .jpg, .jpeg" />
+                                    <label for="imageUpload"><i class="fas fa-pencil-alt"></i></label>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -106,7 +110,24 @@
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<div th:replace="~{library/footer :: footer}"></div>
+<footer th:replace="~{/library/footer :: footer}"></footer>
+<div th:replace="~{/library/footer :: scripts}"></div>
+
+<script>
+    // Simple script for avatar preview
+    function readURL(input) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                document.querySelector('.avatar-preview').style.backgroundImage = 'url(' + e.target.result + ')';
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+    document.getElementById("imageUpload").addEventListener("change", function() {
+        readURL(this);
+    });
+</script>
+
 </body>
 </html>

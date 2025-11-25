@@ -1,108 +1,315 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sổ địa chỉ nhận hàng</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <title>Sổ Địa Chỉ</title>
+
+    <!-- NHÚNG HEAD-LINKS TỪ HEADER FRAGMENT -->
+    <div th:fragment="head-links">
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+
+        <link rel="stylesheet" th:href="@{/css/styles.css}">
+        <link rel="stylesheet" th:href="@{/css/header.css}">
+    </div>
 
     <style>
-        /* ======================================================= */
-        /* CSS CHUNG CHO DASHBOARD & MENU (SIDEBAR) */
-        /* ======================================================= */
-        .account-menu { border: none; }
-        .account-menu .list-group-item { border: none; padding: 10px 15px; color: #333; cursor: pointer; font-size: 14px; }
-        .account-menu .list-group-item:hover { background-color: #f8f9fa; }
-        .account-menu .list-group-item.active {
-            background-color: #fef4f4; color: #e5101d; border-left: 5px solid #e5101d; font-weight: bold; border-radius: 0;
+        .account-page-wrapper { background-color: #f8f9fa; padding: 40px 0; }
+        .main-content-panel { background-color: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
+
+        .btn-add-address {
+            border: 2px dashed #e5101d; color: #e5101d; font-weight: 600;
+            transition: all 0.3s ease; border-radius: 8px;
         }
-        .account-menu .list-group-item a { color: inherit; text-decoration: none; display: block; }
-        .account-menu i { color: #e5101d; width: 20px; }
-        .border-start { border-left: 1px solid #dee2e6 !important; }
+        .btn-add-address:hover { background-color: #e5101d; color: white; }
 
-        /* ======================================================= */
-        /* CSS TRANG SỔ ĐỊA CHỈ (ADDRESS) */
-        /* ======================================================= */
-        .add-address-btn {
-            background-color: #e5101d !important;
-            border-color: #e5101d !important;
-            font-weight: bold;
-            padding: 8px 15px;
+        .address-card {
+            border: 1px solid #dee2e6; border-radius: 8px; padding: 20px;
+            position: relative; background-color: #fff; transition: box-shadow 0.2s;
         }
-        .add-address-btn:hover { background-color: #c90d19 !important; border-color: #c90d19 !important; }
-
-        .custom-alert-warning {
-            background-color: #fffbe6;
-            border: 1px solid #ffda6e;
-            color: #856404;
-            border-radius: 8px;
+        .address-card.is-default {
+            border-left: 4px solid #e5101d;
         }
-        .custom-alert-warning .fa-exclamation-circle { color: #ffc107 !important; }
+        .address-card:hover { box-shadow: 0 0 15px rgba(0,0,0,0.05); }
 
-        .address-icon { color: #e5101d; font-size: 1.2rem; }
+        .address-actions { position: absolute; top: 15px; right: 15px; display: flex; gap: 0.5rem; }
+        .action-btn { font-size: 0.8rem; padding: 2px 8px; cursor: pointer; text-decoration: none; }
 
-        .address-card { border: 1px solid #dee2e6; border-radius: 8px; background-color: #fcfcfc; }
-        .address-card .fw-bold { color: #333; }
-        .address-card .text-muted.small { font-size: 0.85rem; }
+        .default-badge { font-size: 0.75rem; font-weight: 600; padding: 5px 10px; border-radius: 20px; }
+        .empty-address { text-align: center; padding: 50px; background-color: #f8f9fa; border-radius: 12px; border: 2px dashed #dee2e6; }
     </style>
 </head>
 <body>
 
-<div class="container-fluid bg-light py-3">
-    <div class="container bg-white p-4 shadow-sm rounded">
+<!-- HEADER -->
+<header th:replace="~{/library/header :: header}"></header>
 
-        <h2 class="h4 mb-4 fw-bold">Quản lý tài khoản</h2>
-        <hr class="mb-4">
-
-        <div class="row">
-
-            <div th:replace="~{library/hosouser :: account-sidebar('address')}">
+<div class="account-page-wrapper">
+    <div class="container" style="max-width: 1200px;">
+        <div class="row g-4">
+            <!-- Sidebar -->
+            <div class="col-lg-3">
+                <div th:replace="~{/library/hosoUser :: account-sidebar(activePage='address')}"></div>
             </div>
 
-            <div class="col-md-9 border-start p-4">
-
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h2 class="h4 fw-bold mb-0">Sổ địa chỉ nhận hàng</h2>
-                    <button class="btn btn-danger add-address-btn">Thêm địa chỉ mới</button>
-                </div>
-
-                <div class="alert custom-alert-warning d-flex align-items-center justify-content-between py-2 mb-4" role="alert">
-                    <div class="d-flex align-items-center">
-                        <i class="fas fa-exclamation-circle me-2"></i>
-                        <span class="small">Địa chỉ đã được cập nhật theo đơn vị hành chính sau sáp nhập. Vui lòng kiểm tra lại.</span>
+            <!-- Main Content -->
+            <div class="col-lg-9">
+                <div class="main-content-panel">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h3 class="fw-bold mb-0">Sổ Địa Chỉ Của Tôi</h3>
+                        <button class="btn btn-add-address" id="btnAddAddress">
+                            <i class="fas fa-plus me-2"></i> Thêm địa chỉ mới
+                        </button>
                     </div>
-                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
+                    <hr>
 
-                <div class="card address-card p-3 mb-3 border-0">
-                    <div class="card-body p-0">
-                        <div class="d-flex justify-content-between align-items-start mb-2">
-
-                            <div class="d-flex align-items-center">
-                                <i class="fas fa-home me-2 address-icon"></i>
-                                <span class="fw-bold me-2">chiến</span>
-                                <span>0554324331</span>
-                            </div>
-
-                            <div class="address-actions">
-                                <a href="#" class="text-danger fw-bold text-decoration-none me-2">Sửa</a>
-                                <span class="text-muted">|</span>
-                                <a href="#" class="text-secondary fw-bold text-decoration-none ms-2">Xóa</a>
-                            </div>
-                        </div>
-
-                        <p class="mb-1 fw-bold">54, Phường Đại Mỗ, Hà Nội</p>
-
-                        <p class="text-muted small mb-0">Địa chỉ cũ: 54, Phường Phú Đô, Quận Nam Từ Liêm, Hà Nội</p>
+                    <!-- Vùng hiển thị danh sách địa chỉ -->
+                    <div id="addressListContainer" class="row g-4">
+                        <!-- Địa chỉ sẽ được JS chèn vào đây -->
                     </div>
                 </div>
-
             </div>
         </div>
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Modal Thêm/Sửa Địa Chỉ -->
+<div class="modal fade" id="addressModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="modalTitle">Thêm Địa Chỉ Mới</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Form để thêm/sửa -->
+                <form id="addressForm">
+                    <!-- Trường ẩn để lưu ID khi sửa -->
+                    <input type="hidden" id="addressId">
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="hoTen" class="form-label">Họ và tên</label>
+                            <input type="text" class="form-control" id="hoTen" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="soDienThoai" class="form-label">Số điện thoại</label>
+                            <input type="text" class="form-control" id="soDienThoai" required>
+                        </div>
+                        <div class="col-12">
+                            <label for="diaChiCuThe" class="form-label">Địa chỉ cụ thể (Số nhà, tên đường)</label>
+                            <input type="text" class="form-control" id="diaChiCuThe" placeholder="Số nhà, tên đường..." required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="thanhPho" class="form-label">Tỉnh / Thành phố</label>
+                            <input type="text" class="form-control" id="thanhPho" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="xa" class="form-label">Phường / Xã (bao gồm cả Quận/Huyện)</label>
+                            <input type="text" class="form-control" id="xa" placeholder="Ví dụ: P. Bến Nghé, Quận 1" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="loaiDiaChi" class="form-label">Loại địa chỉ</label>
+                            <select id="loaiDiaChi" class="form-select">
+                                <option value="Nhà riêng">Nhà riêng</option>
+                                <option value="Văn phòng">Văn phòng</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="ghiChu" class="form-label">Ghi chú</label>
+                            <input type="text" class="form-control" id="ghiChu">
+                        </div>
+                    </div>
+                    <!-- Logic "Địa chỉ mặc định" sẽ được xử lý riêng -->
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="submit" form="addressForm" class="btn btn-danger" style="background-color: #e5101d;">Lưu Địa Chỉ</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- FOOTER & SCRIPTS -->
+<footer th:replace="~{/library/footer :: footer}"></footer>
+<div th:replace="~{/library/footer :: scripts}"></div>
+
+<script>
+    $(document).ready(function() {
+        const API_BASE_URL = '/api/dia-chi';
+        const addressModal = new bootstrap.Modal(document.getElementById('addressModal'));
+
+        // --- 1. HIỂN THỊ DANH SÁCH ĐỊA CHỈ ---
+        function loadAddresses() {
+            const container = $('#addressListContainer');
+            container.html('<div class="text-center p-5"><div class="spinner-border text-danger"></div></div>'); // Loading spinner
+
+            $.get(API_BASE_URL, function(addresses) {
+                container.empty();
+                if (addresses && addresses.length > 0) {
+                    addresses.forEach(addr => {
+                        const isDefault = addr.diaChiMacDinh === true; // Giả sử model có trường này, nếu không có thì bỏ qua
+                        const addressCardHtml = `
+                        <div class="col-12">
+                            <div class="address-card ${isDefault ? 'is-default' : ''}">
+                                <div class="address-actions">
+                                    <a href="#" class="action-btn text-primary btn-edit" data-id="${addr.id}">Sửa</a>
+                                    <a href="#" class="action-btn text-danger btn-delete" data-id="${addr.id}">Xóa</a>
+                                </div>
+                                <div class="d-flex align-items-center mb-2">
+                                    <h6 class="mb-0 me-3 fw-bold">${addr.hoTen}</h6>
+                                    ${isDefault ? '<span class="badge bg-success default-badge">Mặc định</span>' : ''}
+                                </div>
+                                <p class="text-muted mb-1">
+                                    <strong>Địa chỉ:</strong> ${addr.diaChiCuThe}, ${addr.xa}, ${addr.thanhPho}
+                                </p>
+                                <p class="text-muted mb-0"><strong>Điện thoại:</strong> ${addr.soDienThoai}</p>
+                                ${!isDefault ? `<a href="#" class="btn-link text-decoration-none mt-2 d-block btn-set-default" data-id="${addr.id}">Đặt làm mặc định</a>` : ''}
+                            </div>
+                        </div>
+                    `;
+                        container.append(addressCardHtml);
+                    });
+                } else {
+                    // Hiển thị thông báo khi không có địa chỉ
+                    container.html(`
+                    <div class="col-12">
+                        <div class="empty-address">
+                            <i class="fas fa-map-marked-alt fa-3x text-muted mb-3"></i>
+                            <h5 class="fw-bold">Bạn chưa có địa chỉ nào</h5>
+                            <p class="text-muted">Hãy thêm địa chỉ mới để giao hàng nhanh hơn nhé!</p>
+                        </div>
+                    </div>
+                `);
+                }
+            }).fail(function() {
+                container.html('<div class="alert alert-danger">Không thể tải danh sách địa chỉ.</div>');
+            });
+        }
+
+        // --- 2. XỬ LÝ SỰ KIỆN MỞ MODAL ---
+        // Mở modal để Thêm mới
+        $('#btnAddAddress').on('click', function() {
+            $('#modalTitle').text('Thêm Địa Chỉ Mới');
+            $('#addressForm')[0].reset(); // Xóa dữ liệu cũ
+            $('#addressId').val(''); // Đảm bảo ID trống
+            addressModal.show();
+        });
+
+        // Mở modal để Sửa
+        $(document).on('click', '.btn-edit', function(e) {
+            e.preventDefault();
+            const addressId = $(this).data('id');
+
+            $.get(`${API_BASE_URL}/${addressId}`, function(addr) {
+                $('#modalTitle').text('Cập Nhật Địa Chỉ');
+                $('#addressId').val(addr.id);
+                $('#hoTen').val(addr.hoTen);
+                $('#soDienThoai').val(addr.soDienThoai);
+                $('#diaChiCuThe').val(addr.diaChiCuThe);
+                $('#xa').val(addr.xa);
+                $('#thanhPho').val(addr.thanhPho);
+                $('#loaiDiaChi').val(addr.loaiDiaChi);
+                $('#ghiChu').val(addr.ghiChu);
+
+                addressModal.show();
+            }).fail(function() {
+                alert('Không tìm thấy thông tin địa chỉ.');
+            });
+        });
+
+        // --- 3. XỬ LÝ LƯU (THÊM/SỬA) ĐỊA CHỈ ---
+        $('#addressForm').on('submit', function(e) {
+            e.preventDefault();
+            const addressId = $('#addressId').val();
+
+            const addressData = {
+                hoTen: $('#hoTen').val(),
+                soDienThoai: $('#soDienThoai').val(),
+                diaChiCuThe: $('#diaChiCuThe').val(),
+                xa: $('#xa').val(),
+                thanhPho: $('#thanhPho').val(),
+                loaiDiaChi: $('#loaiDiaChi').val(),
+                ghiChu: $('#ghiChu').val()
+            };
+
+            const isUpdating = addressId !== '';
+            const url = isUpdating ? `${API_BASE_URL}/${addressId}` : API_BASE_URL;
+            const method = isUpdating ? 'PUT' : 'POST';
+
+            $.ajax({
+                url: url,
+                method: method,
+                contentType: 'application/json',
+                data: JSON.stringify(addressData),
+                success: function() {
+                    addressModal.hide();
+                    loadAddresses(); // Tải lại danh sách
+                    // Thêm thông báo thành công nếu muốn
+                },
+                error: function(xhr) {
+                    // Xử lý lỗi validation từ server
+                    const errors = xhr.responseJSON;
+                    let errorMessage = 'Đã có lỗi xảy ra. Vui lòng thử lại.\n';
+                    if (errors) {
+                        for (const key in errors) {
+                            errorMessage += `- ${errors[key]}\n`;
+                        }
+                    }
+                    alert(errorMessage);
+                }
+            });
+        });
+
+        // --- 4. XỬ LÝ XÓA ĐỊA CHỈ ---
+        $(document).on('click', '.btn-delete', function(e) {
+            e.preventDefault();
+            const addressId = $(this).data('id');
+
+            if (confirm('Bạn có chắc chắn muốn xóa địa chỉ này không?')) {
+                $.ajax({
+                    url: `${API_BASE_URL}/${addressId}`,
+                    method: 'DELETE',
+                    success: function() {
+                        loadAddresses();
+                    },
+                    error: function() {
+                        alert('Xóa địa chỉ thất bại.');
+                    }
+                });
+            }
+        });
+
+        // --- 5. XỬ LÝ ĐẶT LÀM MẶC ĐỊNH (Optional) ---
+        // Uncomment đoạn code này nếu bạn có API /set-default
+        /*
+        $(document).on('click', '.btn-set-default', function(e) {
+            e.preventDefault();
+            const addressId = $(this).data('id');
+
+            $.ajax({
+                url: `${API_BASE_URL}/${addressId}/set-default`,
+                method: 'POST',
+                success: function() {
+                    loadAddresses();
+                },
+                error: function() {
+                    alert('Đặt làm mặc định thất bại.');
+                }
+            });
+        });
+        */
+
+        // Tải danh sách địa chỉ lần đầu khi trang được mở
+        loadAddresses();
+    });
+</script>
+
 </body>
 </html>

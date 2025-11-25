@@ -39,4 +39,15 @@ public class KichThuocServiceImpl implements KichThuocService {
     @Override public List<KichThuoc> searchAndFilter(String ten, Integer trangThai) {
         return kichThuocRepository.findPaginated(Pageable.unpaged(), ten, trangThai).getContent();
     }
+    @Override
+    public KichThuoc updateTrangThai(Integer id, Integer newStatus) {
+        Optional<KichThuoc> optional = kichThuocRepository.findById(id);
+        if (optional.isPresent()) {
+            KichThuoc entity = optional.get();
+            entity.setTrangThai(newStatus);
+            return kichThuocRepository.save(entity);
+        } else {
+            throw new RuntimeException("Không tìm thấy kích thước ID: " + id);
+        }
+    }
 }

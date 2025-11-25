@@ -12,6 +12,7 @@ import sd_04.datn_fstore.model.KichThuoc;
 import sd_04.datn_fstore.service.KichThuocService;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -40,7 +41,16 @@ public class KichThuocApiController {
                     .body("Lỗi khi tìm kiếm kích thước.");
         }
     }
-
+    @PutMapping("/{id}/trang-thai")
+    public ResponseEntity<?> updateTrangThai(@PathVariable("id") Integer id, @RequestParam("trangThai") Integer trangThai) {
+        try {
+            return ResponseEntity.ok(kichThuocService.updateTrangThai(id, trangThai));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Lỗi server: " + e.getMessage());
+        }
+    }
     /**
      * GET: Lấy tất cả (dùng cho dropdown)
      */

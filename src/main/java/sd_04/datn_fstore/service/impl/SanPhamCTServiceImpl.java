@@ -37,6 +37,10 @@ public class SanPhamCTServiceImpl implements SanPhamCTService {
     @Override
     @Transactional // Đảm bảo tính toàn vẹn dữ liệu khi thêm/sửa
     public SanPhamChiTiet save(SanPhamChiTiet sanPhamChiTiet) {
+        // Ví dụ: Set mặc định trạng thái là 1 (Hoạt động/Đang bán)
+        sanPhamChiTiet.setTrangThai(1);
+
+        sanPhamChiTietRepository.save(sanPhamChiTiet);
         return sanPhamChiTietRepository.save(sanPhamChiTiet);
     }
 
@@ -106,5 +110,16 @@ public class SanPhamCTServiceImpl implements SanPhamCTService {
     @Override
     public List<SanPhamChiTiet> searchBySanPhamTen(String tenSp) {
         return sanPhamChiTietRepository.findBySanPhamTenSanPham(tenSp);
+    }
+    @Override
+    public SanPhamChiTiet updateTrangThai(Integer id, Integer newStatus) {
+        Optional<SanPhamChiTiet> optional = sanPhamChiTietRepository.findById(id);
+        if (optional.isPresent()) {
+            SanPhamChiTiet spct = optional.get();
+            spct.setTrangThai(newStatus);
+            return sanPhamChiTietRepository.save(spct);
+        } else {
+            throw new RuntimeException("Không tìm thấy biến thể sản phẩm ID: " + id);
+        }
     }
 }

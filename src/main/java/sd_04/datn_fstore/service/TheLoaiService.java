@@ -19,4 +19,6 @@ public interface TheLoaiService {
     List<TheLoai> searchByTen(String ten);
     List<TheLoai> filterByTrangThai(Integer trangThai);
     List<TheLoai> searchAndFilter(String ten, Integer trangThai);
+    // ... các hàm cũ
+    TheLoai updateTrangThai(Integer id, Integer newStatus);
 }

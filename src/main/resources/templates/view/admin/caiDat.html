@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Cài Đặt Hệ Thống</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" rel="stylesheet" />
+
+    <link rel="stylesheet" th:href="@{/css/styles.css}" />
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            color: #374151;
+            overflow-x: hidden;
+        }
+
+        /* --- LAYOUT --- */
+        #wrapper { display: flex; width: 100%; height: 100vh; overflow: hidden; }
+        #sidebar-wrapper { min-height: 100vh; width: 250px; background-color: #fff; border-right: 1px solid #e5e7eb; display: flex; flex-direction: column; flex-shrink: 0; transition: margin 0.3s; }
+        #page-content-wrapper { flex-grow: 1; background-color: #f3f4f6; overflow-y: auto; display: flex; flex-direction: column; }
+
+        .top-navbar { background: white; height: 64px; border-bottom: 1px solid #e5e7eb; display: flex; align-items: center; padding: 0 24px; flex-shrink: 0; justify-content: space-between; }
+
+        /* --- SETTINGS SPECIFIC CSS --- */
+        .settings-card {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            border: 1px solid #e5e7eb;
+            overflow: hidden;
+            min-height: 600px;
+        }
+
+        /* Menu bên trái */
+        .settings-nav {
+            background-color: #f9fafb;
+            border-right: 1px solid #e5e7eb;
+            height: 100%;
+            padding: 20px 0;
+        }
+
+        .settings-nav .nav-link {
+            color: #4b5563;
+            font-weight: 500;
+            padding: 12px 24px;
+            border-radius: 0;
+            border-left: 3px solid transparent;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+        }
+
+        .settings-nav .nav-link i { width: 24px; text-align: center; margin-right: 10px; font-size: 1.1rem; }
+
+        .settings-nav .nav-link:hover { background-color: #f3f4f6; color: #111827; }
+
+        .settings-nav .nav-link.active {
+            background-color: #fff;
+            color: #4f46e5;
+            border-left-color: #4f46e5;
+            font-weight: 600;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+        }
+
+        /* Nội dung bên phải */
+        .settings-content { padding: 30px; }
+
+        .section-title { font-size: 1.1rem; font-weight: 700; color: #111827; margin-bottom: 20px; border-bottom: 1px solid #e5e7eb; padding-bottom: 10px; }
+
+        .form-label { font-weight: 500; font-size: 0.9rem; color: #374151; }
+        .form-text { font-size: 0.8rem; color: #9ca3af; }
+
+        /* Upload Logo Box */
+        .upload-box {
+            width: 120px; height: 120px;
+            border: 2px dashed #d1d5db;
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            background: #f9fafb;
+        }
+        .upload-box:hover { border-color: #4f46e5; }
+        .upload-box img { width: 100%; height: 100%; object-fit: contain; }
+        .upload-icon { font-size: 24px; color: #9ca3af; }
+
+        /* Save Button Floating */
+        .save-bar {
+            position: sticky;
+            bottom: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(5px);
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            border: 1px solid #e5e7eb;
+            display: flex; justify-content: flex-end; gap: 10px;
+            margin-top: 20px;
+            z-index: 99;
+        }
+    </style>
+</head>
+
+<body>
+
+<div id="wrapper">
+
+    <div id="sidebar-wrapper">
+        <div th:replace="~{library/navbar :: admin-sidebar}"></div>
+    </div>
+
+    <div id="page-content-wrapper">
+
+        <nav class="top-navbar">
+            <div class="d-flex align-items-center">
+                <button class="btn btn-light btn-sm me-3 border" id="menu-toggle"><i class="fas fa-bars"></i></button>
+                <h5 class="mb-0 fw-bold text-dark">Cấu hình hệ thống</h5>
+            </div>
+
+            <div class="dropdown">
+                <a href="#" class="d-flex align-items-center text-decoration-none text-dark dropdown-toggle" data-bs-toggle="dropdown">
+                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">A</div>
+                    <span class="d-none d-sm-block fw-bold">Admin</span>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
+                    <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i>Hồ sơ</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><form th:action="@{/logout}" method="post"><button class="dropdown-item text-danger"><i class="fas fa-sign-out-alt me-2"></i>Đăng xuất</button></form></li>
+                </ul>
+            </div>
+        </nav>
+
+        <main class="container-fluid px-4 py-4">
+
+            <form id="settingsForm" method="post" enctype="multipart/form-data">
+                <div class="settings-card d-flex flex-column flex-md-row">
+
+                    <div class="col-md-3 settings-nav">
+                        <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+                            <button class="nav-link active" id="v-pills-general-tab" data-bs-toggle="pill" data-bs-target="#v-pills-general" type="button">
+                                <i class="fas fa-sliders-h"></i> Chung
+                            </button>
+                            <button class="nav-link" id="v-pills-security-tab" data-bs-toggle="pill" data-bs-target="#v-pills-security" type="button">
+                                <i class="fas fa-shield-alt"></i> Bảo mật & Truy cập
+                            </button>
+                            <button class="nav-link" id="v-pills-email-tab" data-bs-toggle="pill" data-bs-target="#v-pills-email" type="button">
+                                <i class="fas fa-envelope"></i> Cấu hình Email
+                            </button>
+                            <button class="nav-link" id="v-pills-payment-tab" data-bs-toggle="pill" data-bs-target="#v-pills-payment" type="button">
+                                <i class="fas fa-credit-card"></i> Thanh toán
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="col-md-9 settings-content">
+                        <div class="tab-content" id="v-pills-tabContent">
+
+                            <div class="tab-pane fade show active" id="v-pills-general">
+                                <h5 class="section-title">Thông tin Website</h5>
+
+                                <div class="row mb-4">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Tên cửa hàng (Website Title)</label>
+                                        <input type="text" class="form-control" name="siteName" value="F-Store Fashion" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Hotline liên hệ</label>
+                                        <input type="text" class="form-control" name="hotline" value="0988.888.999">
+                                    </div>
+                                </div>
+
+                                <div class="mb-4">
+                                    <label class="form-label">Email liên hệ (Hiển thị Footer)</label>
+                                    <input type="email" class="form-control" name="contactEmail" value="support@fstore.com">
+                                </div>
+
+                                <div class="mb-4">
+                                    <label class="form-label">Địa chỉ văn phòng</label>
+                                    <textarea class="form-control" name="address" rows="2">123 Đường Trịnh Văn Bô, Nam Từ Liêm, Hà Nội</textarea>
+                                </div>
+
+                                <h5 class="section-title mt-5">Hình ảnh thương hiệu</h5>
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <label class="form-label d-block">Logo Website</label>
+                                        <div class="upload-box" onclick="document.getElementById('logoInput').click()">
+                                            <img id="logoPreview" src="https://via.placeholder.com/150?text=LOGO" alt="Logo">
+                                            <input type="file" id="logoInput" name="logoFile" hidden accept="image/*" onchange="previewImage(this, 'logoPreview')">
+                                        </div>
+                                        <div class="form-text mt-2">Kích thước gợi ý: 200x60px. PNG trong suốt.</div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label d-block">Favicon</label>
+                                        <div class="upload-box" style="width: 80px; height: 80px;" onclick="document.getElementById('favInput').click()">
+                                            <img id="favPreview" src="https://via.placeholder.com/50?text=Fav" alt="Favicon">
+                                            <input type="file" id="favInput" name="favFile" hidden accept="image/*" onchange="previewImage(this, 'favPreview')">
+                                        </div>
+                                        <div class="form-text mt-2">Icon tab trình duyệt (32x32px).</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="tab-pane fade" id="v-pills-security">
+                                <h5 class="section-title">Cấu hình truy cập</h5>
+
+                                <div class="d-flex justify-content-between align-items-center mb-4 border p-3 rounded bg-light">
+                                    <div>
+                                        <div class="fw-bold">Chế độ bảo trì (Maintenance Mode)</div>
+                                        <div class="text-muted small">Khi bật, chỉ Admin mới có thể truy cập website. Khách hàng sẽ thấy trang "Đang bảo trì".</div>
+                                    </div>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" role="switch" name="maintenanceMode">
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Thời gian phiên đăng nhập (Session Timeout)</label>
+                                    <select class="form-select w-50" name="sessionTimeout">
+                                        <option value="30">30 phút</option>
+                                        <option value="60" selected>1 giờ</option>
+                                        <option value="120">2 giờ</option>
+                                        <option value="1440">24 giờ</option>
+                                    </select>
+                                </div>
+
+                                <h5 class="section-title mt-4">Chính sách mật khẩu</h5>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="reqSpecial" checked>
+                                    <label class="form-check-label" for="reqSpecial">Yêu cầu ký tự đặc biệt (!@#)</label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="reqNumber" checked>
+                                    <label class="form-check-label" for="reqNumber">Yêu cầu chữ số</label>
+                                </div>
+                            </div>
+
+                            <div class="tab-pane fade" id="v-pills-email">
+                                <h5 class="section-title">Cấu hình gửi Mail (SMTP)</h5>
+                                <div class="alert alert-info border-0 bg-info-subtle small">
+                                    <i class="fas fa-info-circle me-1"></i> Dùng để gửi email xác nhận đơn hàng, quên mật khẩu...
+                                </div>
+
+                                <div class="row g-3">
+                                    <div class="col-md-8">
+                                        <label class="form-label">Mail Host</label>
+                                        <input type="text" class="form-control" name="mailHost" value="smtp.gmail.com">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Port</label>
+                                        <input type="number" class="form-control" name="mailPort" value="587">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Username / Email gửi</label>
+                                        <input type="email" class="form-control" name="mailUsername" placeholder="admin@fstore.com">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">App Password (Mật khẩu ứng dụng)</label>
+                                        <input type="password" class="form-control" name="mailPassword" placeholder="********">
+                                    </div>
+                                </div>
+
+                                <div class="mt-4">
+                                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="testEmail()">
+                                        <i class="fas fa-paper-plane me-1"></i> Gửi email kiểm tra
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="tab-pane fade" id="v-pills-payment">
+                                <h5 class="section-title">VNPAY Config</h5>
+                                <div class="mb-3">
+                                    <label class="form-label">TmnCode</label>
+                                    <input type="text" class="form-control font-monospace" name="vnp_TmnCode" value="DH234J">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">HashSecret</label>
+                                    <input type="password" class="form-control font-monospace" name="vnp_HashSecret" value="****************">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Url API</label>
+                                    <input type="text" class="form-control" name="vnp_Url" value="https://sandbox.vnpayment.vn/paymentv2/vpcpay.html">
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <div class="save-bar">
+                    <button type="button" class="btn btn-light border" onclick="window.location.reload()">Hủy thay đổi</button>
+                    <button type="submit" class="btn btn-primary px-4"><i class="fas fa-save me-2"></i>Lưu Cấu Hình</button>
+                </div>
+            </form>
+
+        </main>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
+
+<script>
+    toastr.options = { "positionClass": "toast-bottom-right", "timeOut": "3000" };
+
+    // Toggle Sidebar
+    $("#menu-toggle").click(function(e) {
+        e.preventDefault();
+        $("#wrapper").toggleClass("toggled");
+        const sidebar = $("#sidebar-wrapper");
+        sidebar.css("margin-left", sidebar.css("margin-left") === "0px" ? "-250px" : "0px");
+    });
+
+    // Preview Image Function
+    function previewImage(input, imgId) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                $('#' + imgId).attr('src', e.target.result);
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    // Handle Form Submit (Giả lập)
+    $("#settingsForm").submit(function(e) {
+        e.preventDefault();
+        // Logic gọi API lưu settings ở đây
+        // var formData = new FormData(this);
+        // $.ajax({ url: '/api/admin/settings', type: 'POST', data: formData, ... });
+
+        // Demo effect
+        let btn = $(this).find('button[type="submit"]');
+        btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>Đang lưu...');
+
+        setTimeout(() => {
+            toastr.success("Đã lưu cấu hình hệ thống thành công!");
+            btn.prop('disabled', false).html('<i class="fas fa-save me-2"></i>Lưu Cấu Hình');
+        }, 1000);
+    });
+
+    function testEmail() {
+        toastr.info("Đang gửi email kiểm tra đến admin...");
+        // Logic gọi API test mail
+    }
+</script>
+
+</body>
+</html>

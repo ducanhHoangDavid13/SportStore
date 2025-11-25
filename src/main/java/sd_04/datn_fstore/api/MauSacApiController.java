@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.*;
 import sd_04.datn_fstore.model.MauSac;
 import sd_04.datn_fstore.service.MauSacService;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -46,6 +48,20 @@ public class MauSacApiController {
         } catch (Exception e) {
             // Lỗi này có thể là do validation hoặc lỗi CSDL
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+    }
+    @PutMapping("/{id}/trang-thai")
+    public ResponseEntity<?> updateTrangThai(
+            @PathVariable("id") Integer id,
+            @RequestParam("trangThai") Integer trangThai) {
+        try {
+            return ResponseEntity.ok(mauSacService.updateTrangThai(id, trangThai));
+        } catch (RuntimeException e) {
+            Map<String, String> err = new HashMap<>();
+            err.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(err);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Lỗi server: " + e.getMessage());
         }
     }
     /**

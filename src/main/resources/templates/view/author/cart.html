@@ -1,212 +1,156 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bag - Nike</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="styles.css">
+    <title>Giỏ Hàng</title>
+
+    <div th:fragment="head-links">
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+
+        <link rel="stylesheet" th:href="@{/css/styles.css}">
+        <link rel="stylesheet" th:href="@{/css/header.css}">
+    </div>
+
+    <style>
+        .cart-page-wrapper { background-color: #f8f9fa; padding: 40px 0; }
+
+        .cart-item {
+            border-bottom: 1px solid #dee2e6;
+            transition: background-color 0.3s;
+        }
+        .cart-item:hover {
+            background-color: #fcfcfc;
+        }
+
+        .cart-item-image {
+            width: 90px; height: 90px;
+            object-fit: cover;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .quantity-wrapper {
+            display: flex;
+            align-items: center;
+        }
+        .quantity-input {
+            width: 50px;
+            text-align: center;
+            border: 1px solid #dee2e6;
+            border-radius: 0;
+            height: 35px;
+            padding: 5px 0;
+            font-weight: 500;
+        }
+        .quantity-btn {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            width: 30px;
+            height: 35px;
+            transition: background 0.2s;
+        }
+        .quantity-btn:hover {
+            background: #e9ecef;
+        }
+
+        .cart-summary {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08); /* Đổ bóng mạnh hơn */
+            position: sticky;
+            top: 100px;
+        }
+
+        .btn-checkout {
+            background-color: #e5101d; /* Màu đỏ thương hiệu */
+            color: white;
+            font-weight: 600;
+            padding: 12px;
+            width: 100%;
+            border: none;
+            border-radius: 8px;
+            transition: background-color 0.2s;
+            text-decoration: none;
+        }
+        .btn-checkout:hover {
+            background-color: #c40e18;
+        }
+    </style>
 </head>
-<style>
-    /* General Body Styles */
-    body {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-        color: #111;
-    }
-
-    /* Header Styles */
-    header .nav-link {
-        color: #111;
-        font-weight: 500;
-        transition: color 0.2s ease-in-out;
-    }
-
-    header .nav-link:hover {
-        color: #757575;
-    }
-
-    .search-container {
-        position: relative;
-    }
-
-    .search-icon {
-        position: absolute;
-        left: 15px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: #111;
-    }
-
-    .search-input {
-        border-radius: 30px;
-        padding-left: 40px;
-        background-color: #f5f5f5;
-        border: none;
-        transition: background-color 0.2s ease-in-out;
-    }
-
-    .search-input:focus {
-        background-color: #e5e5e5;
-        box-shadow: none;
-        border: none;
-    }
-
-    /* Main Content Styles */
-    h1 {
-        font-size: 2rem;
-        font-weight: 600;
-    }
-
-    h2 {
-        font-size: 1.5rem;
-        font-weight: 600;
-    }
-
-    hr {
-        color: #e5e5e5;
-    }
-
-    .btn-dark {
-        background-color: #111;
-        border-color: #111;
-        padding-top: 1rem;
-        padding-bottom: 1rem;
-    }
-
-    .btn-dark:hover, .btn-dark:focus {
-        background-color: #333;
-        border-color: #333;
-    }
-
-    .btn-outline-dark {
-        border-color: #ccc;
-        color: #111;
-        padding-top: 1rem;
-        padding-bottom: 1rem;
-    }
-
-    .btn-outline-dark:hover, .btn-outline-dark:focus {
-        background-color: #f5f5f5;
-        border-color: #111;
-        color: #111;
-    }
-
-    /* Disabled button styles to match the image */
-    .btn:disabled {
-        background-color: #f5f5f5;
-        color: #cacaca;
-        border-color: #f5f5f5;
-        cursor: not-allowed;
-    }
-
-    .btn-outline-dark:disabled {
-        background-color: white;
-        border-color: #e5e5e5;
-        color: #cacaca;
-    }
-</style>
 <body>
 
-<header class="p-3">
-    <div class="d-flex justify-content-between align-items-center">
-        <div>
-            <a href="#">
-                <img src="https://upload.wikimedia.org/wikipedia/en/thumb/3/37/Jumpman_logo.svg/1200px-Jumpman_logo.svg.png" alt="Jordan Logo" style="height: 24px;">
-            </a>
-        </div>
+<header th:replace="~{library/header :: header}"></header>
 
-        <nav class="d-none d-lg-block">
-            <a href="#" class="nav-link d-inline-block me-4">New & Featured</a>
-            <a href="#" class="nav-link d-inline-block me-4">Men</a>
-            <a href="#" class="nav-link d-inline-block me-4">Women</a>
-            <a href="#" class="nav-link d-inline-block me-4">Kids</a>
-            <a href="#" class="nav-link d-inline-block">Sale</a>
-        </nav>
+<div class="cart-page-wrapper">
+    <div class="container" style="max-width: 1200px;">
+        <h2 class="fw-bold mb-5">Giỏ Hàng Của Bạn</h2>
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <div class="bg-white p-4 rounded shadow-sm">
+                    <div class="cart-item d-flex align-items-center py-3">
+                        <img src="https://vinsport.vn/my_uploads/2023/12/Bo-quan-ao-khoac-ni-thu-dong-xuan-Suvec-Wika-chinh-hang-nhieu-mau-kieu-dang-the-thao-moi-2024-1.jpg" alt="Product" class="cart-item-image">
+                        <div class="flex-grow-1 mx-3">
+                            <h6 class="mb-1 fw-bold">Bộ gió thể thao Wika</h6>
+                            <small class="text-muted">Màu: Xám, Size: L</small>
+                        </div>
+                        <div class="quantity-wrapper">
+                            <button class="quantity-btn rounded-start">-</button>
+                            <input type="number" value="1" min="1" class="form-control form-control-sm quantity-input">
+                            <button class="quantity-btn rounded-end">+</button>
+                        </div>
+                        <h6 class="fw-bold mx-4 text-dark" style="width: 120px; text-align: right;">499.000đ</h6>
+                        <button class="btn btn-sm btn-outline-danger"><i class="fas fa-trash-alt"></i></button>
+                    </div>
 
-        <div class="d-flex align-items-center">
-            <div class="search-container me-3">
-                <i class="bi bi-search search-icon"></i>
-                <input type="text" class="form-control search-input" placeholder="Search">
+                    <div class="cart-item d-flex align-items-center py-3">
+                        <img src="https://bizweb.dktcdn.net/100/481/348/products/z4147260213030-0bc9a3e8796f400a2e44729000478a01-1677660244570.jpg?v=1680768222003" alt="Product" class="cart-item-image">
+                        <div class="flex-grow-1 mx-3">
+                            <h6 class="mb-1 fw-bold">Quần Jogger Thể Thao</h6>
+                            <small class="text-muted">Màu: Đen, Size: M</small>
+                        </div>
+                        <div class="quantity-wrapper">
+                            <button class="quantity-btn rounded-start">-</button>
+                            <input type="number" value="2" min="1" class="form-control form-control-sm quantity-input">
+                            <button class="quantity-btn rounded-end">+</button>
+                        </div>
+                        <h6 class="fw-bold mx-4 text-dark" style="width: 120px; text-align: right;">500.000đ</h6>
+                        <button class="btn btn-sm btn-outline-danger"><i class="fas fa-trash-alt"></i></button>
+                    </div>
+                </div>
             </div>
-            <a href="#" class="me-3"><i class="bi bi-heart fs-5 text-dark"></i></a>
-            <a href="#"><i class="bi bi-bag fs-5 text-dark"></i></a>
+
+            <div class="col-lg-4">
+                <div class="cart-summary">
+                    <h4 class="fw-bold mb-4">Tóm tắt đơn hàng</h4>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Tạm tính (2 sản phẩm)</span>
+                        <span class="fw-bold text-dark">999.000đ</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-3">
+                        <span>Phí vận chuyển</span>
+                        <span class="fw-bold text-success">Miễn phí</span>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between h5 fw-bold mb-4 text-danger">
+                        <span>Tổng cộng</span>
+                        <span>999.000đ</span>
+                    </div>
+                    <a th:href="@{/checkout}" class="btn btn-checkout">TIẾN HÀNH THANH TOÁN</a>
+                </div>
+            </div>
         </div>
     </div>
-</header>
-
-<div class="text-center py-2 bg-light">
-    <p class="mb-0 small">FREE DELIVERY</p>
-    <p class="mb-0 small text-muted">Applies to orders of 5.000.000₫ or more. <a href="#" class="text-dark">View details</a>.</p>
 </div>
 
-<main class="container my-5">
-    <div class="row g-5">
-        <div class="col-lg-8">
-            <h1 class="mb-4">Bag</h1>
-            <p th:if="${cartIsEmpty}">There are no items in your bag.</p>
+<footer th:replace="~{library/footer :: footer}"></footer>
+<div th:replace="~{library/footer :: scripts}"></div>
 
-            <hr class="my-5">
-
-            <div>
-                <h2>Favourites</h2>
-                <p>Want to view your favourites? <a href="#" class="text-dark fw-bold">Join us</a> or <a href="#" class="text-dark fw-bold">Sign in</a>.</p>
-            </div>
-        </div>
-
-        <div class="col-lg-4">
-            <h2>Summary</h2>
-            <div class="d-flex justify-content-between mt-4">
-                <span>Subtotal</span>
-                <span>&mdash;</span>
-            </div>
-            <div class="d-flex justify-content-between my-2">
-                <span>Estimated Delivery & Handling</span>
-                <span>Free</span>
-            </div>
-            <hr>
-            <div class="d-flex justify-content-between fw-bold">
-                <span>Total</span>
-                <span>&mdash;</span>
-            </div>
-            <hr>
-            <div class="d-grid gap-3 mt-4">
-                <button class="btn btn-dark btn-lg rounded-pill" disabled>Guest Checkout</button>
-                <button class="btn btn-outline-dark btn-lg rounded-pill" disabled>Member Checkout</button>
-            </div>
-        </div>
-    </div>
-
-    <div class="row mt-5">
-        <div class="col-12">
-            <h2 class="mb-3">You Might Also Like</h2>
-            <div class="text-center p-5 border rounded">
-                <p class="text-muted">Product carousel would go here.</p>
-            </div>
-        </div>
-    </div>
-</main>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script >
-    // No JavaScript is strictly necessary for this static layout.
-    // You can add interactive elements here later.
-
-    document.addEventListener('DOMContentLoaded', function () {
-        console.log('Page loaded and ready.');
-
-        // Example: Add focus effect to search bar
-        const searchInput = document.querySelector('.search-input');
-        const searchContainer = document.querySelector('.search-container');
-
-        searchInput.addEventListener('focus', () => {
-            searchContainer.style.backgroundColor = '#e5e5e5';
-        });
-
-        searchInput.addEventListener('blur', () => {
-            searchContainer.style.backgroundColor = 'transparent';
-        });
-    });
-</script>
 </body>
 </html>

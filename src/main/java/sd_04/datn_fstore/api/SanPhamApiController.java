@@ -2,9 +2,13 @@ package sd_04.datn_fstore.api;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -12,15 +16,20 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import sd_04.datn_fstore.model.SanPham;
 import sd_04.datn_fstore.repository.SanPhamRepository;
+import sd_04.datn_fstore.service.ExcelService;
 import sd_04.datn_fstore.service.FileStorageService;
 import sd_04.datn_fstore.service.HinhAnhService;
 import sd_04.datn_fstore.service.SanPhamService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import sd_04.datn_fstore.model.HinhAnh;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -34,7 +43,7 @@ public class SanPhamApiController {
     private final SanPhamRepository sanPhamRepository;
     private final FileStorageService fileStorageService;
     private final HinhAnhService hinhAnhService;
-
+private  final ExcelService excelService;
     /**
      * API: Lấy danh sách sản phẩm (phân trang, tìm kiếm, lọc)
      */
@@ -220,5 +229,76 @@ public class SanPhamApiController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Lỗi khi xóa.");
         }
+    }
+
+    @GetMapping("/filter")
+    public ResponseEntity<Page<SanPham>> getProducts(
+            @RequestParam(value = "xuatXuIds", required = false) List<Integer> xuatXuIds, // Sửa Long -> Integer
+            @RequestParam(value = "theLoaiIds", required = false) List<Integer> theLoaiIds, // Sửa Long -> Integer
+            @RequestParam(value = "phanLoaiIds", required = false) List<Integer> phanLoaiIds, // Sửa Long -> Integer
+            @RequestParam(value = "chatLieuIds", required = false) List<Integer> chatLieuIds, // Sửa Long -> Integer
+            @RequestParam(value = "minPrice", required = false, defaultValue = "0") BigDecimal minPrice,
+            @RequestParam(value = "maxPrice", required = false, defaultValue = "999999999") BigDecimal maxPrice,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id,asc") String sort
+    ) {
+        // 1. Xử lý logic List rỗng thành NULL (Sử dụng Integer List)
+        List<Integer> finalXuatXuIds = Optional.ofNullable(xuatXuIds).filter(list -> !list.isEmpty()).orElse(null);
+        List<Integer> finalTheLoaiIds = Optional.ofNullable(theLoaiIds).filter(list -> !list.isEmpty()).orElse(null);
+        List<Integer> finalPhanLoaiIds = Optional.ofNullable(phanLoaiIds).filter(list -> !list.isEmpty()).orElse(null);
+        List<Integer> finalChatLieuIds = Optional.ofNullable(chatLieuIds).filter(list -> !list.isEmpty()).orElse(null);
+
+        // 2. Xử lý tham số sort và Pageable (Giữ nguyên)
+        String[] sortParams = sort.split(",");
+        Sort sortOrder = Sort.by(Sort.Direction.fromString(sortParams[1]), sortParams[0]);
+        Pageable pageable = PageRequest.of(page, size, sortOrder);
+
+        // 3. Gọi Repository trực tiếp với các tham số ĐÃ XỬ LÝ
+        Page<SanPham> productsPage = sanPhamRepository.findFilteredProducts(
+                finalXuatXuIds,
+                finalTheLoaiIds,
+                finalPhanLoaiIds,
+                finalChatLieuIds,
+                minPrice,
+                maxPrice,
+                pageable);
+
+        return ResponseEntity.ok(productsPage);
+    }
+    @PutMapping("/{id}/trang-thai")
+    public ResponseEntity<?> updateTrangThai(
+            @PathVariable("id") Integer id,
+            @RequestParam("trangThai") Integer trangThai) {
+        try {
+            // Gọi service xử lý
+            SanPham updatedSanPham = sanPhamService.updateTrangThai(id, trangThai);
+
+            // Trả về kết quả thành công
+            return ResponseEntity.ok(updatedSanPham);
+
+        } catch (RuntimeException e) {
+            // Trả về lỗi nếu không tìm thấy ID
+            Map<String, String> response = new HashMap<>();
+            response.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        } catch (Exception e) {
+            // Lỗi không xác định
+            return ResponseEntity.internalServerError().body("Lỗi hệ thống: " + e.getMessage());
+        }
+    }
+    @GetMapping("/export/excel")
+    public ResponseEntity<InputStreamResource> exportExcel() {
+        List<SanPham> list = sanPhamService.getAll(); // Hoặc lấy theo bộ lọc hiện tại
+        ByteArrayInputStream in = excelService.exportSanPhamToExcel(list);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-Disposition", "attachment; filename=san_pham.xlsx");
+
+        return ResponseEntity
+                .ok()
+                .headers(headers)
+                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .body(new InputStreamResource(in));
     }
 }

@@ -98,6 +98,24 @@ public class SanPhamServiceImpl implements SanPhamService {
     public boolean existsByMaSanPham(String maSanPham) {
         return sanPhamRepository.findByMaSanPham(maSanPham).isPresent();
     }
+    @Override
+    public SanPham updateTrangThai(Integer id, Integer newStatus) {
+        // 1. Tìm sản phẩm trong DB
+        Optional<SanPham> optionalSanPham = sanPhamRepository.findById(id);
+
+        if (optionalSanPham.isPresent()) {
+            SanPham sanPham = optionalSanPham.get();
+
+            // 2. Cập nhật trạng thái mới
+            sanPham.setTrangThai(newStatus);
+
+            // 3. Lưu lại vào DB
+            return sanPhamRepository.save(sanPham);
+        } else {
+            // Ném lỗi nếu không tìm thấy ID (Sẽ được Controller bắt hoặc Global Exception Handler)
+            throw new RuntimeException("Không tìm thấy sản phẩm có ID: " + id);
+        }
+    }
 
 //    @Override
 //    public List<SanPham> findAllForExport(String keyword, Integer trangThai) {

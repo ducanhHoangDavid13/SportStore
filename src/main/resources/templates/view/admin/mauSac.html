@@ -1,20 +1,19 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>Quản lý Màu Sắc</title>
 
-    <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
-    <!-- Bootstrap 5 & Libs -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" />
 
-    <!-- Custom CSS -->
     <link rel="stylesheet" th:href="@{/css/styles.css}" />
+    <link rel="stylesheet" th:href="@{/css/navbar.css}" />
 
     <style>
         body {
@@ -53,13 +52,17 @@
             border-bottom: 2px solid #e5e7eb;
             padding: 1rem 0.75rem;
         }
+
         .table-custom tbody td {
             vertical-align: middle;
             padding: 1rem 0.75rem;
             border-bottom: 1px solid #f3f4f6;
             font-size: 0.875rem;
         }
-        .table-custom tbody tr:hover { background-color: #f9fafb; }
+
+        .table-custom tbody tr:hover {
+            background-color: #f9fafb;
+        }
 
         /* Badges */
         .badge-status {
@@ -68,29 +71,66 @@
             font-weight: 600;
             border-radius: 9999px;
         }
-        .badge-active { background-color: #d1fae5; color: #065f46; }
-        .badge-inactive { background-color: #fee2e2; color: #991b1b; }
+
+        .badge-active {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge-inactive {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
 
         /* Action Buttons */
         .btn-action {
-            width: 32px; height: 32px; padding: 0;
-            display: inline-flex; align-items: center; justify-content: center;
-            border-radius: 6px; transition: all 0.2s;
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            transition: all 0.2s;
         }
-        .btn-action:hover { transform: translateY(-2px); }
+
+        .btn-action:hover {
+            transform: translateY(-2px);
+        }
 
         /* Modals */
-        .modal-content { border-radius: 16px; border: none; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
-        .modal-header { border-bottom: 1px solid #f3f4f6; padding: 1.5rem; }
-        .modal-header.bg-primary { background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%) !important; }
-        .modal-header.bg-warning { background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%) !important; color: white !important; }
-        .modal-body { padding: 1.5rem; }
+        .modal-content {
+            border-radius: 16px;
+            border: none;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
 
-        .form-control:focus, .form-select:focus {
-            border-color: #6366f1; box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        .modal-header {
+            border-bottom: 1px solid #f3f4f6;
+            padding: 1.5rem;
+        }
+
+        .modal-header.bg-primary {
+            background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%) !important;
+        }
+
+        .modal-header.bg-warning {
+            background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%) !important;
+            color: white !important;
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: #6366f1;
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
         }
     </style>
 </head>
+
 <body>
 <nav th:replace="~{library/navbar :: admin-navbar}"></nav>
 
@@ -99,7 +139,6 @@
     <main class="main-content pt-4 px-4">
 
         <div class="container-fluid">
-            <!-- Header -->
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h3 class="fw-bold text-dark mb-0">Quản lý Màu Sắc</h3>
                 <nav aria-label="breadcrumb">
@@ -110,7 +149,6 @@
                 </nav>
             </div>
 
-            <!-- 1. Filter Card -->
             <div class="card-box p-4">
                 <div class="filter-header d-flex align-items-center">
                     <i class="fas fa-filter text-primary me-2"></i> Bộ lọc tìm kiếm
@@ -121,8 +159,7 @@
                             <label for="keyword" class="form-label text-muted small fw-bold">TỪ KHÓA</label>
                             <div class="input-group">
                                 <span class="input-group-text bg-light border-end-0"><i class="fas fa-search text-muted"></i></span>
-                                <input type="text" id="keyword" class="form-control border-start-0"
-                                       placeholder="Nhập mã hoặc tên màu..." th:value="${keyword}">
+                                <input type="text" id="keyword" class="form-control border-start-0" placeholder="Nhập mã hoặc tên màu..." th:value="${keyword}">
                             </div>
                         </div>
                         <div class="col-md-3">
@@ -143,7 +180,6 @@
                 </form>
             </div>
 
-            <!-- 2. Table Card -->
             <div class="card-box">
                 <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
                     <h5 class="mb-0 fw-bold text-dark">Danh sách Màu sắc</h5>
@@ -165,12 +201,10 @@
                         </tr>
                         </thead>
                         <tbody id="mauSacTableBody">
-                        <!-- Data loaded via AJAX -->
                         </tbody>
                     </table>
                 </div>
 
-                <!-- Pagination -->
                 <div class="p-3 border-top d-flex justify-content-between align-items-center bg-light bg-opacity-25">
                     <div id="pageInfo" class="text-muted small"></div>
                     <nav id="paginationNav"></nav>
@@ -178,7 +212,6 @@
             </div>
         </div>
 
-        <!-- ADD MODAL -->
         <div class="modal fade" id="addMauSacModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-md modal-dialog-centered">
                 <div class="modal-content">
@@ -223,7 +256,6 @@
             </div>
         </div>
 
-        <!-- EDIT MODAL -->
         <div class="modal fade" id="editMauSacModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-md modal-dialog-centered">
                 <div class="modal-content">
@@ -272,20 +304,18 @@
     </main>
 </div>
 
-<!-- Scripts -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
 <script th:src="@{/js/my-custom-scripts.js}"></script>
 
 <script>
-    toastr.options = { "positionClass": "toast-bottom-right", "timeOut": "3000", "closeButton": true, "progressBar": true };
-
-    function renderStatusBadge(status) {
-        return status === 1
-            ? '<span class="badge-status badge-active"><i class="fas fa-check-circle me-1"></i>Hoạt động</span>'
-            : '<span class="badge-status badge-inactive"><i class="fas fa-times-circle me-1"></i>Ngừng hoạt động</span>';
-    }
+    toastr.options = {
+        "positionClass": "toast-bottom-right",
+        "timeOut": "3000",
+        "closeButton": true,
+        "progressBar": true
+    };
 
     $(document).ready(function() {
         const API_URL = "/api/mau-sac";
@@ -295,24 +325,34 @@
         const EDIT_FORM_ID = '#editMauSacForm';
         const MODEL_NAME = 'Màu Sắc';
 
-        let currentFilter = { page: 1, keyword: '', trangThai: '' };
+        let currentFilter = {
+            page: 1,
+            keyword: '',
+            trangThai: ''
+        };
         let currentPageData = null;
 
+        // --- 1. LOAD DATA ---
         function loadData() {
             currentFilter.keyword = $('#keyword').val() || '';
             currentFilter.trangThai = $('#trangThaiFilter').val() || '';
 
             let params = {
-                page: currentFilter.page - 1, size: 5,
+                page: currentFilter.page - 1,
+                size: 5,
                 keyword: currentFilter.keyword.trim(),
                 trangThai: currentFilter.trangThai === '' ? null : parseInt(currentFilter.trangThai)
             };
 
             $(TABLE_BODY_ID).html('<tr><td colspan="6" class="text-center py-4"><div class="spinner-border text-primary" role="status"></div><div class="mt-2 text-muted">Đang tải dữ liệu...</div></td></tr>');
-            $('#pageInfo').text(''); $('#paginationNav').empty();
+            $('#pageInfo').text('');
+            $('#paginationNav').empty();
 
             $.ajax({
-                url: API_URL, type: "GET", data: params, dataType: "json",
+                url: API_URL,
+                type: "GET",
+                data: params,
+                dataType: "json",
                 success: function(response) {
                     currentPageData = response;
                     renderTable(response.content);
@@ -332,19 +372,39 @@
                 html = `<tr><td colspan="6" class="text-center py-4 text-muted"><img src="https://cdn-icons-png.flaticon.com/512/7486/7486754.png" width="64" class="mb-2 opacity-50"><br>Không tìm thấy dữ liệu phù hợp</td></tr>`;
             } else {
                 list.forEach(function(item) {
-                    let trangThaiBadge = renderStatusBadge(item.trangThai);
-                    let ngayTaoFormatted = item.ngayTao ? new Date(item.ngayTao).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour:'2-digit', minute:'2-digit' }) : 'N/A';
+                    let ngayTaoFormatted = item.ngayTao ? new Date(item.ngayTao).toLocaleDateString('vi-VN', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    }) : 'N/A';
                     let maDisplay = item.maMau || '';
                     let tenDisplay = item.tenMauSac || '';
+
+                    // LOGIC HIỂN THỊ TRẠNG THÁI VÀ NÚT BẤM (Thay thế nút xóa)
+                    let statusBadge = '';
+                    let actionButton = '';
+
+                    if (item.trangThai === 1) {
+                        statusBadge = '<span class="badge-status badge-active"><i class="fas fa-check-circle me-1"></i>Hoạt động</span>';
+                        // Nút màu đỏ để ngừng hoạt động
+                        actionButton = `<button class="btn btn-action btn-light text-danger border btn-toggle-status" data-id="${item.id}" data-status="0" title="Ngừng hoạt động"><i class="fas fa-ban"></i></button>`;
+                    } else {
+                        statusBadge = '<span class="badge-status badge-inactive"><i class="fas fa-times-circle me-1"></i>Ngừng hoạt động</span>';
+                        // Nút màu xanh để kích hoạt lại
+                        actionButton = `<button class="btn btn-action btn-light text-success border btn-toggle-status" data-id="${item.id}" data-status="1" title="Kích hoạt lại"><i class="fas fa-sync-alt"></i></button>`;
+                    }
+
                     html += `<tr data-id="${item.id}">
                                 <td class="text-center fw-bold text-muted">#${item.id}</td>
                                 <td class="fw-semibold text-primary">${maDisplay}</td>
                                 <td class="fw-semibold text-dark">${tenDisplay}</td>
-                                <td class="text-center">${trangThaiBadge}</td>
+                                <td class="text-center">${statusBadge}</td>
                                 <td class="text-center text-secondary small">${ngayTaoFormatted}</td>
                                 <td class="text-center">
                                     <button class="btn btn-action btn-light text-warning border me-1 btn-edit" data-id="${item.id}" title="Sửa"><i class="fas fa-pen"></i></button>
-                                    <button class="btn btn-action btn-light text-danger border btn-delete" data-id="${item.id}" title="Xóa"><i class="fas fa-trash-alt"></i></button>
+                                    ${actionButton}
                                 </td>
                              </tr>`;
                 });
@@ -368,7 +428,7 @@
         }
 
         function updatePageInfo(data) {
-            if(data.totalElements > 0) {
+            if (data.totalElements > 0) {
                 $('#pageInfo').html(`Hiển thị <strong>${data.numberOfElements}</strong> trên tổng <strong>${data.totalElements}</strong> bản ghi`);
             }
         }
@@ -392,19 +452,28 @@
         $('#btnReset').on('click', function() {
             $('#keyword').val('');
             $('#trangThaiFilter').val('');
-            currentFilter = { page: 1, keyword: '', trangThai: '' };
+            currentFilter = {
+                page: 1,
+                keyword: '',
+                trangThai: ''
+            };
             loadData();
         });
 
+        // Thêm Mới
         $(ADD_FORM_ID).on('submit', function(e) {
             e.preventDefault();
             let tenMauSac = $('#newTenMauSac').val().trim();
             let maMau = $('#newMaMau').val().trim();
 
-            if (!tenMauSac) { toastr.warning("Vui lòng nhập tên màu."); return; }
-            if (tenMauSac.length > 255) { toastr.warning("Tên màu quá dài."); return; }
-            if (!maMau) { toastr.warning("Vui lòng nhập mã màu."); return; }
-            if (maMau.length > 100) { toastr.warning("Mã màu quá dài."); return; }
+            if (!tenMauSac) {
+                toastr.warning("Vui lòng nhập tên màu.");
+                return;
+            }
+            if (!maMau) {
+                toastr.warning("Vui lòng nhập mã màu.");
+                return;
+            }
 
             let newMauSac = {
                 maMau: maMau,
@@ -414,9 +483,16 @@
             };
 
             $.ajax({
-                url: API_URL, type: "POST", contentType: "application/json", data: JSON.stringify(newMauSac),
-                beforeSend: function() { $(ADD_FORM_ID + ' button[type="submit"]').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>'); },
-                complete: function() { $(ADD_FORM_ID + ' button[type="submit"]').prop('disabled', false).text('Lưu lại'); },
+                url: API_URL,
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify(newMauSac),
+                beforeSend: function() {
+                    $(ADD_FORM_ID + ' button[type="submit"]').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
+                },
+                complete: function() {
+                    $(ADD_FORM_ID + ' button[type="submit"]').prop('disabled', false).text('Lưu lại');
+                },
                 success: function() {
                     toastr.success("Thêm mới thành công!");
                     $('#addMauSacModal').modal('hide');
@@ -424,14 +500,19 @@
                     currentFilter.page = 1;
                     loadData();
                 },
-                error: function(jqXHR) { toastr.error(jqXHR.responseJSON?.message || "Lỗi thêm mới."); }
+                error: function(jqXHR) {
+                    toastr.error(jqXHR.responseJSON?.message || "Lỗi thêm mới.");
+                }
             });
         });
 
+        // Sửa (Mở modal)
         $(document).on('click', '.btn-edit', function() {
             let itemId = $(this).data('id');
             $.ajax({
-                url: API_URL + "/" + itemId, type: "GET", dataType: "json",
+                url: API_URL + "/" + itemId,
+                type: "GET",
+                dataType: "json",
                 success: function(item) {
                     $('#editMauSacId').val(item.id);
                     $('#editMaMau').val(item.maMau || '');
@@ -442,47 +523,71 @@
                     var editModal = new bootstrap.Modal(document.getElementById(EDIT_MODAL_ID.substring(1)));
                     editModal.show();
                 },
-                error: function() { toastr.error("Không tải được dữ liệu."); }
+                error: function() {
+                    toastr.error("Không tải được dữ liệu.");
+                }
             });
         });
 
+        // Lưu cập nhật
         $(EDIT_FORM_ID).on('submit', function(e) {
             e.preventDefault();
             let itemId = $('#editMauSacId').val();
             let tenMauSac = $('#editTenMauSac').val().trim();
             let maMau = $('#editMaMau').val().trim();
 
-            if (!tenMauSac) { toastr.warning("Tên màu là bắt buộc."); return; }
-            if (!maMau) { toastr.warning("Mã màu là bắt buộc."); return; }
+            if (!tenMauSac) {
+                toastr.warning("Tên màu là bắt buộc.");
+                return;
+            }
+            if (!maMau) {
+                toastr.warning("Mã màu là bắt buộc.");
+                return;
+            }
 
             let updatedMauSac = {
-                id: itemId, maMau: maMau, tenMauSac: tenMauSac,
+                id: itemId,
+                maMau: maMau,
+                tenMauSac: tenMauSac,
                 moTa: $('#editMoTa').val().trim(),
                 trangThai: parseInt($('input[name="editTrangThai"]:checked').val())
             };
 
             $.ajax({
-                url: API_URL + "/" + itemId, type: "PUT", contentType: "application/json", data: JSON.stringify(updatedMauSac),
+                url: API_URL + "/" + itemId,
+                type: "PUT",
+                contentType: "application/json",
+                data: JSON.stringify(updatedMauSac),
                 success: function() {
                     toastr.success("Cập nhật thành công!");
                     $('#editMauSacModal').modal('hide');
                     loadData();
                 },
-                error: function(jqXHR) { toastr.error(jqXHR.responseJSON?.message || "Lỗi cập nhật."); }
+                error: function(jqXHR) {
+                    toastr.error(jqXHR.responseJSON?.message || "Lỗi cập nhật.");
+                }
             });
         });
 
-        $(document).on('click', '.btn-delete', function() {
-            let idToDelete = $(this).data('id');
-            if (confirm(`Xác nhận xóa ${MODEL_NAME} ID: ${idToDelete}?`)) {
+        // --- HÀM MỚI: ĐỔI TRẠNG THÁI (Thay thế nút xóa) ---
+        $(document).on('click', '.btn-toggle-status', function() {
+            let id = $(this).data('id');
+            let newStatus = $(this).data('status'); // 0 hoặc 1
+            let actionText = newStatus === 1 ? "Kích hoạt lại" : "Ngừng hoạt động";
+
+            if (confirm(`Bạn có chắc muốn ${actionText} màu sắc này?`)) {
                 $.ajax({
-                    url: API_URL + "/" + idToDelete, type: "DELETE",
+                    // Gọi API đổi trạng thái
+                    url: `${API_URL}/${id}/trang-thai?trangThai=${newStatus}`,
+                    type: "PUT",
                     success: function() {
-                        toastr.success("Đã xóa bản ghi!");
-                        if (currentPageData && currentPageData.numberOfElements === 1 && currentFilter.page > 1) currentFilter.page--;
+                        toastr.success(`Đã ${actionText} thành công!`);
                         loadData();
                     },
-                    error: function(jqXHR) { toastr.error("Lỗi khi xóa bản ghi."); }
+                    error: function(jqXHR) {
+                        console.log(jqXHR);
+                        toastr.error("Lỗi khi cập nhật trạng thái. Vui lòng kiểm tra Backend.");
+                    }
                 });
             }
         });
@@ -502,4 +607,5 @@
     });
 </script>
 </body>
+
 </html>

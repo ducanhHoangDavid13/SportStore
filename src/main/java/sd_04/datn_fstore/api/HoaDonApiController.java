@@ -1,6 +1,7 @@
 package sd_04.datn_fstore.api;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -13,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import sd_04.datn_fstore.model.HoaDon;
 import sd_04.datn_fstore.model.HoaDonChiTiet;
+import sd_04.datn_fstore.repository.HoaDonRepository;
 import sd_04.datn_fstore.service.HoaDonService;
 import sd_04.datn_fstore.service.HoaDonExportService; // Thêm Export Service
 import sd_04.datn_fstore.service.HoaDonChiTietService; // Thêm ChiTiet Service

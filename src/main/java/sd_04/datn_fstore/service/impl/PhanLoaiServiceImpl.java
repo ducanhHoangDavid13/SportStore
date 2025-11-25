@@ -39,4 +39,15 @@ public class PhanLoaiServiceImpl implements PhanLoaiService {
     @Override public List<PhanLoai> searchAndFilter(String ten, Integer trangThai) {
         return phanLoaiRepository.findPaginated(Pageable.unpaged(), ten, trangThai).getContent();
     }
+    @Override
+    public PhanLoai updateTrangThai(Integer id, Integer newStatus) {
+        Optional<PhanLoai> optional = phanLoaiRepository.findById(id);
+        if (optional.isPresent()) {
+            PhanLoai entity = optional.get();
+            entity.setTrangThai(newStatus);
+            return phanLoaiRepository.save(entity);
+        } else {
+            throw new RuntimeException("Không tìm thấy phân loại ID: " + id);
+        }
+    }
 }

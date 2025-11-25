@@ -1,231 +1,61 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <body>
+<link rel="stylesheet" th:href="@{/css/footer.css}">
 
-<!--
-  Fragment 'footer' bắt đầu ở đây.
-  CSS được đặt bên trong để nó được chèn
-  cùng với footer.
--->
-<footer class="site-footer" th:fragment="footer">
-    <style>
-        /* --- Cài đặt cơ bản cho Footer --- */
-        .site-footer {
-            background-color: #111; /* Màu nền đen */
-            color: #a9a9a9; /* Màu chữ xám nhạt */
-            padding: 50px 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            line-height: 1.6;
-            margin-top: 50px; /* Tạo khoảng cách với nội dung bên trên */
-        }
-
-        /* Container bên trong footer, dùng lại từ file .css chính
-          nếu có, hoặc định nghĩa ở đây.
-        */
-        .site-footer .container {
-            width: 100%;
-            max-width: 1400px; /* Khớp với max-width của header */
-            margin: 0 auto;
-            padding: 0 1.5rem; /* Khớp với padding của header */
-        }
-
-        /* --- Lưới (Grid) của Footer --- */
-        .footer-grid {
-            display: grid;
-            /* Tạo 4 cột trên desktop.
-              gap: 30px là khoảng cách giữa các cột.
-            */
-            grid-template-columns: repeat(4, 1fr);
-            gap: 30px;
-        }
-
-        /* --- Từng cột trong Lưới --- */
-        .footer-col {
-            min-width: 0; /* Sửa lỗi flexbox/grid overflow */
-        }
-
-        .footer-logo svg {
-            margin-bottom: 20px;
-        }
-
-        /* Tiêu đề của mỗi cột (Về chúng tôi, Hỗ trợ...) */
-        .footer-heading {
-            font-size: 1.1rem;
-            color: #fff; /* Màu trắng */
-            margin-bottom: 20px;
-            font-weight: 600;
-        }
-
-        /* --- Các link trong Footer --- */
-        .footer-links {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .footer-links li {
-            margin-bottom: 12px;
-        }
-
-        .footer-links a {
-            text-decoration: none;
-            color: #a9a9a9; /* Màu chữ xám nhạt */
-            transition: color 0.2s, padding-left 0.2s;
-        }
-
-        .footer-links a:hover {
-            color: #fff; /* Chuyển sang màu trắng khi hover */
-            padding-left: 5px; /* Hiệu ứng thụt vào */
-        }
-
-        /* --- Thông tin liên hệ (Cột 1) --- */
-        .contact-info {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            color: #a9a9a9;
-        }
-        .contact-info li {
-            margin-bottom: 15px;
-            display: flex;
-            align-items: flex-start;
-        }
-        .contact-info i {
-            margin-right: 12px;
-            margin-top: 5px;
-            color: var(--primary-color, #0d6efd); /* Dùng màu nhấn */
-        }
-        .contact-info a {
-            color: #fff; /* Số điện thoại/email màu trắng */
-            text-decoration: none;
-        }
-        .contact-info a:hover {
-            text-decoration: underline;
-        }
-
-        /* --- Icon Mạng xã hội (Cột 1) --- */
-        .social-icons {
-            margin-bottom: 25px;
-        }
-        .social-icons a {
-            color: #a9a9a9;
-            font-size: 1.3rem;
-            margin-right: 15px;
-            transition: color 0.2s;
-        }
-        .social-icons a:hover {
-            color: var(--primary-color, #0d6efd);
-        }
-
-        /* --- Bản đồ (Cột 4) --- */
-        .map-container {
-            border-radius: 8px;
-            overflow: hidden; /* Bo góc cho iframe */
-        }
-
-        /* --- Dòng Copyright cuối cùng --- */
-        .footer-bottom {
-            border-top: 1px solid #333; /* Đường kẻ mờ */
-            padding-top: 25px;
-            margin-top: 40px;
-            text-align: center;
-            font-size: 0.9rem;
-        }
-
-        /* --- RESPONSIVE CHO FOOTER --- */
-
-        /* Tablet (2 cột) */
-        @media (max-width: 992px) {
-            .footer-grid {
-                /* Chuyển thành 2 cột */
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        /* Mobile (1 cột) */
-        @media (max-width: 768px) {
-            .footer-grid {
-                /* Chuyển thành 1 cột */
-                grid-template-columns: 1fr;
-            }
-            .site-footer {
-                padding: 40px 0;
-            }
-        }
-    </style>
-
-    <!-- Bắt đầu code HTML của Footer -->
+<!-- ======================= FOOTER FRAGMENT ======================= -->
+<footer class="footer" th:fragment="footer">
     <div class="container">
         <div class="footer-grid">
-
-            <!-- Cột 1: Logo, Social, Liên hệ -->
             <div class="footer-col">
-                <a th:href="@{/}" class="footer-logo">
-                    <svg width="40" height="40" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <circle cx="16" cy="16" r="12" fill="white"/><circle cx="50" cy="16" r="12" fill="white"/><circle cx="84" cy="16" r="12" fill="white"/>
-                        <circle cx="16" cy="50" r="12" fill="white"/><circle cx="50" cy="50" r="12" fill="white"/><circle cx="84" cy="50" r="12" fill="white"/>
-                        <circle cx="16" cy="84" r="12" fill="white"/><circle cx="50" cy="84" r="12" fill="white"/><circle cx="84" cy="84" r="12" fill="white"/>
-                    </svg>
-                </a>
+                <h4 class="footer-logo">SportGear</h4>
+                <p>Nâng tầm trải nghiệm thể thao của bạn với những sản phẩm chất lượng hàng đầu.</p>
                 <div class="social-icons">
-                    <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
-                    <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
-                    <a href="#" aria-label="Youtube"><i class="fab fa-youtube"></i></a>
-                    <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+                    <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
+                    <a href="#"><i class="fa-brands fa-instagram"></i></a>
+                    <a href="#"><i class="fa-brands fa-tiktok"></i></a>
                 </div>
-                <h4 class="footer-heading">HỆ THỐNG CỬA HÀNG</h4>
-                <ul class="contact-info">
-                    <li><i class="fas fa-phone-alt"></i><span>Hotline : <a href="tel:0785489555">0785489555</a></span></li>
-                    <li><i class="fas fa-map-marker-alt"></i><span>Cơ sở 1: 561 Nguyễn Đình Chiểu, P.2, Q.3, TP.HCM</span></li>
-                    <li><i class="fas fa-map-marker-alt"></i><span>Cơ sở 2: 123 Phố Huế, Hai Bà Trưng, Hà Nội</span></li>
+            </div>
+            <div class="footer-col">
+                <h4>Sản phẩm</h4>
+                <ul>
+                    <li><a href="#">Quần áo</a></li>
+                    <li><a href="#">Giày</a></li>
+                    <li><a href="#">Phụ kiện</a></li>
+                    <li><a href="#">Dụng cụ</a></li>
                 </ul>
             </div>
-
-            <!-- Cột 2: Về chúng tôi -->
             <div class="footer-col">
-                <h4 class="footer-heading">Về chúng tôi</h4>
-                <ul class="footer-links">
-                    <li><a th:href="@{/about}">Giới Thiệu</a></li>
-                    <li><a th:href="@{/careers}">Tuyển Dụng</a></li>
-                    <li><a th:href="@{/blog}">Tin Tức - Sự Kiện</a></li>
+                <h4>Hỗ trợ</h4>
+                <ul>
+                    <li><a href="#">Chính sách đổi trả</a></li>
+                    <li><a href="#">Hướng dẫn mua hàng</a></li>
+                    <li><a href="#">Câu hỏi thường gặp</a></li>
+                    <li><a href="#">Chính sách bảo mật</a></li>
                 </ul>
             </div>
-
-            <!-- Cột 3: Hỗ trợ khách hàng -->
             <div class="footer-col">
-                <h4 class="footer-heading">Hỗ trợ khách hàng</h4>
-                <ul class="footer-links">
-                    <li><a th:href="@{/help/purchase-guide}">Hướng dẫn mua hàng</a></li>
-                    <li><a th:href="@{/help/return-policy}">Chính sách đổi trả và bảo hành</a></li>
-                    <li><a th:href="@{/help/payment-policy}">Chính Sách Thanh Toán</a></li>
-                    <li><a th:href="@{/help/terms}">Điều khoản trang web</a></li>
-                    <li><a th:href="@{/help/shipping}">Vận chuyển và giao hàng</a></li>
-                </ul>
-            </div>
-
-            <!-- Cột 4: Bản đồ -->
-            <div class="footer-col">
-                <h4 class="footer-heading">Bản đồ chi nhánh Hà Nội</h4>
-                <div class="map-container">
-                    <iframe
-                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3724.328318282038!2d105.8504505759679!3d21.01955118831872!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3135ab8f9835652f%3A0x57724a229048a80a!2zMTIzIFBoốIEaOG6vywgTmd1eeG7hW4gRHUsIEhhaSBCw6AgVHLGsG5nLCBIw6AgTuG7mWksIFZp4buHdCBNZW4!5e0!3m2!1svi!2s!4v1728862145889!5m2!1svi!2s"
-                            width="100%"
-                            height="200"
-                            style="border:0;"
-                            allowfullscreen=""
-                            loading="lazy"
-                            referrerpolicy="no-referrer-when-downgrade">
-                    </iframe>
-                </div>
+                <h4>Đăng ký nhận tin</h4>
+                <p>Nhận thông tin về sản phẩm mới và khuyến mãi đặc biệt.</p>
+                <form class="newsletter-form">
+                    <input type="email" placeholder="Nhập email của bạn">
+                    <button type="submit">Đăng Ký</button>
+                </form>
             </div>
         </div>
-
-        <!-- Dòng Copyright -->
         <div class="footer-bottom">
-            <p>© 2025 Tên Công Ty Của Bạn. All Rights Reserved.</p>
+            <p>&copy; 2024 SportGear. Đã đăng ký bản quyền.</p>
         </div>
     </div>
 </footer>
+
+<!-- Fragment này chứa các link script chung cho tất cả các trang -->
+<div th:fragment="scripts">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Link tới file JS chung của bạn (nếu có) -->
+    <script th:src="@{/js/main.js}"></script>
+</div>
 
 </body>
 </html>

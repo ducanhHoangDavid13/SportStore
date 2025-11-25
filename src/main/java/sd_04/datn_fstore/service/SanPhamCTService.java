@@ -33,4 +33,5 @@ public interface SanPhamCTService {
     );
     List<SanPhamChiTiet> getAvailableProducts();
     List<SanPhamChiTiet> searchBySanPhamTen(String tenSp);
+    SanPhamChiTiet updateTrangThai(Integer id, Integer newStatus);
 }

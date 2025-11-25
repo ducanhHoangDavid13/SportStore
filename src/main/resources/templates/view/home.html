@@ -1,63 +1,209 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Home Page</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sport Store - Trang Chủ</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" th:href="@{/css/header.css}">
+    <link rel="stylesheet" th:href="@{/css/footer.css}">
+    <link rel="stylesheet" th:href="@{/css/index.css}">
+
     <style>
-        body {
-          font-family: Arial, sans-serif;
-          background: linear-gradient(135deg, #1e90ff, #00bfff);
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          height: 100vh;
-          margin: 0;
-        }
-        .login-container {
-          background: #fff;
-          padding: 40px 30px;
-          border-radius: 12px;
-          box-shadow: 0 0 15px rgba(0,0,0,0.2);
-          width: 350px;
-          text-align: center;
-        }
-        h1 {
-          color: #28a745;
-          margin-bottom: 10px;
-        }
-        h2 {
-          margin-bottom: 25px;
-          color: #333;
-        }
-        form {
-          margin-top: 20px;
-        }
-        button {
-          width: 100%;
-          background-color: #ff4d4d;
-          color: white;
-          padding: 12px;
-          border: none;
-          border-radius: 8px;
-          cursor: pointer;
-          font-size: 16px;
-          font-weight: bold;
-          transition: background-color 0.3s ease;
-        }
-        button:hover {
-          background-color: #e63939;
-        }
+        :root { --primary: #0d6efd; --dark: #212529; --light: #f8f9fa; --radius: 8px; }
+        body { font-family: 'Roboto', sans-serif; overflow-x: hidden; }
+
+        /* Carousel */
+        .main-carousel .carousel-item { height: 500px; background-size: cover; background-position: center; position: relative; }
+        .main-carousel .carousel-caption { bottom: 20%; left: 10%; text-align: left; text-shadow: 2px 2px 4px rgba(0,0,0,0.6); }
+        .caption-title { font-size: 3rem; font-weight: 900; }
+        .btn-slide { background: var(--white); color: var(--dark); padding: 10px 30px; font-weight: bold; border-radius: 50px; text-decoration: none; transition: .3s; }
+        .btn-slide:hover { background: var(--primary); color: white; }
+
+        /* Categories */
+        .category-card { text-align: center; transition: .3s; text-decoration: none; color: var(--dark); display: block; }
+        .category-card:hover { transform: translateY(-5px); color: var(--primary); }
+        .category-card img { width: 100%; height: 200px; object-fit: cover; border-radius: var(--radius); margin-bottom: 10px; }
+
+        /* Banner Grid */
+        .banner-item { height: 300px; background-size: cover; background-position: center; border-radius: var(--radius); display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+        .banner-item::before { content:''; position: absolute; inset: 0; background: rgba(0,0,0,0.3); transition: .3s; }
+        .banner-item:hover::before { background: rgba(0,0,0,0.1); }
+        .banner-content { position: relative; z-index: 2; color: white; text-align: center; }
+
+        /* Product Card */
+        .product-card { border: 1px solid #eee; border-radius: var(--radius); overflow: hidden; transition: .3s; position: relative; background: white; height: 100%; }
+        .product-card:hover { box-shadow: 0 10px 20px rgba(0,0,0,0.1); transform: translateY(-5px); }
+        .product-card img { width: 100%; height: 280px; object-fit: cover; }
+        .product-card .info { padding: 15px; text-align: center; }
+        .product-tag { position: absolute; top: 10px; left: 10px; background: red; color: white; padding: 2px 8px; font-size: 11px; font-weight: bold; border-radius: 4px; }
+
+        /* Video */
+        .video-section { background: var(--dark); padding: 60px 0; color: white; text-align: center; }
     </style>
 </head>
 <body>
-<div class="login-container">
-    <h1>Đăng nhập thành công</h1>
-    <h2>Home page</h2>
 
-    <!-- Nút Logout -->
-    <form th:action="@{/logout}" method="post">
-        <button type="submit">Đăng xuất</button>
-    </form>
-</div>
+<header th:replace="~{library/header :: header}"></header>
+
+
+<main>
+
+    <div id="mainCarousel" class="carousel slide main-carousel carousel-fade" data-bs-ride="carousel" data-bs-interval="4000">
+        <div class="carousel-indicators">
+            <button type="button" data-bs-target="#mainCarousel" data-bs-slide-to="0" class="active"></button>
+            <button type="button" data-bs-target="#mainCarousel" data-bs-slide-to="1"></button>
+            <button type="button" data-bs-target="#mainCarousel" data-bs-slide-to="2"></button>
+        </div>
+        <div class="carousel-inner">
+            <div class="carousel-item active" style="background-image: url('https://tn.com.ar/resizer/v2/los-terrenos-las-distancias-los-ritmos-y-las-exigencias-seran-diferentes-a-tus-entrenamientos-en-otras-partes-del-ano-foto-shutterstock-XQ3CADM4TZPTBI33DXC6P6AHLY.jpg?auth=0e8721df902a795351454cdeeb718a44c9f12dcf0addeacaee75d3d829558e6f&width=767');">
+                <div class="carousel-caption">
+                    <h1 class="caption-title">SUMMER COLLECTION</h1>
+                    <p class="fs-5">Khám phá bộ sưu tập thời trang thể thao mới nhất.</p>
+                    <a th:href="@{/san-pham}" class="btn btn-light fw-bold rounded-pill px-4 py-2">MUA NGAY</a>
+                </div>
+            </div>
+            <div class="carousel-item" style="background-image: url('https://product.hstatic.net/200000650139/product/tvv07200_b8b681a667df46c68dd94f065fcbce48_grande.jpg');">
+                <div class="carousel-caption">
+                    <h1 class="caption-title">WOMEN ACTIVE</h1>
+                    <p class="fs-5">Tự tin năng động với trang phục tập luyện chuyên nghiệp.</p>
+                    <a th:href="@{/san-pham}" class="btn btn-light fw-bold rounded-pill px-4 py-2">XEM CHI TIẾT</a>
+                </div>
+            </div>
+            <div class="carousel-item" style="background-image: url('https://aokhoacdu.com/wp-content/uploads/2020/06/ao-khoac-the-thao-adidas-2020.jpg');">
+                <div class="carousel-caption">
+                    <h1 class="caption-title">FALL WINTER 2024</h1>
+                    <p class="fs-5">Ấm áp và phong cách với BST Thu Đông mới về.</p>
+                    <a th:href="@{/san-pham}" class="btn btn-light fw-bold rounded-pill px-4 py-2">KHÁM PHÁ</a>
+                </div>
+            </div>
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#mainCarousel" data-bs-slide="prev"><span class="carousel-control-prev-icon"></span></button>
+        <button class="carousel-control-next" type="button" data-bs-target="#mainCarousel" data-bs-slide="next"><span class="carousel-control-next-icon"></span></button>
+    </div>
+
+    <section class="container my-5">
+        <div class="text-center mb-4">
+            <h2 class="fw-bold">DANH MỤC SẢN PHẨM</h2>
+            <p class="text-muted">Lựa chọn theo phong cách của bạn</p>
+        </div>
+        <div class="row row-cols-2 row-cols-md-3 row-cols-lg-5 g-3">
+            <div class="col"><a th:href="@{/san-pham}" class="category-card"><img src="https://n7media.coolmate.me/uploads/September2025/ao-khoac-the-thao-track-jacket-essential-xam-bid-grey-1.jpg"><div class="fw-bold mt-2">ÁO KHOÁC</div></a></div>
+            <div class="col"><a th:href="@{/san-pham}" class="category-card"><img src="https://pos.nvncdn.com/a36e05-151378/ps/20241128_TyLUzfgv9J.jpeg?v=1732776975"><div class="fw-bold mt-2">ÁO NAM</div></a></div>
+            <div class="col"><a th:href="@{/san-pham}" class="category-card"><img src="https://product.hstatic.net/200000650139/product/tvv07200_b8b681a667df46c68dd94f065fcbce48_grande.jpg"><div class="fw-bold mt-2">ÁO NỮ</div></a></div>
+            <div class="col"><a th:href="@{/san-pham}" class="category-card"><img src="https://victeam.co/wp-content/uploads/2022/02/A43-xanh-bich-e1645301099369.jpg"><div class="fw-bold mt-2">ÁO POLO</div></a></div>
+            <div class="col"><a th:href="@{/san-pham}" class="category-card"><img src="https://product.hstatic.net/200000805635/product/do_de94001dd04048c2bb32eaac7d4f7a2d_1024x1024.png"><div class="fw-bold mt-2">ÁO THUN</div></a></div>
+        </div>
+    </section>
+
+    <section class="container-fluid p-0">
+        <div class="row g-0">
+            <div class="col-md-6">
+                <a th:href="@{/san-pham}" class="text-decoration-none">
+                    <div class="banner-item" style="background-image: url('https://tn.com.ar/resizer/v2/los-terrenos-las-distancias-los-ritmos-y-las-exigencias-seran-diferentes-a-tus-entrenamientos-en-otras-partes-del-ano-foto-shutterstock-XQ3CADM4TZPTBI33DXC6P6AHLY.jpg?auth=0e8721df902a795351454cdeeb718a44c9f12dcf0addeacaee75d3d829558e6f&width=767'); height: 400px;">
+                        <div class="banner-content">
+                            <h2 class="fw-bold display-5">THỜI TRANG NAM</h2>
+                            <button class="btn btn-outline-light mt-2">MUA NGAY</button>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-6">
+                <a th:href="@{/san-pham}" class="text-decoration-none">
+                    <div class="banner-item" style="background-image: url('https://thanhnien.mediacdn.vn/uploaded/minhtan/2021_07_04/2021-07-03t131214z_1158724332_up1eh7310oc7r_rtrmadp_3_tennis-wimbledon_DCFS.jpg?width=500'); height: 400px;">
+                        <div class="banner-content">
+                            <h2 class="fw-bold display-5">THỜI TRANG NỮ</h2>
+                            <button class="btn btn-outline-light mt-2">MUA NGAY</button>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <section class="container my-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="fw-bold m-0">SẢN PHẨM MỚI VỀ</h3>
+            <a th:href="@{/san-pham}" class="text-decoration-none text-dark fw-bold">Xem tất cả <i class="fas fa-arrow-right"></i></a>
+        </div>
+
+        <div class="row row-cols-2 row-cols-md-4 g-4">
+            <div class="col">
+                <div class="product-card">
+                    <div class="position-relative">
+                        <img src="https://vinsport.vn/my_uploads/2023/12/Bo-quan-ao-khoac-ni-thu-dong-xuan-Suvec-Wika-chinh-hang-nhieu-mau-kieu-dang-the-thao-moi-2024-1.jpg">
+                        <span class="product-tag">NEW</span>
+                    </div>
+                    <div class="info">
+                        <h6 class="fw-bold">Bộ gió thể thao Wika</h6>
+                        <div class="text-danger fw-bold mb-2">499.000đ</div>
+                        <button class="btn btn-dark btn-sm w-100 rounded-pill">Thêm vào giỏ</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="product-card">
+                    <div class="position-relative">
+                        <img src="https://bizweb.dktcdn.net/100/481/348/products/z4147260213030-0bc9a3e8796f400a2e44729000478a01-1677660244570.jpg?v=1680768222003">
+                        <span class="product-tag" style="background: orange;">HOT</span>
+                    </div>
+                    <div class="info">
+                        <h6 class="fw-bold">Quần Jogger Nỉ</h6>
+                        <div class="text-danger fw-bold mb-2">250.000đ</div>
+                        <button class="btn btn-dark btn-sm w-100 rounded-pill">Thêm vào giỏ</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="product-card">
+                    <img src="https://namfashion.com/home/wp-content/uploads/2024/07/Bo-quan-ao-the-thao-exr-cao-cap-xuat-khau-ha-noi-12.jpg">
+                    <div class="info">
+                        <h6 class="fw-bold">Bộ nỉ nam EXR</h6>
+                        <div class="text-danger fw-bold mb-2">650.000đ</div>
+                        <button class="btn btn-dark btn-sm w-100 rounded-pill">Thêm vào giỏ</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="product-card">
+                    <div class="position-relative">
+                        <img src="https://product.hstatic.net/1000312752/product/dsc05677_8e359d557e824b608c69ee5717fe76fc_master.jpg">
+                        <span class="product-tag" style="background: #666;">HẾT HÀNG</span>
+                    </div>
+                    <div class="info">
+                        <h6 class="fw-bold">Set thể thao nữ</h6>
+                        <div class="text-danger fw-bold mb-2">320.000đ</div>
+                        <button class="btn btn-secondary btn-sm w-100 rounded-pill" disabled>Hết hàng</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="video-section">
+        <div class="container">
+            <h2 class="fw-bold mb-4">LÀM CHỦ PHONG CÁCH</h2>
+            <div class="ratio ratio-16x9 mx-auto shadow-lg rounded overflow-hidden" style="max-width: 800px;">
+                <iframe src="https://www.youtube.com/embed/DlUyuNRTp8Y?si=GkFXQGchyOfx4aN-" title="YouTube video" allowfullscreen></iframe>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<footer th:replace="~{library/footer :: footer}"></footer>
+
+
+<a href="https://m.me/yourpage" target="_blank" class="position-fixed bottom-0 end-0 m-4 p-3 text-white rounded-circle shadow-lg" style="background: #0084ff; z-index: 1000; font-size: 24px;">
+    <i class="fab fa-facebook-messenger"></i>
+</a>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
 </body>
 </html>

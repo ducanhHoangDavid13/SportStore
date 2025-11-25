@@ -1,212 +1,78 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<link rel="stylesheet" th:href="@{/css/header.css}">
+
+<link rel="stylesheet" th:href="@{/css/styles.css}">
 <body>
 
+
 <header class="main-header" th:fragment="header">
-    <style>
-        /* --- Cài đặt cơ bản & Biến (Tùy chọn) --- */
-        :root {
-            --primary-color: #e5101d; /* Đổi màu chính thành màu đỏ FPT Shop */
-            --dark-color: #111;
-            --light-color: #fff;
-            --border-color: #e0e0e0;
-            --header-height: 70px;
-        }
-
-        /* --- CSS CHUNG CHO HEADER (GIỮ NGUYÊN) --- */
-        .main-header {
-            height: var(--header-height);
-            background-color: var(--light-color);
-            border-bottom: 1px solid var(--border-color);
-            position: fixed; top: 0; left: 0; width: 100%; z-index: 1000;
-            display: flex; justify-content: center; align-items: center;
-        }
-        .header-container {
-            width: 100%; max-width: 1400px; padding: 0 1.5rem;
-            display: flex; justify-content: space-between; align-items: center; gap: 1.5rem;
-        }
-        .header-left, .header-center, .header-right {
-            display: flex; align-items: center; gap: 1.5rem;
-        }
-        .header-center { flex-grow: 1; justify-content: center; }
-        .header-right { justify-content: flex-end; }
-        .menu-toggle { display: none; background: none; border: none; cursor: pointer; font-size: 1.5rem; color: var(--dark-color); padding: 0; }
-        .search-form { display: flex; align-items: center; background-color: #f5f5f5; border-radius: 25px; overflow: hidden; border: 1px solid #e0e0e0; width: 100%; max-width: 450px; }
-        .search-input { border: none; background: transparent; padding: 0.6rem 1rem; font-size: 0.9rem; width: 100%; }
-        .search-input:focus { outline: none; }
-        .search-button { background: none; border: none; padding: 0 1rem; cursor: pointer; color: #555; font-size: 0.9rem; }
-        .main-nav ul { list-style: none; margin: 0; padding: 0; display: flex; gap: 2rem; }
-        .main-nav a { text-decoration: none; color: #333; font-weight: 500; font-size: 0.9rem; text-transform: uppercase; transition: color 0.2s; }
-        .main-nav a:hover { color: var(--primary-color); }
-        .cart-icon { font-size: 1.3rem; color: var(--dark-color); text-decoration: none; position: relative; } /* Thêm position: relative cho icon giỏ hàng */
-        .header-actions { display: flex; gap: 0.5rem; }
-        .btn { padding: 0.6rem 1rem; text-decoration: none; border-radius: 8px; font-weight: 500; font-size: 0.9rem; transition: all 0.2s; border: 1px solid transparent; }
-        .btn-dark { background-color: var(--dark-color); color: var(--light-color); }
-        .btn-dark:hover { background-color: #333; }
-
-        /* --- ĐIỀU CHỈNH CHUNG --- */
-        .text-red { color: var(--primary-color); }
-        .text-dark { color: var(--dark-color); }
-
-        /* --- CSS DROPUP/DROPDOWN TÀI KHOẢN --- */
-        .account-dropdown-toggle {
-            /* Tùy chỉnh nút kích hoạt dropdown */
-            background: none;
-            border: none;
-            padding: 0.5rem 0.8rem;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            font-size: 0.9rem;
-            font-weight: 500;
-            color: #333;
-            transition: all 0.2s;
-        }
-        .account-dropdown-toggle:hover {
-            background-color: #f0f0f0;
-        }
-
-        /* Avatar trong dropdown */
-        .account-avatar {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            background-color: #ff914d; /* Màu nền cam/hồng */
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-right: 8px;
-            position: relative;
-        }
-        .account-avatar i {
-            color: white; /* Màu icon người dùng */
-            font-size: 16px;
-        }
-
-        /* Icon Giỏ hàng (đã đưa vào cấu trúc dropdown để dễ style) */
-        .cart-dropdown-toggle {
-            background: none;
-            border: none;
-            padding: 0.5rem 0.8rem;
-            border-radius: 8px;
-            color: var(--dark-color);
-            font-size: 1rem;
-            position: relative;
-        }
-        .cart-badge {
-            position: absolute;
-            top: 2px;
-            right: 0px;
-            padding: 1px 6px;
-            border-radius: 50%;
-            background-color: var(--primary-color);
-            color: white;
-            font-size: 0.7rem;
-            font-weight: bold;
-        }
-
-        /* Menu Dropdown */
-        .dropdown-menu {
-            border: none;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            padding: 0;
-            min-width: 200px;
-        }
-        .dropdown-item {
-            display: flex;
-            align-items: center;
-            padding: 10px 15px;
-            font-size: 0.95rem;
-            color: #333;
-        }
-        .dropdown-item:hover {
-            background-color: #f5f5f5;
-            color: var(--primary-color);
-        }
-        .dropdown-item i {
-            width: 20px;
-            margin-right: 10px;
-            color: #555;
-            font-size: 1.1rem;
-        }
-        .dropdown-item:hover i {
-            color: var(--primary-color);
-        }
-        .dropdown-divider { margin: 0; }
-    </style>
+    <!-- Toàn bộ CSS đã được làm lại và tích hợp vào đây -->
 
     <div class="header-container">
-
+        <!-- HEADER LEFT: LOGO & MENU TOGGLE -->
         <div class="header-left">
-            <a th:href="@{/}" class="header-logo">
-                <svg width="32" height="32" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="16" cy="16" r="12" fill="#111"/><circle cx="50" cy="16" r="12" fill="#111"/><circle cx="84" cy="16" r="12" fill="#111"/>
-                    <circle cx="16" cy="50" r="12" fill="#111"/><circle cx="50" cy="50" r="12" fill="#111"/><circle cx="84" cy="50" r="12" fill="#111"/>
-                    <circle cx="16" cy="84" r="12" fill="#111"/><circle cx="50" cy="84" r="12" fill="#111"/><circle cx="84" cy="84" r="12" fill="#111"/>
-                </svg>
-            </a>
             <button class="menu-toggle" aria-label="Toggle navigation">
                 <i class="fas fa-bars"></i>
             </button>
+            <a th:href="@{/home}" class="header-logo" title="Trang chủ SportGear">
+                <img th:src="@{/image/logo.png}" alt="SportGear Logo" style="height: 40px;">
+            </a>
         </div>
 
+        <!-- HEADER CENTER: SEARCH BAR -->
         <div class="header-center">
             <form th:action="@{/search}" method="get" class="search-form">
+                <input type="text" name="keyword" class="search-input" placeholder="Bạn tìm gì hôm nay?">
                 <button type="submit" class="search-button" aria-label="Search">
                     <i class="fas fa-search"></i>
                 </button>
-                <input type="text" name="q" class="search-input" placeholder="Tìm kiếm sản phẩm...">
             </form>
         </div>
 
+        <!-- HEADER RIGHT: NAV & ACTIONS -->
         <div class="header-right">
             <nav class="main-nav">
                 <ul>
-                    <li><a th:href="@{/home}">TRANG CHỦ</a></li>
-                    <li><a th:href="@{/blog}">BLOG</a></li>
-                    <li><a th:href="@{/san-pham}">CỬA HÀNG</a></li>
+                    <li><a th:href="@{/home}" th:classappend="${currentPage == 'home' ? 'active' : ''}">TRANG CHỦ</a></li>
+                    <li><a th:href="@{/san-pham}" th:classappend="${currentPage == 'san-pham' ? 'active' : ''}">CỬA HÀNG</a></li>
+                    <li><a th:href="@{/blog}" th:classappend="${currentPage == 'blog' ? 'active' : ''}">BLOG</a></li>
                 </ul>
             </nav>
 
             <div class="header-actions">
-
-                <a th:href="@{/cart}" class="cart-dropdown-toggle">
-                    <i class="fas fa-shopping-cart"></i>
-                    <span class="cart-badge" th:text="2">2</span>
+                <!-- Cart Button -->
+                <a th:href="@{/cart}" class="action-btn" title="Giỏ hàng">
+                    <i class="fas fa-shopping-bag"></i>
+                    <span class="cart-badge" th:text="2">2</span> <!-- TODO: Thay bằng số lượng thực tế -->
                 </a>
 
+                <!-- Account Dropdown -->
                 <div class="dropdown">
-                    <button class="account-dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <a href="#" class="btn dropdown-toggle p-0 d-flex align-items-center" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         <div class="account-avatar">
-                            <i class="fas fa-user"></i>
+                            <!-- TODO: Thay bằng avatar thật của user -->
+                            <img th:src="@{/image/avatar-placeholder.png}" alt="User Avatar">
                         </div>
-                        Tài khoản
-                    </button>
+                        <span class="ms-2 d-none d-lg-block">Tài khoản</span>
+                    </a>
 
                     <ul class="dropdown-menu dropdown-menu-end">
-
                         <li><a class="dropdown-item" th:href="@{/profile}">
                             <i class="fas fa-user-circle"></i> Thông tin cá nhân
                         </a></li>
-
                         <li><a class="dropdown-item" th:href="@{/orders-user}">
                             <i class="fas fa-box-open"></i> Đơn hàng của tôi
                         </a></li>
-
                         <li><a class="dropdown-item" th:href="@{/address}">
-                            <i class="fas fa-map-marker-alt"></i> Sổ địa chỉ nhận hàng
+                            <i class="fas fa-map-marker-alt"></i> Sổ địa chỉ
                         </a></li>
-
-
-                        <li><a class="dropdown-item" th:href="@{/login}">
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" th:href="@{/logout}">
                             <i class="fas fa-sign-out-alt"></i> Đăng xuất
                         </a></li>
-
                     </ul>
                 </div>
-
-                <a th:href="@{/support}" class="btn btn-dark">Trợ giúp</a>
             </div>
         </div>
     </div>
