@@ -78,4 +78,5 @@ public interface PhieuGiamGiaRepo extends JpaRepository<PhieuGiamGia, Integer> {
             "AND (p.ngayKetThuc IS NULL OR p.ngayKetThuc >= :now)")
     List<PhieuGiamGia> findActiveVouchers(@Param("now") LocalDateTime now);
 
+
 }

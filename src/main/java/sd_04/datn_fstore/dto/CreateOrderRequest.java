@@ -15,31 +15,33 @@ public class CreateOrderRequest {
     private Integer nhanVienId;
     private Integer khachHangId;    // Có thể là null (khách lẻ)
     private Integer phieuGiamGiaId; // Có thể là null (không dùng)
-    private String orderCode;       // Mã hóa đơn (HD...)
-    private String paymentMethod;   // (CASH, VNPAY, DRAFT...)
+
+    private String maHoaDon;            // (Trước là orderCode)
+    private String phuongThucThanhToan; // (Trước là paymentMethod: COD, VNPAY...)
 
     // 2. Thông tin tiền (tạm tính từ client)
-    private BigDecimal totalAmount;     // Tổng tiền cuối (để server tham khảo)
-    private BigDecimal discountAmount;  // Tiền giảm (để server tham khảo)
+    private BigDecimal tongTien;    // (Trước là totalAmount) - Tổng tiền cuối cùng
+    private BigDecimal tienGiamGia; // (Trước là discountAmount)
 
     // 3. Danh sách sản phẩm trong giỏ hàng
-    private List<Item> itemsList;
+    private List<SanPhamItem> danhSachSanPham; // (Trước là itemsList)
 
     /**
      * Lớp con đại diện cho 1 sản phẩm trong giỏ hàng
      */
     @Data // Tự động tạo getter/setter
-    public static class Item {
+    public static class SanPhamItem { // (Trước là Item)
         private Integer sanPhamChiTietId;
         private Integer soLuong;
-        private BigDecimal donGia; // Giá bán tại thời điểm thêm vào giỏ
+        private BigDecimal donGia;
 
-        // Constructor để code VNPAY (trong VnPayServiceImpl) dễ dùng
-        public Item(Integer sanPhamChiTietId, Integer soLuong, BigDecimal donGia) {
+        // Constructor để code VNPAY dễ dùng
+        public SanPhamItem(Integer sanPhamChiTietId, Integer soLuong, BigDecimal donGia) {
             this.sanPhamChiTietId = sanPhamChiTietId;
             this.soLuong = soLuong;
             this.donGia = donGia;
         }
-        private BigDecimal customerPaidAmount;
+
+        private BigDecimal tienKhachDua; // (Trước là customerPaidAmount - Dùng cho bán tại quầy)
     }
 }

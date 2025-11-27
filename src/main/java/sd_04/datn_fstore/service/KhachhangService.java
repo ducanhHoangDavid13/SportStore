@@ -20,10 +20,8 @@ public class KhachhangService {
     public Page<KhachHang> getFilteredKhachHang(
             String keyword, String sdt, Boolean gioiTinh, int pageNo, int pageSize) {
 
-        // Spring Data JPA dùng page index bắt đầu từ 0
         Pageable pageable = PageRequest.of(pageNo - 1, pageSize);
 
-        // Chuẩn hóa tham số để dùng trong truy vấn @Query (đảm bảo truyền null nếu rỗng)
         String searchKeyword = (keyword != null && !keyword.trim().isEmpty()) ? keyword.trim() : null;
         String searchSdt = (sdt != null && !sdt.trim().isEmpty()) ? sdt.trim() : null;
 
@@ -31,11 +29,8 @@ public class KhachhangService {
     }
 
     public KhachHang save(KhachHang khachhang) {
-        // Nếu là thêm mới (id == null), thiết lập trạng thái mặc định là 1 (Hoạt động)
         if (khachhang.getId() == null) {
             khachhang.setTrangThai(1);
-            // Có thể thêm logic set vai trò mặc định nếu cần
-            // khachhang.setVaiTro("KHACH_HANG");
         }
         return khachHangRepo.save(khachhang);
     }
@@ -48,11 +43,9 @@ public class KhachhangService {
         Optional<KhachHang> khachhangOpt = khachHangRepo.findById(id);
         if (khachhangOpt.isPresent()) {
             KhachHang khachhang = khachhangOpt.get();
-            // CHỈ THAY ĐỔI TRẠNG THÁI
-            khachhang.setTrangThai(0); // Đặt trạng thái về 0 (Đã xóa/Không hoạt động)
+            khachhang.setTrangThai(0);
             khachHangRepo.save(khachhang);
         } else {
-            // Ném lỗi nếu không tìm thấy, để Controller trả về 404
             throw new RuntimeException("Không tìm thấy khách hàng với ID: " + id);
         }
     }
@@ -61,14 +54,12 @@ public class KhachhangService {
         return khachHangRepo.findAll();
     }
     public List<KhachHang> searchCustomerByNameOrPhone(String keyword) {
-        // Chuẩn hóa keyword
         String searchKeyword = (keyword != null && !keyword.trim().isEmpty()) ? "%" + keyword.trim() + "%" : null;
 
         if (searchKeyword == null) {
-            return khachHangRepo.findAll(); // Trả về tất cả nếu keyword rỗng
+            return khachHangRepo.findAll();
         }
 
-        // Bạn cần thêm hàm này vào file KhachHangRepo.java
         return khachHangRepo.findByTenKhachHangLikeOrSoDienThoaiLike(searchKeyword, searchKeyword);
     }
 }

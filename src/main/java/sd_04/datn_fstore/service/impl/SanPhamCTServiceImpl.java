@@ -35,36 +35,25 @@ public class SanPhamCTServiceImpl implements SanPhamCTService {
     }
 
     @Override
-    @Transactional // Đảm bảo tính toàn vẹn dữ liệu khi thêm/sửa
+    @Transactional
     public SanPhamChiTiet save(SanPhamChiTiet sanPhamChiTiet) {
-        // Ví dụ: Set mặc định trạng thái là 1 (Hoạt động/Đang bán)
         sanPhamChiTiet.setTrangThai(1);
 
         sanPhamChiTietRepository.save(sanPhamChiTiet);
         return sanPhamChiTietRepository.save(sanPhamChiTiet);
     }
 
-    /**
-     * XÓA MỀM (Soft Delete)
-     * Chuyển trạng thái về 0 thay vì xóa khỏi DB để giữ lịch sử hóa đơn.
-     */
     @Override
-    @Transactional // QUAN TRỌNG: Cần có để commit thay đổi xuống DB
+    @Transactional
     public void delete(Integer id) {
         Optional<SanPhamChiTiet> optional = sanPhamChiTietRepository.findById(id);
         if (optional.isPresent()) {
             SanPhamChiTiet spct = optional.get();
-            spct.setTrangThai(0); // 0: Ngừng hoạt động
+            spct.setTrangThai(0);
             sanPhamChiTietRepository.save(spct);
         }
-        // Nếu muốn xóa cứng (hard delete) thì dùng:
-        // sanPhamChiTietRepository.deleteById(id);
     }
 
-    /**
-     * TÌM KIẾM NÂNG CAO (Admin)
-     * Khớp với câu Query 12 tham số trong Repository
-     */
     @Override
     public Page<SanPhamChiTiet> search(
             Pageable pageable,
@@ -96,14 +85,8 @@ public class SanPhamCTServiceImpl implements SanPhamCTService {
         );
     }
 
-    /**
-     * API CHO TRANG BÁN HÀNG (POS)
-     * Gọi hàm tối ưu trong Repository để lấy full thông tin (Ảnh, Màu, Size...)
-     * Trạng thái = 1 (Đang bán) và Số lượng > 0
-     */
     @Override
     public List<SanPhamChiTiet> getAvailableProducts() {
-        // Gọi đúng tên hàm mới trong Repository
         return sanPhamChiTietRepository.getAvailableProductsWithDetails(1, 0);
     }
 
@@ -121,5 +104,10 @@ public class SanPhamCTServiceImpl implements SanPhamCTService {
         } else {
             throw new RuntimeException("Không tìm thấy biến thể sản phẩm ID: " + id);
         }
+    }
+
+    @Override
+    public List<SanPhamChiTiet> getBySanPhamId(Integer id) {
+        return List.of();
     }
 }

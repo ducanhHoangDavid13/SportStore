@@ -43,10 +43,8 @@ public class SanPhamApiController {
     private final SanPhamRepository sanPhamRepository;
     private final FileStorageService fileStorageService;
     private final HinhAnhService hinhAnhService;
-private  final ExcelService excelService;
-    /**
-     * API: Lấy danh sách sản phẩm (phân trang, tìm kiếm, lọc)
-     */
+    private  final ExcelService excelService;
+
     @GetMapping
     public ResponseEntity<?> search(
             Pageable pageable,
@@ -62,9 +60,6 @@ private  final ExcelService excelService;
         }
     }
 
-    /**
-     * API: Lấy chi tiết 1 sản phẩm
-     */
     @GetMapping("/{id}")
     public ResponseEntity<?> getById(@PathVariable Integer id) {
         try {
@@ -81,9 +76,6 @@ private  final ExcelService excelService;
         }
     }
 
-    /**
-     * API: Thêm mới sản phẩm CÓ ẢNH (Multipart/form-data)
-     */
     @PostMapping("/create-with-image")
     public ResponseEntity<?> createWithImage(
             @RequestParam("sanPhamData") String sanPhamDataJson,
@@ -92,28 +84,23 @@ private  final ExcelService excelService;
         ObjectMapper objectMapper = new ObjectMapper();
 
         try {
-            // 1. Chuyển đổi JSON string thành đối tượng SanPham Entity
             SanPham sanPham = objectMapper.readValue(sanPhamDataJson, SanPham.class);
 
-            // Kiểm tra trùng mã
             if (sanPham.getMaSanPham() != null && !sanPham.getMaSanPham().trim().isEmpty()
                     && sanPhamService.existsByMaSanPham(sanPham.getMaSanPham())) {
                 return ResponseEntity.status(HttpStatus.CONFLICT).body("Mã sản phẩm đã tồn tại.");
             }
 
-            // Set ngày tạo
             sanPham.setNgayTao(LocalDateTime.now());
 
-            // Lưu sản phẩm
             SanPham savedSanPham = sanPhamService.save(sanPham);
 
-            // 2. Nếu có file, lưu file và tạo Entity HinhAnh
             if (file != null && !file.isEmpty()) {
                 String fileName = fileStorageService.storeFile(file);
 
                 HinhAnh hinhAnh = new HinhAnh();
                 hinhAnh.setTenHinhAnh(fileName);
-                hinhAnh.setTrangThai(1); // Ảnh đại diện (Active)
+                hinhAnh.setTrangThai(1);
                 hinhAnh.setSanPham(savedSanPham);
                 hinhAnhService.save(hinhAnh);
             }
@@ -127,10 +114,6 @@ private  final ExcelService excelService;
         }
     }
 
-    /**
-     * API MỚI: Cập nhật sản phẩm CÓ ẢNH (Multipart/form-data)
-     * Endpoint: /api/san-pham/update-with-image/{id}
-     */
     @PutMapping(value = "/update-with-image/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> updateWithImage(
             @PathVariable Integer id,
@@ -140,17 +123,14 @@ private  final ExcelService excelService;
         ObjectMapper objectMapper = new ObjectMapper();
 
         try {
-            // 1. Tìm sản phẩm cũ
             Optional<SanPham> optionalSanPham = sanPhamService.getById(id);
             if (optionalSanPham.isEmpty()) {
                 return ResponseEntity.notFound().build();
             }
             SanPham existingSanPham = optionalSanPham.get();
 
-            // 2. Parse dữ liệu mới từ JSON
             SanPham sanPhamDetails = objectMapper.readValue(sanPhamDataJson, SanPham.class);
 
-            // 3. Cập nhật thông tin (Không cập nhật NgayTao)
             existingSanPham.setMaSanPham(sanPhamDetails.getMaSanPham());
             existingSanPham.setTenSanPham(sanPhamDetails.getTenSanPham());
             existingSanPham.setGiaTien(sanPhamDetails.getGiaTien());
@@ -160,19 +140,14 @@ private  final ExcelService excelService;
 
             SanPham updatedSanPham = sanPhamService.save(existingSanPham);
 
-            // 4. Xử lý ảnh nếu có upload ảnh mới
             if (file != null && !file.isEmpty()) {
                 String fileName = fileStorageService.storeFile(file);
 
-                // Tạo ảnh mới
                 HinhAnh hinhAnh = new HinhAnh();
                 hinhAnh.setTenHinhAnh(fileName);
                 hinhAnh.setTrangThai(1);
                 hinhAnh.setSanPham(updatedSanPham);
                 hinhAnhService.save(hinhAnh);
-
-                // (Tùy chọn) Nếu muốn set ảnh này làm ảnh chính và ẩn các ảnh cũ:
-                // Bạn có thể gọi thêm logic set các ảnh cũ về trangThai = 0 ở đây
             }
 
             return ResponseEntity.ok(updatedSanPham);
@@ -186,9 +161,6 @@ private  final ExcelService excelService;
         }
     }
 
-    /**
-     * API: Cập nhật thông thường (JSON only) - Giữ lại để tương thích cũ nếu cần
-     */
     @PutMapping("/{id}")
     public ResponseEntity<?> update(@PathVariable Integer id, @RequestBody SanPham sanPhamDetails) {
         try {
@@ -212,16 +184,12 @@ private  final ExcelService excelService;
         }
     }
 
-    /**
-     * API: Xóa 1 sản phẩm
-     */
     @DeleteMapping("/{id}")
     public ResponseEntity<?> delete(@PathVariable Integer id) {
         try {
             if (!sanPhamService.getById(id).isPresent()) {
                 return ResponseEntity.notFound().build();
             }
-            // Lưu ý: Cần xử lý ràng buộc khóa ngoại (HinhAnh, ChiTietSP...) trước khi xóa
             sanPhamRepository.deleteById(id);
             return ResponseEntity.ok("Xóa thành công");
         } catch (DataIntegrityViolationException e) {
@@ -233,28 +201,25 @@ private  final ExcelService excelService;
 
     @GetMapping("/filter")
     public ResponseEntity<Page<SanPham>> getProducts(
-            @RequestParam(value = "xuatXuIds", required = false) List<Integer> xuatXuIds, // Sửa Long -> Integer
-            @RequestParam(value = "theLoaiIds", required = false) List<Integer> theLoaiIds, // Sửa Long -> Integer
-            @RequestParam(value = "phanLoaiIds", required = false) List<Integer> phanLoaiIds, // Sửa Long -> Integer
-            @RequestParam(value = "chatLieuIds", required = false) List<Integer> chatLieuIds, // Sửa Long -> Integer
+            @RequestParam(value = "xuatXuIds", required = false) List<Integer> xuatXuIds,
+            @RequestParam(value = "theLoaiIds", required = false) List<Integer> theLoaiIds,
+            @RequestParam(value = "phanLoaiIds", required = false) List<Integer> phanLoaiIds,
+            @RequestParam(value = "chatLieuIds", required = false) List<Integer> chatLieuIds,
             @RequestParam(value = "minPrice", required = false, defaultValue = "0") BigDecimal minPrice,
             @RequestParam(value = "maxPrice", required = false, defaultValue = "999999999") BigDecimal maxPrice,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "id,asc") String sort
     ) {
-        // 1. Xử lý logic List rỗng thành NULL (Sử dụng Integer List)
         List<Integer> finalXuatXuIds = Optional.ofNullable(xuatXuIds).filter(list -> !list.isEmpty()).orElse(null);
         List<Integer> finalTheLoaiIds = Optional.ofNullable(theLoaiIds).filter(list -> !list.isEmpty()).orElse(null);
         List<Integer> finalPhanLoaiIds = Optional.ofNullable(phanLoaiIds).filter(list -> !list.isEmpty()).orElse(null);
         List<Integer> finalChatLieuIds = Optional.ofNullable(chatLieuIds).filter(list -> !list.isEmpty()).orElse(null);
 
-        // 2. Xử lý tham số sort và Pageable (Giữ nguyên)
         String[] sortParams = sort.split(",");
         Sort sortOrder = Sort.by(Sort.Direction.fromString(sortParams[1]), sortParams[0]);
         Pageable pageable = PageRequest.of(page, size, sortOrder);
 
-        // 3. Gọi Repository trực tiếp với các tham số ĐÃ XỬ LÝ
         Page<SanPham> productsPage = sanPhamRepository.findFilteredProducts(
                 finalXuatXuIds,
                 finalTheLoaiIds,
@@ -271,25 +236,19 @@ private  final ExcelService excelService;
             @PathVariable("id") Integer id,
             @RequestParam("trangThai") Integer trangThai) {
         try {
-            // Gọi service xử lý
             SanPham updatedSanPham = sanPhamService.updateTrangThai(id, trangThai);
-
-            // Trả về kết quả thành công
             return ResponseEntity.ok(updatedSanPham);
-
         } catch (RuntimeException e) {
-            // Trả về lỗi nếu không tìm thấy ID
             Map<String, String> response = new HashMap<>();
             response.put("message", e.getMessage());
             return ResponseEntity.badRequest().body(response);
         } catch (Exception e) {
-            // Lỗi không xác định
             return ResponseEntity.internalServerError().body("Lỗi hệ thống: " + e.getMessage());
         }
     }
     @GetMapping("/export/excel")
     public ResponseEntity<InputStreamResource> exportExcel() {
-        List<SanPham> list = sanPhamService.getAll(); // Hoặc lấy theo bộ lọc hiện tại
+        List<SanPham> list = sanPhamService.getAll();
         ByteArrayInputStream in = excelService.exportSanPhamToExcel(list);
 
         HttpHeaders headers = new HttpHeaders();

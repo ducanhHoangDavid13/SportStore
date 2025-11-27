@@ -3,181 +3,297 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>POS - Bán Hàng Tại Quầy</title>
+    <title>POS - F-STORE</title>
 
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" />
 
     <style>
-        :root { --primary-color: #0d6efd; --bg-body: #f3f4f6; --card-radius: 8px; }
-        body { font-family: 'Inter', sans-serif; background-color: var(--bg-body); height: 100vh; overflow: hidden; }
-        .navbar-custom { background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.1); height: 55px; }
-        .nav-link { font-weight: 500; font-size: 0.95rem; color: #555 !important; }
-        .nav-link:hover, .nav-link.active { color: var(--primary-color) !important; }
-        .main-wrapper { height: calc(100vh - 55px); padding: 10px; }
-        .left-panel { height: 100%; display: flex; flex-direction: column; gap: 10px; }
-        .customer-card { background: white; border-radius: var(--card-radius); padding: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-        .cart-container { flex-grow: 1; background: white; border-radius: var(--card-radius); box-shadow: 0 1px 3px rgba(0,0,0,0.05); overflow: hidden; display: flex; flex-direction: column; }
-        .cart-list { flex-grow: 1; overflow-y: auto; padding: 0; }
-        .cart-item { padding: 8px 12px; border-bottom: 1px solid #eee; display: flex; align-items: center; font-size: 0.9rem; }
-        .cart-item:hover { background-color: #f9fafb; }
-        .cart-img { width: 40px; height: 40px; object-fit: cover; border-radius: 4px; margin-right: 10px; }
-        .payment-card { background: white; border-radius: var(--card-radius); padding: 12px; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); }
-        .right-panel { height: 100%; display: flex; flex-direction: column; gap: 10px; }
-        .search-bar { background: white; padding: 8px; border-radius: var(--card-radius); box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-        .product-list-wrapper { flex-grow: 1; overflow-y: auto; padding-right: 5px; }
-        .product-card { background: white; border-radius: 6px; overflow: hidden; border: 1px solid #eee; transition: all 0.15s; cursor: pointer; height: 100%; position: relative; }
-        .product-card:hover { transform: translateY(-2px); border-color: var(--primary-color); box-shadow: 0 4px 8px rgba(0,0,0,0.08); }
-        .product-img { height: 120px; object-fit: cover; width: 100%; }
-        .product-body { padding: 8px; text-align: center; }
-        .product-title { font-size: 0.9rem; font-weight: 600; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 5px; }
-        .product-info { font-size: 0.8rem; color: #6c757d; margin-bottom: 4px; }
-        .product-price { color: #d63384; font-weight: 700; font-size: 1rem; }
-        ::-webkit-scrollbar { width: 5px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
+        :root {
+            --primary: #0061f2; /* Xanh dương đậm hiện đại */
+            --primary-light: #e1e9ff;
+            --secondary: #6900c7;
+            --bg-app: #f2f6fc;
+            --surface: #ffffff;
+            --text-main: #2c3e50;
+            --text-light: #95a5a6;
+            --border-radius: 12px;
+            --shadow-card: 0 4px 12px rgba(0,0,0,0.03);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-app);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            color: var(--text-main);
+        }
+
+        /* --- NAVBAR --- */
+        .navbar-pos {
+            background: var(--surface);
+            height: 60px;
+            border-bottom: 1px solid #eef2f6;
+            padding: 0 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            z-index: 100;
+        }
+        .brand-logo { font-weight: 800; font-size: 1.25rem; color: var(--primary); text-decoration: none; display: flex; align-items: center; gap: 8px; }
+        .nav-btn {
+            background: transparent; border: none; font-weight: 600; color: #5b6b79;
+            padding: 8px 16px; border-radius: 8px; transition: all 0.2s; text-decoration: none;
+        }
+        .nav-btn:hover, .nav-btn.active { background: var(--primary-light); color: var(--primary); }
+
+        /* --- MAIN LAYOUT --- */
+        .pos-container {
+            flex: 1;
+            padding: 15px;
+            display: grid;
+            grid-template-columns: 7fr 5fr; /* Bên trái 7 phần, phải 5 phần */
+            gap: 15px;
+            overflow: hidden;
+        }
+
+        /* --- CARD STYLES --- */
+        .pos-card {
+            background: var(--surface);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-card);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid #f0f0f0;
+        }
+
+        /* --- LEFT COLUMN: CART & PAYMENT --- */
+        .order-header {
+            padding: 15px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #fff;
+        }
+        .order-id-badge { background: var(--primary-light); color: var(--primary); padding: 5px 12px; border-radius: 20px; font-weight: 700; font-size: 0.9rem; }
+        .clock-display { font-family: 'Inter', monospace; font-weight: 600; color: #555; background: #f8f9fa; padding: 5px 10px; border-radius: 6px; }
+
+        /* Cart List */
+        .cart-body { flex: 1; overflow-y: auto; background: #fff; }
+        .cart-table { width: 100%; border-collapse: collapse; }
+        .cart-table th { position: sticky; top: 0; background: #f8f9fa; z-index: 10; font-size: 0.8rem; text-transform: uppercase; color: #888; padding: 12px; font-weight: 600; border-bottom: 1px solid #eee; }
+        .cart-table td { padding: 12px; vertical-align: middle; border-bottom: 1px solid #f9f9f9; }
+        .cart-item-img { width: 48px; height: 48px; border-radius: 8px; object-fit: cover; border: 1px solid #eee; }
+        .qty-control { display: inline-flex; border: 1px solid #ddd; border-radius: 6px; overflow: hidden; }
+        .qty-btn { width: 28px; height: 28px; background: #fff; border: none; cursor: pointer; color: var(--primary); font-weight: bold; transition: 0.2s; }
+        .qty-btn:hover { background: var(--primary-light); }
+        .qty-input { width: 32px; border: none; text-align: center; font-weight: 600; font-size: 0.9rem; outline: none; }
+
+        /* Payment Footer */
+        .payment-footer { padding: 15px; background: #fdfdfd; border-top: 1px solid #eee; }
+        .summary-item { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.95rem; color: #555; }
+        .total-price { font-size: 1.5rem; font-weight: 800; color: var(--primary); }
+
+        .pay-method-selector { display: flex; gap: 10px; margin-bottom: 15px; }
+        .method-option {
+            flex: 1; border: 1px solid #e0e0e0; padding: 10px; border-radius: 8px; text-align: center;
+            cursor: pointer; transition: 0.2s; font-weight: 500; color: #666; font-size: 0.9rem;
+        }
+        .method-option.active { border-color: var(--primary); background: var(--primary-light); color: var(--primary); font-weight: 700; }
+        .method-option i { display: block; font-size: 1.2rem; margin-bottom: 4px; }
+
+        .btn-action-lg {
+            width: 100%; padding: 14px; border: none; border-radius: 10px;
+            font-size: 1.1rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+            background: linear-gradient(135deg, var(--primary), #004ecc); color: white;
+            box-shadow: 0 4px 10px rgba(0, 97, 242, 0.3); transition: 0.3s;
+        }
+        .btn-action-lg:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(0, 97, 242, 0.4); }
+
+        /* --- RIGHT COLUMN: PRODUCT GRID --- */
+        .product-filter { padding: 12px; background: #fff; border-bottom: 1px solid #eee; display: flex; gap: 10px; }
+        .search-box { flex: 1; position: relative; }
+        .search-box input { width: 100%; padding: 10px 15px 10px 40px; border-radius: 20px; border: 1px solid #ddd; background: #f8f9fa; outline: none; }
+        .search-box input:focus { background: #fff; border-color: var(--primary); }
+        .search-box i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #aaa; }
+
+        .product-grid-container { flex: 1; overflow-y: auto; padding: 12px; background: #f8f9fa; }
+        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
+        .prod-card {
+            background: #fff; border-radius: 10px; overflow: hidden; border: 1px solid transparent;
+            cursor: pointer; transition: 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+            display: flex; flex-direction: column;
+        }
+        .prod-card:hover { border-color: var(--primary); transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        .prod-img { width: 100%; aspect-ratio: 1/1; object-fit: cover; background: #eee; }
+        .prod-details { padding: 10px; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+        .prod-name { font-weight: 600; font-size: 0.9rem; margin-bottom: 4px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .prod-meta { font-size: 0.75rem; color: #888; background: #f0f0f0; padding: 2px 6px; border-radius: 4px; width: fit-content; margin-bottom: 6px; }
+        .prod-price { font-weight: 700; color: var(--primary); font-size: 1rem; }
+
+        /* SCROLLBAR */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+
+        @media (max-width: 992px) {
+            .pos-container { grid-template-columns: 1fr; overflow-y: auto; }
+            .pos-card { height: auto; max-height: 600px; }
+        }
     </style>
 </head>
 <body>
 
-<nav class="navbar navbar-expand-lg navbar-custom">
-    <div class="container-fluid">
-        <a class="navbar-brand fw-bold text-primary fs-5" href="#"><i class="bi bi-box-seam-fill"></i> F-STORE</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"><span class="navbar-toggler-icon"></span></button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav me-auto">
-                <li class="nav-item"><a class="nav-link active" href="#"><i class="bi bi-shop"></i> Bán hàng</a></li>
-                <li class="nav-item"><a class="nav-link" th:href="@{/admin/hoa-don}"><i class="bi bi-receipt"></i> Hóa đơn</a></li>
-                <li class="nav-item"><a class="nav-link" th:href="@{/admin/san-pham}"><i class="bi bi-box"></i> Sản phẩm</a></li>
+<nav class="navbar-pos">
+    <a href="#" class="brand-logo"><i class="bi bi-box-seam-fill"></i> F-STORE POS</a>
+    <div class="d-flex align-items-center gap-2">
+        <a href="#" class="nav-btn active"><i class="bi bi-shop me-1"></i>Bán hàng</a>
+        <a th:href="@{/admin/hoa-don}" class="nav-btn"><i class="bi bi-receipt me-1"></i>Hóa đơn</a>
+        <div class="vr mx-2"></div>
+        <div class="dropdown">
+            <button class="btn btn-light rounded-pill border px-3 py-1 d-flex align-items-center gap-2" data-bs-toggle="dropdown">
+                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width:28px; height:28px; font-size:0.8rem;">NV</div>
+                <span class="fw-bold small text-dark" sec:authorize="isAuthenticated()" th:text="${nhanVienHienTai.tenNhanVien}">Nhân viên</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 mt-2">
+                <li>
+                    <form th:action="@{/logout}" method="post" class="m-0">
+                        <button class="dropdown-item text-danger"><i class="bi bi-box-arrow-right me-2"></i>Đăng xuất</button>
+                    </form>
+                </li>
             </ul>
-            <div class="d-flex align-items-center gap-2">
-                <div class="bg-light px-3 py-1 rounded-pill border fw-bold text-secondary" style="font-size: 0.85rem;" sec:authorize="isAuthenticated()">
-                    <i class="bi bi-person-circle me-1"></i> <span th:text="${nhanVienHienTai.tenNhanVien}">Admin</span>
-                    <input type="hidden" id="current-employee-id" th:value="${nhanVienHienTai.id}">
-                </div>
-                <form th:action="@{/logout}" method="post" class="m-0">
-                    <button class="btn btn-sm btn-outline-danger border-0"><i class="bi bi-power"></i></button>
-                </form>
-            </div>
+            <input type="hidden" id="current-employee-id" th:value="${nhanVienHienTai.id}">
         </div>
     </div>
 </nav>
 
-<div class="container-fluid main-wrapper">
-    <div class="row h-100 g-2">
-        <div class="col-lg-6 col-md-6 h-100">
-            <div class="left-panel">
-                <div class="customer-card">
-                    <div class="d-flex justify-content-between mb-2">
-                        <span class="badge bg-primary bg-opacity-10 text-primary" id="ma-don-hang">#NEW</span>
-                        <small class="text-muted fw-bold" id="clock">00:00</small>
-                    </div>
-                    <div class="input-group input-group-sm">
-                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-person"></i></span>
-                        <div class="form-control fw-bold border-start-0" id="customer-name" style="background: #fff;">Khách lẻ</div>
-                        <button class="btn btn-outline-primary" id="btn-search-customer"><i class="bi bi-search"></i></button>
-                        <button class="btn btn-outline-secondary" id="btn-reset-customer"><i class="bi bi-x-lg"></i></button>
-                    </div>
+<div class="pos-container">
+
+    <div class="pos-card">
+        <div class="order-header">
+            <div class="d-flex align-items-center gap-3">
+                <span class="order-id-badge" id="ma-don-hang">#NEW</span>
+                <div class="d-flex align-items-center bg-light px-3 py-1 rounded border" style="cursor: pointer;" onclick="$('#modal-customer').modal('show')">
+                    <i class="bi bi-person-circle text-secondary me-2"></i>
+                    <span class="fw-bold text-dark" id="customer-name">Khách lẻ</span>
+                    <i class="bi bi-chevron-down ms-2 small text-muted"></i>
                 </div>
-
-                <div class="cart-container">
-                    <div class="p-2 bg-light fw-bold border-bottom d-flex justify-content-between small">
-                        <span><i class="bi bi-cart3 me-1"></i> Giỏ hàng</span>
-                        <span id="item-count" class="badge bg-secondary">0</span>
-                    </div>
-                    <div class="cart-list" id="cart-list">
-                    </div>
-                </div>
-
-                <div class="payment-card">
-                    <div class="input-group input-group-sm mb-2">
-                        <span class="input-group-text bg-warning bg-opacity-10 text-warning"><i class="bi bi-ticket-perforated-fill"></i></span>
-                        <select class="form-select" id="coupon-select">
-                            <option value="" data-value="0">Mã giảm giá...</option>
-                        </select>
-                    </div>
-
-                    <div class="d-flex justify-content-between small mb-1">
-                        <span>Tổng tiền hàng:</span> <span class="fw-bold" id="subtotal">0 ₫</span>
-                    </div>
-                    <div class="d-flex justify-content-between small mb-1 text-success">
-                        <span>Giảm giá:</span> <span class="fw-bold" id="discount">-0 ₫</span>
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center pt-2 border-top mb-2">
-                        <span class="fw-bold text-dark">KHÁCH TRẢ:</span>
-                        <span class="fs-4 fw-bold text-primary" id="total" data-value="0">0 ₫</span>
-                    </div>
-
-                    <div class="btn-group w-100 mb-2" role="group">
-                        <input type="radio" class="btn-check" name="pay-method" id="method-cash" value="CASH" checked>
-                        <label class="btn btn-outline-secondary btn-sm py-2" for="method-cash"><i class="bi bi-cash"></i> Tiền mặt</label>
-
-                        <input type="radio" class="btn-check" name="pay-method" id="method-qr" value="QR">
-                        <label class="btn btn-outline-secondary btn-sm py-2" for="method-qr"><i class="bi bi-qr-code"></i> Chuyển khoản</label>
-                    </div>
-
-                    <div id="cash-section" class="row g-2 mb-2">
-                        <div class="col-6">
-                            <input type="text" class="form-control form-control-sm fw-bold" id="customer-paid" placeholder="Khách đưa">
-                        </div>
-                        <div class="col-6">
-                            <input type="text" class="form-control form-control-sm fw-bold bg-light" id="change-amount" readonly placeholder="Tiền thừa">
-                        </div>
-                    </div>
-
-                    <div class="row g-2 mt-2">
-                        <div class="col-6">
-                            <button class="btn btn-outline-dark w-100 fw-bold btn-sm py-2" id="btn-save-draft"><i class="bi bi-floppy2"></i> Lưu tạm</button>
-                        </div>
-                        <div class="col-6">
-                            <button class="btn btn-outline-info w-100 fw-bold btn-sm py-2" id="btn-list-drafts"><i class="bi bi-list-ul"></i> Đơn chờ</button>
-                        </div>
-                        <div class="col-12">
-                            <button class="btn btn-primary w-100 py-2 fw-bold fs-6" id="btn-checkout">THANH TOÁN</button>
-                        </div>
-                    </div>
-                </div>
+                <i class="bi bi-x-circle text-danger ms-1" style="cursor: pointer;" onclick="resetCustomer()" title="Xóa khách"></i>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <button class="btn btn-sm btn-outline-secondary" id="btn-list-drafts"><i class="bi bi-list-ul"></i> Đơn chờ</button>
+                <div class="clock-display" id="clock-display">00:00:00</div>
             </div>
         </div>
 
-        <div class="col-lg-6 col-md-6 h-100">
-            <div class="right-panel">
-                <div class="search-bar d-flex gap-2">
-                    <div class="input-group input-group-sm">
-                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
-                        <input type="text" class="form-control border-start-0 ps-0" id="product-search" placeholder="Tìm kiếm sản phẩm...">
+        <div class="cart-body">
+            <table class="cart-table">
+                <thead>
+                <tr>
+                    <th style="width: 45%;">Sản phẩm</th>
+                    <th style="width: 15%;">Đơn giá</th>
+                    <th style="width: 20%; text-align: center;">Số lượng</th>
+                    <th style="width: 15%; text-align: right;">Thành tiền</th>
+                    <th style="width: 5%;"></th>
+                </tr>
+                </thead>
+                <tbody id="cart-list">
+                </tbody>
+            </table>
+        </div>
+
+        <div class="payment-footer">
+            <div class="row g-3">
+                <div class="col-md-6 border-end pe-3">
+                    <label class="form-label small fw-bold text-muted mb-1">MÃ GIẢM GIÁ</label>
+                    <select class="form-select form-select-sm mb-3 bg-light border-0" id="coupon-select">
+                        <option value="">Chọn voucher...</option>
+                    </select>
+
+                    <label class="form-label small fw-bold text-muted mb-1">PHƯƠNG THỨC THANH TOÁN</label>
+                    <div class="pay-method-selector">
+                        <div class="method-option active" data-val="CASH" onclick="setPaymentMethod('CASH')">
+                            <i class="bi bi-cash-coin"></i> Tiền mặt
+                        </div>
+                        <div class="method-option" data-val="QR" onclick="setPaymentMethod('QR')">
+                            <i class="bi bi-qr-code-scan"></i> Chuyển khoản
+                        </div>
+                        <input type="hidden" id="pay-method-val" value="CASH">
                     </div>
-                    <button class="btn btn-light border btn-sm" id="btn-reload"><i class="bi bi-arrow-clockwise"></i></button>
+
+                    <div id="cash-section">
+                        <div class="input-group">
+                            <span class="input-group-text bg-white text-muted border-end-0">Khách đưa</span>
+                            <input type="text" class="form-control fw-bold text-end border-start-0" id="customer-paid" placeholder="0">
+                            <span class="input-group-text bg-white">₫</span>
+                        </div>
+                        <div class="d-flex justify-content-between mt-2 px-2">
+                            <small class="text-muted">Tiền thừa:</small>
+                            <span class="fw-bold text-success" id="change-amount-text">0 ₫</span>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="product-list-wrapper">
-                    <div class="row row-cols-2 row-cols-lg-3 g-2" id="product-grid">
-                        <div class="col-12 text-center mt-5"><div class="spinner-border text-primary spinner-border-sm"></div></div>
+                <div class="col-md-6 d-flex flex-column justify-content-between">
+                    <div>
+                        <div class="summary-item"><span>Tổng tiền hàng</span> <span class="fw-bold text-dark" id="subtotal">0 ₫</span></div>
+                        <div class="summary-item"><span>Giảm giá</span> <span class="fw-bold text-danger" id="discount">0 ₫</span></div>
+                        <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
+                            <span class="text-uppercase fw-bold text-secondary">Khách phải trả</span>
+                            <span class="total-price" id="total" data-value="0">0 ₫</span>
+                        </div>
+                    </div>
+
+                    <div class="mt-3">
+                        <div class="row g-2 mb-2">
+                            <div class="col-6"><button class="btn btn-light border w-100 fw-bold text-secondary py-2" id="btn-save-draft">Lưu tạm</button></div>
+                            <div class="col-6"><button class="btn btn-light border w-100 fw-bold text-secondary py-2" onclick="initNewOrder()">Hủy</button></div>
+                        </div>
+                        <button class="btn-action-lg" id="btn-checkout">
+                            <i class="bi bi-check-lg me-1"></i> THANH TOÁN
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <div class="pos-card">
+        <div class="product-filter">
+            <div class="search-box">
+                <i class="bi bi-search"></i>
+                <input type="text" id="product-search" placeholder="Tìm kiếm sản phẩm (Tên, Mã)...">
+            </div>
+            <button class="btn btn-light border rounded-circle" id="btn-reload" style="width: 42px; height: 42px;"><i class="bi bi-arrow-clockwise"></i></button>
+        </div>
+
+        <div class="product-grid-container">
+            <div class="product-grid" id="product-grid">
+            </div>
+        </div>
+    </div>
+
 </div>
 
 <div class="modal fade" id="modal-qr" tabindex="-1" data-bs-backdrop="static">
     <div class="modal-dialog modal-dialog-centered modal-sm">
-        <div class="modal-content">
-            <div class="modal-header border-0 pb-0">
-                <h6 class="modal-title fw-bold text-primary w-100 text-center">QUÉT MÃ THANH TOÁN</h6>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body text-center pt-2">
-                <div class="bg-light p-2 rounded border mb-2 d-inline-block">
-                    <img src="" id="qr-image-popup" class="img-fluid" style="max-height: 250px;" alt="QR Code">
+        <div class="modal-content border-0">
+            <div class="modal-body text-center p-4">
+                <h5 class="fw-bold text-primary mb-3">QUÉT MÃ QR</h5>
+                <div class="p-2 border rounded d-inline-block mb-3 bg-white">
+                    <img src="" id="qr-image-popup" class="img-fluid" style="width: 200px;" alt="QR Code">
                 </div>
-                <div class="fw-bold fs-5 text-danger mb-1" id="qr-amount-popup">0 ₫</div>
-                <div class="small text-muted">Nội dung: <span id="qr-content-popup" class="fw-bold text-dark">...</span></div>
-                <div class="mt-3 d-grid">
-                    <button class="btn btn-success fw-bold" id="btn-confirm-transfer"><i class="bi bi-check-circle-fill me-1"></i> KHÁCH ĐÃ CHUYỂN</button>
-                </div>
+                <h4 class="fw-bold text-danger mb-1" id="qr-amount-popup">0 ₫</h4>
+                <p class="text-muted small mb-3" id="qr-content-popup">...</p>
+                <button class="btn btn-success w-100 fw-bold py-2" id="btn-confirm-transfer">XÁC NHẬN ĐÃ CHUYỂN</button>
+                <button class="btn btn-light text-muted w-100 mt-2 btn-sm" data-bs-dismiss="modal">Đóng</button>
             </div>
         </div>
     </div>
@@ -185,17 +301,17 @@
 
 <div class="modal fade" id="modal-customer" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header py-2">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-bottom-0 pb-0">
                 <h6 class="modal-title fw-bold">Tìm Khách Hàng</h6>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <div class="input-group mb-3">
-                    <input type="text" class="form-control" id="input-search-cust" placeholder="Tên hoặc SĐT...">
-                    <button class="btn btn-primary" id="btn-do-search-cust">Tìm</button>
+                    <input type="text" class="form-control" id="input-search-cust" placeholder="Nhập tên hoặc số điện thoại...">
+                    <button class="btn btn-primary" id="btn-do-search-cust"><i class="bi bi-search"></i></button>
                 </div>
-                <div class="list-group" id="list-cust-results"></div>
+                <div class="list-group list-group-flush" id="list-cust-results"></div>
             </div>
         </div>
     </div>
@@ -203,14 +319,14 @@
 
 <div class="modal fade" id="modal-drafts" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header py-2">
-                <h6 class="modal-title fw-bold">Đơn Hàng Chờ</h6>
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-light py-2">
+                <h6 class="modal-title fw-bold">Danh sách đơn chờ</h6>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-0">
-                <table class="table table-hover mb-0 text-center small">
-                    <thead class="table-light"><tr><th>Mã HĐ</th><th>Khách</th><th>Tổng tiền</th><th>Thao tác</th></tr></thead>
+                <table class="table table-hover mb-0 text-center small align-middle">
+                    <thead class="table-light"><tr><th>Mã HĐ</th><th>Khách hàng</th><th>Tổng tiền</th><th>Thao tác</th></tr></thead>
                     <tbody id="tbody-drafts"></tbody>
                 </table>
             </div>
@@ -221,363 +337,261 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
-
 <script>
-    const API_BASE = ""; // Để rỗng nếu cùng domain
+    const SHIPPING_FEE = 30000;
+    const API_TINH = "https://esgoo.net/api-tinhthanh/1/0.htm";
+    const API_HUYEN = "https://esgoo.net/api-tinhthanh/2/";
+    const API_XA = "https://esgoo.net/api-tinhthanh/3/";
+
+    let currentCart = [];
     const formatter = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' });
-    toastr.options = { "positionClass": "toast-top-center", "timeOut": "2000" };
 
-    // !!! CẤU HÌNH NGÂN HÀNG !!!
-    const BANK_ID = "TCB";
-    const ACCOUNT_NO = "19039509651013";
-    const ACCOUNT_NAME = "HOANG DUC ANH";
-
-    // STATE
-    let cart = [];
-    let allProducts = [];
-    let currentCustomer = null;
-    let currentOrderCode = "";
-
-    $(document).ready(function() {
-        initNewOrder();
-        loadProducts();
-        loadCoupons();
-
-        setInterval(() => $('#clock').text(new Date().toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'})), 1000);
-
-        // EVENTS
-        $('#product-search').on('keyup', filterProducts);
-        $('#btn-reload').click(loadProducts);
-        $('#product-grid').on('click', '.product-card', function() { addToCart($(this).data()); });
-        $('#cart-list').on('click', '.btn-remove', function() { removeFromCart($(this).data('id')); });
-        $('#cart-list').on('change', '.qty-input', function() { updateQty($(this).data('id'), $(this).val()); });
-        $('#btn-search-customer').click(() => $('#modal-customer').modal('show'));
-        $('#btn-reset-customer').click(resetCustomer);
-        $('#btn-do-search-cust').click(searchCustomer);
-        $('#list-cust-results').on('click', '.item-cust', function() { setCustomer($(this).data('id'), $(this).data('name')); });
-        $('input[name="pay-method"]').change(togglePaymentMethod);
-        $('#customer-paid').on('input', calculateChange);
-        $('#coupon-select').change(renderCart); // Khi chọn mã thì tính lại tiền ngay
-        $('#btn-checkout').click(handleCheckoutClick);
-        $('#btn-confirm-transfer').click(handleTransferConfirm);
-        $('#btn-save-draft').click(saveDraft);
-        $('#btn-list-drafts').click(loadDraftsList);
-        $('#tbody-drafts').on('click', '.btn-select-draft', function() { loadDraftDetail($(this).data('id')); });
+    document.addEventListener("DOMContentLoaded", function () {
+        loadAddressData();
+        loadCartFromStorage();
+        loadActiveVouchers();
     });
 
-    // --- 1. LOGIC COUPON & TÍNH TIỀN (QUAN TRỌNG) ---
+    // --- 1. TẢI VOUCHER (LOGIC GIỐNG POS) ---
+    function loadActiveVouchers() {
+        fetch('/api/phieu-giam-gia/active')
+            .then(res => res.json())
+            .then(data => {
+                let html = '<option value="" data-type="0" data-value="0" data-max="0" data-condition="0">-- Chọn mã giảm giá --</option>';
+                data.forEach(c => {
+                    // Mapping dữ liệu chuẩn
+                    const type = c.hinhThucGiam || 1; // 1: Tiền, 2: %
+                    const value = c.giaTriGiam || 0;
+                    const max = c.soTienGiam || 999999999;
+                    const cond = c.dieuKienGiamGia || 0;
 
-    async function loadCoupons() {
-        try {
-            const res = await fetch(`${API_BASE}/api/phieu-giam-gia/active`);
-            if (!res.ok) throw new Error(`Lỗi HTTP: ${res.status}`);
+                    let label = `${c.maPhieuGiamGia}`;
+                    if(c.tenPhieuGiamGia) label += ` - ${c.tenPhieuGiamGia}`;
 
-            const list = await res.json();
-            console.log("Dữ liệu phiếu giảm giá từ API:", list); // Debug xem DB trả về gì
-
-            let html = '<option value="" data-type="0" data-value="0" data-max="0" data-condition="0">-- Chọn mã giảm giá --</option>';
-
-            list.forEach(c => {
-                // Mapping dữ liệu chuẩn theo Model mới
-                // hinhThucGiam: 1 = Tiền, 2 = Phần trăm
-                // giaTriGiam: Giá trị (VD: 20 nếu là 20%)
-                // soTienGiam: Đóng vai trò là GIẢM TỐI ĐA (Max Discount) nếu là %
-
-                const type = c.hinhThucGiam || 1;
-                const value = c.giaTriGiam || 0;
-                const maxDiscount = c.soTienGiam || 999999999; // Nếu null thì coi như không giới hạn
-                const condition = c.dieuKienGiamGia || 0;
-
-                let label = `${c.maPhieuGiamGia}`;
-                if(c.tenPhieuGiamGia) label += ` - ${c.tenPhieuGiamGia}`;
-
-                // Tạo text hiển thị thông minh
-                if (type === 2) {
-                    // Loại %
-                    label += ` [Giảm ${value}%`;
-                    if(maxDiscount < 999999999) {
-                        label += ` - Tối đa ${maxDiscount.toLocaleString('vi-VN')}đ`;
+                    if (type === 2) { // %
+                        label += ` [Giảm ${value}%`;
+                        if(max < 999999999) label += ` - Tối đa ${formatter.format(max)}`;
+                        label += `]`;
+                    } else { // Tiền
+                        label += ` [Giảm ${formatter.format(value)}]`;
                     }
-                    label += `]`;
-                } else {
-                    // Loại Tiền
-                    label += ` [Giảm ${value.toLocaleString('vi-VN')}đ]`;
-                }
 
-                if (condition > 0) {
-                    label += ` (Đơn > ${condition.toLocaleString('vi-VN')}đ)`;
-                }
+                    if (cond > 0) label += ` (Đơn > ${formatter.format(cond)})`;
 
-                // Lưu data vào thẻ option để dùng khi tính tiền
-                html += `<option value="${c.id}"
-                            data-type="${type}"
-                            data-value="${value}"
-                            data-max="${maxDiscount}"
-                            data-condition="${condition}">
-                            ${label}
-                         </option>`;
-            });
-            $('#coupon-select').html(html);
-        } catch(e) {
-            console.error("Lỗi tải Coupon:", e);
-        }
+                    // Lưu data vào thẻ option để tính toán luôn ở client (nhanh hơn gọi API)
+                    html += `<option value="${c.maPhieuGiamGia}"
+                                data-id="${c.id}"
+                                data-type="${type}"
+                                data-value="${value}"
+                                data-max="${max}"
+                                data-condition="${cond}">
+                                ${label}
+                             </option>`;
+                });
+                document.getElementById('voucherSelect').innerHTML = html;
+            })
+            .catch(err => console.error("Lỗi voucher:", err));
     }
 
-    function renderCart() {
-        if(!cart.length) {
-            $('#cart-list').html('<div class="text-center mt-5 text-muted opacity-50"><i class="bi bi-basket3 fs-1"></i><p class="small mt-2">Giỏ trống</p></div>');
-            $('#item-count').text('0');
-            updateSummary(0, 0); return;
-        }
-        $('#item-count').text(cart.length);
+    // --- 2. TÍNH TIỀN & HIỂN THỊ (LOGIC GIỐNG POS) ---
+    function renderCheckoutSummary() {
+        // Tính tổng tiền hàng
+        let subTotal = currentCart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
-        let subtotal = 0;
-        let html = '';
-        cart.forEach(i => {
-            subtotal += i.price * i.qty;
-            html += `
-            <div class="cart-item">
-                <img src="${i.img}" class="cart-img border">
-                <div class="flex-grow-1 overflow-hidden">
-                    <div class="fw-bold text-truncate" style="font-size: 0.9rem;">${i.name}</div>
-                    <div class="small text-muted" style="font-size: 0.8rem;">${i.size} | ${i.color}</div>
-                    <div class="small text-primary fw-bold">${formatter.format(i.price)}</div>
-                </div>
-                <input type="number" class="form-control form-control-sm text-center mx-2 qty-input" style="width:40px; padding: 2px;" value="${i.qty}" data-id="${i.id}">
-                <button class="btn btn-sm text-danger btn-remove" data-id="${i.id}"><i class="bi bi-trash"></i></button>
-            </div>`;
-        });
-        $('#cart-list').html(html);
+        // Lấy thông tin Voucher đang chọn
+        const select = document.getElementById('voucherSelect');
+        const opt = select.options[select.selectedIndex];
 
-        // --- TÍNH TOÁN GIẢM GIÁ ---
         let discountAmount = 0;
-        const opt = $('#coupon-select option:selected');
 
-        // Lấy dữ liệu từ option đã render ở loadCoupons
-        const type = parseInt(opt.data('type')) || 1;
-        const value = parseFloat(opt.data('value')) || 0;
-        const max = parseFloat(opt.data('max')) || 0;
-        const cond = parseFloat(opt.data('condition')) || 0;
+        // Nếu có chọn mã
+        if (opt.value) {
+            const type = parseFloat(opt.getAttribute('data-type'));
+            const value = parseFloat(opt.getAttribute('data-value'));
+            const max = parseFloat(opt.getAttribute('data-max'));
+            const cond = parseFloat(opt.getAttribute('data-condition'));
 
-        console.log(`Tính giảm giá: Type=${type}, Value=${value}, Max=${max}, Subtotal=${subtotal}`);
-
-        // Kiểm tra điều kiện đơn hàng tối thiểu
-        if (subtotal >= cond && value > 0) {
-            if (type === 2) {
-                // === GIẢM THEO % ===
-                let percentDiscount = (subtotal * value) / 100;
-                // Áp dụng mức giảm tối đa (Cap)
-                if (max > 0 && percentDiscount > max) {
-                    percentDiscount = max;
-                }
-                discountAmount = percentDiscount;
+            // Kiểm tra điều kiện đơn tối thiểu
+            if (subTotal < cond) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Chưa đủ điều kiện',
+                    text: `Đơn hàng phải từ ${formatter.format(cond)} mới được dùng mã này!`,
+                    confirmButtonColor: '#f59e0b'
+                });
+                select.value = ""; // Reset về mặc định
+                discountAmount = 0;
             } else {
-                // === GIẢM THEO TIỀN ===
-                discountAmount = value;
+                // Tính toán
+                if (type === 2) { // %
+                    let percentDiscount = (subTotal * value) / 100;
+                    if (max > 0 && percentDiscount > max) percentDiscount = max;
+                    discountAmount = percentDiscount;
+                } else { // Tiền
+                    discountAmount = value;
+                }
+
+                // Không giảm quá tổng tiền
+                if(discountAmount > subTotal) discountAmount = subTotal;
             }
         }
 
-        updateSummary(subtotal, discountAmount);
+        // Cập nhật giao diện
+        document.getElementById('subTotal').innerText = formatter.format(subTotal);
+        document.getElementById('shippingFee').innerText = formatter.format(SHIPPING_FEE);
+        document.getElementById('discountAmount').innerText = discountAmount > 0 ? "-" + formatter.format(discountAmount) : "0₫";
+
+        let finalTotal = subTotal + SHIPPING_FEE - discountAmount;
+        if(finalTotal < 0) finalTotal = 0;
+        document.getElementById('finalTotal').innerText = formatter.format(finalTotal);
     }
 
-    function updateSummary(sub, disc) {
-        $('#subtotal').text(formatter.format(sub));
-        $('#discount').text(disc > 0 ? `-${formatter.format(disc)}` : '0 ₫');
-        const total = Math.max(0, sub - disc);
-        $('#total').text(formatter.format(total)).data('val', total);
-        if ($('input[name="pay-method"]:checked').val() !== 'QR') calculateChange();
-    }
+    // --- 3. LOAD GIỎ HÀNG ---
+    function loadCartFromStorage() {
+        const json = localStorage.getItem('cartItems');
+        currentCart = json ? JSON.parse(json) : [];
+        const container = document.getElementById('cartItemsList');
 
-    // --- 2. CÁC HÀM KHÁC (GIỮ NGUYÊN) ---
+        if (currentCart.length === 0) {
+            container.innerHTML = `<div class="text-center py-5 text-muted"><i class="fa-solid fa-basket-shopping fs-1 mb-2"></i><p>Giỏ hàng trống</p><a href="/san-pham" class="btn btn-sm btn-outline-primary rounded-pill">Mua sắm ngay</a></div>`;
+            // Reset tiền
+            document.getElementById('subTotal').innerText = "0₫";
+            document.getElementById('finalTotal').innerText = "0₫";
+            return;
+        }
 
-    function togglePaymentMethod() {
-        const method = $('input[name="pay-method"]:checked').val();
-        if (method === 'QR') $('#cash-section').hide();
-        else $('#cash-section').show();
-    }
-
-    function calculateChange() {
-        const total = $('#total').data('val');
-        const paid = parseFloat($('#customer-paid').val().replace(/[^0-9]/g, '')) || 0;
-        const change = paid - total;
-        $('#change-amount').val(change >= 0 ? formatter.format(change) : 'Thiếu');
-        $('#change-amount').toggleClass('text-danger', change < 0).toggleClass('text-dark', change >= 0);
-    }
-
-    function showQrPopup() {
-        const total = $('#total').data('val');
-        if (total <= 0) return toastr.warning("Đơn hàng 0 đồng!");
-        const content = `${currentOrderCode} TT`;
-        const url = `https://img.vietqr.io/image/${BANK_ID}-${ACCOUNT_NO}-compact.jpg?amount=${total}&addInfo=${encodeURIComponent(content)}&accountName=${encodeURIComponent(ACCOUNT_NAME)}`;
-        $('#qr-image-popup').attr('src', url);
-        $('#qr-amount-popup').text(formatter.format(total));
-        $('#qr-content-popup').text(content);
-        $('#modal-qr').modal('show');
-    }
-
-    async function loadProducts() {
-        try {
-            const res = await fetch(`${API_BASE}/api/data/san-pham-chi-tiet-active`);
-            allProducts = await res.json();
-            renderProductGrid(allProducts);
-        } catch (e) { toastr.error("Lỗi tải SP"); }
-    }
-
-    function renderProductGrid(list) {
-        if(!list.length) return $('#product-grid').html('<div class="col-12 text-center text-muted mt-5">Không tìm thấy SP</div>');
         let html = '';
-        list.forEach(sp => {
-            const name = sp.sanPham?.tenSanPham || 'SP';
-            const price = sp.giaTien || 0;
-            const size = sp.kichThuoc?.tenKichThuoc || '-';
-            const color = sp.mauSac?.tenMauSac || '-';
-            let img = 'https://via.placeholder.com/200x200?text=No+Img';
-            if(sp.sanPham?.hinhAnh?.[0]?.tenHinhAnh) img = `/api/hinh-anh/download/${sp.sanPham.hinhAnh[0].tenHinhAnh}`;
-
+        currentCart.forEach((item, index) => {
             html += `
-            <div class="col">
-                <div class="product-card h-100" data-id="${sp.id}" data-name="${name}" data-price="${price}" data-img="${img}" data-size="${size}" data-color="${color}">
-                    <img src="${img}" class="product-img">
-                    <div class="product-body">
-                        <div class="product-title" title="${name}">${name}</div>
-                        <div class="product-info">${size} / ${color}</div>
-                        <div class="product-price">${formatter.format(price)}</div>
+                <div class="order-item align-items-center">
+                    <img src="${item.image || 'https://via.placeholder.com/64'}" class="item-img">
+                    <div class="item-info flex-grow-1">
+                        <span class="item-name text-truncate" style="max-width: 180px;" title="${item.name}">${item.name}</span>
+                        <div class="item-meta">Size: <b>${item.size}</b> | Màu: <b>${item.color}</b></div>
+                        <div class="d-flex justify-content-between mt-1 align-items-center">
+                            <small class="text-muted bg-light px-2 rounded">x${item.quantity}</small>
+                            <span class="item-price fw-bold text-primary">${formatter.format(item.price * item.quantity)}</span>
+                        </div>
                     </div>
-                </div>
-            </div>`;
+                    <div class="ms-2">
+                        <button type="button" class="btn-remove-item" onclick="removeCartItem(${index})" title="Xóa">
+                            <i class="fa-regular fa-trash-can"></i>
+                        </button>
+                    </div>
+                </div>`;
         });
-        $('#product-grid').html(html);
+        container.innerHTML = html;
+        renderCheckoutSummary(); // Tính tiền ngay khi load
     }
 
-    function filterProducts() {
-        const term = $('#product-search').val().toLowerCase();
-        renderProductGrid(allProducts.filter(p => (p.sanPham?.tenSanPham||'').toLowerCase().includes(term)));
+    function removeCartItem(index) {
+        Swal.fire({
+            title: 'Xóa sản phẩm?', icon: 'warning', showCancelButton: true,
+            confirmButtonColor: '#ef4444', confirmButtonText: 'Xóa', cancelButtonText: 'Hủy'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                currentCart.splice(index, 1);
+                localStorage.setItem('cartItems', JSON.stringify(currentCart));
+                loadCartFromStorage();
+            }
+        });
     }
 
-    function addToCart(p) {
-        const item = cart.find(i => i.id == p.id);
-        if(item) item.qty++; else cart.push({...p, qty: 1});
-        renderCart();
-    }
-    function removeFromCart(id) { cart = cart.filter(i => i.id != id); renderCart(); }
-    function updateQty(id, val) {
-        const item = cart.find(i => i.id == id);
-        if(item) { item.qty = Math.max(1, parseInt(val)||1); renderCart(); }
-    }
+    // --- 4. ĐẶT HÀNG ---
+    document.getElementById('btnPlaceOrder').addEventListener('click', function() {
+        // Validate Form
+        const fullName = document.getElementById('fullName').value;
+        const phone = document.getElementById('phone').value;
+        const address = document.getElementById('addressDetail').value;
+        const citySel = document.getElementById('city');
+        const distSel = document.getElementById('district');
+        const wardSel = document.getElementById('ward');
 
-    function initNewOrder() {
-        cart = []; currentCustomer = null;
-        currentOrderCode = "HD" + Math.floor(Date.now()/1000).toString().slice(-6);
-        $('#ma-don-hang').text("#" + currentOrderCode);
-        resetCustomer(); $('#coupon-select').val(''); $('#customer-paid').val('');
-        renderCart();
-        $('#method-cash').prop('checked', true); togglePaymentMethod();
-    }
+        if(!fullName || !phone || !address || !citySel.value || !distSel.value || !wardSel.value) {
+            Swal.fire({ icon: 'error', title: 'Thiếu thông tin', text: 'Vui lòng điền đầy đủ thông tin giao hàng!' });
+            return;
+        }
 
-    function handleCheckoutClick() {
-        if(!cart.length) return toastr.warning("Giỏ hàng trống");
-        const method = $('input[name="pay-method"]:checked').val();
-        if (method === 'QR') showQrPopup();
-        else processPayment('CASH');
-    }
+        // Lấy thông tin địa chỉ dạng chữ
+        const cityName = citySel.options[citySel.selectedIndex].getAttribute('data-name');
+        const distName = distSel.options[distSel.selectedIndex].getAttribute('data-name');
+        const wardName = wardSel.options[wardSel.selectedIndex].getAttribute('data-name');
 
-    function handleTransferConfirm() {
-        $('#modal-qr').modal('hide');
-        processPayment('TRANSFER');
-    }
-
-    async function processPayment(method) {
-        const total = $('#total').data('val');
-        const paid = method === 'CASH' ? (parseFloat($('#customer-paid').val().replace(/[^0-9]/g,''))||0) : total;
-
-        if(method === 'CASH' && paid < total) return toastr.error("Khách trả thiếu tiền!");
+        // Lấy mã giảm giá
+        const voucherCode = document.getElementById('voucherSelect').value;
 
         const payload = {
-            nhanVienId: $('#current-employee-id').val(),
-            khachHangId: currentCustomer?.id,
-            itemsList: cart.map(i => ({sanPhamChiTietId: i.id, soLuong: i.qty, donGia: i.price})),
-            totalAmount: total,
-            discountAmount: parseFloat($('#discount').text().replace(/[^0-9]/g,'').replace('-','').replace('₫','').replace('.','')) || 0,
-            paymentMethod: method,
-            orderCode: currentOrderCode,
-            phieuGiamGiaId: $('#coupon-select').val() || null,
-            customerPaidAmount: paid
+            fullName: fullName, phone: phone, email: document.getElementById('email').value,
+            city: cityName, district: distName, ward: wardName, addressDetail: address,
+            note: document.getElementById('note').value,
+            paymentMethod: document.querySelector('input[name="paymentMethod"]:checked').value,
+            voucherCode: voucherCode,
+            shippingFee: SHIPPING_FEE,
+            items: currentCart.map(i => ({ sanPhamChiTietId: i.id, soLuong: i.quantity, donGia: i.price }))
         };
 
-        try {
-            const res = await fetch(API_BASE + '/api/ban-hang/thanh-toan', {
-                method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload)
+        const btn = this;
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> ĐANG XỬ LÝ...';
+        btn.disabled = true;
+
+        fetch('/api/checkout/place-order', {
+            method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload)
+        })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    if(data.redirectUrl) {
+                        if(!data.redirectUrl.includes('vnpay')) localStorage.removeItem('cartItems');
+                        window.location.href = data.redirectUrl;
+                    } else {
+                        Swal.fire({ icon: 'success', title: 'Thành công!', text: 'Đặt hàng thành công!' });
+                    }
+                } else {
+                    Swal.fire({ icon: 'error', title: 'Rất tiếc...', text: data.message });
+                    btn.innerHTML = originalText; btn.disabled = false;
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                Swal.fire({ icon: 'error', title: 'Lỗi hệ thống', text: 'Không thể kết nối đến server.' });
+                btn.innerHTML = originalText; btn.disabled = false;
             });
-            const data = await res.json();
-            if(res.ok) {
-                toastr.success(`Thanh toán thành công! (${data.maHoaDon})`);
-                initNewOrder();
-            } else toastr.error(data.message);
-        } catch(e) { toastr.error("Lỗi Server"); }
-    }
+    });
 
-    async function saveDraft() {
-        if(!cart.length) return toastr.warning("Trống");
-        try {
-            const payload = {
-                nhanVienId: $('#current-employee-id').val(),
-                khachHangId: currentCustomer?.id,
-                itemsList: cart.map(i => ({sanPhamChiTietId: i.id, soLuong: i.qty, donGia: i.price})),
-                paymentMethod: 'DRAFT', orderCode: currentOrderCode,
-                phieuGiamGiaId: $('#coupon-select').val() || null, customerPaidAmount: 0
-            };
-            const res = await fetch(`${API_BASE}/api/ban-hang/luu-tam`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
-            const data = await res.json();
-            if(res.ok) { toastr.success("Đã lưu tạm: " + data.maHoaDon); initNewOrder(); }
-            else toastr.error(data.message);
-        } catch(e) {}
-    }
-
-    async function searchCustomer() {
-        const kw = $('#input-search-cust').val(); if(!kw) return;
-        try {
-            const res = await fetch(`${API_BASE}/api/khach-hang/search?keyword=${kw}`);
-            const list = await res.json();
-            let html = '';
-            list.forEach(c => html += `<a href="#" class="list-group-item list-group-item-action item-cust" data-id="${c.id}" data-name="${c.tenKhachHang}"><b>${c.tenKhachHang}</b> - ${c.soDienThoai}</a>`);
-            $('#list-cust-results').html(html || '<div class="p-3 text-center">Không tìm thấy</div>');
-        } catch(e) {}
-    }
-    function setCustomer(id, name) { currentCustomer = {id, name}; $('#customer-name').text(name).addClass('text-primary'); $('#modal-customer').modal('hide'); }
-    function resetCustomer() { currentCustomer = null; $('#customer-name').text('Khách lẻ').removeClass('text-primary'); }
-
-    async function loadDraftsList() {
-        try {
-            const res = await fetch(`${API_BASE}/api/ban-hang/hoa-don-tam`);
-            const list = await res.json();
-            let html = '';
-            list.forEach(hd => {
-                html += `<tr><td>${hd.maHoaDon}</td><td>${hd.khachHang?.tenKhachHang||'Lẻ'}</td><td>${formatter.format(hd.tongTienSauGiam)}</td>
-                <td><button class="btn btn-sm btn-primary btn-select-draft" data-id="${hd.id}">Chọn</button></td></tr>`;
-            });
-            $('#tbody-drafts').html(html || '<tr><td colspan="4" class="text-center">Trống</td></tr>');
-            $('#modal-drafts').modal('show');
-        } catch(e) {}
-    }
-
-    async function loadDraftDetail(id) {
-        try {
-            const res = await fetch(`${API_BASE}/api/ban-hang/hoa-don-tam/${id}`);
-            const hd = await res.json();
-            currentOrderCode = hd.maHoaDon; $('#ma-don-hang').text("#"+hd.maHoaDon);
-            if(hd.khachHang) setCustomer(hd.khachHang.id, hd.khachHang.tenKhachHang); else resetCustomer();
-            if(hd.phieuGiamGia) $('#coupon-select').val(hd.phieuGiamGia.id); else $('#coupon-select').val('');
-            cart = (hd.hoaDonChiTiets||[]).map(d => {
-                const sp = d.sanPhamChiTiet;
-                let img = 'https://via.placeholder.com/200';
-                if(sp.sanPham?.hinhAnh?.[0]?.tenHinhAnh) img = `/api/hinh-anh/download/${sp.sanPham.hinhAnh[0].tenHinhAnh}`;
-                return {
-                    id: sp.id, name: sp.sanPham.tenSanPham, price: d.donGia, qty: d.soLuong, img: img,
-                    size: sp.kichThuoc?.tenKichThuoc||'-', color: sp.mauSac?.tenMauSac||'-'
-                };
-            });
-            renderCart(); $('#modal-drafts').modal('hide'); toastr.success("Đã tải đơn: "+hd.maHoaDon);
-        } catch(e) {}
+    // --- 5. XỬ LÝ ĐỊA CHÍNH API ---
+    function loadAddressData() {
+        fetch(API_TINH).then(res => res.json()).then(data => {
+            if (data.error === 0) {
+                let html = '<option value="">Chọn Tỉnh/Thành</option>';
+                data.data.forEach(t => html += `<option value="${t.id}" data-name="${t.full_name}">${t.full_name}</option>`);
+                document.getElementById('city').innerHTML = html;
+            }
+        });
+        document.getElementById('city').addEventListener('change', function () {
+            const id = this.value;
+            const dist = document.getElementById('district'); const ward = document.getElementById('ward');
+            dist.innerHTML = '<option value="">Đang tải...</option>'; ward.innerHTML = '<option value="">Chọn Phường/Xã</option>'; ward.disabled = true;
+            if(id) {
+                fetch(API_HUYEN + id + ".htm").then(res => res.json()).then(data => {
+                    let html = '<option value="">Chọn Quận/Huyện</option>';
+                    data.data.forEach(h => html += `<option value="${h.id}" data-name="${h.full_name}">${h.full_name}</option>`);
+                    dist.innerHTML = html; dist.disabled = false;
+                });
+            } else { dist.innerHTML = '<option value="">Chọn Quận/Huyện</option>'; dist.disabled = true; }
+        });
+        document.getElementById('district').addEventListener('change', function () {
+            const id = this.value;
+            const ward = document.getElementById('ward');
+            ward.innerHTML = '<option value="">Đang tải...</option>';
+            if(id) {
+                fetch(API_XA + id + ".htm").then(res => res.json()).then(data => {
+                    let html = '<option value="">Chọn Phường/Xã</option>';
+                    data.data.forEach(x => html += `<option value="${x.id}" data-name="${x.full_name}">${x.full_name}</option>`);
+                    ward.innerHTML = html; ward.disabled = false;
+                });
+            } else { ward.innerHTML = '<option value="">Chọn Phường/Xã</option>'; ward.disabled = true; }
+        });
     }
 </script>
 

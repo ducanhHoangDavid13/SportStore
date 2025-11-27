@@ -4,362 +4,409 @@
   <div th:fragment="head-links">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <title>SPORTX - Trang Chủ</title>
 
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <!-- AOS Animation Library -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
 
+    <!-- Custom CSS -->
     <link rel="stylesheet" th:href="@{/css/styles.css}">
     <link rel="stylesheet" th:href="@{/css/header.css}">
+
   </div>
 
-  <!-- CSS dành riêng và tối ưu cho trang chủ -->
-<style>
-  /* ======================= 1. GLOBAL, HEADER, FOOTER STYLES ======================= */
-  /* === BIẾN MÀU SẮC CHUNG === */
-  :root {
-    --primary-font: 'Poppins', sans-serif;
-    --secondary-font: 'Lato', sans-serif;
-    --bg-color: #ffffff; /* Nền trắng cho trang sản phẩm */
-    --text-color: #212529;
-    --accent-color: #0d6efd; /* Bootstrap Primary Blue for consistency */
-    --accent-hover-color: #0b5ed7;
-    --gray-color: #6c757d;
-    --white-color: #ffffff;
-    --footer-bg: #343a40;
-    --border-color: #dee2e6;
-    --sale-color: #dc3545;
-    --shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-  }
+  <style>
+    /* ======================= GLOBAL & VARIABLES ======================= */
+    :root {
+      --font-main: 'Inter', sans-serif;
+      --font-heading: 'Oswald', sans-serif; /* Font tiêu đề mạnh mẽ hơn cho Sport */
+      --primary: #0b72ff;
+      --primary-dark: #0056c7;
+      --dark: #111111;
+      --light: #f4f7f6;
+      --text-gray: #6c757d;
+      --shadow-card: 0 10px 30px rgba(0,0,0,0.08);
+      --shadow-hover: 0 15px 40px rgba(11, 114, 255, 0.15);
+    }
 
-  /* === CẤU TRÚC CHUNG === */
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body {
-    font-family: var(--secondary-font);
-    background-color: var(--bg-color);
-    color: var(--text-color);
-    line-height: 1.6;
-  }
-  h1, h2, h3, h4, h5, h6 { font-family: var(--primary-font); font-weight: 600; }
-  a { text-decoration: none; color: inherit; transition: color 0.3s ease; }
-  ul { list-style: none; }
-  .container, .container-fluid { max-width: 1400px; }
+    body { font-family: var(--font-main); background-color: #fff; color: var(--dark); overflow-x: hidden; }
+    h1, h2, h3, h4, h5 { font-family: var(--font-heading); text-transform: uppercase; letter-spacing: 1px; }
+    a { text-decoration: none; transition: 0.3s; }
 
-  /* === HEADER === */
-  .header {
-    background-color: var(--white-color);
-    box-shadow: var(--shadow);
-    padding: 15px 0;
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-  }
-  .header-container { display: flex; justify-content: space-between; align-items: center; max-width: 1400px; margin: 0 auto; padding: 0 15px;}
-  .header-logo { font-family: var(--primary-font); font-size: 1.8rem; font-weight: 700; color: var(--accent-color); }
-  .main-nav ul { display: flex; gap: 30px; }
-  .main-nav a { font-family: var(--primary-font); font-weight: 500; font-size: 1rem; padding: 5px 0; position: relative; }
-  .main-nav a::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 0; height: 2px; background-color: var(--accent-color); transition: width 0.3s ease; }
-  .main-nav a:hover::after, .main-nav a.active::after { width: 100%; }
-  .header-actions { display: flex; align-items: center; gap: 20px; }
-  .action-icon { font-size: 1.2rem; position: relative; color: var(--text-color); }
-  .action-icon:hover { color: var(--accent-color); }
-  .cart-count { position: absolute; top: -8px; right: -10px; background-color: var(--sale-color); color: var(--white-color); width: 20px; height: 20px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 0.75rem; font-weight: bold; }
-  .logout-form { display: inline; }
-  .logout-btn { background: none; border: none; cursor: pointer; padding: 0; }
+    /* Utilities */
+    .section-padding { padding: 80px 0; }
+    .section-header { text-align: center; margin-bottom: 50px; }
+    .section-header h2 { font-size: 2.5rem; font-weight: 700; margin-bottom: 10px; position: relative; display: inline-block; }
+    .section-header h2::after { content: ''; width: 60px; height: 4px; background: var(--primary); position: absolute; bottom: -10px; left: 50%; transform: translateX(-50%); }
+    .section-header p { font-size: 1.1rem; color: var(--text-gray); margin-top: 20px; }
 
-  /* === FOOTER === */
-  .footer { background-color: var(--footer-bg); color: #adb5bd; padding: 60px 0 20px; }
-  .footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 40px; margin-bottom: 40px; }
-  .footer-col h4 { color: var(--white-color); font-size: 1.2rem; margin-bottom: 20px; }
-  .footer-logo { font-family: var(--primary-font); font-size: 1.8rem; font-weight: 700; color: var(--white-color); }
-  .footer-col p { font-size: 0.9rem; line-height: 1.8; }
-  .footer-col ul li { margin-bottom: 12px; }
-  .footer-col ul a:hover { color: var(--white-color); padding-left: 5px; }
-  .social-icons { margin-top: 20px; display: flex; gap: 15px; }
-  .social-icons a { color: #adb5bd; font-size: 1.2rem; }
-  .social-icons a:hover { color: var(--accent-color); }
-  .newsletter-form { margin-top: 20px; display: flex; }
-  .newsletter-form input { flex-grow: 1; padding: 10px; border: 1px solid var(--gray-color); border-radius: 5px 0 0 5px; background-color: #495057; color: var(--white-color); border-right: none; }
-  .newsletter-form button { padding: 10px 15px; border: none; background-color: var(--accent-color); color: var(--white-color); border-radius: 0 5px 5px 0; cursor: pointer; font-weight: 500; }
-  .footer-bottom { border-top: 1px solid var(--gray-color); padding-top: 20px; text-align: center; font-size: 0.9rem; }
+    /* ======================= 1. HERO CAROUSEL ======================= */
+    .hero-section .carousel-item { height: 90vh; min-height: 600px; position: relative; }
+    .hero-section .carousel-item img { object-fit: cover; height: 100%; width: 100%; filter: brightness(0.7); }
+    .hero-content {
+      position: absolute; bottom: 20%; left: 10%; color: #fff; z-index: 2;
+      max-width: 700px; text-align: left;
+    }
+    .hero-title { font-size: 4rem; font-weight: 700; line-height: 1.1; margin-bottom: 20px; animation: fadeInUp 1s ease; }
+    .hero-subtitle { font-size: 1.5rem; margin-bottom: 30px; font-weight: 300; opacity: 0.9; animation: fadeInUp 1.2s ease; }
+    .btn-hero {
+      padding: 15px 40px; background: var(--primary); color: #fff; font-weight: 600; border-radius: 50px;
+      border: none; font-family: var(--font-main); animation: fadeInUp 1.4s ease; display: inline-block;
+    }
+    .btn-hero:hover { background: var(--primary-dark); transform: translateY(-3px); box-shadow: 0 10px 20px rgba(11, 114, 255, 0.4); color: #fff; }
 
-  /* ==================================== */
-  /* === 2. CSS CHO TRANG SẢN PHẨM (PLP) === */
-  /* ==================================== */
-  .container-section { padding: 40px 20px; max-width: 1400px; margin: 0 auto; }
-  .plp-page-title { font-size: 1.8rem; font-weight: 800; color: var(--text-color); margin-bottom: 20px; padding-top: 20px; }
-  .plp-sort-bar { display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin-bottom: 20px; padding: 10px 0; border-bottom: 1px solid #eee; }
-  .plp-sort-bar select { width: 150px; height: 35px; font-size: 0.85rem; }
-  .sort-text { color: #666; font-weight: 500; }
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
 
-  /* --- BỘ LỌC SIDEBAR (THAY ĐỔI NHIỀU NHẤT) --- */
-  .filter-sidebar { background-color: #f8f8f8; padding: 20px; border-radius: 8px; border: 1px solid #eee; }
-  @media (min-width: 992px) { .filter-sidebar { position: sticky; top: 100px; } }
-  .filter-sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 5px; border-bottom: 1px dashed #ddd; }
-  .filter-sidebar-header h5 { margin-bottom: 0; font-weight: 700; }
-  .reset-filter-btn { border: none; background: transparent; color: var(--text-color); font-size: 1.1rem; cursor: pointer; transition: transform 0.2s, color 0.2s; padding: 5px; }
-  .reset-filter-btn:hover { color: var(--accent-color); transform: rotate(15deg); }
-  .filter-group-item { margin-bottom: 20px; }
-  .filter-group-item label.form-label { font-weight: 600; margin-bottom: 10px; display: block; font-size: 0.95rem; color: #555; }
+    /* ======================= 2. SERVICE FEATURES (New) ======================= */
+    .features-section { background: #fff; padding: 40px 0; border-bottom: 1px solid #eee; margin-top: -50px; position: relative; z-index: 10; border-radius: 8px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); max-width: 1300px; margin-left: auto; margin-right: auto; }
+    .feature-box { display: flex; align-items: center; justify-content: center; gap: 15px; padding: 10px; }
+    .feature-icon { font-size: 2.5rem; color: var(--primary); }
+    .feature-text h6 { margin: 0; font-size: 1rem; font-weight: 700; font-family: var(--font-main); }
+    .feature-text p { margin: 0; font-size: 0.85rem; color: var(--text-gray); }
 
-  /* --- CUSTOM CHECKBOX & RADIO --- */
-  .filter-options-list {
-    max-height: 200px;
-    overflow-y: auto;
-    padding-right: 10px;
-  }
-  .filter-option {
-    display: block;
-    position: relative;
-    padding-left: 30px;
-    margin-bottom: 10px;
-    cursor: pointer;
-    font-size: 0.9rem;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-  }
-  .filter-option input { position: absolute; opacity: 0; cursor: pointer; height: 0; width: 0; }
-  .checkmark {
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 20px;
-    width: 20px;
-    background-color: #eee;
-    border: 1px solid #ccc;
-    transition: all 0.2s;
-  }
-  .filter-option:hover input ~ .checkmark { background-color: #ccc; }
-  .filter-option input:checked ~ .checkmark { background-color: var(--accent-color); border-color: var(--accent-color); }
-  .checkmark:after { content: ""; position: absolute; display: none; }
-  .filter-option input:checked ~ .checkmark:after { display: block; }
+    /* ======================= 3. CATEGORIES ======================= */
+    .category-card {
+      display: block; position: relative; border-radius: 20px; overflow: hidden; height: 350px;
+      box-shadow: var(--shadow-card);
+    }
+    .category-card img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s ease; }
+    .category-card:hover img { transform: scale(1.1); }
+    .category-overlay {
+      position: absolute; bottom: 0; left: 0; width: 100%; height: 100%;
+      background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+      display: flex; flex-direction: column; justify-content: flex-end; padding: 30px;
+    }
+    .category-name { color: #fff; font-size: 1.5rem; margin-bottom: 5px; transform: translateY(0); transition: 0.3s; }
+    .category-btn { color: var(--primary); font-weight: 600; opacity: 0; transform: translateY(20px); transition: 0.3s; }
+    .category-card:hover .category-name { transform: translateY(-5px); }
+    .category-card:hover .category-btn { opacity: 1; transform: translateY(0); }
 
-  /* Checkbox checkmark */
-  .filter-option .checkmark.checkbox:after {
-    left: 6px;
-    top: 2px;
-    width: 5px;
-    height: 10px;
-    border: solid white;
-    border-width: 0 3px 3px 0;
-    -webkit-transform: rotate(45deg);
-    -ms-transform: rotate(45deg);
-    transform: rotate(45deg);
-  }
-  .filter-option .checkmark.checkbox { border-radius: 4px; }
+    /* ======================= 4. PRODUCT CARD (Redesigned) ======================= */
+    .product-card {
+      background: #fff; border-radius: 12px; overflow: hidden; border: 1px solid #f0f0f0;
+      transition: 0.3s; position: relative;
+    }
+    .product-card:hover { box-shadow: var(--shadow-hover); border-color: transparent; transform: translateY(-5px); }
 
-  /* Radio checkmark */
-  .filter-option .checkmark.radio { border-radius: 50%; }
-  .filter-option .checkmark.radio:after {
-    top: 5px;
-    left: 5px;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: white;
-  }
+    .product-img-wrap { position: relative; overflow: hidden; padding-top: 100%; /* Vuông */ }
+    .product-img-wrap img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; transition: 0.5s; }
+    .product-card:hover .product-img-wrap img { transform: scale(1.08); }
 
-  /* --- CARD SẢN PHẨM --- */
-  .product-list-card {
-    border-radius: 8px;
-    overflow: hidden;
-    background-color: #fff;
-    cursor: pointer;
-    position: relative;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    height: 100%;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-  }
-  .product-list-card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15); }
-  .product-list-img-container { position: relative; height: 300px; overflow: hidden; }
-  .product-list-img-container img { width: 100%; height: 100%; object-fit: cover; display: block; }
-  .product-list-text { padding: 15px; text-align: center; min-height: 80px; }
-  .product-list-name { font-size: 0.95rem; font-weight: 600; color: var(--text-color); margin-bottom: 5px; height: 40px; overflow: hidden; }
-  .product-list-price { font-size: 1.1rem; font-weight: 700; color: var(--accent-color); }
-  .product-list-footer {
-    position: absolute; bottom: 0; left: 0; right: 0; width: 100%;
-    background-color: rgba(13, 110, 253, 0.95); /* Tông màu xanh của Bootstrap */
-    transform: translateY(100%); opacity: 0;
-    transition: transform 0.3s ease, opacity 0.3s ease;
-    height: 50px; display: flex; justify-content: stretch;
-  }
-  .product-list-card:hover .product-list-footer { opacity: 1; transform: translateY(0); }
-  .footer-btn {
-    flex: 1; height: 100%; border: none; color: #fff; background: transparent;
-    font-size: 0.9rem; font-weight: 600; display: flex; align-items: center;
-    justify-content: center; gap: 8px; cursor: pointer; transition: background-color 0.2s;
-  }
-  .btn-add-to-cart { border-right: 1px solid rgba(255,255,255,0.3); }
-  .btn-detail:hover, .btn-add-to-cart:hover { background-color: rgba(255, 255, 255, 0.1); }
-</style>
+    .product-actions {
+      position: absolute; bottom: 15px; left: 0; right: 0; display: flex; justify-content: center; gap: 10px;
+      opacity: 0; transform: translateY(20px); transition: 0.3s; z-index: 3;
+    }
+    .product-card:hover .product-actions { opacity: 1; transform: translateY(0); }
+
+    .action-btn {
+      width: 40px; height: 40px; background: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      color: var(--dark); box-shadow: 0 4px 10px rgba(0,0,0,0.1); transition: 0.2s;
+    }
+    .action-btn:hover { background: var(--primary); color: #fff; }
+
+    .product-info { padding: 20px; text-align: center; }
+    .product-tag { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--primary); letter-spacing: 1px; margin-bottom: 5px; display: block; }
+    .product-name { font-size: 1rem; font-weight: 600; margin-bottom: 8px; color: var(--dark); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .product-price { font-size: 1.1rem; font-weight: 700; color: var(--dark); }
+
+    /* ======================= 5. BANNER SPLIT ======================= */
+    .promo-banner { position: relative; height: 500px; overflow: hidden; }
+    .promo-banner img { width: 100%; height: 100%; object-fit: cover; transition: 0.6s; }
+    .promo-banner:hover img { transform: scale(1.05); }
+    .promo-content {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      text-align: center; color: #fff; width: 80%; background: rgba(255,255,255,0.1);
+      backdrop-filter: blur(5px); padding: 40px; border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    /* ======================= 6. NEWSLETTER ======================= */
+    .newsletter-section { background: var(--dark); color: #fff; padding: 60px 0; text-align: center; }
+    .newsletter-form { max-width: 600px; margin: 30px auto 0; position: relative; }
+    .newsletter-input { width: 100%; padding: 15px 120px 15px 25px; border-radius: 50px; border: none; outline: none; }
+    .newsletter-btn { position: absolute; right: 5px; top: 5px; bottom: 5px; background: var(--primary); color: #fff; border-radius: 50px; padding: 0 30px; border: none; font-weight: 600; }
+    .newsletter-btn:hover { background: var(--primary-dark); }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .hero-title { font-size: 2.5rem; }
+      .features-section { margin-top: 0; display: block; }
+      .feature-box { margin-bottom: 20px; justify-content: flex-start; padding-left: 20px; }
+      .category-card { height: 250px; }
+    }
+  </style>
 </head>
 <body>
 
-<!-- Nhúng Header (Giả sử bạn đã có file /library/header.html) -->
+<!-- 1. GIỮ NGUYÊN HEADER -->
 <header th:replace="~{/library/header :: header}"></header>
 
 <main>
-  <!-- CAROUSEL -->
-  <div id="mainCarousel" class="carousel slide main-carousel carousel-fade" data-bs-ride="carousel" data-bs-interval="4000">
-    <div class="carousel-indicators">
-      <button type="button" data-bs-target="#mainCarousel" data-bs-slide-to="0" class="active"></button>
-      <button type="button" data-bs-target="#mainCarousel" data-bs-slide-to="1"></button>
-      <button type="button" data-bs-target="#mainCarousel" data-bs-slide-to="2"></button>
+
+  <!-- 2. HERO SLIDER (Cải tiến) -->
+  <section class="hero-section">
+    <div id="mainCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-interval="5000">
+      <div class="carousel-inner">
+        <div class="carousel-item active">
+          <img src="https://images.pexels.com/photos/3757376/pexels-photo-3757376.jpeg" alt="Hero 1">
+          <div class="hero-content">
+            <span class="badge bg-primary mb-3">NEW ARRIVALS 2024</span>
+            <h1 class="hero-title">ĐÁNH THỨC<br>BẢN LĨNH</h1>
+            <p class="hero-subtitle">Bộ sưu tập mùa hè với chất liệu thoáng mát, co giãn tối đa.</p>
+            <a th:href="@{/san-pham}" class="btn-hero">MUA NGAY <i class="fa-solid fa-arrow-right ms-2"></i></a>
+          </div>
+        </div>
+        <div class="carousel-item">
+          <img src="https://images.pexels.com/photos/2249297/pexels-photo-2249297.jpeg" alt="Hero 2">
+          <div class="hero-content">
+            <span class="badge bg-warning text-dark mb-3">BEST SELLER</span>
+            <h1 class="hero-title">PHONG CÁCH<br>CHUYÊN NGHIỆP</h1>
+            <p class="hero-subtitle">Trang phục tập luyện đỉnh cao dành cho phái đẹp.</p>
+            <a th:href="@{/san-pham}" class="btn-hero">KHÁM PHÁ <i class="fa-solid fa-arrow-right ms-2"></i></a>
+          </div>
+        </div>
+      </div>
+      <button class="carousel-control-prev" type="button" data-bs-target="#mainCarousel" data-bs-slide="prev"><span class="carousel-control-prev-icon"></span></button>
+      <button class="carousel-control-next" type="button" data-bs-target="#mainCarousel" data-bs-slide="next"><span class="carousel-control-next-icon"></span></button>
     </div>
-    <div class="carousel-inner">
-      <div class="carousel-item active" style="background-image: url('https://tn.com.ar/resizer/v2/los-terrenos-las-distancias-los-ritmos-y-las-exigencias-seran-diferentes-a-tus-entrenamientos-en-otras-partes-del-ano-foto-shutterstock-XQ3CADM4TZPTBI33DXC6P6AHLY.jpg?auth=0e8721df902a795351454cdeeb718a44c9f12dcf0addeacaee75d3d829558e6f&width=767');">
-        <div class="carousel-caption">
-          <h1 class="caption-title">SUMMER COLLECTION</h1>
-          <p class="caption-subtitle">Khám phá bộ sưu tập thời trang thể thao mới nhất cho mùa hè năng động.</p>
-          <a th:href="@{/san-pham}" class="btn-slide-action">MUA NGAY</a>
+  </section>
+
+  <!-- 3. TRUST BADGES (Mới thêm) -->
+  <div class="container">
+    <div class="features-section">
+      <div class="row g-0">
+        <div class="col-md-3 border-end">
+          <div class="feature-box">
+            <i class="fa-solid fa-truck-fast feature-icon"></i>
+            <div class="feature-text">
+              <h6>MIỄN PHÍ VẬN CHUYỂN</h6>
+              <p>Cho đơn hàng từ 500k</p>
+            </div>
+          </div>
         </div>
-      </div>
-      <div class="carousel-item" style="background-image: url('https://product.hstatic.net/200000650139/product/tvv07200_b8b681a667df46c68dd94f065fcbce48_grande.jpg');">
-        <div class="carousel-caption">
-          <h1 class="caption-title">WOMEN ACTIVE</h1>
-          <p class="caption-subtitle">Tự tin bứt phá giới hạn với trang phục tập luyện chuyên nghiệp.</p>
-          <a th:href="@{/san-pham}" class="btn-slide-action">XEM CHI TIẾT</a>
+        <div class="col-md-3 border-end">
+          <div class="feature-box">
+            <i class="fa-solid fa-rotate-left feature-icon"></i>
+            <div class="feature-text">
+              <h6>ĐỔI TRẢ 7 NGÀY</h6>
+              <p>Thủ tục đơn giản</p>
+            </div>
+          </div>
         </div>
-      </div>
-      <div class="carousel-item" style="background-image: url('https://aokhoacdu.com/wp-content/uploads/2020/06/ao-khoac-the-thao-adidas-2020.jpg');">
-        <div class="carousel-caption">
-          <h1 class="caption-title">FALL WINTER 2024</h1>
-          <p class="caption-subtitle">Ấm áp và phong cách với BST Thu Đông mới nhất đã lên kệ.</p>
-          <a th:href="@{/san-pham}" class="btn-slide-action">KHÁM PHÁ</a>
+        <div class="col-md-3 border-end">
+          <div class="feature-box">
+            <i class="fa-solid fa-shield-halved feature-icon"></i>
+            <div class="feature-text">
+              <h6>HÀNG CHÍNH HÃNG</h6>
+              <p>Cam kết 100% chất lượng</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="feature-box">
+            <i class="fa-solid fa-headset feature-icon"></i>
+            <div class="feature-text">
+              <h6>HỖ TRỢ 24/7</h6>
+              <p>Hotline: 0909 123 456</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-    <button class="carousel-control-prev" type="button" data-bs-target="#mainCarousel" data-bs-slide="prev"><span class="carousel-control-prev-icon"></span></button>
-    <button class="carousel-control-next" type="button" data-bs-target="#mainCarousel" data-bs-slide="next"><span class="carousel-control-next-icon"></span></button>
   </div>
 
-  <!-- DANH MỤC SẢN PHẨM -->
-  <section class="container section-container">
-    <div class="section-header">
-      <h2 class="section-title">Danh Mục Nổi Bật</h2>
-      <p class="section-subtitle">Lựa chọn sản phẩm theo phong cách yêu thích của bạn.</p>
-    </div>
-    <div class="row row-cols-2 row-cols-md-3 row-cols-lg-5 g-4">
-      <div class="col"><a th:href="@{/san-pham(category='ao-khoac')}" class="category-card"><div class="img-wrapper"><img src="https://n7media.coolmate.me/uploads/September2025/ao-khoac-the-thao-track-jacket-essential-xam-bid-grey-1.jpg" alt="Áo khoác"></div><h5 class="category-name">ÁO KHOÁC</h5></a></div>
-      <div class="col"><a th:href="@{/san-pham(category='ao-nam')}" class="category-card"><div class="img-wrapper"><img src="https://pos.nvncdn.com/a36e05-151378/ps/20241128_TyLUzfgv9J.jpeg?v=1732776975" alt="Áo nam"></div><h5 class="category-name">ÁO NAM</h5></a></div>
-      <div class="col"><a th:href="@{/san-pham(category='ao-nu')}" class="category-card"><div class="img-wrapper"><img src="https://product.hstatic.net/200000650139/product/tvv07200_b8b681a667df46c68dd94f065fcbce48_grande.jpg" alt="Áo nữ"></div><h5 class="category-name">ÁO NỮ</h5></a></div>
-      <div class="col"><a th:href="@{/san-pham(category='ao-polo')}" class="category-card"><div class="img-wrapper"><img src="https://victeam.co/wp-content/uploads/2022/02/A43-xanh-bich-e1645301099369.jpg" alt="Áo polo"></div><h5 class="category-name">ÁO POLO</h5></a></div>
-      <div class="col"><a th:href="@{/san-pham(category='ao-thun')}" class="category-card"><div class="img-wrapper"><img src="https://product.hstatic.net/200000805635/product/do_de94001dd04048c2bb32eaac7d4f7a2d_1024x1024.png" alt="Áo thun"></div><h5 class="category-name">ÁO THUN</h5></a></div>
-    </div>
-  </section>
-
-  <!-- BANNER GRID -->
-  <section class="container-fluid p-0">
-    <div class="row g-0">
-      <div class="col-md-6">
-        <a th:href="@{/san-pham(gender='nam')}" class="text-decoration-none d-block">
-          <div class="banner-item" style="background-image: url('https://tn.com.ar/resizer/v2/los-terrenos-las-distancias-los-ritmos-y-las-exigencias-seran-diferentes-a-tus-entrenamientos-en-otras-partes-del-ano-foto-shutterstock-XQ3CADM4TZPTBI33DXC6P6AHLY.jpg?auth=0e8721df902a795351454cdeeb718a44c9f12dcf0addeacaee75d3d829558e6f&width=767');">
-            <div class="banner-content">
-              <h2 class="banner-title">MEN'S COLLECTION</h2>
-              <button class="btn-banner mt-2">KHÁM PHÁ NGAY</button>
-            </div>
-          </div>
-        </a>
-      </div>
-      <div class="col-md-6">
-        <a th:href="@{/san-pham(gender='nu')}" class="text-decoration-none d-block">
-          <div class="banner-item" style="background-image: url('https://thanhnien.mediacdn.vn/uploaded/minhtan/2021_07_04/2021-07-03t131214z_1158724332_up1eh7310oc7r_rtrmadp_3_tennis-wimbledon_DCFS.jpg?width=500');">
-            <div class="banner-content">
-              <h2 class="banner-title">WOMEN'S COLLECTION</h2>
-              <button class="btn-banner mt-2">KHÁM PHÁ NGAY</button>
-            </div>
-          </div>
-        </a>
-      </div>
-    </div>
-  </section>
-
-  <!-- SẢN PHẨM MỚI VỀ -->
-  <section class="container section-container">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <h2 class="section-title mb-0" style="text-align: left;">Sản Phẩm Mới Nhất</h2>
-      <a th:href="@{/san-pham}" class="text-decoration-none text-dark fw-bold">Xem tất cả <i class="fas fa-arrow-right"></i></a>
-    </div>
-
-    <div class="row row-cols-2 row-cols-md-4 g-4">
-      <div class="col">
-        <div class="product-card">
-          <div class="img-container">
-            <img src="https://vinsport.vn/my_uploads/2023/12/Bo-quan-ao-khoac-ni-thu-dong-xuan-Suvec-Wika-chinh-hang-nhieu-mau-kieu-dang-the-thao-moi-2024-1.jpg" alt="Product image">
-            <span class="product-tag" style="background-color: var(--primary-color);">NEW</span>
-          </div>
-          <div class="info">
-            <h6 class="product-name">Bộ gió thể thao Wika phối màu</h6>
-            <div class="product-price">499.000đ</div>
-            <button class="btn btn-dark btn-sm add-to-cart-btn">Thêm vào giỏ</button>
-          </div>
-        </div>
-      </div>
-      <div class="col">
-        <div class="product-card">
-          <div class="img-container">
-            <img src="https://bizweb.dktcdn.net/100/481/348/products/z4147260213030-0bc9a3e8796f400a2e44729000478a01-1677660244570.jpg?v=1680768222003" alt="Product image">
-            <span class="product-tag" style="background-color: #ff9f43;">HOT</span>
-          </div>
-          <div class="info">
-            <h6 class="product-name">Quần Jogger Thể Thao Vải Nỉ</h6>
-            <div class="product-price">250.000đ</div>
-            <button class="btn btn-dark btn-sm add-to-cart-btn">Thêm vào giỏ</button>
-          </div>
-        </div>
-      </div>
-      <div class="col">
-        <div class="product-card">
-          <div class="img-container">
-            <img src="https://namfashion.com/home/wp-content/uploads/2024/07/Bo-quan-ao-the-thao-exr-cao-cap-xuat-khau-ha-noi-12.jpg" alt="Product image">
-          </div>
-          <div class="info">
-            <h6 class="product-name">Bộ nỉ nam cao cấp EXR</h6>
-            <div class="product-price">650.000đ</div>
-            <button class="btn btn-dark btn-sm add-to-cart-btn">Thêm vào giỏ</button>
-          </div>
-        </div>
-      </div>
-      <div class="col">
-        <div class="product-card">
-          <div class="img-container">
-            <img src="https://product.hstatic.net/1000312752/product/dsc05677_8e359d557e824b608c69ee5717fe76fc_master.jpg" alt="Product image">
-            <span class="product-tag" style="background-color: #6c757d;">SOLD OUT</span>
-          </div>
-          <div class="info">
-            <h6 class="product-name">Set thể thao nữ phối màu</h6>
-            <div class="product-price">320.000đ</div>
-            <button class="btn btn-secondary btn-sm add-to-cart-btn" disabled>Hết hàng</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- VIDEO SECTION -->
-  <section class="video-section">
+  <!-- 4. DANH MỤC NỔI BẬT (Giao diện thẻ lớn) -->
+  <section class="section-padding" data-aos="fade-up">
     <div class="container">
-      <h2 class="section-title mb-5">Làm Chủ Phong Cách Của Bạn</h2>
-      <div class="ratio ratio-16x9 mx-auto" style="max-width: 900px;">
-        <iframe src="https://www.youtube.com/embed/DlUyuNRTp8Y?si=GkFXQGchyOfx4aN-" title="YouTube video" allowfullscreen loading="lazy"></iframe>
+      <div class="section-header">
+        <h2>DANH MỤC</h2>
+        <p>Lựa chọn phong cách phù hợp với bộ môn của bạn</p>
+      </div>
+      <div class="row g-4">
+        <div class="col-md-6 col-lg-4">
+          <a th:href="@{/san-pham(gender='nam')}" class="category-card">
+            <img src="https://images.pexels.com/photos/841130/pexels-photo-841130.jpeg" alt="Nam">
+            <div class="category-overlay">
+              <h3 class="category-name">NAM GIỚI</h3>
+              <span class="category-btn">Xem ngay <i class="fa-solid fa-arrow-right"></i></span>
+            </div>
+          </a>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <a th:href="@{/san-pham(gender='nu')}" class="category-card">
+            <img src="https://images.pexels.com/photos/2820896/pexels-photo-2820896.jpeg" alt="Nữ">
+            <div class="category-overlay">
+              <h3 class="category-name">NỮ GIỚI</h3>
+              <span class="category-btn">Xem ngay <i class="fa-solid fa-arrow-right"></i></span>
+            </div>
+          </a>
+        </div>
+        <div class="col-md-12 col-lg-4">
+          <a th:href="@{/san-pham(category='phu-kien')}" class="category-card">
+            <img src="https://images.pexels.com/photos/8436608/pexels-photo-8436608.jpeg" alt="Phụ kiện">
+            <div class="category-overlay">
+              <h3 class="category-name">PHỤ KIỆN</h3>
+              <span class="category-btn">Xem ngay <i class="fa-solid fa-arrow-right"></i></span>
+            </div>
+          </a>
+        </div>
       </div>
     </div>
   </section>
+
+  <!-- 5. SẢN PHẨM MỚI NHẤT (Card đẹp hơn) -->
+  <section class="section-padding bg-light" data-aos="fade-up">
+    <div class="container">
+      <div class="d-flex justify-content-between align-items-end mb-5">
+        <div>
+          <h2 style="font-family: 'Oswald'; font-weight: 700;">NEW ARRIVALS</h2>
+          <p class="mb-0 text-muted">Sản phẩm mới lên kệ tuần này</p>
+        </div>
+        <a th:href="@{/san-pham}" class="btn btn-outline-dark rounded-pill px-4">Xem tất cả</a>
+      </div>
+
+      <div class="row row-cols-1 row-cols-sm-2 row-cols-md-4 g-4">
+        <!-- Product 1 -->
+        <div class="col">
+          <div class="product-card">
+            <div class="product-img-wrap">
+              <img src="https://vinsport.vn/my_uploads/2023/12/Bo-quan-ao-khoac-ni-thu-dong-xuan-Suvec-Wika-chinh-hang-nhieu-mau-kieu-dang-the-thao-moi-2024-1.jpg" alt="SP">
+              <div class="product-actions">
+                <a href="#" class="action-btn" title="Thêm vào giỏ"><i class="fa-solid fa-cart-plus"></i></a>
+                <a href="#" class="action-btn" title="Yêu thích"><i class="fa-regular fa-heart"></i></a>
+                <a href="#" class="action-btn" title="Xem nhanh"><i class="fa-regular fa-eye"></i></a>
+              </div>
+            </div>
+            <div class="product-info">
+              <span class="product-tag">WIKA</span>
+              <h3 class="product-name"><a href="#">Bộ gió thể thao Wika phối màu</a></h3>
+              <div class="product-price">499.000đ</div>
+            </div>
+          </div>
+        </div>
+        <!-- Product 2 -->
+        <div class="col">
+          <div class="product-card">
+            <div class="product-img-wrap">
+              <img src="https://bizweb.dktcdn.net/100/481/348/products/z4147260213030-0bc9a3e8796f400a2e44729000478a01-1677660244570.jpg?v=1680768222003" alt="SP">
+              <div class="product-actions">
+                <a href="#" class="action-btn"><i class="fa-solid fa-cart-plus"></i></a>
+                <a href="#" class="action-btn"><i class="fa-regular fa-heart"></i></a>
+                <a href="#" class="action-btn"><i class="fa-regular fa-eye"></i></a>
+              </div>
+            </div>
+            <div class="product-info">
+              <span class="product-tag">EXR</span>
+              <h3 class="product-name"><a href="#">Quần Jogger Thể Thao Nỉ</a></h3>
+              <div class="product-price">250.000đ</div>
+            </div>
+          </div>
+        </div>
+        <!-- Product 3 -->
+        <div class="col">
+          <div class="product-card">
+            <div class="product-img-wrap">
+              <img src="https://namfashion.com/home/wp-content/uploads/2024/07/Bo-quan-ao-the-thao-exr-cao-cap-xuat-khau-ha-noi-12.jpg" alt="SP">
+              <div class="product-actions">
+                <a href="#" class="action-btn"><i class="fa-solid fa-cart-plus"></i></a>
+                <a href="#" class="action-btn"><i class="fa-regular fa-heart"></i></a>
+                <a href="#" class="action-btn"><i class="fa-regular fa-eye"></i></a>
+              </div>
+            </div>
+            <div class="product-info">
+              <span class="product-tag">PREMIUM</span>
+              <h3 class="product-name"><a href="#">Bộ nỉ nam cao cấp EXR</a></h3>
+              <div class="product-price">650.000đ</div>
+            </div>
+          </div>
+        </div>
+        <!-- Product 4 -->
+        <div class="col">
+          <div class="product-card">
+            <div class="product-img-wrap">
+              <img src="https://product.hstatic.net/1000312752/product/dsc05677_8e359d557e824b608c69ee5717fe76fc_master.jpg" alt="SP">
+              <div class="product-actions">
+                <a href="#" class="action-btn"><i class="fa-solid fa-cart-plus"></i></a>
+                <a href="#" class="action-btn"><i class="fa-regular fa-heart"></i></a>
+                <a href="#" class="action-btn"><i class="fa-regular fa-eye"></i></a>
+              </div>
+            </div>
+            <div class="product-info">
+              <span class="product-tag">WOMEN</span>
+              <h3 class="product-name"><a href="#">Set thể thao nữ phối màu</a></h3>
+              <div class="product-price">320.000đ</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. VIDEO PARALLAX -->
+  <section class="section-padding bg-dark text-white text-center" style="background: url('https://images.pexels.com/photos/1552242/pexels-photo-1552242.jpeg') fixed center/cover; position: relative;">
+    <div style="position: absolute; inset:0; background: rgba(0,0,0,0.6);"></div>
+    <div class="container position-relative z-1" data-aos="zoom-in">
+      <h2 class="mb-3">LÀM CHỦ PHONG CÁCH CỦA BẠN</h2>
+      <p class="mb-4">Xem video để tìm cảm hứng tập luyện mỗi ngày</p>
+      <button class="btn btn-outline-light rounded-circle p-0" style="width: 80px; height: 80px;" data-bs-toggle="modal" data-bs-target="#videoModal">
+        <i class="fa-solid fa-play fs-2"></i>
+      </button>
+    </div>
+  </section>
+
+  <!-- 7. NEWSLETTER -->
+  <section class="newsletter-section">
+    <div class="container" data-aos="fade-up">
+      <i class="fa-regular fa-envelope fs-1 mb-3 text-primary"></i>
+      <h3>ĐĂNG KÝ NHẬN TIN</h3>
+      <p class="text-white-50">Nhận thông báo về sản phẩm mới và ưu đãi độc quyền.</p>
+      <form class="newsletter-form">
+        <input type="email" class="newsletter-input" placeholder="Nhập địa chỉ email của bạn...">
+        <button type="submit" class="newsletter-btn">Đăng ký</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- Modal Video -->
+  <div class="modal fade" id="videoModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content bg-transparent border-0">
+        <div class="ratio ratio-16x9">
+          <iframe src="https://www.youtube.com/embed/DlUyuNRTp8Y?si=GkFXQGchyOfx4aN-" allowfullscreen></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </main>
 
-<!-- Nhúng Footer (Giả sử bạn đã có file /library/footer.html) -->
+<!-- GIỮ NGUYÊN FOOTER -->
 <footer th:replace="~{/library/footer :: footer}"></footer>
 
-<!-- NÚT MESSENGER -->
-<a href="https://m.me/yourpage" target="_blank" class="floating-chat-btn position-fixed bottom-0 end-0 m-4 p-3 text-white rounded-circle shadow-lg">
-  <i class="fab fa-facebook-messenger fs-4"></i>
+<!-- Nút Messenger -->
+<a href="#" class="floating-chat-btn position-fixed bottom-0 end-0 m-4 p-3 rounded-circle shadow-lg text-white" style="background: #0084FF; width: 60px; height: 60px; display:flex; align-items:center; justify-content:center; z-index:9999;">
+  <i class="fa-brands fa-facebook-messenger fs-2"></i>
 </a>
 
+<!-- Scripts -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script>
+  AOS.init({
+    duration: 800,
+    once: true,
+    offset: 100
+  });
+</script>
 
 </body>
 </html>

@@ -2,9 +2,9 @@ package sd_04.datn_fstore.service;
 
 import org.springframework.transaction.annotation.Transactional;
 import sd_04.datn_fstore.dto.CreateOrderRequest;
-import sd_04.datn_fstore.dto.VnPayResponseDTO; // <-- THÊM IMPORT
+import sd_04.datn_fstore.dto.VnPayResponseDTO;
 import sd_04.datn_fstore.model.HoaDon;
-import sd_04.datn_fstore.model.PhieuGiamGia; // <-- THÊM IMPORT
+import sd_04.datn_fstore.model.PhieuGiamGia;
 
 import java.util.List;
 
@@ -20,22 +20,23 @@ public interface BanHangService {
     List<HoaDon> getDraftOrders();
     HoaDon getDraftOrderDetail(Integer id);
 
-    // --- 🚀 THÊM 3 HÀM MỚI VÀO ĐÂY ---
+    // --- 🚀 CÁC HÀM MỚI (ĐÃ CẬP NHẬT) ---
 
     /**
-     * THÊM MỚI: Luồng VNPAY
+     * Tạo thanh toán VNPay
      */
     @Transactional(rollbackFor = Exception.class)
     VnPayResponseDTO taoThanhToanVnPay(CreateOrderRequest request, String ipAddress);
 
     /**
-     * THÊM MỚI: Interface để trừ tồn kho
+     * SỬA LỖI: Cập nhật tham số từ List<Item> thành List<SanPhamItem>
+     * để khớp với DTO CreateOrderRequest mới.
      */
     @Transactional(rollbackFor = Exception.class)
-    void decrementInventory(List<CreateOrderRequest.Item> items);
+    void decrementInventory(List<CreateOrderRequest.SanPhamItem> items);
 
     /**
-     * THÊM MỚI: Interface để trừ lượt dùng voucher
+     * Trừ voucher
      */
     @Transactional(rollbackFor = Exception.class)
     void decrementVoucher(PhieuGiamGia pgg);

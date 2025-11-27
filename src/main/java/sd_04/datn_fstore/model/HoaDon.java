@@ -68,4 +68,12 @@ public class HoaDon {
     @OneToMany(mappedBy = "hoaDon", fetch = FetchType.LAZY)
     @JsonManagedReference
     private List<HoaDonChiTiet> hoaDonChiTiets;
+    @Column(name = "phi_van_chuyen")
+    private BigDecimal phiVanChuyen;
+
+    // 2. Thêm liên kết đến bảng Địa Chỉ
+    // (Lưu ý: Đây là object DiaChi, không phải String)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_dia_chi_giao_hang")
+    private DiaChi diaChiGiaoHang;
 }

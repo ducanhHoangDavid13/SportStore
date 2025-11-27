@@ -4,47 +4,56 @@
 <link rel="stylesheet" th:href="@{/css/footer.css}">
 
 <!-- ======================= FOOTER FRAGMENT ======================= -->
-<footer class="footer" th:fragment="footer">
+<footer class="footer">
     <div class="container">
         <div class="footer-grid">
+            <!-- Cột 1: Thông tin chung -->
             <div class="footer-col">
-                <h4 class="footer-logo">SportGear</h4>
-                <p>Nâng tầm trải nghiệm thể thao của bạn với những sản phẩm chất lượng hàng đầu.</p>
+                <a href="#" class="footer-logo">FashionSport</a>
+                <p>Chúng tôi cung cấp các sản phẩm thời trang thể thao chất lượng cao, giúp bạn tự tin và thoải mái nhất trong mọi hoạt động.</p>
                 <div class="social-icons">
-                    <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
-                    <a href="#"><i class="fa-brands fa-instagram"></i></a>
-                    <a href="#"><i class="fa-brands fa-tiktok"></i></a>
+                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-youtube"></i></a>
                 </div>
             </div>
+
+            <!-- Cột 2: Liên kết nhanh -->
             <div class="footer-col">
-                <h4>Sản phẩm</h4>
+                <h4>Liên Kết</h4>
                 <ul>
-                    <li><a href="#">Quần áo</a></li>
-                    <li><a href="#">Giày</a></li>
-                    <li><a href="#">Phụ kiện</a></li>
-                    <li><a href="#">Dụng cụ</a></li>
-                </ul>
-            </div>
-            <div class="footer-col">
-                <h4>Hỗ trợ</h4>
-                <ul>
+                    <li><a href="#">Về chúng tôi</a></li>
+                    <li><a href="#">Sản phẩm mới</a></li>
+                    <li><a href="#">Tin tức & Sự kiện</a></li>
                     <li><a href="#">Chính sách đổi trả</a></li>
-                    <li><a href="#">Hướng dẫn mua hàng</a></li>
-                    <li><a href="#">Câu hỏi thường gặp</a></li>
-                    <li><a href="#">Chính sách bảo mật</a></li>
+                    <li><a href="#">Liên hệ</a></li>
                 </ul>
             </div>
+
+            <!-- Cột 3: Thông tin liên hệ -->
             <div class="footer-col">
-                <h4>Đăng ký nhận tin</h4>
-                <p>Nhận thông tin về sản phẩm mới và khuyến mãi đặc biệt.</p>
-                <form class="newsletter-form">
-                    <input type="email" placeholder="Nhập email của bạn">
-                    <button type="submit">Đăng Ký</button>
-                </form>
+                <h4>Liên Hệ</h4>
+                <ul>
+                    <li><i class="fas fa-map-marker-alt me-2"></i> 123 Đường Nguyễn Văn Linh, Quận 7, TP.HCM</li>
+                    <li><i class="fas fa-phone me-2"></i> 0123 456 789</li>
+                    <li><i class="fas fa-envelope me-2"></i> contact@fashionsport.com</li>
+                    <li><i class="fas fa-clock me-2"></i> 8:00 - 22:00 (Hàng ngày)</li>
+                </ul>
+            </div>
+
+            <!-- Cột 4: Bản đồ (ĐƯỢC THÊM MỚI) -->
+            <div class="footer-col footer-map">
+                <h4>Cửa Hàng</h4>
+                <!-- Map nhúng iframe -->
+                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3919.6696584237116!2d106.66488007469704!3d10.75992005949667!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31752f9023a3a85d%3A0x9259bad4a526ea96!2sHo%20Chi%20Minh%20City!5e0!3m2!1sen!2s!4v1700000000000!5m2!1sen!2s"
+                        allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade">
+                </iframe>
             </div>
         </div>
+
         <div class="footer-bottom">
-            <p>&copy; 2024 SportGear. Đã đăng ký bản quyền.</p>
+            <p>&copy; 2024 FashionSport. All Rights Reserved.</p>
         </div>
     </div>
 </footer>

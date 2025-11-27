@@ -1,52 +1,86 @@
 package sd_04.datn_fstore.controller.author;
 
-import jakarta.transaction.Transactional; // ⬅️ CẦN THIẾT cho Lazy Loading
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import sd_04.datn_fstore.model.HinhAnh; // ⬅️ Thêm import cho HinhAnh
+
+// Import các Model và DTO
+import sd_04.datn_fstore.dto.ProductVariantDTO;
+import sd_04.datn_fstore.model.HinhAnh;
 import sd_04.datn_fstore.model.SanPham;
-import sd_04.datn_fstore.repository.SanPhamRepository;
+import sd_04.datn_fstore.model.SanPhamChiTiet;
+
+import sd_04.datn_fstore.service.SanPhamService;
+import sd_04.datn_fstore.service.SanPhamCTService;
+
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Controller
+@RequiredArgsConstructor
 public class SPCTController {
 
-    @Autowired
-    private SanPhamRepository sanPhamRepository;
+    private final SanPhamService sanPhamService;
+    private final SanPhamCTService sanPhamCTService;
 
     @GetMapping("/san-pham/chi-tiet/{id}")
-    @Transactional // 🟢 Đảm bảo Hibernate Session còn mở để load List<HinhAnh> (Lazy)
-    public String chiTiet(@PathVariable Integer id, Model model) {
+    @Transactional
+    public String chiTietSanPham(@PathVariable Integer id, Model model) {
 
-        Optional<SanPham> optionalSp = sanPhamRepository.findById(id);
-
+        // 1. LẤY SẢN PHẨM CHA
+        Optional<SanPham> optionalSp = sanPhamService.getById(id);
         if (optionalSp.isEmpty()) {
             return "redirect:/san-pham?error=not_found";
         }
-
         SanPham sp = optionalSp.get();
 
-        // 🛠️ BƯỚC KHẮC PHỤC: Lấy và gán tên ảnh chính
+        // 2. XỬ LÝ ẢNH ĐẠI DIỆN CHO SẢN PHẨM CHA
+        // (Lưu vào biến tạm tenHinhAnhChinh để dùng chung cho cả cha và con)
         List<HinhAnh> hinhAnhList = sp.getHinhAnh();
-
         if (hinhAnhList != null && !hinhAnhList.isEmpty()) {
-            // Lấy tên file ảnh đầu tiên (hoặc ảnh chính nếu có trường isPrimary)
-            String tenFileAnh = hinhAnhList.get(0).getTenHinhAnh();
-
-            // Gán giá trị vào trường @Transient để Thymeleaf có thể sử dụng
-            sp.setTenHinhAnhChinh(tenFileAnh);
+            sp.setTenHinhAnhChinh(hinhAnhList.get(0).getTenHinhAnh());
         } else {
-            // ⚠️ Gán ảnh mặc định nếu không có ảnh nào trong DB
-            sp.setTenHinhAnhChinh("default_no_image.png");
+            sp.setTenHinhAnhChinh("default.png");
         }
 
-        model.addAttribute("product", sp);
+        // 3. LẤY DANH SÁCH BIẾN THỂ TỪ DB
+        List<SanPhamChiTiet> listEntity = sanPhamCTService.getBySanPhamId(id);
 
-        // Trả về file HTML hiển thị chi tiết sản phẩm
+        // 4. CHUYỂN ĐỔI ENTITY -> DTO (SỬA LỖI TẠI ĐÂY)
+        List<ProductVariantDTO> listVariantDTO = listEntity.stream()
+                .map(spct -> new ProductVariantDTO(
+                        spct.getId(),
+                        spct.getMauSac() != null ? spct.getMauSac().getTenMauSac() : "",
+                        spct.getKichThuoc() != null ? spct.getKichThuoc().getTenKichThuoc() : "",
+                        spct.getGiaTien(),
+                        spct.getSoLuong(),
+                        // 🛠️ SỬA LỖI: Lấy ảnh từ sản phẩm cha (sp) thay vì spct
+                        sp.getTenHinhAnhChinh()
+                ))
+                .collect(Collectors.toList());
+
+        // 5. LẤY DANH SÁCH MÀU VÀ SIZE DUY NHẤT
+        Set<String> listMau = listVariantDTO.stream()
+                .map(ProductVariantDTO::getTenMau)
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.toSet());
+
+        Set<String> listSize = listVariantDTO.stream()
+                .map(ProductVariantDTO::getTenSize)
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.toSet());
+
+        // 6. ĐẨY DỮ LIỆU SANG VIEW
+        model.addAttribute("product", sp);
+        model.addAttribute("variantsJSON", listVariantDTO);
+        model.addAttribute("listMau", listMau);
+        model.addAttribute("listSize", listSize);
+
         return "view/author/sanPhamChiTiet";
     }
 }

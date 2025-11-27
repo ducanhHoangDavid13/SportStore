@@ -20,14 +20,6 @@ import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-/**
- * VnPay service implementation.
- *
- * Note: To break the circular dependency between BanHangServiceImpl <-> VnPayServiceImpl
- * we inject a lazy provider for BanHangService (ObjectProvider<BanHangService>).
- * This defers obtaining the BanHangService bean until it's actually needed inside the callback,
- * avoiding constructor-time circular instantiation.
- */
 @Service
 @RequiredArgsConstructor
 public class VnPayServiceImpl implements VnPayService {
@@ -54,6 +46,9 @@ public class VnPayServiceImpl implements VnPayService {
         String vnp_ReturnUrl = VnPayConfig.vnp_ReturnUrl;
         String vnp_TmnCode = VnPayConfig.vnp_TmnCode;
 
+        // 🚀 THÊM Mã BankCode (NCB)
+        String vnp_BankCode = "NCB";
+
         Map<String, String> vnp_Params = new HashMap<>();
         vnp_Params.put("vnp_Version", vnp_Version);
         vnp_Params.put("vnp_Command", vnp_Command);
@@ -66,6 +61,9 @@ public class VnPayServiceImpl implements VnPayService {
         vnp_Params.put("vnp_Locale", vnp_Locale);
         vnp_Params.put("vnp_ReturnUrl", vnp_ReturnUrl);
         vnp_Params.put("vnp_IpAddr", vnp_IpAddr);
+
+        // 🚀 THÊM tham số BankCode
+        vnp_Params.put("vnp_BankCode", vnp_BankCode);
 
         Calendar cld = Calendar.getInstance(TimeZone.getTimeZone("Etc/GMT+7"));
         SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
@@ -105,139 +103,95 @@ public class VnPayServiceImpl implements VnPayService {
         return VnPayConfig.vnp_PayUrl + "?" + queryUrl;
     }
 
+    // ... (Các import giữ nguyên)
+
+    // ... (Hàm createOrder giữ nguyên) ...
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public int orderReturn(Map<String, String> vnpParams) {
         String vnp_TxnRef = vnpParams.get("vnp_TxnRef");
         String vnp_ResponseCode = vnpParams.get("vnp_ResponseCode");
-        String vnp_SecureHashReceived = vnpParams.get("vnp_SecureHash");
 
         try {
-            // 1) Validate secure hash
-            Map<String, String> paramsForHash = new HashMap<>(vnpParams);
-            paramsForHash.remove("vnp_SecureHash");
-            paramsForHash.remove("vnp_SecureHashType");
-
-            List<String> fieldNames = new ArrayList<>(paramsForHash.keySet());
-            Collections.sort(fieldNames);
-
-            StringBuilder hashData = new StringBuilder();
-            Iterator<String> itr = fieldNames.iterator();
-            while (itr.hasNext()) {
-                String fieldName = itr.next();
-                String fieldValue = paramsForHash.get(fieldName);
-                if (fieldValue != null && fieldValue.length() > 0) {
-                    String encodedValue = URLEncoder.encode(fieldValue, StandardCharsets.UTF_8.toString());
-                    hashData.append(fieldName).append('=').append(encodedValue);
-                    if (itr.hasNext()) {
-                        hashData.append('&');
-                    }
-                }
-            }
-
-            String localHash = VnPayConfig.hmacSHA512(VnPayConfig.secretKey, hashData.toString());
-            if (vnp_SecureHashReceived == null || !localHash.equalsIgnoreCase(vnp_SecureHashReceived)) {
-                // Invalid signature
-                System.err.println("VNPAY secure hash mismatch. received=" + vnp_SecureHashReceived + " computed=" + localHash);
+            if (!validateHash(vnpParams)) {
                 return -1;
             }
 
-            // 2) Find invoice
             HoaDon hoaDon = hoaDonRepository.findByMaHoaDon(vnp_TxnRef)
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy Hóa đơn: " + vnp_TxnRef));
 
-            // If already paid
-            if (hoaDon.getTrangThai() == 1) {
-                return 1;
-            }
-
-            // Only process when current status is the "temporary/pending" status expected (5 in your code)
             if (hoaDon.getTrangThai() != 5) {
-                return -1;
+                return (hoaDon.getTrangThai() == 1) ? 1 : -1;
             }
 
             if ("00".equals(vnp_ResponseCode)) {
                 List<HoaDonChiTiet> items = hoaDonChiTietRepository.findByHoaDonId(hoaDon.getId());
-                if (items == null || items.isEmpty()) {
-                    throw new RuntimeException("Hóa đơn không có sản phẩm chi tiết.");
-                }
 
-                // Build DTO list for inventory decrement
-                List<CreateOrderRequest.Item> itemsToDecrement = new ArrayList<>();
+                // SỬA: List<Item> -> List<SanPhamItem>
+                List<CreateOrderRequest.SanPhamItem> itemsToDecrement = new ArrayList<>();
                 for (HoaDonChiTiet hdct : items) {
-                    itemsToDecrement.add(new CreateOrderRequest.Item(
+                    // SỬA: new SanPhamItem(...)
+                    itemsToDecrement.add(new CreateOrderRequest.SanPhamItem(
                             hdct.getSanPhamChiTiet().getId(),
                             hdct.getSoLuong(),
                             hdct.getDonGia()
                     ));
                 }
 
-                // Lazily obtain BanHangService to avoid circular dependency at context startup
                 BanHangService banHangService = banHangServiceProvider.getIfAvailable();
                 if (banHangService == null) {
                     throw new RuntimeException("BanHangService is not available");
                 }
 
-                // Decrement inventory and voucher via BanHangService
                 banHangService.decrementInventory(itemsToDecrement);
                 banHangService.decrementVoucher(hoaDon.getPhieuGiamGia());
 
-                hoaDon.setTrangThai(1); // 1 = Đã thanh toán
+                hoaDon.setTrangThai(1);
                 hoaDonRepository.save(hoaDon);
 
-                return 1; // Thành công
+                return 1;
 
             } else {
-                // Payment failed
-                hoaDon.setTrangThai(3); // 3 = Đã hủy
+                hoaDon.setTrangThai(3);
                 hoaDonRepository.save(hoaDon);
-                return 0; // Thất bại
+                return 0;
             }
 
         } catch (Exception e) {
             e.printStackTrace();
-            return -1; // Lỗi
+            return -1;
         }
     }
 
     public boolean validateHash(Map<String, String> vnpParams) {
-
-        // 1. Lấy hash bảo mật do VNPAY gửi về
         String receivedHash = vnpParams.get("vnp_SecureHash");
 
-        // 2. Tạo một bản sao các tham số để xử lý
-        //    (Loại bỏ hash và hashType)
         Map<String, String> fields = new HashMap<>(vnpParams);
         fields.remove("vnp_SecureHash");
-        fields.remove("vnp_SecureHashType"); // Loại bỏ nếu có
+        fields.remove("vnp_SecureHashType");
 
-        // 3. Sắp xếp các key theo thứ tự bảng chữ cái
         List<String> fieldNames = new ArrayList<>(fields.keySet());
         Collections.sort(fieldNames);
 
-        // 4. Xây dựng chuỗi hash data (key1=value1&key2=value2...)
         StringBuilder hashData = new StringBuilder();
         for (String key : fieldNames) {
             String value = fields.get(key);
-            // Chỉ thêm vào nếu value không rỗng hoặc null
             if (value != null && value.length() > 0) {
                 if (hashData.length() > 0) {
                     hashData.append('&');
                 }
                 hashData.append(key);
                 hashData.append('=');
-                hashData.append(value); // Giữ nguyên giá trị, không encode
+                hashData.append(value);
             }
         }
 
-        // 5. TẠO HASH MỚI:
-        //    Sử dụng trực tiếp secretKey và hàm hmacSHA512 từ class Config
         String generatedHash = VnPayConfig.hmacSHA512(
-                VnPayConfig.secretKey, // Lấy secret key static
-                hashData.toString()    // Dữ liệu đã được sắp xếp
+                VnPayConfig.secretKey,
+                hashData.toString()
         );
 
-        // 6. So sánh hash nhận được và hash vừa tạo
         return generatedHash.equals(receivedHash);
     }
 }

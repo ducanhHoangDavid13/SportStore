@@ -30,7 +30,7 @@ public class SanPhamChiTietApiController {
             Pageable pageable,
             @RequestParam(required = false) Integer idSanPham,
             @RequestParam(required = false) Integer idKichThuoc,
-            @RequestParam(required = false) Integer idPhanLoai, // Lưu ý: Nếu entity bỏ field này thì param này thừa
+            @RequestParam(required = false) Integer idPhanLoai,
             @RequestParam(required = false) Integer idXuatXu,
             @RequestParam(required = false) Integer idChatLieu,
             @RequestParam(required = false) Integer idMauSac,
@@ -40,7 +40,6 @@ public class SanPhamChiTietApiController {
             @RequestParam(required = false) Integer trangThai,
             @RequestParam(required = false) String keyword
     ) {
-        // Cần đảm bảo bên Service hàm search cũng nhận đúng tham số này
         Page<SanPhamChiTiet> spctPage = sanPhamCTService.search(
                 pageable, idSanPham, idKichThuoc, idChatLieu, idTheLoai,
                 idXuatXu, idMauSac, idPhanLoai, minPrice, maxPrice, trangThai, keyword
@@ -56,7 +55,7 @@ public class SanPhamChiTietApiController {
             SanPhamChiTiet savedSpct = sanPhamCTService.save(sanPhamChiTiet);
             return new ResponseEntity<>(savedSpct, HttpStatus.CREATED);
         } catch (Exception e) {
-            e.printStackTrace(); // In lỗi ra console để debug
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("Thêm mới thất bại: " + e.getMessage());
         }
@@ -87,22 +86,17 @@ public class SanPhamChiTietApiController {
         }
         SanPhamChiTiet spctTrongDB = optSpct.get();
 
-        // 🔴 SỬA LỖI Ở ĐÂY: Dùng setDonGia thay vì setGiaTien
         spctTrongDB.setGiaTien(dataTuJavaScript.getGiaTien());
 
         spctTrongDB.setSoLuong(dataTuJavaScript.getSoLuong());
         spctTrongDB.setMoTa(dataTuJavaScript.getMoTa());
         spctTrongDB.setTrangThai(dataTuJavaScript.getTrangThai());
-        // Cập nhật các mối quan hệ
         spctTrongDB.setSanPham(dataTuJavaScript.getSanPham());
         spctTrongDB.setMauSac(dataTuJavaScript.getMauSac());
         spctTrongDB.setKichThuoc(dataTuJavaScript.getKichThuoc());
         spctTrongDB.setChatLieu(dataTuJavaScript.getChatLieu());
         spctTrongDB.setXuatXu(dataTuJavaScript.getXuatXu());
         spctTrongDB.setTheLoai(dataTuJavaScript.getTheLoai());
-
-        // ⚠️ Lưu ý: Nếu trong Entity SanPhamChiTiet bạn đã bỏ field "phanLoai" thì xóa dòng dưới đi
-        // spctTrongDB.setPhanLoai(dataTuJavaScript.getPhanLoai());
 
         try {
             SanPhamChiTiet updatedSpct = sanPhamCTService.save(spctTrongDB);
