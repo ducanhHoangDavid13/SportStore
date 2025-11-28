@@ -471,18 +471,26 @@
             const price = sp.giaTien || 0;
             const size = sp.kichThuoc?.tenKichThuoc || '-';
             const color = sp.mauSac?.tenMauSac || '-';
+
             let img = 'https://via.placeholder.com/200x200?text=SP';
-            if(sp.sanPham?.hinhAnh?.[0]?.tenHinhAnh) img = `/api/hinh-anh/download/${sp.sanPham.hinhAnh[0].tenHinhAnh}`;
+
+            // <<< PHẦN SỬA ĐỔI LẤY TÊN ẢNH CHÍNH TỪ API >>>
+            const tenHinhAnhChinh = sp.sanPham?.tenHinhAnhChinh;
+
+            if (tenHinhAnhChinh) {
+                img = `/api/hinh-anh/download/${tenHinhAnhChinh}`;
+            }
+            // <<< KẾT THÚC PHẦN SỬA ĐỔI >>>
 
             html += `
-            <div class="prod-card" data-id="${sp.id}" data-name="${name}" data-price="${price}" data-img="${img}" data-size="${size}" data-color="${color}">
-                <img src="${img}" class="prod-img">
-                <div class="prod-details">
-                    <div class="prod-name" title="${name}">${name}</div>
-                    <div class="prod-meta">${size} / ${color}</div>
-                    <div class="prod-price">${formatter.format(price)}</div>
-                </div>
-            </div>`;
+        <div class="prod-card" data-id="${sp.id}" data-name="${name}" data-price="${price}" data-img="${img}" data-size="${size}" data-color="${color}">
+            <img src="${img}" class="prod-img">
+            <div class="prod-details">
+                <div class="prod-name" title="${name}">${name}</div>
+                <div class="prod-meta">${size} / ${color}</div>
+                <div class="prod-price">${formatter.format(price)}</div>
+            </div>
+        </div>`;
         });
         $('#product-grid').html(html);
     }
