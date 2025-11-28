@@ -178,34 +178,41 @@ public class BanHangServiceImpl implements BanHangService {
     private HoaDon createHoaDonFromPayload(CreateOrderRequest request, PhieuGiamGia pgg) {
         HoaDon hoaDon = new HoaDon();
 
-        // SỬA: getTotalAmount() -> getTongTien()
-        BigDecimal totalAmount = request.getTongTien();
-        // SỬA: getDiscountAmount() -> getTienGiamGia()
-        BigDecimal discountAmount = request.getTienGiamGia();
+        // --- SỬA LỖI Ở ĐÂY ---
+        // 1. Kiểm tra null: Nếu request gửi lên null thì gán mặc định là 0
+        BigDecimal totalAmount = request.getTongTien() != null ? request.getTongTien() : BigDecimal.ZERO;
+        BigDecimal discountAmount = request.getTienGiamGia() != null ? request.getTienGiamGia() : BigDecimal.ZERO;
 
+        // 2. Tính toán lại: Tổng tiền hàng (Gốc) = Số tiền khách phải trả + Số tiền được giảm
         BigDecimal subtotalAmount = totalAmount.add(discountAmount);
 
-        // SỬA: getOrderCode() -> getMaHoaDon()
+        // Map dữ liệu
         hoaDon.setMaHoaDon(request.getMaHoaDon());
         hoaDon.setNgayTao(LocalDateTime.now(VN_ZONE));
+
+        // setTongTien = Tổng giá trị hàng (chưa trừ giảm giá)
         hoaDon.setTongTien(subtotalAmount);
         hoaDon.setTienGiamGia(discountAmount);
+        // setTongTienSauGiam = Khách phải trả
         hoaDon.setTongTienSauGiam(totalAmount);
 
         hoaDon.setPhieuGiamGia(pgg);
 
-        int nhanVienId = request.getNhanVienId();
-        NhanVien nv = nhanVienRepository.findById(nhanVienId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy Nhân Viên ID: " + nhanVienId));
-        hoaDon.setNhanVien(nv);
+        // 3. Xử lý Nhân viên
+        if (request.getNhanVienId() != null) {
+            NhanVien nv = nhanVienRepository.findById(request.getNhanVienId())
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy Nhân Viên ID: " + request.getNhanVienId()));
+            hoaDon.setNhanVien(nv);
+        }
 
+        // 4. Xử lý Khách hàng (cho phép null nếu là khách lẻ)
         Integer khachHangId = request.getKhachHangId();
         if (khachHangId != null) {
             KhachHang kh = khachHangRepository.findById(khachHangId).orElse(null);
             hoaDon.setKhachHang(kh);
         }
 
-        hoaDon.setHinhThucBanHang(1); // 1 = Tại quầy (hoặc 0 nếu là online, tùy logic bạn set)
+        hoaDon.setHinhThucBanHang(1); // 1 = Tại quầy
         return hoaDon;
     }
 }

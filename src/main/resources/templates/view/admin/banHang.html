@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>POS - F-STORE</title>
 
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -576,19 +577,55 @@
     }
 
     async function saveDraft() {
-        if(!cart.length) return toastr.warning("Trống");
+        if(!cart.length) return toastr.warning("Giỏ hàng trống, không thể lưu!");
+
+        const token = $("meta[name='_csrf']").attr("content");
+        const header = $("meta[name='_csrf_header']").attr("content");
+
+        // --- BỔ SUNG: Lấy tổng tiền và giảm giá từ giao diện ---
+        // Lấy số tiền khách phải trả (đã lưu trong data-val của thẻ #total)
+        const tongTienKhachTra = $('#total').data('val') || 0;
+
+        // Lấy tiền giảm giá (cắt bỏ ký tự chữ, chỉ lấy số)
+        const tienGiamStr = $('#discount').text().replace(/[^0-9]/g, '');
+        const tienGiamGia = parseFloat(tienGiamStr) || 0;
+        // ------------------------------------------------------
+
         try {
             const payload = {
                 nhanVienId: $('#current-employee-id').val(),
                 khachHangId: currentCustomer?.id,
                 danhSachSanPham: cart.map(i => ({sanPhamChiTietId: i.id, soLuong: i.qty, donGia: i.price})),
-                phuongThucThanhToan: 'DRAFT', maHoaDon: currentOrderCode,
-                phieuGiamGiaId: $('#coupon-select').val() || null
+                phuongThucThanhToan: 'DRAFT',
+                maHoaDon: currentOrderCode,
+                phieuGiamGiaId: $('#coupon-select').val() || null,
+
+                // --- QUAN TRỌNG: Phải gửi kèm 2 trường này ---
+                tongTien: tongTienKhachTra,   // Map vào request.getTongTien()
+                tienGiamGia: tienGiamGia      // Map vào request.getTienGiamGia()
             };
-            const res = await fetch(`${API_BASE}/api/ban-hang/luu-tam`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+
+            const res = await fetch(`${API_BASE}/api/ban-hang/luu-tam`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    [header]: token
+                },
+                body: JSON.stringify(payload)
+            });
+
             const data = await res.json();
-            if(res.ok) { toastr.success("Đã lưu tạm"); initNewOrder(); }
-        } catch(e) {}
+
+            if(res.ok) {
+                toastr.success("Đã lưu đơn tạm thành công!");
+                initNewOrder();
+            } else {
+                toastr.error(data.message || "Lỗi lưu đơn hàng");
+            }
+        } catch(e) {
+            console.error(e);
+            toastr.error("Lỗi kết nối Server");
+        }
     }
 
     function filterProducts() {
