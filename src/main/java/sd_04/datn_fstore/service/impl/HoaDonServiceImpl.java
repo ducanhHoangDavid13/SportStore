@@ -89,4 +89,5 @@ public class HoaDonServiceImpl implements HoaDonService {
     public List<HoaDon> getByDateRange(LocalDateTime startTime, LocalDateTime endTime) {
         return hoaDonRepository.findByNgayTaoBetweenOrderByNgayTaoDesc(startTime, endTime);
     }
+
 }

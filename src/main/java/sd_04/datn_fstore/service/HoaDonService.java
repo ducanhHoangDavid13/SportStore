@@ -44,4 +44,5 @@ public interface HoaDonService {
      * THÊM MỚI: Dùng cho API /api/hoadon/date
      */
     List<HoaDon> getByDateRange(LocalDateTime startTime, LocalDateTime endTime);
+
 }
