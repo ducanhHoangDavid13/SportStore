@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <body>
 
 <!-- NAVBAR FRAGMENT -->
@@ -79,75 +80,84 @@
     <!-- Menu List -->
     <ul class="nav flex-column">
 
-        <!-- Dashboard -->
-        <li class="nav-item">
-            <!-- Thêm class 'active-tab' vào đây nếu đang ở trang này -->
-            <a class="nav-link active-tab" th:href="@{/admin/dashboard}">
-                <i class="fas fa-th-large"></i>
-                <span>Tổng quan</span>
-            </a>
-        </li>
+        <ul class="nav flex-column">
 
-        <!-- Section: SALES -->
-        <div class="sidebar-heading">Kinh doanh</div>
+            <!-- Dashboard (Admin only) -->
+            <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+                <a class="nav-link active-tab" th:href="@{/admin/dashboard}">
+                    <i class="fas fa-th-large"></i>
+                    <span>Tổng quan</span>
+                </a>
+            </li>
 
-        <li class="nav-item">
-            <a class="nav-link" th:href="@{/admin/ban-hang}">
-                <i class="fas fa-cash-register"></i> <span>Bán hàng tại quầy</span>
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" th:href="@{/admin/hoa-don}">
-                <i class="fas fa-receipt"></i> <span>Quản lý hóa đơn</span>
-            </a>
-        </li>
+            <!-- Kinh doanh -->
+            <div class="sidebar-heading">Kinh doanh</div>
 
-        <!-- Section: PRODUCT -->
-        <div class="sidebar-heading">Kho hàng</div>
+            <!-- Bán hàng -->
+            <li class="nav-item" sec:authorize="hasAnyRole('ADMIN','EMPLOYEE')">
+                <a class="nav-link" th:href="@{/admin/ban-hang}">
+                    <i class="fas fa-cash-register"></i> <span>Bán hàng tại quầy</span>
+                </a>
+            </li>
 
-        <li class="nav-item">
-            <a class="nav-link collapsed d-flex justify-content-between align-items-center"
-               data-bs-toggle="collapse" data-bs-target="#productSubmenu" href="#">
-                <div class="d-flex align-items-center">
-                    <i class="fas fa-box-open"></i> <span>Sản phẩm</span>
+            <!-- Quản lý hóa đơn -->
+            <li class="nav-item" sec:authorize="hasAnyRole('ADMIN','EMPLOYEE')">
+                <a class="nav-link" th:href="@{/admin/hoa-don}">
+                    <i class="fas fa-receipt"></i> <span>Quản lý hóa đơn</span>
+                </a>
+            </li>
+
+            <!-- Kho hàng (Admin only) -->
+            <div class="sidebar-heading" sec:authorize="hasRole('ADMIN')">Kho hàng</div>
+            <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+                <a class="nav-link collapsed d-flex justify-content-between align-items-center"
+                   data-bs-toggle="collapse" data-bs-target="#productSubmenu" href="#">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-box-open"></i> <span>Sản phẩm</span>
+                    </div>
+                    <i class="fas fa-chevron-down" style="font-size: 0.7rem;"></i>
+                </a>
+                <div class="collapse" id="productSubmenu">
+                    <ul class="nav flex-column mt-1">
+                        <li class="nav-item"><a class="nav-link" th:href="@{/admin/san-pham}">Danh sách SP</a></li>
+                        <li class="nav-item"><a class="nav-link" th:href="@{/admin/san-pham-chi-tiet}">Chi tiết SP</a></li>
+                        <li class="nav-item"><a class="nav-link" th:href="@{/admin/phan-loai}">Phân loại</a></li>
+                        <li class="nav-item"><a class="nav-link" th:href="@{/admin/the-loai}">Thể loại</a></li>
+                        <li class="nav-item"><a class="nav-link" th:href="@{/admin/xuat-xu}">Xuất xứ</a></li>
+                        <li class="nav-item"><a class="nav-link" th:href="@{/admin/mau-sac}">Màu sắc</a></li>
+                        <li class="nav-item"><a class="nav-link" th:href="@{/admin/kich-thuoc}">Kích thước</a></li>
+                    </ul>
                 </div>
-                <i class="fas fa-chevron-down" style="font-size: 0.7rem;"></i>
-            </a>
-            <div class="collapse" id="productSubmenu">
-                <ul class="nav flex-column mt-1">
-                    <li class="nav-item"><a class="nav-link" th:href="@{/admin/san-pham}">Danh sách SP</a></li>
-                    <li class="nav-item"><a class="nav-link" th:href="@{/admin/san-pham-chi-tiet}">Chi tiết SP</a></li>
-                    <li class="nav-item"><a class="nav-link" th:href="@{/admin/phan-loai}">Phân loại</a></li>
-                    <li class="nav-item"><a class="nav-link" th:href="@{/admin/the-loai}">Thể loại</a></li>
-                    <li class="nav-item"><a class="nav-link" th:href="@{/admin/xuat-xu}">Xuất xứ</a></li>
-                    <li class="nav-item"><a class="nav-link" th:href="@{/admin/mau-sac}">Màu sắc</a></li>
-                    <li class="nav-item"><a class="nav-link" th:href="@{/admin/kich-thuoc}">Kích thước</a></li>
-                </ul>
-            </div>
-        </li>
+            </li>
 
-        <!-- Section: USERS & PROMO -->
-        <div class="sidebar-heading">Hệ thống</div>
+            <!-- Hệ thống -->
+            <div class="sidebar-heading">Hệ thống</div>
 
-        <li class="nav-item">
-            <a class="nav-link" th:href="@{/nhanvien/view}">
-                <i class="fas fa-id-card-alt"></i> <span>Nhân viên</span>
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" th:href="@{/admin/khach-hang/hien-thi}">
-                <i class="fas fa-user-friends"></i> <span>Khách hàng</span>
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" th:href="@{/admin/phieu-giam-gia/hien-thi}">
-                <i class="fas fa-percent"></i> <span>Voucher & Giảm giá</span>
-            </a>
-        </li>
+            <!-- Nhân viên (Admin only) -->
+            <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+                <a class="nav-link" th:href="@{/nhanvien/view}">
+                    <i class="fas fa-id-card-alt"></i> <span>Nhân viên</span>
+                </a>
+            </li>
 
-    </ul>
+            <!-- Khách hàng (Admin & Nhân viên) -->
+            <li class="nav-item" sec:authorize="hasAnyRole('ADMIN','EMPLOYEE')">
+                <a class="nav-link" th:href="@{/admin/khach-hang/hien-thi}">
+                    <i class="fas fa-user-friends"></i> <span>Khách hàng</span>
+                </a>
+            </li>
 
-    <!-- Sidebar Footer Promo -->
+            <!-- Voucher & Giảm giá (Admin only) -->
+            <li class="nav-item" sec:authorize="hasAnyRole('ADMIN','EMPLOYEE')">
+                <a class="nav-link" th:href="@{/admin/phieu-giam-gia/hien-thi}">
+                    <i class="fas fa-percent"></i> <span>Voucher & Giảm giá</span>
+                </a>
+            </li>
+
+        </ul>
+
+
+        <!-- Sidebar Footer Promo -->
     <div class="mt-5 mx-3 p-3 rounded-3 bg-gradient text-center"
          style="background: linear-gradient(45deg, #4f46e5, #818cf8);">
         <i class="fas fa-rocket fa-2x mb-2 text-white-50"></i>

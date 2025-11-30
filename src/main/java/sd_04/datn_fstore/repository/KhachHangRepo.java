@@ -8,6 +8,8 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import sd_04.datn_fstore.model.KhachHang;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -39,4 +41,8 @@ public interface KhachHangRepo extends JpaRepository<KhachHang, Integer> {
 
     Optional<KhachHang> findByEmail(String email);
     List<KhachHang> findByTenKhachHangLikeOrSoDienThoaiLike(String tenKhachHang, String soDienThoai);
+
+
+    int countByNgayTaoBetween(LocalDateTime startOfDay, LocalDateTime endOfDay);
+
 }
