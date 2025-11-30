@@ -1,15 +1,19 @@
 package sd_04.datn_fstore.api;
 
+import jakarta.validation.Valid; // Make sure you use jakarta.validation (Spring Boot 3) or javax.validation (Spring Boot 2)
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 import sd_04.datn_fstore.model.PhieuGiamGia;
 import sd_04.datn_fstore.service.PhieuGiamgiaService;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -40,15 +44,29 @@ public class PhieuGiamGiaApi {
         return ResponseEntity.ok(result);
     }
 
-    // 2. THÊM MỚI
+    // 2. THÊM MỚI (UPDATED WITH VALIDATION)
     @PostMapping
-    public ResponseEntity<?> createPromotion(@RequestBody PhieuGiamGia phieuGiamGia) {
+    public ResponseEntity<?> createPromotion(@Valid @RequestBody PhieuGiamGia phieuGiamGia, BindingResult result) {
+        // Debug Log: Check what is receiving from Frontend
+        System.out.println("Received Create Request: " + phieuGiamGia.toString());
+
+        // Check for validation errors (Empty fields, nulls)
+        if (result.hasErrors()) {
+            Map<String, String> errors = new HashMap<>();
+            for (FieldError error : result.getFieldErrors()) {
+                errors.put(error.getField(), error.getDefaultMessage());
+            }
+            // Return 400 Bad Request with the list of errors
+            return ResponseEntity.badRequest().body(Map.of("message", "Vui lòng kiểm tra lại dữ liệu", "errors", errors));
+        }
+
         try {
             PhieuGiamGia savedPgg = phieuGiamGiaService.saveWithStatusCheck(phieuGiamGia);
             return new ResponseEntity<>(savedPgg, HttpStatus.CREATED);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         } catch (Exception e) {
+            e.printStackTrace(); // Print full error to console
             return ResponseEntity.internalServerError().body(Map.of("message", "Lỗi hệ thống: " + e.getMessage()));
         }
     }
@@ -61,9 +79,18 @@ public class PhieuGiamGiaApi {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // 4. CẬP NHẬT
+    // 4. CẬP NHẬT (UPDATED WITH VALIDATION)
     @PutMapping("/{id}")
-    public ResponseEntity<?> updatePromotion(@PathVariable Integer id, @RequestBody PhieuGiamGia phieuGiamGia) {
+    public ResponseEntity<?> updatePromotion(@PathVariable Integer id, @Valid @RequestBody PhieuGiamGia phieuGiamGia, BindingResult result) {
+        // Check for validation errors
+        if (result.hasErrors()) {
+            Map<String, String> errors = new HashMap<>();
+            for (FieldError error : result.getFieldErrors()) {
+                errors.put(error.getField(), error.getDefaultMessage());
+            }
+            return ResponseEntity.badRequest().body(Map.of("message", "Vui lòng kiểm tra lại dữ liệu", "errors", errors));
+        }
+
         try {
             PhieuGiamGia updatedPhieu = phieuGiamGiaService.update(id, phieuGiamGia);
             return ResponseEntity.ok(updatedPhieu);
@@ -74,18 +101,18 @@ public class PhieuGiamGiaApi {
         }
     }
 
-    // 5. ĐẢO TRẠNG THÁI (Active <-> Inactive) - MỚI
+    // 5. ĐẢO TRẠNG THÁI
     @PatchMapping("/{id}/toggle-status")
     public ResponseEntity<?> toggleStatus(@PathVariable Integer id) {
         try {
-            phieuGiamGiaService.toggleStatus(id); // Cần đảm bảo hàm này có trong Service
+            phieuGiamGiaService.toggleStatus(id);
             return ResponseEntity.ok(Map.of("message", "Cập nhật trạng thái thành công"));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
     }
 
-    // 6. ĐỒNG BỘ TRẠNG THÁI (Quét tự động)
+    // 6. ĐỒNG BỘ TRẠNG THÁI
     @PostMapping("/sync-status")
     public ResponseEntity<?> syncStatus() {
         try {
@@ -96,7 +123,7 @@ public class PhieuGiamGiaApi {
         }
     }
 
-    // 7. DANH SÁCH ACTIVE (Cho trang bán hàng)
+    // 7. DANH SÁCH ACTIVE
     @GetMapping("/active")
     public ResponseEntity<List<PhieuGiamGia>> getActiveVouchers() {
         return ResponseEntity.ok(phieuGiamGiaService.getActive());
