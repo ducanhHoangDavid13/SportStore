@@ -44,7 +44,7 @@ public class AuthenticationServiceImpl {
                     .build());
         }
 
-        if(RoleEnum.ADMIN == roleEnum){
+        if (RoleEnum.ADMIN == roleEnum) {
             Optional<NhanVien> nhanVien = nhanVienRepository.findByEmail(email);
             if (nhanVien.isEmpty()) {
                 NhanVien user = new NhanVien();
@@ -54,7 +54,7 @@ public class AuthenticationServiceImpl {
             }
         }
 
-        if(RoleEnum.USDE == roleEnum){
+        if (RoleEnum.USDE == roleEnum) {
             Optional<KhachHang> khachHang = khachHangRepo.findByEmail(email);
             if (khachHang.isEmpty()) {
                 KhachHang user = new KhachHang();
