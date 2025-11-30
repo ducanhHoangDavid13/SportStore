@@ -67,4 +67,6 @@ public interface SanPhamRepository extends JpaRepository<SanPham, Integer> {
             @Param("minPrice") BigDecimal minPrice,
             @Param("maxPrice") BigDecimal maxPrice,
             Pageable pageable);
+
+    int countBySoLuongLessThan(Integer integer);
 }

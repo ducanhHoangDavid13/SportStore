@@ -263,6 +263,11 @@
                                     <div class="invalid-feedback" id="error-newEmail"></div>
                                 </div>
                                 <div class="col-md-6">
+                                    <label class="form-label fw-bold small">Mật khẩu</label>
+                                    <input type="password" class="form-control" id="password" placeholder="Mật khẩu">
+                                    <div class="invalid-feedback" id="error-password"></div>
+                                </div>
+                                <div class="col-md-6">
                                     <label class="form-label fw-bold small">NĂM SINH</label>
                                     <input type="number" class="form-control" id="newNamSinh" placeholder="YYYY">
                                     <div class="invalid-feedback" id="error-newNamSinh"></div>
@@ -566,6 +571,7 @@
                 tenKhachHang: $('#newTenKhachHang').val(),
                 soDienThoai: $('#newSoDienThoai').val(),
                 email: $('#newEmail').val(),
+                password: $('#password').val(),
                 namSinh: $('#newNamSinh').val() || null,
                 gioiTinh: $('input[name="newGioiTinh"]:checked').val() === 'true'
             };

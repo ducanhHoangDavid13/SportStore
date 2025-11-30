@@ -185,6 +185,10 @@
                                     <input id="email" type="email" class="form-control" placeholder="email@example.com"/>
                                 </div>
                                 <div class="col-md-6">
+                                    <label class="form-label fw-bold small">Mật khẩu</label>
+                                    <input id="password" type="email" class="form-control" placeholder="Mật khẩu"/>
+                                </div>
+                                <div class="col-md-6">
                                     <label class="form-label fw-bold small">SỐ ĐIỆN THOẠI</label>
                                     <input id="soDienThoai" class="form-control" placeholder="0xxxxxxxxx"/>
                                 </div>
@@ -397,9 +401,10 @@
 
         if(!ma || !ten){ toastr.warning('Vui lòng nhập Mã và Tên nhân viên'); return; }
 
-        const payload = {
+        let payload = {
             maNhanVien: ma, tenNhanVien: ten,
             email: document.getElementById('email').value.trim()||null,
+            password: document.getElementById('password').value.trim()||null,
             soDienThoai: document.getElementById('soDienThoai').value.trim()||null,
             cccd: document.getElementById('cccd').value.trim()||null,
             gioiTinh: parseGioiTinh(document.getElementById('gioiTinh').value),
@@ -410,6 +415,10 @@
 
         try{
             const method = id ? 'PUT' : 'POST';
+            if(method == 'POST') {
+                payload = { ...payload, password: document.getElementById('password').value.trim()||null};
+            }
+
             const url = id ? `${apiBase}/update/${id}` : `${apiBase}/add`;
             const res = await fetch(url, {
                 method, headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload)
