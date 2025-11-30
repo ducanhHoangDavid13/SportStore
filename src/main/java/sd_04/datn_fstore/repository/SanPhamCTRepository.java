@@ -20,7 +20,8 @@ public interface SanPhamCTRepository extends JpaRepository<SanPhamChiTiet, Integ
 
     /**
      * 1. TÌM KIẾM NÂNG CAO
-     * - Đã sửa: LIKE %:keyword% -> LIKE CONCAT('%', :keyword, '%')
+     * - Đã sửa: Tìm theo ID (spct.id) thay vì mã chi tiết.
+     * - Sử dụng CONCAT(spct.id, '') để chuyển ID thành chuỗi khi so sánh với keyword.
      */
     @Query(value = "SELECT spct FROM SanPhamChiTiet spct " +
             "LEFT JOIN spct.sanPham sp " +
@@ -41,7 +42,12 @@ public interface SanPhamCTRepository extends JpaRepository<SanPhamChiTiet, Integ
             "(:minPrice IS NULL OR spct.giaTien >= :minPrice) AND " +
             "(:maxPrice IS NULL OR spct.giaTien <= :maxPrice) AND " +
             "(:trangThai IS NULL OR spct.trangThai = :trangThai) AND " +
-            "(:keyword IS NULL OR :keyword = '' OR sp.tenSanPham LIKE CONCAT('%', :keyword, '%'))",
+            "(" +
+            ":keyword IS NULL OR :keyword = '' OR " +
+            "sp.tenSanPham LIKE CONCAT('%', :keyword, '%') OR " +
+            "sp.maSanPham LIKE CONCAT('%', :keyword, '%') OR " +
+            "CONCAT(spct.id, '') LIKE CONCAT('%', :keyword, '%')" + // Sửa tại đây: Tìm theo ID
+            ")",
 
             countQuery = "SELECT COUNT(spct) FROM SanPhamChiTiet spct " +
                     "LEFT JOIN spct.sanPham sp " +
@@ -62,7 +68,12 @@ public interface SanPhamCTRepository extends JpaRepository<SanPhamChiTiet, Integ
                     "(:minPrice IS NULL OR spct.giaTien >= :minPrice) AND " +
                     "(:maxPrice IS NULL OR spct.giaTien <= :maxPrice) AND " +
                     "(:trangThai IS NULL OR spct.trangThai = :trangThai) AND " +
-                    "(:keyword IS NULL OR :keyword = '' OR sp.tenSanPham LIKE CONCAT('%', :keyword, '%'))")
+                    "(" +
+                    ":keyword IS NULL OR :keyword = '' OR " +
+                    "sp.tenSanPham LIKE CONCAT('%', :keyword, '%') OR " +
+                    "sp.maSanPham LIKE CONCAT('%', :keyword, '%') OR " +
+                    "CONCAT(spct.id, '') LIKE CONCAT('%', :keyword, '%')" + // Sửa tại đây: Tìm theo ID
+                    ")")
     Page<SanPhamChiTiet> search(
             Pageable pageable,
             @Param("idSanPham") Integer idSanPham,
@@ -103,19 +114,16 @@ public interface SanPhamCTRepository extends JpaRepository<SanPhamChiTiet, Integ
 
     /**
      * 4. TOP SẢN PHẨM BÁN CHẠY
-     * - Đã sửa: 'images' -> 'hinhAnh' (để khớp với hàm POS)
-     * - Đã sửa: 'donGia' -> 'giaTien' (để khớp với hàm Search)
-     * - Đã sửa: Logic lấy ảnh đại diện (dùng MAX để tránh lỗi Group By)
      */
     @Query("SELECT new sd_04.datn_fstore.dto.TopProductDTO(" +
             "sp.tenSanPham, " +
             "SUM(hdct.soLuong), " +
-            "spct.giaTien, " +          // Sửa: donGia -> giaTien
-            "MAX(img.tenHinhAnh)) " +     // Sửa: Lấy 1 ảnh bất kỳ để không vỡ Group By
+            "spct.giaTien, " +
+            "MAX(img.tenHinhAnh)) " +
             "FROM HoaDonChiTiet hdct " +
             "JOIN hdct.sanPhamChiTiet spct " +
             "JOIN spct.sanPham sp " +
-            "LEFT JOIN sp.hinhAnh img " + // Sửa: images -> hinhAnh
+            "LEFT JOIN sp.hinhAnh img " +
             "GROUP BY sp.id, sp.tenSanPham, spct.giaTien " +
             "ORDER BY SUM(hdct.soLuong) DESC")
     List<TopProductDTO> findTopSellingProducts(Pageable pageable);
@@ -132,5 +140,20 @@ public interface SanPhamCTRepository extends JpaRepository<SanPhamChiTiet, Integ
     List<SanPhamChiTiet> findByTrangThaiAndSoLuongGreaterThan(Integer trangThai, Integer minSoLuong);
 
     // Đếm sản phẩm sắp hết hàng
+//    Integer countBySoLuongLessThanEqual(Integer threshold);
+    // Tìm chính xác theo mã vạch (Dùng cho quét Scan)
+    /**
+     * Tìm kiếm chính xác theo ID để phục vụ quét mã vạch (Barcode Scanner)
+     * Đảm bảo chỉ tìm thấy sản phẩm đang hoạt động (trangThai = 1)
+     */
+    @Query("SELECT spct FROM SanPhamChiTiet spct WHERE spct.id = :id AND spct.trangThai = 1")
+    Optional<SanPhamChiTiet> findByIdAndAvailable(@Param("id") Integer id);
     Integer countBySoLuongLessThanEqual(Integer threshold);
+
+    // Tìm sản phẩm có số lượng nhỏ hơn hoặc bằng ngưỡng
+    List<SanPhamChiTiet> findBySoLuongLessThanEqual(Integer soLuong);
+
+    // Top bán chạy (Đã có trong code cũ của bạn, đảm bảo có @Query đúng)
+//    @Query("SELECT new sd_04.datn_fstore.dto.TopProductDTO(...) ... ORDER BY SUM(hdct.soLuong) DESC")
+//    List<TopProductDTO> findTopSellingProducts(Pageable pageable);
 }

@@ -11,82 +11,115 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import sd_04.datn_fstore.service.DashboardService;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.temporal.TemporalAdjusters;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @Controller
-@RequestMapping("/admin/dashboard")
+@RequestMapping("/admin")
 @RequiredArgsConstructor
 public class DashboardController {
 
     private final DashboardService dashboardService;
 
-    @GetMapping()
-    public String showDashboard(Model model) {
-        // 1. Thống kê 4 thẻ Cards (Tổng quan)
-        model.addAttribute("newCustomers", dashboardService.countAllKhachHangNew());
-        model.addAttribute("totalOrdersToday", dashboardService.countOrdersToday());
+    // ============================================================
+    // 1. CONTROLLER TRẢ VỀ GIAO DIỆN HTML (View)
+    // URL: /admin/dashboard
+    // ============================================================
+    @GetMapping("/dashboard")
+    public String viewDashboard(Model model) {
+        // A. Thống kê 4 Cards trên cùng
         model.addAttribute("todayRevenue", dashboardService.todayRevenue());
+        model.addAttribute("totalOrdersToday", dashboardService.countOrdersToday());
+        model.addAttribute("newCustomers", dashboardService.countAllKhachHangNew());
         model.addAttribute("totalSanPhamSapHet", dashboardService.totalSanPhamSapHet());
 
-        // 2. Dữ liệu biểu đồ mặc định (Tuần này)
+        // B. Dữ liệu ban đầu cho Biểu đồ Cột (Mặc định là Tuần này)
         model.addAttribute("dayLabels", dashboardService.getDayLabelsLast7Days());
         model.addAttribute("revenueList", dashboardService.getRevenueLast7Days());
 
-        // 3. Dữ liệu biểu đồ tròn (Trạng thái đơn hàng)
-        // Lưu ý: Thứ tự labels phải khớp với thứ tự data trả về từ service
-        model.addAttribute("orderStatusLabels", List.of("Hoàn thành", "Đang giao", "Đã hủy"));
+        // C. Dữ liệu ban đầu cho Biểu đồ Tròn (Trạng thái đơn hàng)
         model.addAttribute("orderStatusValues", dashboardService.getOrderStatusSummary());
 
-        // 4. [MỚI] Dữ liệu Bảng "Đơn hàng gần đây" & "Top sản phẩm"
+        // D. Danh sách Đơn hàng gần đây
         model.addAttribute("recentOrders", dashboardService.getRecentOrders());
+
+        // E. Top sản phẩm bán chạy
         model.addAttribute("topProducts", dashboardService.getTopSellingProducts());
 
-        return "view/admin/dashboard";
+        // Trả về file HTML: templates/admin/dashboard.html
+        return "/view/admin/dashboard";
     }
 
-    // API endpoint lấy dữ liệu biểu đồ doanh thu theo bộ lọc (AJAX)
-    // ... imports
-
-    @GetMapping("/revenue")
+    // ============================================================
+    // 2. API TRẢ VỀ DỮ LIỆU JSON (AJAX cho Biểu đồ)
+    // URL: /admin/dashboard/revenue?filter=...
+    // ============================================================
+    @GetMapping("/dashboard/revenue")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> getRevenueData(
-            @RequestParam String filter,
+            @RequestParam(defaultValue = "weekly") String filter,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate
     ) {
         Map<String, Object> response = new HashMap<>();
+        LocalDate start = LocalDate.now();
+        LocalDate end = LocalDate.now();
+        LocalDate today = LocalDate.now();
 
         try {
-            // 1. Xử lý dữ liệu Biểu đồ đường (Line Chart) - GIỮ NGUYÊN CODE CŨ CỦA BẠN
+            // --- XỬ LÝ BIỂU ĐỒ CỘT (DOANH THU) ---
             switch (filter) {
                 case "weekly":
                     response.put("labels", dashboardService.getDayLabelsLast7Days());
                     response.put("revenues", dashboardService.getRevenueLast7Days());
-                    // [MỚI] Thêm dữ liệu Pie Chart theo tuần
-                    response.put("pieData", dashboardService.getOrderStatusSummaryByFilter("weekly", null, null));
+
+                    // Tính ngày cho Pie Chart
+                    start = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+                    end = today.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
                     break;
 
                 case "monthly":
                     response.put("labels", dashboardService.getWeekLabelsInMonth());
                     response.put("revenues", dashboardService.getRevenueByWeeksInMonth());
-                    // [MỚI] Thêm dữ liệu Pie Chart theo tháng
-                    response.put("pieData", dashboardService.getOrderStatusSummaryByFilter("monthly", null, null));
+
+                    start = today.with(TemporalAdjusters.firstDayOfMonth());
+                    end = today.with(TemporalAdjusters.lastDayOfMonth());
                     break;
 
-                // ... các case quarterly, yearly tương tự ...
+                case "quarterly":
+                    response.put("labels", dashboardService.getQuarterLabels());
+                    response.put("revenues", dashboardService.getRevenueByQuarter());
+
+                    int currentQuarter = (today.getMonthValue() - 1) / 3 + 1;
+                    int firstMonth = (currentQuarter - 1) * 3 + 1;
+                    start = LocalDate.of(today.getYear(), firstMonth, 1);
+                    end = start.plusMonths(2).with(TemporalAdjusters.lastDayOfMonth());
+                    break;
+
+                case "yearly":
+                    response.put("labels", dashboardService.getYearLabels());
+                    response.put("revenues", dashboardService.getRevenueByYear());
+
+                    start = LocalDate.of(today.getYear(), 1, 1);
+                    end = LocalDate.of(today.getYear(), 12, 31);
+                    break;
 
                 case "custom":
                     if (startDate != null && endDate != null) {
                         response.put("labels", dashboardService.getCustomDateLabels(startDate, endDate));
                         response.put("revenues", dashboardService.getRevenueByCustomDate(startDate, endDate));
-                        // [MỚI] Thêm dữ liệu Pie Chart theo ngày tùy chỉnh
-                        response.put("pieData", dashboardService.getOrderStatusSummaryByFilter("custom", startDate, endDate));
+                        start = startDate;
+                        end = endDate;
                     }
                     break;
             }
+
+            // --- XỬ LÝ BIỂU ĐỒ TRÒN (TRẠNG THÁI) ---
+            // Dùng khoảng thời gian start/end đã tính ở trên để lọc trạng thái
+            response.put("pieData", dashboardService.getOrderStatusSummaryByFilter(filter, start, end));
 
             return ResponseEntity.ok(response);
 

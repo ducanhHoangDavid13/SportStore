@@ -1,39 +1,48 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
 <body>
 
-<!-- NAVBAR FRAGMENT -->
 <nav th:fragment="admin-navbar" class="navbar-admin navbar navbar-expand-lg fixed-top">
     <div class="container-fluid p-0">
-        <!-- Toggle Button (Mobile) -->
         <button class="btn border-0 d-lg-none me-2" id="sidebarToggleBtn">
             <i class="fas fa-bars text-dark"></i>
         </button>
 
-        <!-- Search Bar (Chỉ hiện trên Desktop) -->
         <div class="d-none d-md-block position-relative search-box ms-2">
             <i class="fas fa-search search-icon"></i>
             <input type="text" class="form-control shadow-none" placeholder="Tìm kiếm..." style="width: 250px;">
         </div>
 
         <ul class="navbar-nav ms-auto align-items-center">
-            <!-- Notification -->
-            <li class="nav-item me-4">
-                <a class="nav-link position-relative text-secondary" href="#">
-                    <i class="far fa-bell fs-5"></i>
-                    <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle"></span>
-                </a>
-            </li>
 
-            <!-- User Profile -->
+            <li class="nav-item dropdown me-3">
+                <a class="nav-link position-relative text-secondary" href="#" id="notificationDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="far fa-bell fs-5"></i>
+                    <span id="notif-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-light"
+                          style="display: none; font-size: 0.6rem;">
+                        0
+                    </span>
+                </a>
+
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-3 p-0 animated--fade-in" aria-labelledby="notificationDropdown" style="width: 320px; max-height: 400px; overflow-y: auto;">
+                    <li class="p-3 border-bottom bg-light d-flex justify-content-between align-items-center sticky-top">
+                        <h6 class="m-0 fw-bold text-primary">Thông báo</h6>
+                        <small class="text-muted" style="font-size: 0.75rem;">Mới nhất</small>
+                    </li>
+
+                    <div id="notif-list">
+                        <li class="text-center text-muted small py-4">Đang tải...</li>
+                    </div>
+                </ul>
+            </li>
             <li class="nav-item dropdown">
                 <a class="nav-link d-flex align-items-center gap-2 dropdown-toggle hide-arrow" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
                     <div class="text-end d-none d-sm-block line-height-1">
                         <span class="d-block text-dark fw-bold" style="font-size: 0.9rem;">Admin User</span>
                         <span class="d-block text-muted" style="font-size: 0.75rem;">Quản trị viên</span>
                     </div>
-                    <!-- Avatar với trạng thái Online -->
                     <div class="position-relative">
                         <img src="https://ui-avatars.com/api/?name=Admin&background=6366f1&color=fff"
                              class="rounded-circle border border-2 border-white shadow-sm" width="40" height="40" alt="Avatar">
@@ -59,11 +68,132 @@
             </li>
         </ul>
     </div>
+
+    <script>
+        let lastNotifCount = 0; // Biến lưu số lượng thông báo cũ để so sánh
+
+        // Hàm gọi API lấy thông báo chưa đọc
+        function fetchNotifications() {
+            // Kiểm tra xem jQuery có được tải không để tránh lỗi
+            if (typeof $ === 'undefined') return;
+
+            $.ajax({
+                url: '/api/notifications/unread',
+                method: 'GET',
+                success: function(data) {
+                    const badge = $('#notif-badge');
+                    const list = $('#notif-list');
+
+                    // 1. Xử lý hiển thị số lượng (Badge)
+                    if (data && data.length > 0) {
+                        badge.text(data.length > 99 ? '99+' : data.length);
+                        badge.show();
+
+                        // Nếu số lượng tăng lên -> Có tin mới -> Hiện Toastr
+                        if (data.length > lastNotifCount) {
+                            const latest = data[0];
+                            // Kiểm tra xem thư viện toastr có tồn tại không trước khi gọi
+                            if(typeof toastr !== 'undefined') {
+                                toastr.info(latest.noiDung, latest.tieuDe, {
+                                    timeOut: 5000,
+                                    positionClass: "toast-bottom-right",
+                                    closeButton: true,
+                                    progressBar: true
+                                });
+                            }
+                        }
+                        lastNotifCount = data.length;
+                    } else {
+                        badge.hide();
+                        lastNotifCount = 0;
+                    }
+
+                    // 2. Render danh sách vào Dropdown
+                    if (!data || data.length === 0) {
+                        list.html('<li class="text-center text-muted small py-4">Không có thông báo mới</li>');
+                    } else {
+                        let html = '';
+                        data.forEach(item => {
+                            // Logic chọn icon và màu nền theo loại thông báo
+                            let iconClass = 'bi-info-circle text-primary';
+                            let bgIcon = 'bg-primary-subtle';
+
+                            if (item.loaiThongBao === 'STOCK') {
+                                iconClass = 'bi-exclamation-triangle-fill text-danger';
+                                bgIcon = 'bg-danger-subtle';
+                            } else if (item.loaiThongBao === 'ORDER') {
+                                iconClass = 'bi-bag-check-fill text-success';
+                                bgIcon = 'bg-success-subtle';
+                            }
+
+                            // Tính thời gian hiển thị
+                            let timeAgoStr = getTimeAgo(item.ngayTao);
+
+                            html += `
+                            <li>
+                                <a class="dropdown-item d-flex align-items-start gap-3 py-3 border-bottom ${item.trangThai===0 ? 'bg-light' : ''}"
+                                   href="${item.urlLienKet || '#'}"
+                                   onclick="markAsRead(${item.id})">
+
+                                    <div class="rounded-circle p-2 d-flex align-items-center justify-content-center ${bgIcon}" style="width: 35px; height: 35px; flex-shrink: 0;">
+                                        <i class="bi ${iconClass}"></i>
+                                    </div>
+
+                                    <div class="w-100 overflow-hidden">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <strong class="small text-dark text-truncate" style="max-width: 150px;">${item.tieuDe}</strong>
+                                            <span class="text-muted" style="font-size: 0.65rem;">${timeAgoStr}</span>
+                                        </div>
+                                        <div class="text-secondary small text-wrap" style="line-height: 1.4; font-size: 0.8rem;">${item.noiDung}</div>
+                                    </div>
+                                </a>
+                            </li>`;
+                        });
+                        list.html(html);
+                    }
+                },
+                error: function(err) {
+                    // console.log("Lỗi tải thông báo: ", err);
+                }
+            });
+        }
+
+        // Hàm gọi API đánh dấu đã đọc
+        function markAsRead(id) {
+            if (typeof $ === 'undefined') return;
+            $.post(`/api/notifications/read/${id}`, function() {
+                fetchNotifications(); // Tải lại danh sách ngay lập tức
+            });
+        }
+
+        // Hàm tiện ích tính thời gian trôi qua
+        function getTimeAgo(dateString) {
+            if(!dateString) return "";
+            const date = new Date(dateString);
+            const now = new Date();
+            const seconds = Math.floor((now - date) / 1000);
+
+            if (seconds < 60) return "Vừa xong";
+            const minutes = Math.floor(seconds / 60);
+            if (minutes < 60) return `${minutes} phút trước`;
+            const hours = Math.floor(minutes / 60);
+            if (hours < 24) return `${hours} giờ trước`;
+            return date.toLocaleDateString('vi-VN');
+        }
+
+        // Kích hoạt khi trang tải xong (Document Ready)
+        // Sử dụng event listener thuần để tránh phụ thuộc jQuery ready nếu script đặt trong head
+        document.addEventListener('DOMContentLoaded', function() {
+            // Đợi một chút để đảm bảo jQuery đã load nếu đặt script ở cuối body
+            setTimeout(function() {
+                fetchNotifications();
+                setInterval(fetchNotifications, 10000);
+            }, 1000);
+        });
+    </script>
 </nav>
 
-<!-- SIDEBAR FRAGMENT -->
 <div th:fragment="admin-sidebar" class="sidebar-wrapper">
-    <!-- Logo Area -->
     <div class="sidebar-header d-flex align-items-center gap-3">
         <div class="bg-primary bg-gradient text-white rounded-3 d-flex align-items-center justify-content-center shadow"
              style="width: 40px; height: 40px; font-size: 1.2rem;">
@@ -77,12 +207,10 @@
         </div>
     </div>
 
-    <!-- Menu List -->
     <ul class="nav flex-column">
 
         <ul class="nav flex-column">
 
-            <!-- Dashboard (Admin only) -->
             <li class="nav-item" sec:authorize="hasRole('ADMIN')">
                 <a class="nav-link active-tab" th:href="@{/admin/dashboard}">
                     <i class="fas fa-th-large"></i>
@@ -90,24 +218,20 @@
                 </a>
             </li>
 
-            <!-- Kinh doanh -->
             <div class="sidebar-heading">Kinh doanh</div>
 
-            <!-- Bán hàng -->
             <li class="nav-item" sec:authorize="hasAnyRole('ADMIN','EMPLOYEE')">
                 <a class="nav-link" th:href="@{/admin/ban-hang}">
                     <i class="fas fa-cash-register"></i> <span>Bán hàng tại quầy</span>
                 </a>
             </li>
 
-            <!-- Quản lý hóa đơn -->
             <li class="nav-item" sec:authorize="hasAnyRole('ADMIN','EMPLOYEE')">
                 <a class="nav-link" th:href="@{/admin/hoa-don}">
                     <i class="fas fa-receipt"></i> <span>Quản lý hóa đơn</span>
                 </a>
             </li>
 
-            <!-- Kho hàng (Admin only) -->
             <div class="sidebar-heading" sec:authorize="hasRole('ADMIN')">Kho hàng</div>
             <li class="nav-item" sec:authorize="hasRole('ADMIN')">
                 <a class="nav-link collapsed d-flex justify-content-between align-items-center"
@@ -130,24 +254,20 @@
                 </div>
             </li>
 
-            <!-- Hệ thống -->
             <div class="sidebar-heading">Hệ thống</div>
 
-            <!-- Nhân viên (Admin only) -->
             <li class="nav-item" sec:authorize="hasRole('ADMIN')">
                 <a class="nav-link" th:href="@{/nhanvien/view}">
                     <i class="fas fa-id-card-alt"></i> <span>Nhân viên</span>
                 </a>
             </li>
 
-            <!-- Khách hàng (Admin & Nhân viên) -->
             <li class="nav-item" sec:authorize="hasAnyRole('ADMIN','EMPLOYEE')">
                 <a class="nav-link" th:href="@{/admin/khach-hang/hien-thi}">
                     <i class="fas fa-user-friends"></i> <span>Khách hàng</span>
                 </a>
             </li>
 
-            <!-- Voucher & Giảm giá (Admin only) -->
             <li class="nav-item" sec:authorize="hasAnyRole('ADMIN','EMPLOYEE')">
                 <a class="nav-link" th:href="@{/admin/phieu-giam-gia/hien-thi}">
                     <i class="fas fa-percent"></i> <span>Voucher & Giảm giá</span>
@@ -157,13 +277,12 @@
         </ul>
 
 
-        <!-- Sidebar Footer Promo -->
-    <div class="mt-5 mx-3 p-3 rounded-3 bg-gradient text-center"
-         style="background: linear-gradient(45deg, #4f46e5, #818cf8);">
-        <i class="fas fa-rocket fa-2x mb-2 text-white-50"></i>
-        <p class="text-white small mb-2 fw-bold">FStore Pro</p>
-        <button class="btn btn-sm btn-light text-primary fw-bold w-100 shadow-sm">Nâng cấp</button>
-    </div>
+        <div class="mt-5 mx-3 p-3 rounded-3 bg-gradient text-center"
+             style="background: linear-gradient(45deg, #4f46e5, #818cf8);">
+            <i class="fas fa-rocket fa-2x mb-2 text-white-50"></i>
+            <p class="text-white small mb-2 fw-bold">FStore Pro</p>
+            <button class="btn btn-sm btn-light text-primary fw-bold w-100 shadow-sm">Nâng cấp</button>
+        </div>
     </ul>
 </div>
 

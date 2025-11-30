@@ -128,4 +128,25 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Integer> {
     // =========================================================================
 
     int countByTrangThai(Integer trangThai);
+    // Trong HoaDonRepository.java
+    @Query("SELECT " +
+            "SUM(CASE WHEN h.trangThai = 0 THEN 1 ELSE 0 END), " + // Chờ xác nhận
+            "SUM(CASE WHEN h.trangThai = 1 THEN 1 ELSE 0 END), " + // Đã xác nhận
+            "SUM(CASE WHEN h.trangThai = 2 THEN 1 ELSE 0 END), " + // Chuẩn bị
+            "SUM(CASE WHEN h.trangThai = 3 THEN 1 ELSE 0 END), " + // Đang giao
+            "SUM(CASE WHEN h.trangThai = 4 THEN 1 ELSE 0 END), " + // Hoàn thành
+            "SUM(CASE WHEN h.trangThai = 5 THEN 1 ELSE 0 END), " + // Đã hủy
+            "SUM(CASE WHEN h.trangThai = 6 THEN 1 ELSE 0 END) " +  // Chờ thanh toán
+            "FROM HoaDon h WHERE h.ngayTao BETWEEN :start AND :end")
+    List<Object[]> countOrdersByStatusBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+    @Query("SELECT COALESCE(SUM(CASE WHEN h.tongTienSauGiam > 0 THEN h.tongTienSauGiam ELSE h.tongTien END), 0) " +
+            "FROM HoaDon h " +
+            "WHERE h.ngayTao BETWEEN :start AND :end AND h.trangThai = :status")
+    BigDecimal sumTotalAmountByDateAndStatus(@Param("start") LocalDateTime start,
+                                             @Param("end") LocalDateTime end,
+                                             @Param("status") Integer status);
+
+    // 2. Lấy 5 hóa đơn mới nhất (Trả về Entity để Service tự Map an toàn)
+    List<HoaDon> findTop5ByOrderByNgayTaoDesc();
+
 }

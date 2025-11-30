@@ -5,8 +5,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import sd_04.datn_fstore.dto.RecentOrderDTO;
 import sd_04.datn_fstore.dto.TopProductDTO;
+import sd_04.datn_fstore.model.HoaDon;
 import sd_04.datn_fstore.repository.HoaDonRepository;
-import sd_04.datn_fstore.repository.KhachHangRepo;
+import sd_04.datn_fstore.repository.KhachHangRepo; // Kiểm tra tên Repo của bạn
 import sd_04.datn_fstore.repository.SanPhamCTRepository;
 import sd_04.datn_fstore.service.DashboardService;
 
@@ -15,8 +16,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -25,202 +27,202 @@ public class DashboardServiceImpl implements DashboardService {
 
     private final HoaDonRepository hoaDonRepository;
     private final KhachHangRepo khachHangRepository;
-    private final SanPhamCTRepository sanPhamChiTietRepository;
+    private final SanPhamCTRepository sanPhamCTRepository;
 
-    // --- CÁC HÀM THỐNG KÊ CƠ BẢN (CARDS) ---
-
+    // 1. CARDS
     @Override
     public int countAllKhachHangNew() {
-        // Đếm khách hàng tạo trong ngày hôm nay
-        LocalDateTime start = LocalDate.now().atStartOfDay();
-        LocalDateTime end = LocalDate.now().atTime(LocalTime.MAX);
-        return khachHangRepository.countByNgayTaoBetween(start, end);
+        return khachHangRepository.countByNgayTaoBetween(
+                LocalDate.now().atStartOfDay(), LocalDate.now().atTime(LocalTime.MAX));
     }
 
     @Override
     public int countOrdersToday() {
-        LocalDateTime start = LocalDate.now().atStartOfDay();
-        LocalDateTime end = LocalDate.now().atTime(LocalTime.MAX);
-        return hoaDonRepository.countByNgayTaoBetween(start, end);
+        return hoaDonRepository.countByNgayTaoBetween(
+                LocalDate.now().atStartOfDay(), LocalDate.now().atTime(LocalTime.MAX));
     }
 
     @Override
     public BigDecimal todayRevenue() {
-        LocalDateTime start = LocalDate.now().atStartOfDay();
-        LocalDateTime end = LocalDate.now().atTime(LocalTime.MAX);
-        BigDecimal revenue = hoaDonRepository.sumTotalAmountByDateRange(start, end);
+        BigDecimal revenue = hoaDonRepository.sumTotalAmountByDateAndStatus(
+                LocalDate.now().atStartOfDay(), LocalDate.now().atTime(LocalTime.MAX), 4);
         return revenue != null ? revenue : BigDecimal.ZERO;
     }
 
     @Override
     public int totalSanPhamSapHet() {
-        // Giả sử số lượng < 10 là sắp hết
-        return sanPhamChiTietRepository.countBySoLuongLessThanEqual(10);
+        return sanPhamCTRepository.countBySoLuongLessThanEqual(10);
     }
 
-    // --- CÁC HÀM BIỂU ĐỒ (CHARTS) ---
-
-    // 1. Biểu đồ Tuần (7 ngày gần nhất)
+    // 2. CHARTS - WEEKLY
     @Override
     public List<String> getDayLabelsLast7Days() {
         List<String> labels = new ArrayList<>();
         LocalDate today = LocalDate.now();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM");
-        for (int i = 6; i >= 0; i--) {
-            labels.add(today.minusDays(i).format(formatter));
-        }
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM");
+        for (int i = 6; i >= 0; i--) labels.add(today.minusDays(i).format(fmt));
         return labels;
     }
 
     @Override
     public List<Long> getRevenueLast7Days() {
-        List<Long> revenues = new ArrayList<>();
+        List<Long> data = new ArrayList<>();
         LocalDate today = LocalDate.now();
         for (int i = 6; i >= 0; i--) {
             LocalDate date = today.minusDays(i);
-            BigDecimal total = hoaDonRepository.sumTotalAmountByDateRange(
-                    date.atStartOfDay(), date.atTime(LocalTime.MAX));
-            revenues.add(total != null ? total.longValue() : 0L);
+            BigDecimal total = hoaDonRepository.sumTotalAmountByDateAndStatus(
+                    date.atStartOfDay(), date.atTime(LocalTime.MAX), 4);
+            data.add(total != null ? total.longValue() : 0L);
         }
-        return revenues;
+        return data;
     }
 
-    // 2. Biểu đồ Tháng (Chia 4 tuần tượng trưng)
+    // 3. CHARTS - MONTHLY
     @Override
     public List<String> getWeekLabelsInMonth() {
-        return Arrays.asList("Tuần 1", "Tuần 2", "Tuần 3", "Tuần 4");
+        return List.of("Tuần 1", "Tuần 2", "Tuần 3", "Tuần 4", "Còn lại");
     }
 
     @Override
     public List<Long> getRevenueByWeeksInMonth() {
-        List<Long> revenues = new ArrayList<>();
-        LocalDate startMonth = LocalDate.now().withDayOfMonth(1);
-
-        // Chia tháng thành 4 khoảng (mỗi khoảng 7 ngày, tuần cuối lấy hết phần còn lại)
-        for (int i = 0; i < 4; i++) {
-            LocalDateTime start = startMonth.plusDays(i * 7).atStartOfDay();
-            LocalDateTime end = (i == 3)
-                    ? startMonth.plusMonths(1).minusDays(1).atTime(LocalTime.MAX) // Cuối tháng
-                    : start.plusDays(6).with(LocalTime.MAX); // Cuối tuần
-
-            BigDecimal total = hoaDonRepository.sumTotalAmountByDateRange(start, end);
-            revenues.add(total != null ? total.longValue() : 0L);
+        List<Long> data = new ArrayList<>();
+        LocalDate today = LocalDate.now();
+        int lengthOfMonth = today.lengthOfMonth();
+        for (int i = 0; i < 5; i++) {
+            int startDay = i * 7 + 1;
+            if (startDay > lengthOfMonth) break;
+            int endDay = Math.min((i + 1) * 7, lengthOfMonth);
+            LocalDate s = LocalDate.of(today.getYear(), today.getMonth(), startDay);
+            LocalDate e = LocalDate.of(today.getYear(), today.getMonth(), endDay);
+            BigDecimal total = hoaDonRepository.sumTotalAmountByDateAndStatus(s.atStartOfDay(), e.atTime(LocalTime.MAX), 4);
+            data.add(total != null ? total.longValue() : 0L);
         }
-        return revenues;
+        while (data.size() < 5) data.add(0L);
+        return data;
     }
 
-    // 3. Biểu đồ Quý
+    // 4. CHARTS - QUARTERLY (Gom nhóm theo 3 tháng)
+    @Override
+    public List<String> getQuarterLabels() {
+        int currentQuarter = (LocalDate.now().getMonthValue() - 1) / 3 + 1;
+        int startMonth = (currentQuarter - 1) * 3 + 1;
+        return List.of("Tháng " + startMonth, "Tháng " + (startMonth + 1), "Tháng " + (startMonth + 2));
+    }
+
     @Override
     public List<Long> getRevenueByQuarter() {
-        List<Long> revenues = new ArrayList<>();
-        int currentYear = LocalDate.now().getYear();
+        List<Long> data = new ArrayList<>();
+        int year = LocalDate.now().getYear();
+        int currentQuarter = (LocalDate.now().getMonthValue() - 1) / 3 + 1;
+        int startMonth = (currentQuarter - 1) * 3 + 1;
 
-        // 4 Quý: Q1(1-3), Q2(4-6), Q3(7-9), Q4(10-12)
-        for (int quarter = 1; quarter <= 4; quarter++) {
-            int startMonth = (quarter - 1) * 3 + 1;
-            int endMonth = startMonth + 2;
-
-            LocalDateTime start = LocalDateTime.of(currentYear, startMonth, 1, 0, 0);
-            LocalDateTime end = LocalDateTime.of(currentYear, endMonth, 1, 23, 59, 59)
-                    .withDayOfMonth(LocalDateTime.of(currentYear, endMonth, 1, 0, 0).toLocalDate().lengthOfMonth());
-
-            BigDecimal total = hoaDonRepository.sumTotalAmountByDateRange(start, end);
-            revenues.add(total != null ? total.longValue() : 0L);
+        for (int i = 0; i < 3; i++) {
+            int month = startMonth + i;
+            LocalDate s = LocalDate.of(year, month, 1);
+            LocalDate e = s.with(TemporalAdjusters.lastDayOfMonth());
+            BigDecimal total = hoaDonRepository.sumTotalAmountByDateAndStatus(s.atStartOfDay(), e.atTime(LocalTime.MAX), 4);
+            data.add(total != null ? total.longValue() : 0L);
         }
-        return revenues;
+        return data;
     }
 
-    // 4. Biểu đồ Năm
+    // 5. CHARTS - YEARLY (Gom nhóm theo 12 tháng)
     @Override
-    public List<Long> getRevenueByYear() {
-        List<Long> revenues = new ArrayList<>();
-        int currentYear = LocalDate.now().getYear();
-
-        for (int month = 1; month <= 12; month++) {
-            LocalDateTime start = LocalDateTime.of(currentYear, month, 1, 0, 0);
-            LocalDateTime end = start.withDayOfMonth(start.toLocalDate().lengthOfMonth()).with(LocalTime.MAX);
-
-            BigDecimal total = hoaDonRepository.sumTotalAmountByDateRange(start, end);
-            revenues.add(total != null ? total.longValue() : 0L);
-        }
-        return revenues;
-    }
-
-    // 5. Biểu đồ Tùy chỉnh
-    @Override
-    public List<String> getCustomDateLabels(LocalDate startDate, LocalDate endDate) {
+    public List<String> getYearLabels() {
         List<String> labels = new ArrayList<>();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM");
-        // Lưu ý: Nếu khoảng cách ngày quá lớn, nên group theo tuần/tháng. Ở đây làm simple loop từng ngày.
-        startDate.datesUntil(endDate.plusDays(1)).forEach(date -> {
-            labels.add(date.format(formatter));
-        });
+        for (int i = 1; i <= 12; i++) labels.add("Tháng " + i);
         return labels;
     }
 
     @Override
-    public List<Long> getRevenueByCustomDate(LocalDate startDate, LocalDate endDate) {
-        List<Long> revenues = new ArrayList<>();
-        startDate.datesUntil(endDate.plusDays(1)).forEach(date -> {
-            BigDecimal total = hoaDonRepository.sumTotalAmountByDateRange(
-                    date.atStartOfDay(), date.atTime(LocalTime.MAX));
-            revenues.add(total != null ? total.longValue() : 0L);
-        });
-        return revenues;
+    public List<Long> getRevenueByYear() {
+        List<Long> data = new ArrayList<>();
+        int year = LocalDate.now().getYear();
+        for (int i = 1; i <= 12; i++) {
+            LocalDate s = LocalDate.of(year, i, 1);
+            LocalDate e = s.with(TemporalAdjusters.lastDayOfMonth());
+            BigDecimal total = hoaDonRepository.sumTotalAmountByDateAndStatus(s.atStartOfDay(), e.atTime(LocalTime.MAX), 4);
+            data.add(total != null ? total.longValue() : 0L);
+        }
+        return data;
     }
 
-    // 6. Biểu đồ Tròn (Mặc định lấy toàn bộ hoặc theo tháng này)
+    // 6. CUSTOM DATE
     @Override
-    public List<Integer> getOrderStatusSummary() {
-        // Mặc định lấy tháng hiện tại
-        return getOrderStatusSummaryByFilter("monthly", null, null);
+    public List<String> getCustomDateLabels(LocalDate s, LocalDate e) {
+        List<String> labels = new ArrayList<>();
+        if (s.until(e).getDays() <= 31) {
+            DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM");
+            s.datesUntil(e.plusDays(1)).forEach(d -> labels.add(d.format(fmt)));
+        } else {
+            DateTimeFormatter fmt = DateTimeFormatter.ofPattern("MM/yyyy");
+            LocalDate curr = s.withDayOfMonth(1);
+            while (!curr.isAfter(e)) { labels.add(curr.format(fmt)); curr = curr.plusMonths(1); }
+        }
+        return labels;
     }
 
-    // Hàm hỗ trợ lọc cho Pie Chart
+    @Override
+    public List<Long> getRevenueByCustomDate(LocalDate s, LocalDate e) {
+        List<Long> data = new ArrayList<>();
+        if (s.until(e).getDays() <= 31) {
+            s.datesUntil(e.plusDays(1)).forEach(d -> {
+                BigDecimal t = hoaDonRepository.sumTotalAmountByDateAndStatus(d.atStartOfDay(), d.atTime(LocalTime.MAX), 4);
+                data.add(t != null ? t.longValue() : 0L);
+            });
+        } else {
+            LocalDate curr = s.withDayOfMonth(1);
+            while (!curr.isAfter(e)) {
+                LocalDateTime start = (curr.isBefore(s) ? s : curr).atStartOfDay();
+                LocalDateTime end = (curr.with(TemporalAdjusters.lastDayOfMonth()).isAfter(e) ? e : curr.with(TemporalAdjusters.lastDayOfMonth())).atTime(LocalTime.MAX);
+                BigDecimal t = hoaDonRepository.sumTotalAmountByDateAndStatus(start, end, 4);
+                data.add(t != null ? t.longValue() : 0L);
+                curr = curr.plusMonths(1);
+            }
+        }
+        return data;
+    }
+
+    // 7. PIE CHART
     @Override
     public List<Integer> getOrderStatusSummaryByFilter(String filter, LocalDate startDate, LocalDate endDate) {
-        LocalDateTime fromDate;
-        LocalDateTime toDate = LocalDateTime.now();
+        // (Logic tính ngày đã được Controller xử lý và truyền vào startDate/endDate)
+        // Nếu startDate null (khi load lần đầu), fallback về tháng hiện tại
+        LocalDateTime start = (startDate != null) ? startDate.atStartOfDay() : LocalDate.now().with(TemporalAdjusters.firstDayOfMonth()).atStartOfDay();
+        LocalDateTime end = (endDate != null) ? endDate.atTime(LocalTime.MAX) : LocalDate.now().with(TemporalAdjusters.lastDayOfMonth()).atTime(LocalTime.MAX);
 
-        switch (filter) {
-            case "weekly": fromDate = toDate.minusDays(7); break;
-            case "monthly": fromDate = LocalDate.now().withDayOfMonth(1).atStartOfDay(); break;
-            case "quarterly": fromDate = toDate.minusMonths(3); break;
-            case "yearly": fromDate = LocalDate.now().withDayOfYear(1).atStartOfDay(); break;
-            case "custom":
-                fromDate = (startDate != null) ? startDate.atStartOfDay() : toDate.minusDays(7);
-                if (endDate != null) toDate = endDate.atTime(LocalTime.MAX);
-                break;
-            default: fromDate = toDate.minusDays(7);
+        List<Object[]> results = hoaDonRepository.countOrdersByStatusBetween(start, end);
+        List<Integer> counts = new ArrayList<>(Collections.nCopies(7, 0));
+        if (results != null && !results.isEmpty()) {
+            Object[] row = results.get(0);
+            for (int i = 0; i < 7; i++) if (row[i] != null) counts.set(i, ((Number) row[i]).intValue());
         }
-
-        // Query DB: 1=Hoàn thành, 3=Đang giao, 0=Hủy (Bạn sửa lại ID trạng thái theo DB thật của bạn)
-        Integer hoanThanh = hoaDonRepository.countByStatusAndDateRange(1, fromDate, toDate);
-        Integer dangGiao = hoaDonRepository.countByStatusAndDateRange(3, fromDate, toDate);
-        Integer daHuy = hoaDonRepository.countByStatusAndDateRange(0, fromDate, toDate);
-
-        return Arrays.asList(
-                hoanThanh != null ? hoanThanh : 0,
-                dangGiao != null ? dangGiao : 0,
-                daHuy != null ? daHuy : 0
-        );
+        return counts;
     }
 
-    // --- CÁC HÀM DANH SÁCH (TABLES) ---
-
+    // 8. LIST DATA
     @Override
     public List<RecentOrderDTO> getRecentOrders() {
-        // Lấy 5 đơn mới nhất
-        return hoaDonRepository.findRecentOrders(PageRequest.of(0, 5));
+        List<HoaDon> list = hoaDonRepository.findTop5ByOrderByNgayTaoDesc();
+        List<RecentOrderDTO> dtos = new ArrayList<>();
+        for (HoaDon hd : list) {
+            String name = (hd.getKhachHang() != null) ? hd.getKhachHang().getTenKhachHang() : "Khách lẻ";
+            BigDecimal total = (hd.getTongTienSauGiam() != null) ? hd.getTongTienSauGiam() : hd.getTongTien();
+            dtos.add(new RecentOrderDTO(hd.getMaHoaDon(), name, hd.getNgayTao(), total, hd.getTrangThai()));
+        }
+        return dtos;
     }
 
     @Override
     public List<TopProductDTO> getTopSellingProducts() {
-        // Lấy 5 sản phẩm bán chạy nhất
-        return sanPhamChiTietRepository.findTopSellingProducts(PageRequest.of(0, 5));
+        return sanPhamCTRepository.findTopSellingProducts(PageRequest.of(0, 5));
     }
-
-    // --- CÁC HÀM CŨ (GIỮ LẠI TRÁNH LỖI) ---
-    @Override public List<String> getHourLabels() { return new ArrayList<>(); }
-    @Override public List<Long> getRevenueByHours() { return new ArrayList<>(); }
+    @Override
+    public List<Integer> getOrderStatusSummary() {
+        // Mặc định lấy dữ liệu của THÁNG NAY
+        LocalDate today = LocalDate.now();
+        return getOrderStatusSummaryByFilter("monthly",
+                today.with(TemporalAdjusters.firstDayOfMonth()),
+                today.with(TemporalAdjusters.lastDayOfMonth()));
+    }
 }

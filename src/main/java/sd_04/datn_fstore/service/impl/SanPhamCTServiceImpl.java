@@ -155,4 +155,17 @@ public class SanPhamCTServiceImpl implements SanPhamCTService {
             }
         }
     }
+    @Override
+    public SanPhamChiTiet getByIdAndAvailable(Integer id) {
+        // Gọi hàm tìm kiếm theo ID và Trạng thái = 1 trong Repo vừa sửa
+        Optional<SanPhamChiTiet> optional = sanPhamChiTietRepository.findByIdAndAvailable(id);
+
+        if (optional.isPresent()) {
+            SanPhamChiTiet spct = optional.get();
+            // QUAN TRỌNG: Load ảnh đại diện để hiển thị trên POS
+            loadTenHinhAnhChinh(spct);
+            return spct;
+        }
+        return null; // Hoặc ném ngoại lệ tùy logic của bạn
+    }
 }
