@@ -18,7 +18,7 @@ import java.util.Optional;
 public interface SanPhamCTRepository extends JpaRepository<SanPhamChiTiet, Integer> {
 
     /**
-     * HÀM CHÍNH: Truy vấn JPQL 12 THAM SỐ HOÀN CHỈNH (Cho trang Admin)
+     * 1. TÌM KIẾM NÂNG CAO (Cho trang Quản lý Admin)
      */
     @Query(value = "SELECT spct FROM SanPhamChiTiet spct " +
             "LEFT JOIN spct.sanPham sp " +
@@ -77,25 +77,39 @@ public interface SanPhamCTRepository extends JpaRepository<SanPhamChiTiet, Integ
     );
 
     /**
-     * HÀM TỐI ƯU: Lấy sản phẩm có sẵn (cho trang Bán Hàng)
+     * 2. API BÁN HÀNG (POS): Lấy sản phẩm + Full thông tin (Ảnh, Màu, Size...)
+     * - Dùng DISTINCT để tránh lặp dữ liệu khi có nhiều ảnh.
+     * - Dùng LEFT JOIN FETCH để không bị mất sản phẩm nếu thiếu thuộc tính.
      */
-    @Query("SELECT spct FROM SanPhamChiTiet spct " +
+    @Query("SELECT DISTINCT spct FROM SanPhamChiTiet spct " +
             "JOIN FETCH spct.sanPham sp " +
-            "LEFT JOIN FETCH sp.hinhAnh " + // Lấy cả hình ảnh
-            "JOIN FETCH spct.kichThuoc " +
-            "JOIN FETCH spct.phanLoai " +
-            "JOIN FETCH spct.xuatXu " +
-            "JOIN FETCH spct.chatLieu " +
-            "JOIN FETCH spct.mauSac " +
-            "JOIN FETCH spct.theLoai " +
-            "WHERE spct.trangThai = :trangThai AND spct.soLuong > :soLuong")
+            "LEFT JOIN FETCH sp.hinhAnh " +
+            "LEFT JOIN FETCH spct.kichThuoc " +
+            "LEFT JOIN FETCH spct.phanLoai " +
+            "LEFT JOIN FETCH spct.xuatXu " +
+            "LEFT JOIN FETCH spct.chatLieu " +
+            "LEFT JOIN FETCH spct.mauSac " +
+            "LEFT JOIN FETCH spct.theLoai " +
+            "WHERE spct.trangThai = :trangThai AND spct.soLuong > :soLuong " +
+            "ORDER BY sp.ngayTao DESC")
     List<SanPhamChiTiet> getAvailableProductsWithDetails(@Param("trangThai") Integer trangThai, @Param("soLuong") Integer soLuong);
 
     /**
-     * HÀM TIỆN ÍCH: Dùng cho các service
+     * 3. TRỪ KHO AN TOÀN (Locking)
+     * - Dùng PESSIMISTIC_WRITE để khóa dòng dữ liệu khi đang trừ kho.
      */
-    List<SanPhamChiTiet> findByTrangThai(Integer trangThai);
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT spct FROM SanPhamChiTiet spct WHERE spct.id = :id")
-    Optional<SanPhamChiTiet> findByIdWithLock(Integer id);
+    Optional<SanPhamChiTiet> findByIdWithLock(@Param("id") Integer id);
+
+    /**
+     * 4. CÁC HÀM TIỆN ÍCH KHÁC
+     */
+    List<SanPhamChiTiet> findByTrangThai(Integer trangThai);
+
+    @Query("SELECT spct FROM SanPhamChiTiet spct JOIN spct.sanPham sp WHERE sp.tenSanPham LIKE %:tenSp%")
+    List<SanPhamChiTiet> findBySanPhamTenSanPham(@Param("tenSp") String tenSp);
+
+    // Hàm JPA chuẩn (Spring Data tự generate query)
+    List<SanPhamChiTiet> findByTrangThaiAndSoLuongGreaterThan(Integer trangThai, Integer minSoLuong);
 }

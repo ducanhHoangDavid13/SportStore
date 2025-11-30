@@ -29,4 +29,5 @@ public interface MauSacRepository extends JpaRepository<MauSac, Integer> {
                                @Param("trangThai") Integer trangThai);
 
     MauSac findByMaMau(String maMau);
+
 }

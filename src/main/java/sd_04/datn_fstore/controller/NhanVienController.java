@@ -6,17 +6,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
-import sd_04.datn_fstore.dto.NhanVienRequest;
+import sd_04.datn_fstore.dto.NhanVienRegistration;
 import sd_04.datn_fstore.enums.RoleEnum;
 import sd_04.datn_fstore.model.Account;
+import sd_04.datn_fstore.model.KhachHang;
 import sd_04.datn_fstore.model.NhanVien;
 import sd_04.datn_fstore.repository.AccountRepository;
 import sd_04.datn_fstore.repository.NhanVienRepository;
 
-import java.time.LocalDateTime;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
 
 @RestController
 @RequestMapping("/api/nhanvien")
@@ -24,9 +26,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class NhanVienController {
 
-    @Autowired
-    private NhanVienRepository nhanVienRepository;
-
+    private final NhanVienRepository nhanVienRepository;
     private final AccountRepository accountRepository;
     private final PasswordEncoder passwordEncoder;
 
@@ -78,35 +78,39 @@ public class NhanVienController {
 
     // ✅ 4. Thêm mới nhân viên
     @PostMapping("/add")
-    public ResponseEntity<NhanVien> add(@RequestBody NhanVienRequest nhanVien) {
-        if (nhanVien.getMaNhanVien() == null || nhanVien.getTenNhanVien() == null) {
+    public ResponseEntity<NhanVien> add(@RequestBody NhanVienRegistration registration) {
+        if (registration.getMaNhanVien() == null || registration.getTenNhanVien() == null) {
             return ResponseEntity.badRequest().build();
         }
 
-        Optional<Account> account = accountRepository.findByEmail(nhanVien.getEmail());
-        if (account.isEmpty()) {
-            accountRepository.save(Account.builder()
-                    .email(nhanVien.getEmail())
-                    .password(passwordEncoder.encode(nhanVien.getPassword()))
-                    .role(RoleEnum.EMPLOYEE)
-                    .createdAt(LocalDateTime.now())
-                    .updatedAt(LocalDateTime.now())
-                    .build());
+        Optional<Account> account = accountRepository.findByEmail(registration.getEmail());
+        Optional<NhanVien> nhanVienOptional = nhanVienRepository.findByEmail(registration.getEmail());
+
+        if (nhanVienOptional.isPresent() || account.isPresent()) {
+            new RuntimeException("Tài khoản đã tồi tại.");
         }
 
-        NhanVien save = new NhanVien();
-        save.setMaNhanVien(nhanVien.getMaNhanVien());
-        save.setTenNhanVien(nhanVien.getTenNhanVien());
-        save.setEmail(nhanVien.getEmail());
-        save.setSoDienThoai(nhanVien.getSoDienThoai());
-        save.setDiaChi(nhanVien.getDiaChi());
-        save.setVaiTro(nhanVien.getVaiTro());
-        save.setTrangThai(nhanVien.getTrangThai());
-        save.setGioiTinh(nhanVien.getGioiTinh());
-        save.setCccd(nhanVien.getCccd());
-        save.setHinhAnh(nhanVien.getHinhAnh());
-        NhanVien response = nhanVienRepository.save(save);
-        return ResponseEntity.ok(response);
+        // save tai khoan
+        Account save = account.orElse(new Account());
+        save.setEmail(registration.getEmail());
+        save.setPassword(passwordEncoder.encode(registration.getPassword()));
+        save.setRole(RoleEnum.EMPLOYEE);
+        accountRepository.save(save);
+
+        NhanVien nhanVien = new NhanVien();
+        nhanVien.setMaNhanVien(registration.getMaNhanVien());
+        nhanVien.setTenNhanVien(registration.getTenNhanVien());
+        nhanVien.setEmail(registration.getEmail());
+        nhanVien.setSoDienThoai(registration.getSoDienThoai());
+        nhanVien.setDiaChi(registration.getDiaChi());
+        nhanVien.setVaiTro(registration.getVaiTro());
+        nhanVien.setTrangThai(registration.getTrangThai());
+        nhanVien.setGioiTinh(registration.getGioiTinh());
+        nhanVien.setCccd(registration.getCccd());
+        nhanVien.setHinhAnh(registration.getHinhAnh());
+
+        NhanVien saved = nhanVienRepository.save(nhanVien);
+        return ResponseEntity.ok(saved);
     }
 
     // ✅ 5. Cập nhật nhân viên

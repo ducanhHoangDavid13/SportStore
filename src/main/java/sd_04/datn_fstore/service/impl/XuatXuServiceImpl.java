@@ -39,4 +39,15 @@ public class XuatXuServiceImpl implements XuatXuService {
     @Override public List<XuatXu> searchAndFilter(String ten, Integer trangThai) {
         return xuatXuRepository.findPaginated(Pageable.unpaged(), ten, trangThai).getContent();
     }
+    @Override
+    public XuatXu updateTrangThai(Integer id, Integer newStatus) {
+        Optional<XuatXu> optional = xuatXuRepository.findById(id);
+        if (optional.isPresent()) {
+            XuatXu entity = optional.get();
+            entity.setTrangThai(newStatus);
+            return xuatXuRepository.save(entity);
+        } else {
+            throw new RuntimeException("Không tìm thấy xuất xứ ID: " + id);
+        }
+    }
 }

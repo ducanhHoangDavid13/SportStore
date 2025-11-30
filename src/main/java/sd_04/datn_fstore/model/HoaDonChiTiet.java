@@ -1,5 +1,6 @@
 package sd_04.datn_fstore.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -50,5 +51,6 @@ public class HoaDonChiTiet {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "idHoaDon")
+    @JsonBackReference // <--- THÊM DÒNG NÀY
     private HoaDon hoaDon;
 }

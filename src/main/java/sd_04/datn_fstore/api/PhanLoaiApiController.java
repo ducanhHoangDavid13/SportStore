@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import sd_04.datn_fstore.model.PhanLoai;
 import sd_04.datn_fstore.service.PhanLoaiService;
 
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -30,6 +31,16 @@ public class PhanLoaiApiController {
 
         Page<PhanLoai> phanLoaiPage = phanLoaiService.searchAndPaginate(pageable, keyword, trangThai);
         return ResponseEntity.ok(phanLoaiPage);
+    }
+    @PutMapping("/{id}/trang-thai")
+    public ResponseEntity<?> updateTrangThai(@PathVariable("id") Integer id, @RequestParam("trangThai") Integer trangThai) {
+        try {
+            return ResponseEntity.ok(phanLoaiService.updateTrangThai(id, trangThai));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Lỗi server: " + e.getMessage());
+        }
     }
 
     /**

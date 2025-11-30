@@ -8,7 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import sd_04.datn_fstore.model.HoaDon;
 
-import java.math.BigDecimal;
+import java.math.BigDecimal; // <-- THÊM IMPORT NÀY
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -90,8 +90,22 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Integer> {
     // THÊM HÀM NÀY: Để VNPAY tìm HĐ
     Optional<HoaDon> findByMaHoaDon(String maHoaDon);
 
+    @Query("SELECT COALESCE(SUM(h.tongTien), 0) FROM HoaDon h " +
+            "WHERE h.ngayTao >= :start AND h.ngayTao < :end")
+    BigDecimal sumTongTienByNgay(@Param("start") LocalDateTime start,
+                                 @Param("end") LocalDateTime end);
 
-    long count();
 
+    // Đếm đơn hàng theo trạng thái
+    int countByTrangThai(Integer trangThai);
+
+    @Query("SELECT SUM(h.tongTien) FROM HoaDon h " +
+            "WHERE h.ngayTao >= :startDate AND h.ngayTao < :endDate " +
+            "AND h.trangThai != 3")
+    Long sumRevenueByDateRange(@Param("startDate") LocalDateTime startDate,
+                               @Param("endDate") LocalDateTime endDate);
+
+    @Query("SELECT COUNT(h) FROM HoaDon h WHERE h.trangThai = :status")
+    Long countByStatus(@Param("status") String status);
 
 }

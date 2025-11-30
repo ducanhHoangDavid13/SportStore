@@ -20,7 +20,7 @@ public class VnPayConfig {
     public static String vnp_PayUrl = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html"; // (Đã sửa tên)
 
     // URL VNPAY gọi về (IPN/Return)
-    public static String vnp_ReturnUrl = "http://localhost:8080/api/vnpay/payment-result";
+    public static String vnp_ReturnUrl = "http://localhost:8080/vnpay/payment-result-view";
 
 
     // ----- SỬA LỖI 3: Thêm lại hàm getIpAddress đã bị xóa -----

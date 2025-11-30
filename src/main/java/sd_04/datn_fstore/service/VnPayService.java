@@ -19,6 +19,10 @@ public interface VnPayService {
 
     /**
      * Xử lý kết quả VNPAY trả về (IPN / Return)
+     * @param vnpParams Map chứa các tham số trả về từ VNPAY
+     * @return 1: Thành công, 0: Thất bại, -1: Lỗi/Invalid Hash/Đã xử lý
      */
     int orderReturn(Map<String, String> vnpParams);
+
+    boolean validateHash(Map<String, String> vnpParams);
 }

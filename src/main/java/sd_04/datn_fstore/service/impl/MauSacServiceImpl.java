@@ -47,7 +47,17 @@ public class MauSacServiceImpl implements MauSacService {
         // Gọi findPaginated, chỉ truyền trạng thái, và lấy nội dung (List)
         return mauSacRepository.findPaginated(unpaged, null, trangThai).getContent();
     }
-
+    @Override
+    public MauSac updateTrangThai(Integer id, Integer newStatus) {
+        Optional<MauSac> optional = mauSacRepository.findById(id);
+        if (optional.isPresent()) {
+            MauSac mauSac = optional.get();
+            mauSac.setTrangThai(newStatus);
+            return mauSacRepository.save(mauSac);
+        } else {
+            throw new RuntimeException("Không tìm thấy màu sắc có ID: " + id);
+        }
+    }
     @Override
     public List<MauSac> searchAndFilter(String ten, Integer trangThai) {
         // Gọi findPaginated, truyền cả hai tham số, và lấy nội dung (List)

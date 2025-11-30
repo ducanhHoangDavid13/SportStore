@@ -39,4 +39,15 @@ public class TheLoaiServiceImpl implements TheLoaiService {
     @Override public List<TheLoai> searchAndFilter(String ten, Integer trangThai) {
         return theLoaiRepository.findPaginated(Pageable.unpaged(), ten, trangThai).getContent();
     }
+    @Override
+    public TheLoai updateTrangThai(Integer id, Integer newStatus) {
+        Optional<TheLoai> optional = theLoaiRepository.findById(id);
+        if (optional.isPresent()) {
+            TheLoai entity = optional.get();
+            entity.setTrangThai(newStatus);
+            return theLoaiRepository.save(entity);
+        } else {
+            throw new RuntimeException("Không tìm thấy thể loại ID: " + id);
+        }
+    }
 }

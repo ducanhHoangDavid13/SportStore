@@ -39,4 +39,15 @@ public class ChatLieuServiceImpl implements ChatLieuService {
     @Override public List<ChatLieu> searchAndFilter(String ten, Integer trangThai) {
         return chatLieuRepository.findPaginated(Pageable.unpaged(), ten, trangThai).getContent();
     }
+    @Override
+    public ChatLieu updateTrangThai(Integer id, Integer newStatus) {
+        Optional<ChatLieu> optional = chatLieuRepository.findById(id);
+        if (optional.isPresent()) {
+            ChatLieu entity = optional.get();
+            entity.setTrangThai(newStatus);
+            return chatLieuRepository.save(entity);
+        } else {
+            throw new RuntimeException("Không tìm thấy chất liệu ID: " + id);
+        }
+    }
 }

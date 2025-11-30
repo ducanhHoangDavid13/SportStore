@@ -720,3 +720,13 @@ body {
     animation: none; /* Tắt hiệu ứng nhịp đập khi rê chuột */
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3) !important;
 }
+/* Thêm vào thẻ <style> của bạn */
+.carousel-fade .carousel-item {
+    transition: opacity 1.2s ease-in-out !important; /* Tăng thời gian chuyển tiếp lên 1.2 giây */
+    opacity: 0;
+    transform: none; /* Quan trọng: Ghi đè transform: translateX() mặc định */
+}
+
+.carousel-fade .carousel-item.active {
+    opacity: 1;
+}

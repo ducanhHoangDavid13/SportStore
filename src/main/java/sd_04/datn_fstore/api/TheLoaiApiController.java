@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import sd_04.datn_fstore.model.TheLoai;
 import sd_04.datn_fstore.service.TheLoaiService;
 
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -31,7 +32,16 @@ public class TheLoaiApiController {
         Page<TheLoai> theLoaiPage = theLoaiService.searchAndPaginate(pageable, keyword, trangThai);
         return ResponseEntity.ok(theLoaiPage);
     }
-
+    @PutMapping("/{id}/trang-thai")
+    public ResponseEntity<?> updateTrangThai(@PathVariable("id") Integer id, @RequestParam("trangThai") Integer trangThai) {
+        try {
+            return ResponseEntity.ok(theLoaiService.updateTrangThai(id, trangThai));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Lỗi server: " + e.getMessage());
+        }
+    }
     /**
      * Chỉ xử lý Thêm mới (Create)
      */

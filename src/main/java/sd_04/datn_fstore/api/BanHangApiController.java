@@ -2,17 +2,18 @@ package sd_04.datn_fstore.api;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.annotation.Lazy; // <-- THÊM IMPORT
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import sd_04.datn_fstore.dto.CreateOrderRequest;
-import sd_04.datn_fstore.dto.VnPayResponseDTO; // <-- THÊM IMPORT
+import sd_04.datn_fstore.dto.VnPayResponseDTO;
 import sd_04.datn_fstore.model.HoaDon;
 import sd_04.datn_fstore.service.BanHangService;
-import sd_04.datn_fstore.service.VnPayService; // <-- THÊM IMPORT
+import sd_04.datn_fstore.service.VnPayService;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/ban-hang")
@@ -21,12 +22,12 @@ public class BanHangApiController {
 
     private final BanHangService banHangService;
 
-    // Tiêm VnPayService (với @Lazy) CHỈ ĐỂ DÙNG CHO CALLBACK
+    // Tiêm VnPayService (với @Lazy để tránh vòng lặp dependencies)
     @Lazy
     private final VnPayService vnPayService;
 
     /**
-     * API Tiền Mặt (Giữ nguyên)
+     * API 1: Thanh toán Tiền Mặt (COD) / Tại quầy
      */
     @PostMapping("/thanh-toan")
     public ResponseEntity<?> thanhToanTienMat(@RequestBody CreateOrderRequest request) {
@@ -39,12 +40,14 @@ public class BanHangApiController {
     }
 
     /**
-     * API "Lưu Tạm" (Trạng thái 0) (Giữ nguyên)
+     * API 2: Lưu Tạm (DRAFT)
      */
     @PostMapping("/luu-tam")
     public ResponseEntity<?> luuHoaDonTam(@RequestBody CreateOrderRequest request) {
         try {
-            request.setPaymentMethod("DRAFT");
+            // CẬP NHẬT: Dùng tên biến Tiếng Việt khớp với DTO mới
+            request.setPhuongThucThanhToan("DRAFT");
+
             HoaDon hoaDon = banHangService.luuHoaDonTam(request);
             return ResponseEntity.ok(hoaDon);
         } catch (Exception e) {
@@ -53,19 +56,14 @@ public class BanHangApiController {
     }
 
     /**
-     * SỬA LẠI: API Tạo Link VNPAY
+     * API 3: Tạo Link VNPAY
      */
     @PostMapping("/tao-thanh-toan-vnpay")
     public ResponseEntity<?> createVnPayPayment(@RequestBody CreateOrderRequest request,
                                                 HttpServletRequest httpReq) {
         try {
-            // 1. Lấy IP
             String clientIp = getClientIp(httpReq);
-
-            // 2. GỌI BANHANGSERVICE (Không gọi VnPayService trực tiếp)
             VnPayResponseDTO response = banHangService.taoThanhToanVnPay(request, clientIp);
-
-            // 3. Trả DTO về JS
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
@@ -75,27 +73,45 @@ public class BanHangApiController {
     }
 
     /**
-     * THÊM MỚI: API NHẬN KẾT QUẢ TỪ VNPAY (IPN / Callback)
+     * API 4: Callback/IPN từ VNPAY sau khi thanh toán xong
      */
     @GetMapping("/vnpay-callback")
-    public ResponseEntity<Map<String, String>> vnpayCallback(@RequestParam Map<String, String> vnpParams) {
+    public ResponseEntity<?> handleVnPayCallback(HttpServletRequest request) {
+        // Lấy toàn bộ tham số trả về từ VNPAY
+        Map<String, String> vnpParams = request.getParameterMap().entrySet().stream()
+                .filter(entry -> entry.getKey().startsWith("vnp_"))
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        entry -> entry.getValue()[0]
+                ));
+
+        String secureHash = request.getParameter("vnp_SecureHash");
+        if (secureHash != null) {
+            vnpParams.put("vnp_SecureHash", secureHash);
+        }
+
         try {
-            // Gọi service VNPAY (đã tiêm @Lazy) để xử lý
+            // Gọi Service xử lý (Kiểm tra hash, cập nhật trạng thái đơn, trừ kho)
             int result = vnPayService.orderReturn(vnpParams);
 
-            if (result == 1) { // Thành công
-                return ResponseEntity.ok(Map.of("RspCode", "00", "Message", "Confirm Success"));
-            } else if (result == 0) { // Thất bại
-                return ResponseEntity.ok(Map.of("RspCode", "99", "Message", "Order failed or Canceled"));
-            } else { // Lỗi
-                return ResponseEntity.ok(Map.of("RspCode", "97", "Message", "Error or Invalid Signature"));
+            String message;
+            if (result == 1) {
+                message = "Giao dịch thành công.";
+            } else if (result == 0) {
+                message = "Giao dịch thất bại (Không đủ tiền, hủy ngang...).";
+            } else {
+                message = "Lỗi xác thực hoặc lỗi hệ thống.";
             }
+
+            return ResponseEntity.ok(Map.of("code", result, "message", message));
+
         } catch (Exception e) {
-            return ResponseEntity.ok(Map.of("RspCode", "97", "Message", "Exception: " + e.getMessage()));
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().body(Map.of("message", "Lỗi xử lý callback: " + e.getMessage()));
         }
     }
 
-    // (Các API /hoa-don-tam giữ nguyên)
+    // API lấy danh sách hóa đơn tạm (Cho bán hàng tại quầy)
     @GetMapping("/hoa-don-tam")
     public ResponseEntity<List<HoaDon>> getHoaDonTam() {
         List<HoaDon> drafts = banHangService.getDraftOrders();
@@ -108,7 +124,7 @@ public class BanHangApiController {
         return ResponseEntity.ok(hoaDon);
     }
 
-    // THÊM: Hàm tiện ích lấy IP
+    // Hàm tiện ích lấy IP Client
     private String getClientIp(HttpServletRequest request) {
         String ipAddress = request.getHeader("X-Forwarded-For");
         if (ipAddress == null || ipAddress.isEmpty() || "unknown".equalsIgnoreCase(ipAddress)) {

@@ -36,5 +36,6 @@ public interface SanPhamService {
      * @return true nếu tồn tại, false nếu không
      */
     boolean existsByMaSanPham(String maSanPham);
+    SanPham updateTrangThai(Integer id, Integer newStatus);
 
 }

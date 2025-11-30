@@ -1,13 +1,12 @@
 package sd_04.datn_fstore.model;
 
-
-
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString; // ⬅️ Thêm import Lombok ToString
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
@@ -26,19 +25,18 @@ public class HinhAnh {
     @Column(name = "moTa")
     private String moTa;
 
-    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "ngayTao")
-    private Date ngayTao;
+    private LocalDateTime ngayTao;
 
-    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "ngaySua")
-    private Date ngaySua;
+    private LocalDateTime ngaySua;
 
     @Column(name = "trangThai")
     private Integer trangThai;
 
-    // Foreign Key: FK_HinhAnh_SanPham
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "idSanPham")
+    // NGẮT VÒNG LẶP: Khi in HinhAnh, không in SanPham để tránh đệ quy
+    @ToString.Exclude
     private SanPham sanPham;
 }

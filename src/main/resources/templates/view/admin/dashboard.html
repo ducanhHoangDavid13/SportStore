@@ -1,378 +1,380 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Thống kê hệ thống</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Tổng Quan - F-Store Admin</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" rel="stylesheet" />
+    <link rel="stylesheet" th:href="@{/css/navbar.css}" />
     <style>
-        /* ==============================================
-   BIẾN MÀU CHỦ ĐẠO (THEME TRẮNG - XANH - ĐỎ)
-   ============================================== */
         :root {
-            --sidebar-width: 260px;
-            --navbar-height: 60px;
-
-            /* Bảng màu (Trắng - Xanh - Đỏ) */
-            --primary-color: #007bff;     /* XANH DƯƠNG (Chủ đạo) */
-            --primary-light-bg: #e6f2ff;  /* Xanh dương rất nhạt cho hover */
-            --danger-color: #dc3545;      /* ĐỎ (Phụ) */
-
-            --sidebar-bg: #ffffff;       /* Nền Sidebar trắng */
-            --navbar-bg: #ffffff;        /* Nền Navbar trắng */
-            --content-bg: #f4f7f6;       /* Nền nội dung chính (xám nhạt) */
-
-            --text-dark: #343a40;        /* Màu chữ chính (đậm) */
-            --text-muted: #6c757d;     /* Màu chữ phụ (xám) */
-
-            --border-color: #dee2e6;     /* Màu viền */
-            --shadow-light: 0 2px 12px rgba(0, 0, 0, 0.06); /* Đổ bóng nhẹ */
+            --primary-color: #4318FF;
+            --secondary-color: #A3AED0;
+            --light-bg: #F4F7FE;
+            --card-bg: #ffffff;
+            --dark-text: #2B3674;
+            --sidebar-bg: #0B1437;
+            --sidebar-text: #A3AED0;
+            --sidebar-active-bg: rgba(67, 24, 255, 0.1);
         }
 
-        /* ==============================================
-           LAYOUT CHÍNH (Navbar, Sidebar, Content)
-           ============================================== */
         body {
-            overflow-x: hidden;
-            background-color: var(--content-bg);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            font-family: 'DM Sans', sans-serif;
+            background-color: var(--light-bg);
+            color: var(--dark-text);
+            overflow: hidden;
         }
 
-        /* Navbar (Thanh ngang trên cùng) */
-        .navbar-admin {
-            height: var(--navbar-height);
-            background-color: var(--navbar-bg) !important;
-            border-bottom: 1px solid var(--border-color);
-            box-shadow: var(--shadow-light);
-            z-index: 1001;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-        }
-
-        /* Sidebar (Menu trái) */
-        .sidebar-wrapper {
-            width: var(--sidebar-width);
-            position: fixed;
-            top: var(--navbar-height);
-            left: 0;
-            bottom: 0;
-            overflow-y: auto;
-            z-index: 1000;
-
-            background-color: var(--sidebar-bg); /* Nền trắng */
-            border-right: 1px solid var(--border-color);
-            transition: margin-left 0.3s ease-in-out; /* Hiệu ứng mượt */
-        }
-
-        /* Nội dung chính (Bên phải) */
-        .main-content {
-            margin-left: var(--sidebar-width);
-            padding: 1.5rem;
-            padding-top: calc(var(--navbar-height) + 1.5rem);
-            min-height: 100vh;
-            transition: margin-left 0.3s ease-in-out; /* Hiệu ứng mượt */
-        }
-
-        /* ==============================================
-           CÁC LINK TRONG SIDEBAR (Theme Xanh)
-           ============================================== */
-
-        /* Header của Sidebar (Logo) */
-        .sidebar-header {
-            padding: 1rem 1.25rem;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        /* Tiêu đề (ví dụ: "SẢN PHẨM") */
-        .nav-item-header {
-            padding: 0.5rem 1.25rem;
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            margin-top: 1rem;
-        }
-
-        /* Các link */
-        .nav-link {
-            color: var(--text-dark);
-            padding: 0.85rem 1.25rem;
-            margin: 0.25rem 0.5rem;
-            transition: all 0.2s ease-in-out;
+        #wrapper { display: flex; width: 100%; height: 100vh; }
+        #sidebar-wrapper {
+            width: 280px;
+            background-color: var(--sidebar-bg);
+            flex-shrink: 0;
+            transition: margin-left 0.3s ease;
             display: flex;
-            align-items: center;
-            text-decoration: none;
-            cursor: pointer;
-            font-weight: 500;
-            border-radius: 6px;
+            flex-direction: column;
+            height: 100%;
+            overflow-y: auto;
+        }
+        #page-content-wrapper {
+            flex-grow: 1;
+            width: calc(100% - 280px);
+            transition: width 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        #wrapper.toggled #sidebar-wrapper { margin-left: -280px; }
+        #wrapper.toggled #page-content-wrapper { width: 100%; }
+
+        .main-content {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 0 30px 30px;
         }
 
-        /* Hiệu ứng HOVER (Xanh nhạt) */
-        .nav-link:hover {
-            color: var(--primary-color) !important;
-            background-color: var(--primary-light-bg);
-            transform: translateX(3px);
-        }
+        .sidebar-heading { padding: 1.5rem 2rem; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid rgba(163, 174, 208, 0.1); }
+        .sidebar-logo { font-size: 1.5rem; font-weight: 700; color: var(--card-bg); }
+        .list-group { padding: 1rem 1.5rem; }
+        .list-group-item { background: transparent; border: none; padding: 0; margin-bottom: 0.5rem; }
+        .nav-link { display: flex; align-items: center; padding: 12px 16px; color: var(--sidebar-text); border-radius: 12px; font-weight: 500; transition: all 0.2s ease; text-decoration: none; }
+        .nav-link i { font-size: 1rem; width: 24px; margin-right: 12px; text-align: center; }
+        .nav-link:hover { background-color: var(--sidebar-active-bg); color: var(--card-bg); }
+        .nav-link.active { background-color: var(--sidebar-active-bg); color: var(--card-bg); font-weight: 700; }
+        .nav-link.active i { color: var(--primary-color); }
+        .menu-section-title { font-size: 0.75rem; color: var(--sidebar-text); font-weight: 700; text-transform: uppercase; padding: 16px 16px 8px; letter-spacing: 0.5px; }
 
-        /* Hiệu ứng ACTIVE (Xanh đậm) */
-        .nav-link.active {
-            color: #ffffff !important;
-            background-color: var(--primary-color);
-            font-weight: 600;
-            box-shadow: 0 4px 10px rgba(0, 123, 255, 0.3);
-        }
+        .top-navbar { height: 90px; display: flex; align-items: center; justify-content: space-between; padding: 0 30px; flex-shrink: 0; }
+        .top-navbar-left .welcome-sub { color: var(--secondary-color); font-size: 0.9rem; }
+        .top-navbar-left .welcome-main { font-weight: 700; font-size: 2.1rem; }
+        .top-navbar-right { display: flex; align-items: center; gap: 1rem; background-color: var(--card-bg); padding: 8px; border-radius: 50px; box-shadow: 0 4px 15px rgba(0,0,0,0.06); }
+        .top-navbar-right .form-control { border: none; box-shadow: none !important; background: transparent; width: 200px; }
+        .top-navbar-right .nav-icon-btn { width: 40px; height: 40px; border-radius: 50%; background: transparent; color: var(--secondary-color); border: none; font-size: 1.2rem; transition: all 0.2s; }
+        .top-navbar-right .nav-icon-btn:hover { background-color: var(--light-bg); color: var(--primary-color); }
+        .dropdown-menu { border-radius: 12px; }
 
-        .nav-link i.fa-fw {
-            margin-top: 0;
-            margin-right: 12px;
-            font-size: 1.1rem;
-        }
-
-        /* Submenu (Menu con) */
-        .submenu-item a.nav-link {
-            padding-left: 2.75rem;
-            font-size: 0.9rem;
-            color: var(--text-muted);
-            font-weight: 400;
-            box-shadow: none;
-        }
-        .submenu-item a.nav-link:hover {
-            transform: none;
-        }
-
-        /* ==============================================
-           CSS CHO THU NHỎ SIDEBAR
-           ============================================== */
-        /* (Script JS của bạn sẽ thêm class 'sidebar-toggled' vào <body>) */
-
-        .sidebar-toggled .sidebar-wrapper {
-            /* Đẩy sidebar ra khỏi màn hình về bên trái */
-            margin-left: calc(var(--sidebar-width) * -1);
-        }
-
-        .sidebar-toggled .main-content {
-            /* Cho nội dung chiếm lại toàn bộ không gian */
-            margin-left: 0;
-        }
-
-        /* ==============================================
-           CSS CHO TRANG DASHBOARD (CÁC THẺ)
-           ============================================== */
-
-        /* Lưới 4 thẻ thống kê */
-        .stats-grid {
-            display: grid;
-            /* 4 cột trên PC, 2 cột trên Tablet, 1 cột trên Mobile */
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        /* Tùy chỉnh thẻ (card) */
-        .stats-grid .card {
-            background-color: #fff;
-            border: none;
-            border-radius: 10px;
-            box-shadow: var(--shadow-light);
-            padding: 1.5rem;
-        }
-
-        .stats-grid .card h3 {
-            font-size: 1rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-        }
-
-        .stats-grid .card .value {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: var(--text-dark);
-        }
-
-        /* Lưới 2 biểu đồ */
-        .charts {
-            display: grid;
-            grid-template-columns: 2fr 1fr; /* Biểu đồ đường rộng hơn */
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        /* Tùy chỉnh thẻ biểu đồ */
-        .chart-card {
-            background-color: #fff;
-            border: none;
-            border-radius: 10px;
-            box-shadow: var(--shadow-light);
-            padding: 1.5rem;
-        }
-        .chart-card h3 {
-            font-size: 1.2rem;
-            font-weight: 600;
-            margin-bottom: 1.5rem;
-        }
-
-        /* Footer */
-        .footer {
-            padding: 1rem;
-            text-align: center;
-            color: var(--text-muted);
-            font-size: 0.9rem;
-            margin-top: 2rem;
-        }
-
-        /* CSS cho màn hình nhỏ (Mobile) */
-        @media (max-width: 992px) {
-            .charts {
-                grid-template-columns: 1fr; /* 1 cột trên mobile */
-            }
-        }
+        .stat-card { background-color: var(--card-bg); border-radius: 20px; padding: 24px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0px 18px 40px rgba(112, 144, 176, 0.12); }
+        .stat-title { color: var(--secondary-color); font-size: 0.875rem; font-weight: 500; margin-bottom: 4px; }
+        .stat-value { color: var(--dark-text); font-size: 1.7rem; font-weight: 700; }
+        .stat-icon-wrapper { width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; background-color: var(--light-bg); color: var(--primary-color); }
+        .chart-card { background: var(--card-bg); border-radius: 20px; box-shadow: 0px 18px 40px rgba(112, 144, 176, 0.12); padding: 24px; height: 100%; }
+        .chart-title { font-size: 1.25rem; font-weight: 700; color: var(--dark-text); }
+        .time-filter .btn { font-size: 0.8rem; font-weight: 700; border-radius: 10px; padding: 6px 12px; border: 1px solid #e0e0e0; color: var(--secondary-color); }
+        .time-filter .btn.active { background-color: var(--primary-color); color: white; border-color: var(--primary-color); }
     </style>
-    <link rel="stylesheet" th:href="@{/css/styles.css}" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"/>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.2.0/css/bootstrap.min.css"/>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css"/>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css"/>
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.2/css/dataTables.bootstrap5.min.css"/>
 </head>
 <body>
 
-<nav th:replace="~{library/navbar :: admin-navbar}"></nav>
+<div id="wrapper">
+    <aside class="app-sidebar">
+        <div th:replace="~{library/navbar :: admin-sidebar}"></div>
+    </aside>
 
-<div class="page-wrapper">
-    <div th:replace="~{library/navbar :: admin-sidebar}"></div>
-    <main class="main-content">
-
-
-        <!-- Nếu KHÔNG phải ADMIN thì redirect về trang chủ -->
-        <div sec:authorize="!hasRole('ADMIN')">
-            <script th:inline="javascript">
-                /*<![CDATA[*/
-                const href = 'home';
-                window.location.href = /*[[@{/home}]]*/ '/' + href;
-                /*]]>*/
-            </script>
-        </div>
-
-        <div class="container">
-            <h1>Thống kê tổng quan</h1>
-            <!-- Các chỉ số -->
-            <div class="stats-grid">
-                <div class="card">
-                    <h3>Tổng người dùng</h3>
-                    <div class="value" th:text="${totalUsers}">0</div>
+    <div id="page-content-wrapper">
+        <nav class="top-navbar">
+            <div class="top-navbar-left">
+                <div class="welcome-sub">Pages / Dashboard</div>
+                <div class="welcome-main">Main Dashboard</div>
+            </div>
+            <div class="top-navbar-right">
+                <div class="input-group">
+                    <span class="input-group-text bg-transparent border-0"><i class="fas fa-search"></i></span>
+                    <input type="text" class="form-control" placeholder="Tìm kiếm chức năng...">
                 </div>
-                <div class="card">
-                    <h3>Tổng đơn hàng</h3>
-                    <div class="value" th:text="${totalOrders}">0</div>
+                <button class="nav-icon-btn"><i class="fas fa-bell"></i></button>
+                <button class="nav-icon-btn d-lg-none" id="menu-toggle"><i class="fas fa-bars"></i></button>
+                <div class="dropdown">
+                    <a href="#" class="d-flex align-items-center text-decoration-none" data-bs-toggle="dropdown">
+                        <img src="https://ui-avatars.com/api/?name=Admin+User&background=4318FF&color=fff&rounded=true" width="40" height="40" alt="Avatar">
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end border-0 shadow mt-2" style="border-radius: 12px;">
+                        <li><h6 class="dropdown-header">Chào, Admin User!</h6></li>
+                        <li><a class="dropdown-item py-2" href="#"><i class="fas fa-user me-2 text-muted"></i> Thông tin cá nhân</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <form th:action="@{/logout}" method="post" class="m-0">
+                                <button type="submit" class="dropdown-item py-2 text-danger"><i class="fas fa-sign-out-alt me-2"></i> Đăng xuất</button>
+                            </form>
+                        </li>
+                    </ul>
                 </div>
-                <div class="card">
-                    <h3>Doanh thu hôm nay</h3>
-                    <div class="value" th:text="${todayRevenue}">0 VNĐ</div>
+            </div>
+        </nav>
+
+        <main class="main-content">
+            <!-- Stats Cards -->
+            <div class="row g-4 mb-4">
+                <div class="col-12 col-md-6 col-xl-3">
+                    <div class="stat-card">
+                        <div>
+                            <div class="stat-title">Doanh thu hôm nay</div>
+                            <div class="stat-value" th:text="${todayRevenue} + ' ₫'"></div>
+                        </div>
+                        <div class="stat-icon-wrapper"><i class="fas fa-dollar-sign"></i></div>
+                    </div>
                 </div>
-                <div class="card">
-                    <h3>Khách hàng mới</h3>
-                    <div class="value" th:text="${newCustomers}">0</div>
+                <div class="col-12 col-md-6 col-xl-3">
+                    <div class="stat-card">
+                        <div>
+                            <div class="stat-title">Đơn hàng hôm nay</div>
+                            <div class="stat-value" th:text="${totalOrdersToday}">0</div>
+                        </div>
+                        <div class="stat-icon-wrapper"><i class="fas fa-file-invoice-dollar"></i></div>
+                    </div>
+                </div>
+                <div class="col-12 col-md-6 col-xl-3">
+                    <div class="stat-card">
+                        <div>
+                            <div class="stat-title">Khách hàng mới</div>
+                            <div class="stat-value" th:text="${newCustomers}">0</div>
+                        </div>
+                        <div class="stat-icon-wrapper"><i class="fas fa-users"></i></div>
+                    </div>
+                </div>
+                <div class="col-12 col-md-6 col-xl-3">
+                    <div class="stat-card">
+                        <div>
+                            <div class="stat-title">Sản phẩm sắp hết</div>
+                            <div class="stat-value" th:text="${totalSanPhamSapHet}">0</div>
+                        </div>
+                        <div class="stat-icon-wrapper"><i class="fas fa-box-open"></i></div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Biểu đồ -->
-            <div class="charts">
-                <div class="chart-card">
-                    <h3>📈 Doanh thu 7 ngày gần nhất</h3>
-                    <canvas id="revenueChart"></canvas>
+            <!-- Charts -->
+            <div class="row g-4">
+                <div class="col-12 col-lg-7">
+                    <div class="chart-card">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h5 class="chart-title mb-0">Tổng quan doanh thu</h5>
+                            <div class="btn-group time-filter" role="group">
+                                <button type="button" class="btn btn-light" data-filter="daily">Ngày</button>
+                                <button type="button" class="btn btn-light active" data-filter="weekly">Tuần</button>
+                                <button type="button" class="btn btn-light" data-filter="monthly">Tháng</button>
+                            </div>
+                        </div>
+                        <div style="height: 350px;"><canvas id="revenueChart"></canvas></div>
+                    </div>
                 </div>
-
-                <div class="chart-card">
-                    <h3>📦 Phân bố trạng thái đơn hàng</h3>
-                    <canvas id="orderStatusChart"></canvas>
+                <div class="col-12 col-lg-5">
+                    <div class="chart-card">
+                        <h5 class="chart-title mb-4">Trạng thái đơn hàng</h5>
+                        <div style="height: 200px; position: relative; display: flex; justify-content: center; margin-bottom: 2rem;">
+                            <canvas id="orderStatusChart"></canvas>
+                        </div>
+                        <div class="d-flex justify-content-center gap-4 text-center" id="orderStatusLegend">
+                            <!-- Sẽ được tạo động từ JavaScript -->
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
+        </main>
+    </div>
+</div>
 
-        <div class="footer">
-            © 2025 - Dashboard by Banana Dev
-        </div>
-    </main>
+<!-- Truyền dữ liệu từ server vào JavaScript -->
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    const serverData = {
+        dayLabels: /*[[${dayLabels}]]*/ [],
+        revenueList: /*[[${revenueList}]]*/ [],
+        orderStatusLabels: /*[[${orderStatusLabels}]]*/ [],
+        orderStatusValues: /*[[${orderStatusValues}]]*/ []
+    };
+    /*]]>*/
+</script>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script th:inline="javascript">
-        /*<![CDATA[*/
-        const labels = [[${dayLabels}]];
-        const revenueData = [[${revenueList}]];
-        const orderStatusLabels = [[${orderStatusLabels}]];
-        const orderStatusValues = [[${orderStatusValues}]];
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-        // Chart 1: Revenue
-        const ctx1 = document.getElementById('revenueChart').getContext('2d');
-        new Chart(ctx1, {
-            type: 'line',
-            data: {
-                labels: labels || ['T2','T3','T4','T5','T6','T7','CN'],
-                datasets: [{
-                    label: 'Doanh thu (VNĐ)',
-                    data: revenueData || [0, 0, 0, 0, 0, 0, 0],
-                    borderColor: '#1e90ff',
-                    backgroundColor: 'rgba(30,144,255,0.2)',
-                    fill: true,
-                    tension: 0.35,
-                    pointRadius: 4,
-                    pointBackgroundColor: '#1e90ff'
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: { y: { beginAtZero: true } },
-                plugins: { legend: { display: false } }
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const menuToggle = document.getElementById("menu-toggle");
+        if (menuToggle) {
+            menuToggle.addEventListener("click", function(e) {
+                e.preventDefault();
+                document.getElementById("wrapper").classList.toggle("toggled");
+            });
+        }
+
+        Chart.defaults.font.family = 'DM Sans';
+        Chart.defaults.color = '#A3AED0';
+
+        // BIỂU ĐỒ DOANH THU - Sử dụng dữ liệu từ server
+        const revenueCanvas = document.getElementById('revenueChart')?.getContext('2d');
+        let revenueChart = null;
+
+        function createOrUpdateRevenueChart(filter) {
+            if (!revenueCanvas) return;
+
+            // Sử dụng dữ liệu từ server (7 ngày gần nhất)
+            const chartData = {
+                labels: serverData.dayLabels || [],
+                revenues: serverData.revenueList || []
+            };
+
+            if (revenueChart) {
+                revenueChart.data.labels = chartData.labels;
+                revenueChart.data.datasets[0].data = chartData.revenues;
+                revenueChart.update();
+                return;
             }
-        });
 
-        // Chart 2: Order Status
-        const ctx2 = document.getElementById('orderStatusChart').getContext('2d');
-        new Chart(ctx2, {
-            type: 'doughnut',
-            data: {
-                labels: orderStatusLabels || ['Đang xử lý','Hoàn tất','Đã hủy'],
-                datasets: [{
-                    data: orderStatusValues || [10, 7, 3],
-                    backgroundColor: ['#1e90ff', '#32cd32', '#ff6347'],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: { position: 'bottom' }
+            revenueChart = new Chart(revenueCanvas, {
+                type: 'bar',
+                data: {
+                    labels: chartData.labels,
+                    datasets: [{
+                        label: 'Doanh thu',
+                        data: chartData.revenues,
+                        backgroundColor: '#4318FF',
+                        borderRadius: 20,
+                        barThickness: 18,
+                        borderSkipped: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#0B1437',
+                            padding: 12,
+                            cornerRadius: 12,
+                            displayColors: false,
+                            callbacks: {
+                                label: (context) => {
+                                    const value = context.parsed.y;
+                                    return value.toLocaleString('vi-VN') + ' ₫';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { drawBorder: false },
+                            ticks: {
+                                callback: (value) => {
+                                    if (value >= 1000000) {
+                                        return (value / 1000000).toFixed(1) + ' Tr';
+                                    } else if (value >= 1000) {
+                                        return (value / 1000).toFixed(0) + 'K';
+                                    }
+                                    return value;
+                                }
+                            }
+                        },
+                        x: { grid: { display: false } }
+                    }
                 }
+            });
+        }
+
+        // BIỂU ĐỒ TRẠNG THÁI ĐƠN HÀNG - Sử dụng dữ liệu từ server
+        const orderStatusCanvas = document.getElementById('orderStatusChart')?.getContext('2d');
+        if (orderStatusCanvas && serverData.orderStatusValues && serverData.orderStatusValues.length > 0) {
+            const colors = ['#4318FF', '#6AD2FF', '#EFF4FB'];
+            const total = serverData.orderStatusValues.reduce((sum, val) => sum + val, 0);
+
+            new Chart(orderStatusCanvas, {
+                type: 'doughnut',
+                data: {
+                    labels: serverData.orderStatusLabels,
+                    datasets: [{
+                        data: serverData.orderStatusValues,
+                        backgroundColor: colors,
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '80%',
+                    plugins: { legend: { display: false } }
+                }
+            });
+
+            // Tạo legend động
+            const legendContainer = document.getElementById('orderStatusLegend');
+            if (legendContainer) {
+                legendContainer.innerHTML = serverData.orderStatusLabels.map((label, index) => {
+                    const value = serverData.orderStatusValues[index];
+                    const percentage = total > 0 ? ((value / total) * 100).toFixed(0) : 0;
+                    return `
+                        <div>
+                            <span class="d-block" style="width: 10px; height: 10px; background-color: ${colors[index]}; border-radius: 50%; margin: 0 auto 5px;"></span>
+                            <div class="small fw-bold text-secondary">${label}</div>
+                            <div class="fw-bolder fs-6">${percentage}%</div>
+                        </div>
+                    `;
+                }).join('');
             }
+        }
+
+        // Khởi tạo biểu đồ doanh thu
+        createOrUpdateRevenueChart('weekly');
+
+        // Xử lý sự kiện lọc thời gian - Gọi API để lấy dữ liệu
+        document.querySelectorAll('.time-filter .btn').forEach(button => {
+            button.addEventListener('click', function() {
+                document.querySelectorAll('.time-filter .btn').forEach(btn => btn.classList.remove('active'));
+                this.classList.add('active');
+                const filter = this.dataset.filter;
+
+                // Gọi API để lấy dữ liệu theo filter
+                fetch(`/admin/dashboard/revenue?filter=${filter}`)
+                    .then(response => {
+                        if (!response.ok) throw new Error('Network response was not ok');
+                        return response.json();
+                    })
+                    .then(data => {
+                        updateChartWithNewData(data);
+                    })
+                    .catch(error => {
+                        console.error('Error fetching revenue data:', error);
+                        // Có thể hiển thị thông báo lỗi cho user
+                    });
+            });
         });
 
-        /*]]>*/
-        document.addEventListener("DOMContentLoaded", function() {
+        // Hàm cập nhật biểu đồ với dữ liệu mới
+        function updateChartWithNewData(data) {
+            if (!revenueChart || !data) return;
 
-            // 1. Tìm nút bấm
-            const toggleButton = document.getElementById('sidebarToggleBtn');
-
-            if (toggleButton) {
-                // 2. Thêm sự kiện click
-                toggleButton.addEventListener('click', function(e) {
-                    e.preventDefault(); // Ngăn trình duyệt nhảy link
-
-                    // 3. Thêm/Xóa class 'sidebar-toggled' trên thẻ <body>
-                    document.body.classList.toggle('sidebar-toggled');
-                });
-            }
-
-        });
-    </script>
+            revenueChart.data.labels = data.labels || [];
+            revenueChart.data.datasets[0].data = data.revenues || [];
+            revenueChart.update('active');
+        }
+    });
+</script>
 
 </body>
 </html>

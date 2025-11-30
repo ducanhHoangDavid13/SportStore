@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import sd_04.datn_fstore.model.ChatLieu;
 import sd_04.datn_fstore.service.ChatLieuService;
 
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -57,6 +58,16 @@ public class ChatLieuApiController {
         } catch (Exception e) {
             // Ví dụ: Lỗi validation hoặc CSDL
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+    }
+    @PutMapping("/{id}/trang-thai")
+    public ResponseEntity<?> updateTrangThai(@PathVariable("id") Integer id, @RequestParam("trangThai") Integer trangThai) {
+        try {
+            return ResponseEntity.ok(chatLieuService.updateTrangThai(id, trangThai));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Lỗi server: " + e.getMessage());
         }
     }
 

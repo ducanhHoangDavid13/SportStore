@@ -20,4 +20,6 @@ public interface ChatLieuService {
     List<ChatLieu> searchByTen(String ten);
     List<ChatLieu> filterByTrangThai(Integer trangThai);
     List<ChatLieu> searchAndFilter(String ten, Integer trangThai);
+    // ... các hàm cũ
+    ChatLieu updateTrangThai(Integer id, Integer newStatus);
 }

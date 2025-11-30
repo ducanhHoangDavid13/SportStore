@@ -1,7 +1,7 @@
 package sd_04.datn_fstore.service.impl;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.annotation.Lazy; // <-- 1. THÊM IMPORT
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import sd_04.datn_fstore.dto.CreateOrderRequest;
@@ -9,7 +9,6 @@ import sd_04.datn_fstore.dto.VnPayResponseDTO;
 import sd_04.datn_fstore.model.*;
 import sd_04.datn_fstore.repository.*;
 import sd_04.datn_fstore.service.BanHangService;
-import sd_04.datn_fstore.service.KhoService;
 import sd_04.datn_fstore.service.PhieuGiamgiaService;
 import sd_04.datn_fstore.service.VnPayService;
 
@@ -28,15 +27,11 @@ public class BanHangServiceImpl implements BanHangService {
     private final SanPhamCTRepository sanPhamCTRepository;
     private final NhanVienRepository nhanVienRepository;
     private final KhachHangRepo khachHangRepository;
+    private final PhieuGiamGiaRepo phieuGiamGiaRepository;
 
-    // --- 2. TIÊM CÁC SERVICE LIÊN QUAN ---
-
-    @Lazy // <-- THÊM @Lazy ĐỂ PHÁ VỠ VÒNG LẶP
+    @Lazy
     private final VnPayService vnPayService;
-
-    private final KhoService khoService;
     private final PhieuGiamgiaService phieuGiamgiaService;
-    private final PhieuGiamGiaRepo phieuGiamGiaRepository; // Để lấy PGG
 
     private final ZoneId VN_ZONE = ZoneId.of("Asia/Ho_Chi_Minh");
 
@@ -46,20 +41,19 @@ public class BanHangServiceImpl implements BanHangService {
         PhieuGiamGia pgg = getPhieuGiamGiaFromRequest(request);
 
         HoaDon hoaDon = createHoaDonFromPayload(request, pgg);
-        hoaDon.setTrangThai(1); // 1 = Đã hoàn thành
+        hoaDon.setTrangThai(1); // 1 = Đã thanh toán / Chờ giao
 
         HoaDon savedHoaDon = hoaDonRepository.save(hoaDon);
-        List<CreateOrderRequest.Item> itemsList = request.getItemsList();
 
-        // 3. SỬA LOGIC: Gọi service trừ kho
+        // SỬA: getItemsList() -> getDanhSachSanPham()
+        List<CreateOrderRequest.SanPhamItem> itemsList = request.getDanhSachSanPham();
+
         decrementInventory(itemsList);
-
-        for (CreateOrderRequest.Item item : itemsList) {
-            saveHoaDonChiTiet(savedHoaDon, item); // Lưu chi tiết
-        }
-
-        // 4. SỬA LOGIC: Gọi service trừ voucher
         decrementVoucher(pgg);
+
+        for (CreateOrderRequest.SanPhamItem item : itemsList) {
+            saveHoaDonChiTiet(savedHoaDon, item);
+        }
 
         return savedHoaDon;
     }
@@ -70,23 +64,25 @@ public class BanHangServiceImpl implements BanHangService {
         PhieuGiamGia pgg = getPhieuGiamGiaFromRequest(request);
         HoaDon hoaDon = createHoaDonFromPayload(request, pgg);
 
-        String pttt = request.getPaymentMethod();
+        // SỬA: getPaymentMethod() -> getPhuongThucThanhToan()
+        String pttt = request.getPhuongThucThanhToan();
+
         if ("VNPAY".equals(pttt)) {
-            hoaDon.setTrangThai(5); // 5 = Chờ VNPAY
+            hoaDon.setTrangThai(5); // Chờ VNPAY
         } else if ("TRANSFER".equals(pttt) || "QR".equals(pttt)) {
-            hoaDon.setTrangThai(5); // 5 = Chờ Chuyển Khoản
+            hoaDon.setTrangThai(5); // Chờ Chuyển khoản
         } else {
-            hoaDon.setTrangThai(0); // 0 = Hóa đơn tạm
+            hoaDon.setTrangThai(0); // Lưu tạm
         }
 
         HoaDon savedHoaDon = hoaDonRepository.save(hoaDon);
-        List<CreateOrderRequest.Item> itemsList = request.getItemsList();
 
-        for (CreateOrderRequest.Item item : itemsList) {
+        // SỬA: getDanhSachSanPham()
+        List<CreateOrderRequest.SanPhamItem> itemsList = request.getDanhSachSanPham();
+
+        for (CreateOrderRequest.SanPhamItem item : itemsList) {
             saveHoaDonChiTiet(savedHoaDon, item);
         }
-
-        // Không trừ kho, không trừ voucher khi lưu tạm
 
         return savedHoaDon;
     }
@@ -99,33 +95,27 @@ public class BanHangServiceImpl implements BanHangService {
     }
 
     @Override
-    @Transactional(readOnly = true) // <-- Thêm dòng này
+    @Transactional(readOnly = true)
     public HoaDon getDraftOrderDetail(Integer id) {
-        HoaDon hoaDon = hoaDonRepository.findByIdWithDetails(id) // Gọi hàm đã JOIN FETCH
+        HoaDon hoaDon = hoaDonRepository.findByIdWithDetails(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy Hóa Đơn Tạm ID: " + id));
-
-        // Dòng này rất quan trọng để "kích hoạt" Lazy loading
-        // nếu JOIN FETCH thất bại
         hoaDon.getHoaDonChiTiets().size();
-
         return hoaDon;
     }
-
-    // --- 5. TRIỂN KHAI CÁC HÀM BỊ RỖNG ---
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public VnPayResponseDTO taoThanhToanVnPay(CreateOrderRequest request, String ipAddress) {
 
-        request.setPaymentMethod("VNPAY"); // Đảm bảo PTTT là VNPAY
+        // SỬA: setPhuongThucThanhToan
+        request.setPhuongThucThanhToan("VNPAY");
         HoaDon savedHoaDon = this.luuHoaDonTam(request);
 
-        long amountInVNDcents = savedHoaDon.getTongTienSauGiam().longValue() * 100;
+        long amountInVNDcents = savedHoaDon.getTongTienSauGiam().multiply(new BigDecimal("100")).longValue();
         String orderCode = savedHoaDon.getMaHoaDon();
         String orderInfo = "Thanh toan don hang " + orderCode;
 
         try {
-            // Gọi VnPayService (đã tiêm @Lazy)
             String paymentUrl = vnPayService.createOrder(amountInVNDcents, orderInfo, orderCode, ipAddress);
             return new VnPayResponseDTO(true, "Tạo link VNPAY thành công", paymentUrl);
 
@@ -136,17 +126,28 @@ public class BanHangServiceImpl implements BanHangService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void decrementInventory(List<CreateOrderRequest.Item> items) {
-        // (Giả sử KhoService đã được tiêm và có hàm truTonKho)
-        for (CreateOrderRequest.Item item : items) {
-            khoService.truTonKho(item.getSanPhamChiTietId(), item.getSoLuong());
+    // SỬA: Tham số List<Item> -> List<SanPhamItem>
+    public void decrementInventory(List<CreateOrderRequest.SanPhamItem> items) {
+        for (CreateOrderRequest.SanPhamItem item : items) {
+            SanPhamChiTiet spct = sanPhamCTRepository.findById(item.getSanPhamChiTietId())
+                    .orElseThrow(() -> new RuntimeException("Sản phẩm không tồn tại (ID: " + item.getSanPhamChiTietId() + ")"));
+
+            int soLuongMua = item.getSoLuong();
+            int soLuongTon = spct.getSoLuong();
+
+            if (soLuongTon < soLuongMua) {
+                throw new RuntimeException("Sản phẩm '" + spct.getSanPham().getTenSanPham() + "' không đủ hàng. (Còn: " + soLuongTon + ")");
+            }
+
+            spct.setSoLuong(soLuongTon - soLuongMua);
+            sanPhamCTRepository.save(spct);
         }
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void decrementVoucher(PhieuGiamGia pgg) {
-        // (Giả sử PhieuGiamgiaService đã được tiêm và có hàm decrementVoucher)
+        if (pgg == null) return;
         phieuGiamgiaService.decrementVoucher(pgg);
     }
 
@@ -160,7 +161,8 @@ public class BanHangServiceImpl implements BanHangService {
         return null;
     }
 
-    private void saveHoaDonChiTiet(HoaDon savedHoaDon, CreateOrderRequest.Item item) {
+    // SỬA: Tham số Item -> SanPhamItem
+    private void saveHoaDonChiTiet(HoaDon savedHoaDon, CreateOrderRequest.SanPhamItem item) {
         SanPhamChiTiet spct = sanPhamCTRepository.findById(item.getSanPhamChiTietId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy SPCT ID: " + item.getSanPhamChiTietId()));
 
@@ -173,30 +175,37 @@ public class BanHangServiceImpl implements BanHangService {
         hoaDonChiTietRepository.save(hdct);
     }
 
-    // 6. SỬA LỖI: Tính toán Subtotal
     private HoaDon createHoaDonFromPayload(CreateOrderRequest request, PhieuGiamGia pgg) {
         HoaDon hoaDon = new HoaDon();
 
-        // Lấy giá trị từ DTO
-        BigDecimal totalAmount = request.getTotalAmount();
-        BigDecimal discountAmount = request.getDiscountAmount();
+        // --- SỬA LỖI Ở ĐÂY ---
+        // 1. Kiểm tra null: Nếu request gửi lên null thì gán mặc định là 0
+        BigDecimal totalAmount = request.getTongTien() != null ? request.getTongTien() : BigDecimal.ZERO;
+        BigDecimal discountAmount = request.getTienGiamGia() != null ? request.getTienGiamGia() : BigDecimal.ZERO;
 
-        // Tự tính Subtotal (Tổng tiền gốc)
+        // 2. Tính toán lại: Tổng tiền hàng (Gốc) = Số tiền khách phải trả + Số tiền được giảm
         BigDecimal subtotalAmount = totalAmount.add(discountAmount);
 
-        hoaDon.setMaHoaDon(request.getOrderCode());
+        // Map dữ liệu
+        hoaDon.setMaHoaDon(request.getMaHoaDon());
         hoaDon.setNgayTao(LocalDateTime.now(VN_ZONE));
-        hoaDon.setTongTien(subtotalAmount); // Tiền gốc
+
+        // setTongTien = Tổng giá trị hàng (chưa trừ giảm giá)
+        hoaDon.setTongTien(subtotalAmount);
         hoaDon.setTienGiamGia(discountAmount);
+        // setTongTienSauGiam = Khách phải trả
         hoaDon.setTongTienSauGiam(totalAmount);
 
         hoaDon.setPhieuGiamGia(pgg);
 
-        int nhanVienId = request.getNhanVienId();
-        NhanVien nv = nhanVienRepository.findById(nhanVienId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy Nhân Viên ID: " + nhanVienId));
-        hoaDon.setNhanVien(nv);
+        // 3. Xử lý Nhân viên
+        if (request.getNhanVienId() != null) {
+            NhanVien nv = nhanVienRepository.findById(request.getNhanVienId())
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy Nhân Viên ID: " + request.getNhanVienId()));
+            hoaDon.setNhanVien(nv);
+        }
 
+        // 4. Xử lý Khách hàng (cho phép null nếu là khách lẻ)
         Integer khachHangId = request.getKhachHangId();
         if (khachHangId != null) {
             KhachHang kh = khachHangRepository.findById(khachHangId).orElse(null);

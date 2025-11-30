@@ -1,14 +1,13 @@
 package sd_04.datn_fstore.model;
 
-
-
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Min;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
-import java.util.Date;
+import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
@@ -27,21 +26,19 @@ public class GioHang {
     @Column(name = "tongTien", precision = 18, scale = 2)
     private BigDecimal tongTien;
 
-    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "ngayTao")
-    private Date ngayTao;
+    private LocalDateTime ngayTao;
 
-    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "ngaySua")
-    private Date ngaySua;
+    private LocalDateTime ngaySua;
 
     @Column(name = "soLuong")
+    @Min(value = 1, message = "Số lượng trong giỏ hàng phải lớn hơn 0")
     private Integer soLuong;
 
     @Column(name = "maGioHang", length = 50)
     private String maGioHang;
 
-    // Foreign Keys
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "idSanPham")
     private SanPham sanPham;

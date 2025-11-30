@@ -3,13 +3,14 @@ package sd_04.datn_fstore.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString; // ⬅️ Thêm import Lombok ToString
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
-
 
 @Data
 @NoArgsConstructor
@@ -23,46 +24,57 @@ public class SanPham {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "maSanPham", length = 100)
+    @Column(name = "maSanPham", length = 100, unique = true)
+    @NotBlank(message = "Mã sản phẩm không được để trống")
     private String maSanPham;
 
     @Column(name = "tenSanPham", length = 500)
+    @NotBlank(message = "Tên sản phẩm không được để trống")
+    @Size(max = 500, message = "Tên sản phẩm không được quá 500 ký tự")
     private String tenSanPham;
 
-    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "ngayTao")
     private LocalDateTime ngayTao;
 
     @Column(name = "trangThai")
     private Integer trangThai;
 
-    @Column(name = "moTa")
+    @Column(name = "moTa", columnDefinition = "NVARCHAR(MAX)")
     private String moTa;
 
     @Column(name = "giaTien", precision = 18, scale = 2)
+    @NotNull(message = "Giá tiền không được để trống")
+    @DecimalMin(value = "0.0", message = "Giá tiền phải lớn hơn hoặc bằng 0")
     private BigDecimal giaTien;
 
     @Column(name = "soLuong")
+    @NotNull(message = "Số lượng không được để trống")
+    @Min(value = 0, message = "Số lượng phải lớn hơn hoặc bằng 0")
     private Integer soLuong;
 
-    // Mối quan hệ: Một sản phẩm có nhiều hình ảnh
+    // ================= MỐI QUAN HỆ =================
+
+    // 1. Hình ảnh
     @OneToMany(mappedBy = "sanPham", fetch = FetchType.LAZY)
     @JsonIgnore
+    @ToString.Exclude // ⬅️ NGẮT VÒNG LẶP cho toString()
     private List<HinhAnh> hinhAnh;
 
+    // Field phụ để xử lý hiển thị ảnh chính (không lưu DB)
     @Transient
     private String tenHinhAnhChinh;
 
-    // =================================================================
-    // Mối quan hệ MỚI: Một sản phẩm có nhiều biến thể (Sản phẩm Chi tiết)
-    // Cấu hình CascadeType.ALL để lưu SPCT cùng lúc với SanPham (nếu bạn sử dụng cơ chế này)
-    @JsonIgnore
+    // 2. Biến thể (Sản phẩm chi tiết)
     @OneToMany(mappedBy = "sanPham", fetch = FetchType.LAZY)
+    @JsonIgnore
+    @ToString.Exclude // ⬅️ NGẮT VÒNG LẶP cho toString()
     private List<SanPhamChiTiet> sanPhamChiTiets;
-    // =================================================================
 
-    // Mối quan hệ: Một sản phẩm có trong nhiều giỏ hàng
+    // 3. Giỏ hàng
     @OneToMany(mappedBy = "sanPham", fetch = FetchType.LAZY)
     @JsonIgnore
+    @ToString.Exclude // ⬅️ NGẮT VÒNG LẶP cho toString()
     private List<GioHang> gioHangs;
+
+    // ... (Các mối quan hệ tùy chọn khác)
 }
