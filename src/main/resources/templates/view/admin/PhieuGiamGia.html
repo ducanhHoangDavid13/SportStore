@@ -128,16 +128,22 @@
                                     <label class="form-label fw-bold small">TÊN KHUYẾN MẠI <span class="text-danger">*</span></label>
                                     <input type="text" class="form-control" id="add_tenPhieuGiamGia" required>
                                 </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold small">HÌNH THỨC GIẢM <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="add_hinhThucGiam">
+                                        <option value="1">Giảm tiền mặt (VND)</option>
+                                        <option value="2">Giảm phần trăm (%)</option>
+                                    </select>
+                                </div>
+
                                 <div class="col-md-6">
                                     <label class="form-label fw-bold small">SỐ LƯỢNG <span class="text-danger">*</span></label>
                                     <input type="number" class="form-control" id="add_soLuong" min="1" required>
                                 </div>
+
                                 <div class="col-md-6">
-                                    <label class="form-label fw-bold small">MÔ TẢ</label>
-                                    <textarea class="form-control" id="add_moTa" rows="1"></textarea>
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label fw-bold small">SỐ TIỀN GIẢM <span class="text-danger">*</span></label>
+                                    <label class="form-label fw-bold small">GIÁ TRỊ GIẢM <span class="text-danger">*</span></label>
                                     <input type="text" class="form-control" id="add_soTienGiam" required>
                                 </div>
                                 <div class="col-md-6">
@@ -151,6 +157,10 @@
                                 <div class="col-md-6">
                                     <label class="form-label fw-bold small">NGÀY KẾT THÚC <span class="text-danger">*</span></label>
                                     <input type="date" class="form-control" id="add_ngayKetThuc" required>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label fw-bold small">MÔ TẢ</label>
+                                    <textarea class="form-control" id="add_moTa" rows="2"></textarea>
                                 </div>
                             </div>
                         </form>
@@ -182,16 +192,25 @@
                                     <label class="form-label fw-bold small">TÊN KHUYẾN MẠI</label>
                                     <input type="text" class="form-control" id="edit_tenPhieuGiamGia" required>
                                 </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold small">HÌNH THỨC GIẢM</label>
+                                    <select class="form-select" id="edit_hinhThucGiam">
+                                        <option value="1">Giảm tiền mặt (VND)</option>
+                                        <option value="2">Giảm phần trăm (%)</option>
+                                    </select>
+                                </div>
+
                                 <div class="col-md-6">
                                     <label class="form-label fw-bold small">SỐ LƯỢNG</label>
                                     <input type="number" class="form-control" id="edit_soLuong" min="0" required>
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-md-12">
                                     <label class="form-label fw-bold small">MÔ TẢ</label>
                                     <textarea class="form-control" id="edit_moTa" rows="1"></textarea>
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label fw-bold small">SỐ TIỀN GIẢM</label>
+                                    <label class="form-label fw-bold small">GIÁ TRỊ GIẢM</label>
                                     <input type="text" class="form-control" id="edit_soTienGiam" required>
                                 </div>
                                 <div class="col-md-6">
@@ -291,13 +310,13 @@
             }
             let html = '';
             list.forEach(p => {
-                // Nút thao tác thông minh (Toggle)
+                // Kiểm tra xem backend trả về "giaTriGiam" hay "soTienGiam" để hiển thị cho đúng
+                let displayValue = p.giaTriGiam ? p.giaTriGiam : p.soTienGiam;
+
                 let actionBtn = '';
                 if (p.trangThai === 1) {
-                    // Nếu đang dừng -> Hiện nút Khôi phục (Xanh)
                     actionBtn = `<button class="btn btn-action btn-light text-success border toggle-status-btn" data-id="${p.id}" data-current="1" title="Kích hoạt lại"><i class="fas fa-undo-alt"></i></button>`;
                 } else {
-                    // Nếu đang chạy hoặc sắp tới -> Hiện nút Dừng (Đỏ)
                     actionBtn = `<button class="btn btn-action btn-light text-danger border toggle-status-btn" data-id="${p.id}" data-current="0" title="Dừng hoạt động"><i class="fas fa-stop-circle"></i></button>`;
                 }
 
@@ -306,7 +325,7 @@
                     <td class="fw-bold text-primary">#${p.maPhieuGiamGia}</td>
                     <td class="fw-semibold">${p.tenPhieuGiamGia}</td>
                     <td class="text-center fw-bold text-dark">${p.soLuong}</td>
-                    <td class="text-end fw-bold text-success">${formatCurrencyDisplay(p.soTienGiam)}</td>
+                    <td class="text-end fw-bold text-success">${formatCurrencyDisplay(displayValue)}</td>
                     <td class="text-end text-muted small">${formatCurrencyDisplay(p.dieuKienGiamGia)}</td>
                     <td class="text-center small">${formatDateDisplay(p.ngayBatDau)}</td>
                     <td class="text-center small">${formatDateDisplay(p.ngayKetThuc)}</td>
@@ -344,27 +363,56 @@
             if(!$(this).parent().hasClass('disabled')) loadPromotions($(this).data('page'));
         });
 
-        // Add
+        // --- XỬ LÝ THÊM MỚI (ĐÃ SỬA LỖI ID) ---
         $('#addPromotionForm').on('submit', function(e) {
             e.preventDefault();
+
+            // 1. Lấy đúng ID của form THÊM MỚI (add_)
+            const rawGiaTri = $('#add_soTienGiam').val().replace(/[^0-9]/g,'');
+            const rawDieuKien = $('#add_dieuKienGiamGia').val().replace(/[^0-9]/g,'');
+
             const data = {
                 maPhieuGiamGia: $('#add_maPhieuGiamGia').val(),
                 tenPhieuGiamGia: $('#add_tenPhieuGiamGia').val(),
                 moTa: $('#add_moTa').val(),
                 soLuong: parseInt($('#add_soLuong').val()),
-                soTienGiam: parseFloat($('#add_soTienGiam').val().replace(/[^0-9]/g,'')),
-                dieuKienGiamGia: parseFloat($('#add_dieuKienGiamGia').val().replace(/[^0-9]/g,'')),
+
+                // Gửi đúng key: hinhThucGiam và giaTriGiam
+                hinhThucGiam: parseInt($('#add_hinhThucGiam').val()), // Lấy từ form ADD
+                giaTriGiam: parseFloat(rawGiaTri),                    // Lấy từ form ADD
+
+                dieuKienGiamGia: parseFloat(rawDieuKien),
                 ngayBatDau: $('#add_ngayBatDau').val() + 'T00:00:00',
                 ngayKetThuc: $('#add_ngayKetThuc').val() + 'T23:59:59'
             };
+
+            console.log("Sending Create Data:", data);
+
             $.ajax({
-                url: API_URL, type: 'POST', contentType: 'application/json', data: JSON.stringify(data),
-                success: () => { toastr.success('Thêm thành công'); addModal.hide(); $('#addPromotionForm')[0].reset(); loadPromotions(0); },
-                error: (err) => toastr.error(err.responseJSON?.message || 'Lỗi thêm mới')
+                url: API_URL,
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(data),
+                success: () => {
+                    toastr.success('Thêm thành công');
+                    addModal.hide();
+                    $('#addPromotionForm')[0].reset();
+                    loadPromotions(0);
+                },
+                error: (err) => {
+                    console.error(err);
+                    let msg = err.responseJSON?.message || 'Lỗi thêm mới';
+                    if(err.responseJSON?.errors) {
+                        // Hiển thị chi tiết lỗi validate từ backend
+                        let detail = Object.values(err.responseJSON.errors).join(", ");
+                        msg += ": " + detail;
+                    }
+                    toastr.error(msg);
+                }
             });
         });
 
-        // Edit Load
+        // --- XỬ LÝ LOAD DỮ LIỆU SỬA (ĐÃ SỬA LỖI) ---
         $(document).on('click', '.edit-btn', function() {
             const id = $(this).data('id');
             $.get(`${API_URL}/${id}`, function(res) {
@@ -373,32 +421,55 @@
                 $('#edit_tenPhieuGiamGia').val(res.tenPhieuGiamGia);
                 $('#edit_soLuong').val(res.soLuong);
                 $('#edit_moTa').val(res.moTa);
-                $('#edit_soTienGiam').val(res.soTienGiam.toLocaleString('vi-VN'));
+
+                // Load hình thức giảm
+                $('#edit_hinhThucGiam').val(res.hinhThucGiam);
+
+                // Load giá trị giảm (dùng giaTriGiam từ backend)
+                let valGiam = res.giaTriGiam ? res.giaTriGiam : res.soTienGiam;
+                $('#edit_soTienGiam').val(valGiam.toLocaleString('vi-VN'));
+
                 $('#edit_dieuKienGiamGia').val(res.dieuKienGiamGia.toLocaleString('vi-VN'));
                 $('#edit_ngayBatDau').val(res.ngayBatDau.substring(0,10));
                 $('#edit_ngayKetThuc').val(res.ngayKetThuc.substring(0,10));
+
                 editModal.show();
             });
         });
 
-        // Edit Submit
+        // --- XỬ LÝ SUBMIT SỬA (ĐÃ SỬA KEY) ---
         $('#editPromotionForm').on('submit', function(e) {
             e.preventDefault();
             const id = $('#edit_promotionId').val();
+
+            const rawGiaTri = $('#edit_soTienGiam').val().replace(/[^0-9]/g,'');
+            const rawDieuKien = $('#edit_dieuKienGiamGia').val().replace(/[^0-9]/g,'');
+
             const data = {
                 maPhieuGiamGia: $('#edit_maPhieuGiamGia').val(),
                 tenPhieuGiamGia: $('#edit_tenPhieuGiamGia').val(),
                 moTa: $('#edit_moTa').val(),
                 soLuong: parseInt($('#edit_soLuong').val()),
-                soTienGiam: parseFloat($('#edit_soTienGiam').val().replace(/[^0-9]/g,'')),
-                dieuKienGiamGia: parseFloat($('#edit_dieuKienGiamGia').val().replace(/[^0-9]/g,'')),
+
+                // Gửi đúng key hinhThucGiam và giaTriGiam
+                hinhThucGiam: parseInt($('#edit_hinhThucGiam').val()),
+                giaTriGiam: parseFloat(rawGiaTri),
+
+                dieuKienGiamGia: parseFloat(rawDieuKien),
                 ngayBatDau: $('#edit_ngayBatDau').val() + 'T00:00:00',
                 ngayKetThuc: $('#edit_ngayKetThuc').val() + 'T23:59:59'
             };
+
             $.ajax({
                 url: `${API_URL}/${id}`, type: 'PUT', contentType: 'application/json', data: JSON.stringify(data),
                 success: () => { toastr.success('Cập nhật thành công'); editModal.hide(); loadPromotions($('#current-page').val()); },
-                error: (err) => toastr.error(err.responseJSON?.message || 'Lỗi cập nhật')
+                error: (err) => {
+                    let msg = err.responseJSON?.message || 'Lỗi cập nhật';
+                    if(err.responseJSON?.errors) {
+                        msg += ": " + Object.values(err.responseJSON.errors).join(", ");
+                    }
+                    toastr.error(msg);
+                }
             });
         });
 

@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import sd_04.datn_fstore.dto.TopProductDTO;
 import sd_04.datn_fstore.model.SanPhamChiTiet;
 
 import java.math.BigDecimal;
@@ -18,7 +19,8 @@ import java.util.Optional;
 public interface SanPhamCTRepository extends JpaRepository<SanPhamChiTiet, Integer> {
 
     /**
-     * 1. TÌM KIẾM NÂNG CAO (Cho trang Quản lý Admin)
+     * 1. TÌM KIẾM NÂNG CAO
+     * - Đã sửa: LIKE %:keyword% -> LIKE CONCAT('%', :keyword, '%')
      */
     @Query(value = "SELECT spct FROM SanPhamChiTiet spct " +
             "LEFT JOIN spct.sanPham sp " +
@@ -39,7 +41,7 @@ public interface SanPhamCTRepository extends JpaRepository<SanPhamChiTiet, Integ
             "(:minPrice IS NULL OR spct.giaTien >= :minPrice) AND " +
             "(:maxPrice IS NULL OR spct.giaTien <= :maxPrice) AND " +
             "(:trangThai IS NULL OR spct.trangThai = :trangThai) AND " +
-            "(:keyword IS NULL OR :keyword = '' OR sp.tenSanPham LIKE %:keyword%)",
+            "(:keyword IS NULL OR :keyword = '' OR sp.tenSanPham LIKE CONCAT('%', :keyword, '%'))",
 
             countQuery = "SELECT COUNT(spct) FROM SanPhamChiTiet spct " +
                     "LEFT JOIN spct.sanPham sp " +
@@ -60,7 +62,7 @@ public interface SanPhamCTRepository extends JpaRepository<SanPhamChiTiet, Integ
                     "(:minPrice IS NULL OR spct.giaTien >= :minPrice) AND " +
                     "(:maxPrice IS NULL OR spct.giaTien <= :maxPrice) AND " +
                     "(:trangThai IS NULL OR spct.trangThai = :trangThai) AND " +
-                    "(:keyword IS NULL OR :keyword = '' OR sp.tenSanPham LIKE %:keyword%)")
+                    "(:keyword IS NULL OR :keyword = '' OR sp.tenSanPham LIKE CONCAT('%', :keyword, '%'))")
     Page<SanPhamChiTiet> search(
             Pageable pageable,
             @Param("idSanPham") Integer idSanPham,
@@ -77,9 +79,7 @@ public interface SanPhamCTRepository extends JpaRepository<SanPhamChiTiet, Integ
     );
 
     /**
-     * 2. API BÁN HÀNG (POS): Lấy sản phẩm + Full thông tin (Ảnh, Màu, Size...)
-     * - Dùng DISTINCT để tránh lặp dữ liệu khi có nhiều ảnh.
-     * - Dùng LEFT JOIN FETCH để không bị mất sản phẩm nếu thiếu thuộc tính.
+     * 2. API BÁN HÀNG (POS)
      */
     @Query("SELECT DISTINCT spct FROM SanPhamChiTiet spct " +
             "JOIN FETCH spct.sanPham sp " +
@@ -96,20 +96,41 @@ public interface SanPhamCTRepository extends JpaRepository<SanPhamChiTiet, Integ
 
     /**
      * 3. TRỪ KHO AN TOÀN (Locking)
-     * - Dùng PESSIMISTIC_WRITE để khóa dòng dữ liệu khi đang trừ kho.
      */
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT spct FROM SanPhamChiTiet spct WHERE spct.id = :id")
     Optional<SanPhamChiTiet> findByIdWithLock(@Param("id") Integer id);
 
     /**
-     * 4. CÁC HÀM TIỆN ÍCH KHÁC
+     * 4. TOP SẢN PHẨM BÁN CHẠY
+     * - Đã sửa: 'images' -> 'hinhAnh' (để khớp với hàm POS)
+     * - Đã sửa: 'donGia' -> 'giaTien' (để khớp với hàm Search)
+     * - Đã sửa: Logic lấy ảnh đại diện (dùng MAX để tránh lỗi Group By)
+     */
+    @Query("SELECT new sd_04.datn_fstore.dto.TopProductDTO(" +
+            "sp.tenSanPham, " +
+            "SUM(hdct.soLuong), " +
+            "spct.giaTien, " +          // Sửa: donGia -> giaTien
+            "MAX(img.tenHinhAnh)) " +     // Sửa: Lấy 1 ảnh bất kỳ để không vỡ Group By
+            "FROM HoaDonChiTiet hdct " +
+            "JOIN hdct.sanPhamChiTiet spct " +
+            "JOIN spct.sanPham sp " +
+            "LEFT JOIN sp.hinhAnh img " + // Sửa: images -> hinhAnh
+            "GROUP BY sp.id, sp.tenSanPham, spct.giaTien " +
+            "ORDER BY SUM(hdct.soLuong) DESC")
+    List<TopProductDTO> findTopSellingProducts(Pageable pageable);
+
+    /**
+     * 5. CÁC HÀM TIỆN ÍCH KHÁC
      */
     List<SanPhamChiTiet> findByTrangThai(Integer trangThai);
 
-    @Query("SELECT spct FROM SanPhamChiTiet spct JOIN spct.sanPham sp WHERE sp.tenSanPham LIKE %:tenSp%")
+    @Query("SELECT spct FROM SanPhamChiTiet spct JOIN spct.sanPham sp WHERE sp.tenSanPham LIKE CONCAT('%', :tenSp, '%')")
     List<SanPhamChiTiet> findBySanPhamTenSanPham(@Param("tenSp") String tenSp);
 
-    // Hàm JPA chuẩn (Spring Data tự generate query)
+    // JPA Query Method
     List<SanPhamChiTiet> findByTrangThaiAndSoLuongGreaterThan(Integer trangThai, Integer minSoLuong);
+
+    // Đếm sản phẩm sắp hết hàng
+    Integer countBySoLuongLessThanEqual(Integer threshold);
 }
