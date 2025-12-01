@@ -33,13 +33,13 @@
         }
 
         /* --- LAYOUT MAIN --- */
-        .main-content {
-            margin-left: var(--sidebar-width);
-            padding-top: calc(var(--navbar-height) + 20px);
-            padding-left: 20px; padding-right: 20px; padding-bottom: 30px;
-            min-height: 100vh;
-            transition: all 0.3s;
-        }
+        /*.main-content {*/
+        /*    margin-left: var(--sidebar-width);*/
+        /*    padding-top: calc(var(--navbar-height) + 20px);*/
+        /*    padding-left: 20px; padding-right: 20px; padding-bottom: 30px;*/
+        /*    min-height: 100vh;*/
+        /*    transition: all 0.3s;*/
+        /*}*/
         @media (max-width: 991.98px) {
             .main-content { margin-left: 0; width: 100%; }
         }
@@ -502,7 +502,7 @@
             });
 
             // API Address
-            $.get("/api/dia-chi/khach-hang/" + id).done(function (addresses) {
+            $.get("/api/dia-chi/by-khachhang/" + id).done(function (addresses) {
                 let addrHtml = '';
                 if (!addresses || addresses.length === 0) {
                     addrHtml = '<div class="text-center text-muted small py-3 bg-light rounded">Chưa có địa chỉ nào</div>';

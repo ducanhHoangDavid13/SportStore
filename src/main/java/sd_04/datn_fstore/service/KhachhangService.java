@@ -102,4 +102,8 @@ public class KhachhangService {
 
         return khachHangRepo.findByTenKhachHangLikeOrSoDienThoaiLike(searchKeyword, searchKeyword);
     }
+
+    public KhachHang findByEmail(String email) {
+        return khachHangRepo.findByEmail(email).orElse(null);
+    }
 }
