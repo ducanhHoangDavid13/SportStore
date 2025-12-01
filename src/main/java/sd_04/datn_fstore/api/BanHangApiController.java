@@ -3,12 +3,15 @@ package sd_04.datn_fstore.api;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.http.HttpStatus; // <--- ĐÃ THÊM IMPORT NÀY
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import sd_04.datn_fstore.dto.CreateOrderRequest;
 import sd_04.datn_fstore.dto.VnPayResponseDTO;
 import sd_04.datn_fstore.model.HoaDon;
+import sd_04.datn_fstore.model.SanPhamChiTiet;
 import sd_04.datn_fstore.service.BanHangService;
+import sd_04.datn_fstore.service.SanPhamCTService;
 import sd_04.datn_fstore.service.VnPayService;
 
 import java.util.List;
@@ -21,6 +24,7 @@ import java.util.stream.Collectors;
 public class BanHangApiController {
 
     private final BanHangService banHangService;
+    private final SanPhamCTService sanPhamCTService;
 
     // Tiêm VnPayService (với @Lazy để tránh vòng lặp dependencies)
     @Lazy
@@ -131,5 +135,25 @@ public class BanHangApiController {
             ipAddress = request.getRemoteAddr();
         }
         return ipAddress.split(",")[0].trim();
+    }
+
+    // --- API QUÉT MÃ VẠCH (SCAN) ---
+    @GetMapping("/scan/{id}")
+    public ResponseEntity<?> scanProductById(@PathVariable("id") Integer id) {
+        try {
+            // Gọi xuống Service (Hàm getByIdAndAvailable bạn vừa thêm ở bước trước)
+            SanPhamChiTiet spct = sanPhamCTService.getByIdAndAvailable(id);
+
+            if (spct != null) {
+                return ResponseEntity.ok(spct);
+            } else {
+                // Trả về 404 nếu không tìm thấy hoặc sp đã ngừng kinh doanh
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body("Không tìm thấy sản phẩm hoặc sản phẩm đã ngừng kinh doanh");
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Lỗi khi quét sản phẩm: " + e.getMessage());
+        }
     }
 }

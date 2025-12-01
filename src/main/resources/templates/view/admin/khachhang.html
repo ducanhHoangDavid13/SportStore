@@ -15,78 +15,94 @@
     <link rel="stylesheet" th:href="@{/css/navbar.css}" />
 
     <style>
-        :root {
-            --primary-color: #4318FF;
-            --primary-light: #F4F7FE;
-            --text-dark: #2B3674;
-            --text-gray: #A3AED0;
-            --bg-color: #F4F7FE;
-            --sidebar-width: 260px;
-            --navbar-height: 80px;
-        }
-
         body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-dark);
-            overflow-x: hidden;
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            color: #374151;
         }
 
-        /* --- LAYOUT MAIN --- */
-        /*.main-content {*/
-        /*    margin-left: var(--sidebar-width);*/
-        /*    padding-top: calc(var(--navbar-height) + 20px);*/
-        /*    padding-left: 20px; padding-right: 20px; padding-bottom: 30px;*/
-        /*    min-height: 100vh;*/
-        /*    transition: all 0.3s;*/
-        /*}*/
         @media (max-width: 991.98px) {
             .main-content { margin-left: 0; width: 100%; }
         }
 
         /* --- COMPONENTS --- */
-        .custom-card {
+        
+
+        /* Card Styles */
+        .card-box {
             background: #ffffff;
-            border-radius: 20px;
-            border: none;
-            box-shadow: 0px 18px 40px rgba(112, 144, 176, 0.12);
-            padding: 24px;
-            height: 100%;
-        }
-
-        .form-control, .form-select {
             border-radius: 12px;
-            border: 1px solid #E0E5F2;
-            padding: 10px 15px;
-            font-size: 0.95rem;
-        }
-        .form-control:focus, .form-select:focus {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(67, 24, 255, 0.1);
+            border: none;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            margin-bottom: 1.5rem;
         }
 
-        /* Table Style */
+        /* Table Styles */
         .table-custom thead th {
-            background-color: #F7F9FF;
-            color: var(--text-gray);
-            font-weight: 700; text-transform: uppercase; font-size: 0.8rem;
-            border-bottom: none; padding: 15px; white-space: nowrap;
+            background-color: #f9fafb;
+            color: #6b7280;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+            border-bottom: 2px solid #e5e7eb;
+            padding: 1rem 0.75rem;
+            white-space: nowrap;
         }
         .table-custom tbody td {
-            vertical-align: middle; padding: 15px;
-            border-bottom: 1px solid #F4F7FE;
-            font-size: 0.95rem; font-weight: 600;
+            vertical-align: middle;
+            padding: 1rem 0.75rem;
+            border-bottom: 1px solid #f3f4f6;
+            font-size: 0.875rem;
         }
-        .table-custom tbody tr:hover { background-color: #F4F7FE; }
+        .table-custom tbody tr:hover { background-color: #f9fafb; }
 
-        /* Pagination */
-        .pagination .page-link { border: none; margin: 0 3px; border-radius: 8px; color: var(--text-dark); }
-        .pagination .page-item.active .page-link { background-color: var(--primary-color); color: white; }
+        /* Badges */
+        .badge-status {
+            padding: 0.35em 0.8em;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border-radius: 9999px;
+        }
+        .badge-active { background-color: #d1fae5; color: #065f46; }
+        .badge-inactive { background-color: #fee2e2; color: #991b1b; }
+        .badge-gender-m { background-color: #e0f2fe; color: #0369a1; }
+        .badge-gender-f { background-color: #fce7f3; color: #be185d; }
 
-        /* Modal Detail Style */
-        .modal-header-gradient {
-            background: linear-gradient(180deg, var(--primary-color) 0%, rgba(255,255,255,0) 100%);
-            height: 140px;
+        /* Action Buttons */
+        .btn-action {
+            width: 32px; height: 32px; padding: 0;
+            display: inline-flex; align-items: center; justify-content: center;
+            border-radius: 6px; transition: all 0.2s;
+        }
+        .btn-action:hover { transform: translateY(-2px); }
+
+        /* Modal Styling */
+        .modal-content { border-radius: 16px; border: none; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
+        .modal-header { border-bottom: 1px solid #f3f4f6; padding: 1.5rem; }
+        .modal-header.bg-primary { background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%) !important; }
+        .modal-header.bg-info { background: linear-gradient(135deg, #0ea5e9 0%, #38bdf8 100%) !important; } /* Màu mới cho View Detail */
+        .modal-body { padding: 1.5rem; }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #6366f1; box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        }
+
+        /* Detail Row Style */
+        .detail-row {
+            margin-bottom: 1rem;
+            border-bottom: 1px dashed #e5e7eb;
+            padding-bottom: 0.5rem;
+        }
+        .detail-label {
+            font-weight: 600;
+            color: #6b7280;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+        }
+        .detail-value {
+            font-weight: 500;
+            color: #111827;
         }
     </style>
 </head>

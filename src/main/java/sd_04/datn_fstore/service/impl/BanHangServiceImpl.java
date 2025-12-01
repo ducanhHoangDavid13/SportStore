@@ -10,6 +10,7 @@ import sd_04.datn_fstore.model.*;
 import sd_04.datn_fstore.repository.*;
 import sd_04.datn_fstore.service.BanHangService;
 import sd_04.datn_fstore.service.PhieuGiamgiaService;
+import sd_04.datn_fstore.service.ThongBaoService;
 import sd_04.datn_fstore.service.VnPayService;
 
 import java.io.UnsupportedEncodingException;
@@ -32,7 +33,7 @@ public class BanHangServiceImpl implements BanHangService {
     @Lazy
     private final VnPayService vnPayService;
     private final PhieuGiamgiaService phieuGiamgiaService;
-
+    private final ThongBaoService thongBaoService;
     private final ZoneId VN_ZONE = ZoneId.of("Asia/Ho_Chi_Minh");
 
     @Override
@@ -54,6 +55,11 @@ public class BanHangServiceImpl implements BanHangService {
         for (CreateOrderRequest.SanPhamItem item : itemsList) {
             saveHoaDonChiTiet(savedHoaDon, item);
         }
+
+        String title = "Đơn hàng tại quầy";
+        String content = "Mã hóa đơn #" + savedHoaDon.getMaHoaDon() + " đã thanh toán thành công.";
+        String url = "/admin/hoa-don/detail/" + savedHoaDon.getId();
+        thongBaoService.createNotification(title, content, "ORDER", url);
 
         return savedHoaDon;
     }
@@ -126,21 +132,32 @@ public class BanHangServiceImpl implements BanHangService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    // SỬA: Tham số List<Item> -> List<SanPhamItem>
     public void decrementInventory(List<CreateOrderRequest.SanPhamItem> items) {
         for (CreateOrderRequest.SanPhamItem item : items) {
             SanPhamChiTiet spct = sanPhamCTRepository.findById(item.getSanPhamChiTietId())
-                    .orElseThrow(() -> new RuntimeException("Sản phẩm không tồn tại (ID: " + item.getSanPhamChiTietId() + ")"));
+                    .orElseThrow(() -> new RuntimeException("Sản phẩm không tồn tại"));
 
             int soLuongMua = item.getSoLuong();
             int soLuongTon = spct.getSoLuong();
 
             if (soLuongTon < soLuongMua) {
-                throw new RuntimeException("Sản phẩm '" + spct.getSanPham().getTenSanPham() + "' không đủ hàng. (Còn: " + soLuongTon + ")");
+                throw new RuntimeException("Sản phẩm '" + spct.getSanPham().getTenSanPham() + "' không đủ hàng.");
             }
 
-            spct.setSoLuong(soLuongTon - soLuongMua);
+            int newStock = soLuongTon - soLuongMua;
+            spct.setSoLuong(newStock);
             sanPhamCTRepository.save(spct);
+
+            // [3] GỬI THÔNG BÁO SẮP HẾT HÀNG (Low Stock Alert)
+            if (newStock <= 10) {
+                String spName = spct.getSanPham().getTenSanPham() + " (" + spct.getMauSac().getTenMauSac() + ")";
+                thongBaoService.createNotification(
+                        "Cảnh báo hết hàng",
+                        "Sản phẩm " + spName + " chỉ còn " + newStock + " sản phẩm.",
+                        "STOCK",
+                        "/admin/san-pham/" + spct.getSanPham().getId()
+                );
+            }
         }
     }
 

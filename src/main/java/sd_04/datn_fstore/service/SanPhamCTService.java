@@ -36,4 +36,5 @@ public interface SanPhamCTService {
     SanPhamChiTiet updateTrangThai(Integer id, Integer newStatus);
 
     List<SanPhamChiTiet> getBySanPhamId(Integer id);
+    SanPhamChiTiet getByIdAndAvailable(Integer id);
 }
