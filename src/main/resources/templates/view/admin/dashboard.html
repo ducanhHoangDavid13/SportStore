@@ -5,7 +5,8 @@
     <title>Dashboard - Quản Trị Hệ Thống</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+          rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css"/>
@@ -22,41 +23,187 @@
             --dark-text: #1B2559;
             --border-radius: 20px;
         }
-        body { font-family: var(--font-family); background-color: var(--light-bg); color: var(--dark-text); }
-        .content { padding: 20px 30px; }
-        .custom-card { background: var(--card-bg); border-radius: var(--border-radius); border: none; box-shadow: 0px 18px 40px rgba(112, 144, 176, 0.12); padding: 24px; height: 100%; display: flex; flex-direction: column; }
-        .stat-card { flex-direction: row; align-items: center; transition: all 0.3s ease; }
-        .stat-card:hover { transform: translateY(-5px); }
-        .stat-icon-wrapper { width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; background: rgba(67, 24, 255, 0.1); color: var(--primary-color); margin-left: auto; }
-        .filter-btn-group .btn { border: none; font-size: 0.85rem; font-weight: 600; padding: 6px 16px; color: var(--secondary-color); background: transparent; border-radius: 10px; }
-        .filter-btn-group .btn.active { background: var(--primary-color); color: #fff; }
-        .chart-container { position: relative; height: 320px; width: 100%; }
-        .table-custom th { font-weight: 600; color: var(--secondary-color); text-transform: uppercase; font-size: 0.75rem; }
-        .table-custom td { vertical-align: middle; padding: 15px 10px; font-weight: 500; font-size: 0.9rem; }
-        .product-item { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px dashed #edf2f7; }
-        .product-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-        .product-img { width: 45px; height: 45px; border-radius: 10px; object-fit: cover; }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--light-bg);
+            color: var(--dark-text);
+        }
+
+        .content {
+            padding: 20px 30px;
+        }
+
+        .custom-card {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            border: none;
+            box-shadow: 0px 18px 40px rgba(112, 144, 176, 0.12);
+            padding: 24px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-card {
+            flex-direction: row;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-icon-wrapper {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            background: rgba(67, 24, 255, 0.1);
+            color: var(--primary-color);
+            margin-left: auto;
+        }
+
+        .filter-btn-group .btn {
+            border: none;
+            font-size: 0.85rem;
+            font-weight: 600;
+            padding: 6px 16px;
+            color: var(--secondary-color);
+            background: transparent;
+            border-radius: 10px;
+        }
+
+        .filter-btn-group .btn.active {
+            background: var(--primary-color);
+            color: #fff;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 320px;
+            width: 100%;
+        }
+
+        .table-custom th {
+            font-weight: 600;
+            color: var(--secondary-color);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+        }
+
+        .table-custom td {
+            vertical-align: middle;
+            padding: 15px 10px;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .product-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px dashed #edf2f7;
+        }
+
+        .product-img {
+            width: 45px;
+            height: 45px;
+            border-radius: 10px;
+            object-fit: cover;
+        }
 
         /* BADGE STATUS ĐỒNG BỘ */
-        .badge-status { padding: 6px 12px; border-radius: 50px; font-size: 0.75rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
-        .bg-status-0 { background: #fff7ed; color: #c2410c; border: 1px solid #ffedd5; } /* Chờ xác nhận */
-        .bg-status-1 { background: #eff6ff; color: #1d4ed8; border: 1px solid #dbeafe; } /* Đã xác nhận */
-        .bg-status-2 { background: #f0f9ff; color: #0284c7; border: 1px solid #bae6fd; } /* Đang chuẩn bị */
-        .bg-status-3 { background: #eef2ff; color: #4338ca; border: 1px solid #c7d2fe; } /* Đang giao */
-        .bg-status-4 { background: #ecfdf5; color: #047857; border: 1px solid #d1fae5; } /* Hoàn thành */
-        .bg-status-5 { background: #fef2f2; color: #b91c1c; border: 1px solid #fee2e2; } /* Đã hủy */
-        .bg-status-6 { background: #faf5ff; color: #7e22ce; border: 1px solid #f3e8ff; } /* Chờ thanh toán */
+        .badge-status {
+            padding: 6px 12px;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+
+        .bg-status-0 {
+            background: #fff7ed;
+            color: #c2410c;
+            border: 1px solid #ffedd5;
+        }
+
+        /* Chờ xác nhận */
+        .bg-status-1 {
+            background: #eff6ff;
+            color: #1d4ed8;
+            border: 1px solid #dbeafe;
+        }
+
+        /* Đã xác nhận */
+        .bg-status-2 {
+            background: #f0f9ff;
+            color: #0284c7;
+            border: 1px solid #bae6fd;
+        }
+
+        /* Đang chuẩn bị */
+        .bg-status-3 {
+            background: #eef2ff;
+            color: #4338ca;
+            border: 1px solid #c7d2fe;
+        }
+
+        /* Đang giao */
+        .bg-status-4 {
+            background: #ecfdf5;
+            color: #047857;
+            border: 1px solid #d1fae5;
+        }
+
+        /* Hoàn thành */
+        .bg-status-5 {
+            background: #fef2f2;
+            color: #b91c1c;
+            border: 1px solid #fee2e2;
+        }
+
+        /* Đã hủy */
+        .bg-status-6 {
+            background: #faf5ff;
+            color: #7e22ce;
+            border: 1px solid #f3e8ff;
+        }
+
+        /* Chờ thanh toán */
 
         /* CSS Cho Legend Trạng Thái */
-        .status-legend-item { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; font-size: 0.9rem; }
-        .status-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; margin-right: 10px; }
+        .status-legend-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            font-size: 0.9rem;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 10px;
+        }
+
     </style>
 </head>
 <body>
 
 <nav th:replace="~{library/navbar :: admin-navbar}"></nav>
 
-<div class="d-flex">
     <div th:replace="~{library/navbar :: admin-sidebar}"></div>
 
     <main class="content flex-grow-1">
@@ -74,26 +221,47 @@
         <div class="row g-4 mb-4">
             <div class="col-12 col-md-6 col-xl-3">
                 <div class="custom-card stat-card">
-                    <div><div class="text-secondary small fw-bold">Doanh thu hôm nay</div><div class="fs-4 fw-bolder mt-1 text-dark" th:text="${#numbers.formatDecimal(todayRevenue!=null?todayRevenue:0, 0, 'COMMA', 0, 'POINT') + ' ₫'}">0 ₫</div></div>
+                    <div>
+                        <div class="text-secondary small fw-bold">Doanh thu hôm nay</div>
+                        <div class="fs-4 fw-bolder mt-1 text-dark"
+                             th:text="${#numbers.formatDecimal(todayRevenue!=null?todayRevenue:0, 0, 'COMMA', 0, 'POINT') + ' ₫'}">
+                            0 ₫
+                        </div>
+                    </div>
                     <div class="stat-icon-wrapper"><i class="bi bi-cash-coin"></i></div>
                 </div>
             </div>
             <div class="col-12 col-md-6 col-xl-3">
                 <div class="custom-card stat-card">
-                    <div><div class="text-secondary small fw-bold">Đơn hàng mới</div><div class="fs-4 fw-bolder mt-1 text-dark" th:text="${totalOrdersToday!=null?totalOrdersToday:0}">0</div></div>
+                    <div>
+                        <div class="text-secondary small fw-bold">Đơn hàng mới</div>
+                        <div class="fs-4 fw-bolder mt-1 text-dark"
+                             th:text="${totalOrdersToday!=null?totalOrdersToday:0}">0
+                        </div>
+                    </div>
                     <div class="stat-icon-wrapper bg-primary-subtle text-primary"><i class="bi bi-receipt"></i></div>
                 </div>
             </div>
             <div class="col-12 col-md-6 col-xl-3">
                 <div class="custom-card stat-card">
-                    <div><div class="text-secondary small fw-bold">Khách hàng mới</div><div class="fs-4 fw-bolder mt-1 text-dark" th:text="${newCustomers!=null?newCustomers:0}">0</div></div>
+                    <div>
+                        <div class="text-secondary small fw-bold">Khách hàng mới</div>
+                        <div class="fs-4 fw-bolder mt-1 text-dark" th:text="${newCustomers!=null?newCustomers:0}">0
+                        </div>
+                    </div>
                     <div class="stat-icon-wrapper bg-success-subtle text-success"><i class="bi bi-person-add"></i></div>
                 </div>
             </div>
             <div class="col-12 col-md-6 col-xl-3">
                 <div class="custom-card stat-card">
-                    <div><div class="text-secondary small fw-bold">Sắp hết hàng</div><div class="fs-4 fw-bolder mt-1 text-dark" th:text="${totalSanPhamSapHet!=null?totalSanPhamSapHet:0}">0</div></div>
-                    <div class="stat-icon-wrapper bg-danger-subtle text-danger"><i class="bi bi-exclamation-triangle"></i></div>
+                    <div>
+                        <div class="text-secondary small fw-bold">Sắp hết hàng</div>
+                        <div class="fs-4 fw-bolder mt-1 text-dark"
+                             th:text="${totalSanPhamSapHet!=null?totalSanPhamSapHet:0}">0
+                        </div>
+                    </div>
+                    <div class="stat-icon-wrapper bg-danger-subtle text-danger"><i
+                            class="bi bi-exclamation-triangle"></i></div>
                 </div>
             </div>
         </div>
@@ -102,7 +270,8 @@
             <div class="col-12 col-lg-8">
                 <div class="custom-card">
                     <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
-                        <h5 class="fw-bold m-0"><i class="bi bi-graph-up-arrow text-primary me-2"></i>Biểu đồ Doanh thu</h5>
+                        <h5 class="fw-bold m-0"><i class="bi bi-graph-up-arrow text-primary me-2"></i>Biểu đồ Doanh thu
+                        </h5>
                         <div class="d-flex bg-light rounded-3 p-1 filter-btn-group">
                             <button class="btn active" onclick="updateChart('weekly', this)">Tuần</button>
                             <button class="btn" onclick="updateChart('monthly', this)">Tháng</button>
@@ -110,12 +279,17 @@
                             <button class="btn" onclick="updateChart('yearly', this)">Năm</button>
                         </div>
                         <div class="d-flex gap-1">
-                            <input type="date" id="startDate" class="form-control form-control-sm" style="max-width: 130px;">
-                            <input type="date" id="endDate" class="form-control form-control-sm" style="max-width: 130px;">
-                            <button class="btn btn-sm btn-primary" onclick="updateChart('custom', this)"><i class="bi bi-funnel"></i></button>
+                            <input type="date" id="startDate" class="form-control form-control-sm"
+                                   style="max-width: 130px;">
+                            <input type="date" id="endDate" class="form-control form-control-sm"
+                                   style="max-width: 130px;">
+                            <button class="btn btn-sm btn-primary" onclick="updateChart('custom', this)"><i
+                                    class="bi bi-funnel"></i></button>
                         </div>
                     </div>
-                    <div class="chart-container"><canvas id="revenueChart"></canvas></div>
+                    <div class="chart-container">
+                        <canvas id="revenueChart"></canvas>
+                    </div>
                 </div>
             </div>
 
@@ -130,25 +304,29 @@
                         <div class="row g-2">
                             <div class="col-6">
                                 <div class="status-legend-item">
-                                    <span style="color: #0284c7"><span class="status-dot" style="background: #0284c7"></span>Đang xử lý</span>
+                                    <span style="color: #0284c7"><span class="status-dot"
+                                                                       style="background: #0284c7"></span>Đang xử lý</span>
                                     <b id="count-processing" class="fs-5 text-dark">0</b>
                                 </div>
                             </div>
                             <div class="col-6">
                                 <div class="status-legend-item">
-                                    <span style="color: #4338ca"><span class="status-dot" style="background: #4338ca"></span>Đang giao</span>
+                                    <span style="color: #4338ca"><span class="status-dot"
+                                                                       style="background: #4338ca"></span>Đang giao</span>
                                     <b id="count-shipping" class="fs-5 text-dark">0</b>
                                 </div>
                             </div>
                             <div class="col-6">
                                 <div class="status-legend-item">
-                                    <span style="color: #047857"><span class="status-dot" style="background: #047857"></span>Hoàn thành</span>
+                                    <span style="color: #047857"><span class="status-dot"
+                                                                       style="background: #047857"></span>Hoàn thành</span>
                                     <b id="count-completed" class="fs-5 text-dark">0</b>
                                 </div>
                             </div>
                             <div class="col-6">
                                 <div class="status-legend-item">
-                                    <span style="color: #b91c1c"><span class="status-dot" style="background: #b91c1c"></span>Đã hủy</span>
+                                    <span style="color: #b91c1c"><span class="status-dot"
+                                                                       style="background: #b91c1c"></span>Đã hủy</span>
                                     <b id="count-cancelled" class="fs-5 text-dark">0</b>
                                 </div>
                             </div>
@@ -163,31 +341,46 @@
                 <div class="custom-card">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h5 class="fw-bold m-0">Đơn hàng gần đây</h5>
-                        <a href="/admin/hoa-don" class="btn btn-light btn-sm text-primary fw-bold rounded-pill">Xem tất cả</a>
+                        <a href="/admin/hoa-don" class="btn btn-light btn-sm text-primary fw-bold rounded-pill">Xem tất
+                            cả</a>
                     </div>
                     <div class="table-responsive">
                         <table class="table table-custom table-hover">
                             <thead class="bg-light rounded-3">
-                            <tr><th>Mã HĐ</th><th>Khách hàng</th><th>Ngày đặt</th><th>Tổng tiền</th><th>Trạng thái</th></tr>
+                            <tr>
+                                <th>Mã HĐ</th>
+                                <th>Khách hàng</th>
+                                <th>Ngày đặt</th>
+                                <th>Tổng tiền</th>
+                                <th>Trạng thái</th>
+                            </tr>
                             </thead>
                             <tbody>
                             <tr th:each="order : ${recentOrders}">
                                 <td class="fw-bold text-primary" th:text="'#' + ${order.maHoaDon}">#000</td>
                                 <td th:text="${order.customerName}">Khách lẻ</td>
                                 <td th:text="${#temporals.format(order.orderDate, 'dd/MM/yyyy HH:mm')}">01/01/2025</td>
-                                <td class="fw-bold" th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT') + ' ₫'}">0 ₫</td>
+                                <td class="fw-bold"
+                                    th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT') + ' ₫'}">
+                                    0 ₫
+                                </td>
                                 <td th:switch="${order.status}">
                                     <span th:case="0" class="badge-status bg-status-0"><i class="fas fa-clock"></i> Chờ xác nhận</span>
                                     <span th:case="1" class="badge-status bg-status-1"><i class="fas fa-check"></i> Đã xác nhận</span>
                                     <span th:case="2" class="badge-status bg-status-2"><i class="fas fa-box-open"></i> Đang chuẩn bị</span>
                                     <span th:case="3" class="badge-status bg-status-3"><i class="fas fa-truck"></i> Đang giao</span>
-                                    <span th:case="4" class="badge-status bg-status-4"><i class="fas fa-check-circle"></i> Hoàn thành</span>
-                                    <span th:case="5" class="badge-status bg-status-5"><i class="fas fa-times-circle"></i> Đã hủy</span>
+                                    <span th:case="4" class="badge-status bg-status-4"><i
+                                            class="fas fa-check-circle"></i> Hoàn thành</span>
+                                    <span th:case="5" class="badge-status bg-status-5"><i
+                                            class="fas fa-times-circle"></i> Đã hủy</span>
                                     <span th:case="6" class="badge-status bg-status-6"><i class="fas fa-wallet"></i> Chờ thanh toán</span>
-                                    <span th:case="*" class="badge-status bg-secondary text-white"><i class="fas fa-question"></i> Khác</span>
+                                    <span th:case="*" class="badge-status bg-secondary text-white"><i
+                                            class="fas fa-question"></i> Khác</span>
                                 </td>
                             </tr>
-                            <tr th:if="${#lists.isEmpty(recentOrders)}"><td colspan="5" class="text-center py-4 text-muted">Chưa có dữ liệu đơn hàng</td></tr>
+                            <tr th:if="${#lists.isEmpty(recentOrders)}">
+                                <td colspan="5" class="text-center py-4 text-muted">Chưa có dữ liệu đơn hàng</td>
+                            </tr>
                             </tbody>
                         </table>
                     </div>
@@ -199,14 +392,20 @@
                     <h5 class="fw-bold mb-4">Top sản phẩm bán chạy</h5>
                     <div class="d-flex flex-column">
                         <div th:each="prod : ${topProducts}" class="product-item">
-                            <img th:src="${prod.productImage != null ? prod.productImage : 'https://placehold.co/100'}" class="product-img" alt="Product">
+                            <img th:src="${prod.productImage != null ? prod.productImage : 'https://placehold.co/100'}"
+                                 class="product-img" alt="Product">
                             <div class="flex-grow-1">
-                                <h6 class="mb-1 fw-bold fs-6 text-truncate" style="max-width: 150px;" th:text="${prod.productName}">SP A</h6>
+                                <h6 class="mb-1 fw-bold fs-6 text-truncate" style="max-width: 150px;"
+                                    th:text="${prod.productName}">SP A</h6>
                                 <small class="text-muted" th:text="'Đã bán: ' + ${prod.totalSold}">Sold: 0</small>
                             </div>
-                            <div class="fw-bold text-primary" th:text="${#numbers.formatDecimal(prod.price, 0, 'COMMA', 0, 'POINT') + ' ₫'}">0 ₫</div>
+                            <div class="fw-bold text-primary"
+                                 th:text="${#numbers.formatDecimal(prod.price, 0, 'COMMA', 0, 'POINT') + ' ₫'}">0 ₫
+                            </div>
                         </div>
-                        <div th:if="${#lists.isEmpty(topProducts)}" class="text-center text-muted py-3"><i class="bi bi-box2 display-6"></i><p class="mt-2 small">Chưa có dữ liệu</p></div>
+                        <div th:if="${#lists.isEmpty(topProducts)}" class="text-center text-muted py-3"><i
+                                class="bi bi-box2 display-6"></i>
+                            <p class="mt-2 small">Chưa có dữ liệu</p></div>
                     </div>
                 </div>
             </div>
@@ -218,7 +417,12 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script th:inline="javascript">
-    document.getElementById('currentDateDisplay').innerText = new Date().toLocaleDateString('vi-VN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    document.getElementById('currentDateDisplay').innerText = new Date().toLocaleDateString('vi-VN', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
 
     let revenueChart, statusChart;
 
@@ -238,13 +442,40 @@
             data: {
                 labels: safeLabels,
                 datasets: [{
-                    label: 'Doanh thu', data: safeRevenues, backgroundColor: '#4318FF', borderRadius: 6, barThickness: 30, hoverBackgroundColor: '#2B00FF'
+                    label: 'Doanh thu',
+                    data: safeRevenues,
+                    backgroundColor: '#4318FF',
+                    borderRadius: 6,
+                    barThickness: 30,
+                    hoverBackgroundColor: '#2B00FF'
                 }]
             },
             options: {
                 responsive: true, maintainAspectRatio: false,
-                plugins: { legend: {display: false}, tooltip: { backgroundColor: '#1B2559', displayColors: false, callbacks: { label: function (context) { return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(context.parsed.y); } } } },
-                scales: { y: { beginAtZero: true, grid: { borderDash: [5, 5], drawBorder: false }, ticks: { callback: function (value) { return value.toLocaleString('vi-VN'); } } }, x: { grid: {display: false} } }
+                plugins: {
+                    legend: {display: false},
+                    tooltip: {
+                        backgroundColor: '#1B2559', displayColors: false, callbacks: {
+                            label: function (context) {
+                                return new Intl.NumberFormat('vi-VN', {
+                                    style: 'currency',
+                                    currency: 'VND'
+                                }).format(context.parsed.y);
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {borderDash: [5, 5], drawBorder: false},
+                        ticks: {
+                            callback: function (value) {
+                                return value.toLocaleString('vi-VN');
+                            }
+                        }
+                    }, x: {grid: {display: false}}
+                }
             }
         });
 
@@ -252,10 +483,10 @@
         const ctxPie = document.getElementById('orderStatusChart');
         if (ctxPie) {
             // Logic gom nhóm dữ liệu (Xử lý ngay khi load trang)
-            const proc = (rawValues[0]||0) + (rawValues[1]||0) + (rawValues[2]||0); // Chờ XN + Đã XN + Chuẩn bị
-            const ship = rawValues[3]||0; // Đang giao
-            const comp = rawValues[4]||0; // Hoàn thành
-            const canc = rawValues[5]||0; // Đã hủy
+            const proc = (rawValues[0] || 0) + (rawValues[1] || 0) + (rawValues[2] || 0); // Chờ XN + Đã XN + Chuẩn bị
+            const ship = rawValues[3] || 0; // Đang giao
+            const comp = rawValues[4] || 0; // Hoàn thành
+            const canc = rawValues[5] || 0; // Đã hủy
 
             // Cập nhật text ban đầu
             document.getElementById('count-processing').innerText = proc;
@@ -275,19 +506,25 @@
                 },
                 options: {
                     responsive: true, maintainAspectRatio: false, cutout: '70%',
-                    plugins: { legend: {display: false} }
+                    plugins: {legend: {display: false}}
                 }
             });
         }
     });
 
     function updateChart(filterType, btnElement) {
-        if (filterType !== 'custom') { document.querySelectorAll('.filter-btn-group .btn').forEach(btn => btn.classList.remove('active')); if (btnElement) btnElement.classList.add('active'); }
+        if (filterType !== 'custom') {
+            document.querySelectorAll('.filter-btn-group .btn').forEach(btn => btn.classList.remove('active'));
+            if (btnElement) btnElement.classList.add('active');
+        }
         let url = `/admin/dashboard/revenue?filter=${filterType}`;
         if (filterType === 'custom') {
             const startDate = document.getElementById('startDate').value;
             const endDate = document.getElementById('endDate').value;
-            if (!startDate || !endDate) { alert("Vui lòng chọn ngày!"); return; }
+            if (!startDate || !endDate) {
+                alert("Vui lòng chọn ngày!");
+                return;
+            }
             url += `&startDate=${startDate}&endDate=${endDate}`;
         }
         fetch(url).then(res => res.json()).then(data => {
@@ -299,10 +536,10 @@
             // Update Pie Chart (Gom nhóm lại khi filter thay đổi)
             if (data.pieData && statusChart) {
                 const raw = data.pieData;
-                const proc = (raw[0]||0) + (raw[1]||0) + (raw[2]||0);
-                const ship = raw[3]||0;
-                const comp = raw[4]||0;
-                const canc = raw[5]||0;
+                const proc = (raw[0] || 0) + (raw[1] || 0) + (raw[2] || 0);
+                const ship = raw[3] || 0;
+                const comp = raw[4] || 0;
+                const canc = raw[5] || 0;
 
                 statusChart.data.datasets[0].data = [proc, ship, comp, canc];
                 statusChart.update();

@@ -15,8 +15,9 @@
             <button class="menu-toggle" aria-label="Toggle navigation">
                 <i class="fas fa-bars"></i>
             </button>
+
             <a th:href="@{/home}" class="header-logo" title="Trang chủ SportGear">
-                <img th:src="@{static/image/logo.png}" alt="Logo">
+                <img th:src="@{/image/logo.png}" alt="SportGear Logo" style="max-height: 50px;">
             </a>
         </div>
 
@@ -50,10 +51,6 @@
                 <!-- Account Dropdown -->
                 <div class="dropdown">
                     <a href="#" class="btn dropdown-toggle p-0 d-flex align-items-center" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <div class="account-avatar">
-                            <!-- TODO: Thay bằng avatar thật của user -->
-                            <img th:src="@{/image/avatar-placeholder.png}" alt="User Avatar">
-                        </div>
                         <span class="ms-2 d-none d-lg-block">Tài khoản</span>
                     </a>
 

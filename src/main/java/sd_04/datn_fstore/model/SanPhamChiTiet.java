@@ -22,7 +22,9 @@ public class SanPhamChiTiet {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-
+//    @Column(name = "maSanPhamChiTiet")
+//    @Size(max = 255, message = "Mô tả không được vượt quá 255 ký tự")
+//    private String maSanPhamChiTiet;
     // Validate Giá tiền: Không null, thấp nhất là 0
     @Column(name = "giaTien", precision = 18, scale = 2)
     @NotNull(message = "Giá tiền không được để trống")
