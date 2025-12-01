@@ -21,6 +21,13 @@
             color: #374151;
         }
 
+        @media (max-width: 991.98px) {
+            .main-content { margin-left: 0; width: 100%; }
+        }
+
+        /* --- COMPONENTS --- */
+        
+
         /* Card Styles */
         .card-box {
             background: #ffffff;
@@ -511,7 +518,7 @@
             });
 
             // API Address
-            $.get("/api/dia-chi/khach-hang/" + id).done(function (addresses) {
+            $.get("/api/dia-chi/by-khachhang/" + id).done(function (addresses) {
                 let addrHtml = '';
                 if (!addresses || addresses.length === 0) {
                     addrHtml = '<div class="text-center text-muted small py-3 bg-light rounded">Chưa có địa chỉ nào</div>';
