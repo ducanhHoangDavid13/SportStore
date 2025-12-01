@@ -42,7 +42,8 @@ public class BanHangServiceImpl implements BanHangService {
         PhieuGiamGia pgg = getPhieuGiamGiaFromRequest(request);
 
         HoaDon hoaDon = createHoaDonFromPayload(request, pgg);
-        hoaDon.setTrangThai(1); // 1 = Đã thanh toán / Chờ giao
+        hoaDon.setTrangThai(4); // 1 = Đã thanh toán / Chờ giao
+
 
         HoaDon savedHoaDon = hoaDonRepository.save(hoaDon);
 
