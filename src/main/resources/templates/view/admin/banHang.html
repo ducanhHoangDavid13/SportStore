@@ -520,7 +520,7 @@
     async function loadCoupons() {
         try { const res = await fetch(`${API_BASE}/api/phieu-giam-gia/active`); const list = await res.json();
             let html = '<option value="" data-type="0" data-value="0">Chọn voucher...</option>';
-            list.forEach(c => html += `<option value="${c.id}" data-type="${c.hinhThucGiam}" data-value="${c.giaTriGiam}" data-max="${c.soTienGiam}" data-cond="${c.dieuKienGiamGia}">${c.maPhieuGiamGia} [${c.giaTriGiam}${c.hinhThucGiam==2?'%':'đ'}]</option>`);
+            list.forEach(c => html += `<option value="${c.id}" data-type="${c.hinhThucGiam}" data-value="${c.giaTriGiam}" data-max="${c.soTienGiam}" data-cond="${c.dieuKienGiamGia}">${c.maPhieuGiamGia}${c.tenPhieuGiamGia} [${c.giaTriGiam}${c.hinhThucGiam==2?'%':'đ'}]</option>`);
             $('#coupon-select').html(html);
         } catch(e){}
     }

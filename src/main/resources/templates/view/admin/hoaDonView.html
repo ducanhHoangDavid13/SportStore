@@ -395,17 +395,102 @@
 
 
 <script>
+    // Cấu hình URL khớp với @RequestMapping("/api/admin/hoadon") trong Java
     const API_BASE = "/api/admin/hoadon";
+
+    // Cấu hình Toastr
     toastr.options = { "positionClass": "toast-top-right", "timeOut": "3000" };
+
+    // State lưu trạng thái lọc
     let state = { page: 0, size: 10, status: 'all', keyword: '', startDate: '', endDate: '' };
 
-    // Toggle Sidebar Mobile
-    $("#menu-toggle").click(function(e) {
-        e.preventDefault();
-        $(".app-sidebar").toggle();
-    });
+    // --- 1. HÀM LOAD HÓA ĐƠN (Khớp với API /search) ---
+    async function loadHoaDon() {
+        const params = new URLSearchParams();
 
-    // Render Badge
+        // Mapping tham số khớp với Java: @RequestParam
+        params.append('page', state.page);
+        params.append('size', state.size);
+
+        // Xử lý List<Integer> trangThaiList
+        if (state.status !== 'all') {
+            params.append('trangThaiList', state.status);
+        }
+
+        // Xử lý Keyword
+        if (state.keyword) {
+            params.append('keyword', state.keyword);
+        }
+
+        // Xử lý LocalDateTime: Backend cần định dạng ISO (YYYY-MM-DDTHH:mm:ss)
+        if (state.startDate) {
+            params.append('ngayBatDau', state.startDate + "T00:00:00");
+        }
+        if (state.endDate) {
+            params.append('ngayKetThuc', state.endDate + "T23:59:59");
+        }
+
+        // Hiển thị loading
+        $('#hoaDonTableBody').html('<tr><td colspan="8" class="text-center py-5"><div class="spinner-border text-primary"></div></td></tr>');
+
+        try {
+            // Gọi API
+            const res = await fetch(`${API_BASE}/search?${params.toString()}`);
+
+            // Debug lỗi nếu có
+            if (!res.ok) {
+                const errText = await res.text();
+                console.error("Lỗi API:", errText);
+                throw new Error("Lỗi Server: " + res.status);
+            }
+
+            const data = await res.json();
+
+            // Java trả về Page<HoaDon>, nên dữ liệu nằm trong data.content
+            renderTable(data.content);
+            renderPagination(data.totalPages);
+            document.getElementById("recordCount").innerText = `${data.totalElements} đơn hàng`;
+
+        } catch (e) {
+            console.error(e);
+            $('#hoaDonTableBody').html(`<tr><td colspan="8" class="text-center text-danger py-5">Không tải được dữ liệu. Hãy kiểm tra Console (F12).</td></tr>`);
+        }
+    }
+
+    // --- 2. RENDER BẢNG (Lưu ý tên biến Entity) ---
+    function renderTable(data) {
+        const tbody = document.getElementById("hoaDonTableBody");
+        tbody.innerHTML = "";
+
+        if (!data || data.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="8" class="text-center py-5 text-muted">Không tìm thấy đơn hàng nào</td></tr>`;
+            return;
+        }
+
+        const html = data.map((hd, i) => {
+            // LƯU Ý QUAN TRỌNG: Kiểm tra tên biến trong Entity KhachHang của bạn
+            // Ở đây mình check cả 'tenKhachHang' và 'ten' và 'hoTen' để tránh lỗi undefined
+            const tenKhach = hd.khachHang ? (hd.khachHang.tenKhachHang || hd.khachHang.ten || hd.khachHang.hoTen) : 'Khách lẻ';
+
+            return `
+            <tr>
+                <td>
+                    <div class="fw-bold text-dark">${tenKhach}</div>
+                    <small class="text-muted fw-bold text-primary">#${hd.maHoaDon || hd.id}</small>
+                </td>
+                <td><span class="badge bg-light text-dark border">${hd.hinhThucBanHang === 1 ? 'Tại quầy' : 'Online'}</span></td>
+                <td class="small text-muted">${new Date(hd.ngayTao).toLocaleString('vi-VN')}</td>
+                <td class="text-end fw-bold text-dark">${(hd.tongTien).toLocaleString('vi-VN')} ₫</td>
+                <td class="text-center">${getStatusBadge(hd.trangThai)}</td>
+                <td class="col-action">${renderActionButtons(hd)}</td>
+            </tr>
+            `;
+        }).join('');
+
+        tbody.innerHTML = html;
+    }
+
+    // --- 3. CÁC HÀM HỖ TRỢ GIAO DIỆN ---
     function getStatusBadge(status) {
         const map = {
             0: { text: 'Chờ Xác Nhận', cls: 'bg-status-0', icon: 'fa-clock' },
@@ -420,130 +505,207 @@
         return `<span class="badge-status ${s.cls}"><i class="fas ${s.icon}"></i> ${s.text}</span>`;
     }
 
-    // Render Actions Buttons
     function renderActionButtons(hd) {
         let btns = `<div class="action-group">`;
         btns += `<button class="btn-custom btn-view btn-view-detail" data-id="${hd.id}"><i class="fas fa-eye"></i> Xem</button>`;
-        if (hd.trangThai === 0) {
+
+        // Logic hiển thị nút theo trạng thái
+        if (hd.trangThai === 0) { // Chờ xác nhận
             btns += `<button class="btn-custom btn-confirm btn-update-status" data-id="${hd.id}" data-status="1"><i class="fas fa-check"></i> Duyệt</button>
                      <button class="btn-custom btn-cancel btn-update-status" data-id="${hd.id}" data-status="5"><i class="fas fa-times"></i> Hủy</button>`;
-        } else if (hd.trangThai === 1) {
+        } else if (hd.trangThai === 1) { // Đã xác nhận -> Soạn hàng
             btns += `<button class="btn-custom btn-prepare btn-update-status" data-id="${hd.id}" data-status="2"><i class="fas fa-box-open"></i> Soạn</button>`;
-        } else if (hd.trangThai === 2) {
+        } else if (hd.trangThai === 2) { // Đang soạn -> Giao hàng
             btns += `<button class="btn-custom btn-ship btn-update-status" data-id="${hd.id}" data-status="3"><i class="fas fa-truck"></i> Giao</button>`;
-        } else if (hd.trangThai === 3) {
+        } else if (hd.trangThai === 3) { // Đang giao -> Hoàn thành
             btns += `<button class="btn-custom btn-complete btn-update-status" data-id="${hd.id}" data-status="4"><i class="fas fa-check-double"></i> Xong</button>`;
-        } else if (hd.trangThai === 6) {
+        } else if (hd.trangThai === 6) { // Chờ thanh toán
             btns += `<button class="btn-custom btn-confirm btn-update-status" data-id="${hd.id}" data-status="1"><i class="fas fa-check"></i> Đã TT</button>
-<button class="btn-custom btn-cancel btn-update-status" data-id="${hd.id}" data-status="5"><i class="fas fa-times"></i> Hủy</button>`;
+                     <button class="btn-custom btn-cancel btn-update-status" data-id="${hd.id}" data-status="5"><i class="fas fa-times"></i> Hủy</button>`;
         }
         btns += `</div>`;
         return btns;
-    }
-
-    async function loadHoaDon() {
-        const params = new URLSearchParams({ page: state.page, size: state.size });
-        if (state.status !== 'all') params.append('trangThaiList', state.status);
-        if (state.keyword) params.append('keyword', state.keyword);
-        if (state.startDate) params.append('ngayBatDau', state.startDate + "T00:00:00");
-        if (state.endDate) params.append('ngayKetThuc', state.endDate + "T23:59:59");
-
-        $('#hoaDonTableBody').html('<tr><td colspan="8" class="text-center py-5"><div class="spinner-border text-primary"></div></td></tr>');
-
-        try {
-            const res = await fetch(`${API_BASE}/search?${params.toString()}`);
-            if(!res.ok) throw new Error();
-            const data = await res.json();
-            renderTable(data.content);
-            renderPagination(data.totalPages);
-            document.getElementById("recordCount").innerText = `${data.totalElements} đơn hàng`;
-        } catch { $('#hoaDonTableBody').html('<tr><td colspan="8" class="text-center text-danger py-5">Lỗi tải dữ liệu</td></tr>'); }
-    }
-
-    function renderTable(data) {
-        const tbody = document.getElementById("hoaDonTableBody");
-        tbody.innerHTML = "";
-        if (!data || data.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="8" class="text-center py-5 text-muted">Không tìm thấy đơn hàng nào</td></tr>`;
-            return;
-        }
-        const html = data.map((hd, i) => `
-            <tr>
-                <td><div class="fw-bold text-dark">${hd.khachHang ? hd.khachHang.tenKhachHang : 'Khách lẻ'}</div>
-                    <small class="text-muted fw-bold text-primary">#${hd.maHoaDon}</small></td>
-                <td><span class="badge bg-light text-dark border">${hd.hinhThucBanHang === 1 ? 'Tại quầy' : 'Online'}</span></td>
-                <td class="small text-muted">${new Date(hd.ngayTao).toLocaleDateString('vi-VN')}</td>
-                <td class="text-end fw-bold text-dark">${(hd.tongTienSauGiam || hd.tongTien).toLocaleString('vi-VN')} ₫</td>
-                <td class="text-center">${getStatusBadge(hd.trangThai)}</td>
-                <td class="col-action">${renderActionButtons(hd)}</td>
-            </tr>
-        `).join('');
-        tbody.innerHTML = html;
     }
 
     function renderPagination(totalPages) {
         const pagEl = document.getElementById("pagination");
         pagEl.innerHTML = "";
         if (totalPages <= 1) return;
+
         let html = `<li class="page-item ${state.page===0?'disabled':''}"><button class="page-link" onclick="changePage(${state.page-1})">&laquo;</button></li>`;
-        for (let i = 0; i < totalPages; i++) html += `<li class="page-item ${i===state.page?'active':''}"><button class="page-link" onclick="changePage(${i})">${i+1}</button></li>`;
+        for (let i = 0; i < totalPages; i++) {
+            html += `<li class="page-item ${i===state.page?'active':''}"><button class="page-link" onclick="changePage(${i})">${i+1}</button></li>`;
+        }
         html += `<li class="page-item ${state.page===totalPages-1?'disabled':''}"><button class="page-link" onclick="changePage(${state.page+1})">&raquo;</button></li>`;
         pagEl.innerHTML = html;
     }
-    function changePage(p) { state.page = p; loadHoaDon(); }
 
-    async function updateStatus(id, st) {
-        if(!confirm("Xác nhận cập nhật trạng thái?")) return;
-        try {
-            const form = new FormData(); form.append('hoaDonId', id); form.append('newTrangThai', st);
-            const res = await fetch(`${API_BASE}/update-status`, {method:'POST', body:form});
-            if(res.ok) { toastr.success('Thành công!'); loadHoaDon(); } else toastr.error('Lỗi');
-        } catch { toastr.error('Lỗi server'); }
+    function changePage(p) {
+        if(p >= 0) {
+            state.page = p;
+            loadHoaDon();
+        }
     }
 
+    // --- 4. CẬP NHẬT TRẠNG THÁI (Khớp API /update-status) ---
+    async function updateStatus(id, st) {
+        if(!confirm("Xác nhận cập nhật trạng thái?")) return;
+
+        try {
+            // Java dùng @RequestParam nên dùng FormData là chuẩn nhất
+            const form = new FormData();
+            form.append('hoaDonId', id);
+            form.append('newTrangThai', st);
+
+            const res = await fetch(`${API_BASE}/update-status`, {
+                method: 'POST',
+                body: form
+            });
+
+            if(res.ok) {
+                toastr.success('Cập nhật thành công!');
+                loadHoaDon();
+            } else {
+                const err = await res.json();
+                toastr.error(err.message || 'Lỗi cập nhật');
+            }
+        } catch {
+            toastr.error('Lỗi kết nối server');
+        }
+    }
+
+    // --- 5. XEM CHI TIẾT (Khớp API /{id} và /{id}/chi-tiet) ---
     async function viewDetail(id) {
         const modal = new bootstrap.Modal(document.getElementById('invoiceDetailModal'));
         const contentEl = document.getElementById('invoice-detail-content');
+
+        // Gán ID vào nút in PDF để dùng sau
         document.getElementById('btnPrintPdf').dataset.id = id;
+
         modal.show();
         contentEl.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary"></div></div>';
+
         try {
-            const [resInfo, resDetail] = await Promise.all([fetch(`${API_BASE}/${id}`), fetch(`${API_BASE}/${id}/chi-tiet`)]);
+            // Gọi song song 2 API: Lấy thông tin chung và Lấy danh sách sản phẩm
+            const [resInfo, resDetail] = await Promise.all([
+                fetch(`${API_BASE}/${id}`),          // API 3
+                fetch(`${API_BASE}/${id}/chi-tiet`)  // API 4
+            ]);
+
+            if(!resInfo.ok || !resDetail.ok) throw new Error("Lỗi tải chi tiết");
+
             const hd = await resInfo.json();
-            const items = await resDetail.json();
-            document.getElementById('detail-maHoaDon').innerText = '#' + hd.maHoaDon;
-            let rows = items.map((t,i)=>`<tr><td class="text-center">${i+1}</td><td><b>${t.sanPhamChiTiet?.sanPham?.tenSanPham}</b><br><small>${t.sanPhamChiTiet?.mauSac?.tenMauSac} | ${t.sanPhamChiTiet?.kichThuoc?.tenKichThuoc}</small></td><td class="text-center">${t.soLuong}</td><td class="text-end">${t.donGia.toLocaleString()}</td><td class="text-end fw-bold">${(t.donGia*t.soLuong).toLocaleString()}</td></tr>`).join('');
-            contentEl.innerHTML = `<div class="row mb-3"><div class="col-6"><h6>Khách hàng</h6><p>${hd.khachHang?.tenKhachHang||'Khách lẻ'}<br>${hd.khachHang?.sdt||''}</p></div><div class="col-6 text-end"><h6>Thông tin</h6><p>${new Date(hd.ngayTao).toLocaleString('vi-VN')}<br>${getStatusBadge(hd.trangThai)}</p></div></div><table class="table table-sm table-bordered"><thead><tr class="table-light"><th>#</th><th>Sản phẩm</th><th>SL</th><th>Đơn giá</th><th>Thành tiền</th></tr></thead><tbody>${rows}</tbody></table><h5 class="text-end text-danger mt-3">Tổng: ${(hd.tongTienSauGiam||hd.tongTien).toLocaleString()} ₫</h5>`;
-        } catch { contentEl.innerHTML = '<p class="text-danger text-center">Lỗi tải</p>'; }
+            const items = await resDetail.json(); // List<HoaDonChiTiet>
+
+            document.getElementById('detail-maHoaDon').innerText = '#' + (hd.maHoaDon || hd.id);
+
+            // Render danh sách sản phẩm
+            // LƯU Ý: Check kỹ tên biến Entity: sanPhamChiTiet.sanPham.tenSanPham hay ten?
+            let rows = items.map((t, i) => {
+                const spName = t.sanPhamChiTiet?.sanPham?.tenSanPham || t.sanPhamChiTiet?.sanPham?.ten || 'Sản phẩm';
+                const mau = t.sanPhamChiTiet?.mauSac?.tenMauSac || t.sanPhamChiTiet?.mauSac?.ten || '-';
+                const size = t.sanPhamChiTiet?.kichThuoc?.tenKichThuoc || t.sanPhamChiTiet?.kichThuoc?.ten || '-';
+
+                return `
+                <tr>
+                    <td class="text-center">${i+1}</td>
+                    <td>
+                        <b>${spName}</b><br>
+                        <small>${mau} | ${size}</small>
+                    </td>
+                    <td class="text-center">${t.soLuong}</td>
+                    <td class="text-end">${t.donGia.toLocaleString()}</td>
+                    <td class="text-end fw-bold">${(t.donGia * t.soLuong).toLocaleString()}</td>
+                </tr>`;
+            }).join('');
+
+            // Render thông tin chung
+            const tenKhach = hd.khachHang ? (hd.khachHang.tenKhachHang || hd.khachHang.ten) : 'Khách lẻ';
+            const sdtKhach = hd.khachHang ? (hd.khachHang.sdt || '') : '';
+
+            contentEl.innerHTML = `
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <h6 class="fw-bold text-primary">Khách hàng</h6>
+                        <p class="mb-1 fw-bold">${tenKhach}</p>
+                        <p class="small text-muted mb-0">${sdtKhach}</p>
+                    </div>
+                    <div class="col-6 text-end">
+                        <h6 class="fw-bold text-primary">Thông tin đơn</h6>
+                        <p class="mb-1">${new Date(hd.ngayTao).toLocaleString('vi-VN')}</p>
+                        ${getStatusBadge(hd.trangThai)}
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered">
+                        <thead class="table-light">
+                            <tr><th>#</th><th>Sản phẩm</th><th>SL</th><th>Đơn giá</th><th>Thành tiền</th></tr>
+                        </thead>
+                        <tbody>${rows}</tbody>
+                    </table>
+                </div>
+                <h5 class="text-end text-danger mt-3">Tổng tiền: ${(hd.tongTien).toLocaleString()} ₫</h5>
+            `;
+        } catch (e) {
+            console.error(e);
+            contentEl.innerHTML = '<p class="text-danger text-center">Không thể tải chi tiết hóa đơn</p>';
+        }
     }
 
-    // --- POLLING NOTIFICATION (Check đơn chờ mỗi 10s) ---
-    function checkNotifications() {
-        $.ajax({
-            url: '/api/admin/hoadon/count-pending', // Đảm bảo bạn đã tạo API này
-            type: 'GET',
-            success: function(count) {
-                const badge = $('#notificationCount');
-                if (count > 0) { badge.text(count); badge.show(); }
-                else { badge.hide(); }
-            }
-        });
-    }
-    setInterval(checkNotifications, 10000); // 10s check 1 lần
+    // --- SỰ KIỆN & KHỞI TẠO ---
 
-    $('.tab-btn').click(function() { $('.tab-btn').removeClass('active'); $(this).addClass('active'); state.status = $(this).data('status'); state.page=0; loadHoaDon(); });
-    $('#btnSearch').click(() => { state.keyword = $('#keywordSearch').val(); state.startDate = $('#startDate').val(); state.endDate = $('#endDate').val(); state.page=0; loadHoaDon(); });
-    $('#btnReset').click(() => { $('#keywordSearch').val(''); $('#startDate').val(''); $('#endDate').val(''); state={page:0,size:10,status:'all'}; $('.tab-btn').removeClass('active').first().addClass('active'); loadHoaDon(); });
+    // 1. Chuyển Tab trạng thái
+    $('.tab-btn').click(function() {
+        $('.tab-btn').removeClass('active');
+        $(this).addClass('active');
 
+        // Reset về trang 0 khi đổi tab
+        state.status = $(this).data('status');
+        state.page = 0;
+        loadHoaDon();
+    });
+
+    // 2. Nút Tìm kiếm
+    $('#btnSearch').click(() => {
+        state.keyword = $('#keywordSearch').val();
+        state.startDate = $('#startDate').val();
+        state.endDate = $('#endDate').val();
+        state.page = 0;
+        loadHoaDon();
+    });
+
+    // 3. Nút Reset
+    $('#btnReset').click(() => {
+        $('#keywordSearch').val('');
+        $('#startDate').val('');
+        $('#endDate').val('');
+        state = { page: 0, size: 10, status: 'all', keyword: '', startDate: '', endDate: '' };
+        $('.tab-btn').removeClass('active').first().addClass('active');
+        loadHoaDon();
+    });
+
+    // 4. Sự kiện click vào bảng (Ủy quyền sự kiện)
     $('#hoaDonTableBody').click(e => {
         const btnStatus = e.target.closest('.btn-update-status');
         const btnView = e.target.closest('.btn-view-detail');
+
         if(btnStatus) updateStatus(btnStatus.dataset.id, btnStatus.dataset.status);
         if(btnView) viewDetail(btnView.dataset.id);
     });
-    $('#btnPrintPdf').click(function() { if(this.dataset.id) window.location.href=`${API_BASE}/export/pdf/${this.dataset.id}`; });
 
-    $(document).ready(function() { loadHoaDon(); checkNotifications(); });
+    // 5. Sự kiện In PDF
+    $('#btnPrintPdf').click(function() {
+        const id = this.dataset.id;
+        if(id) {
+            // Khớp API 5: /api/admin/hoadon/export/pdf/{id}
+            window.location.href = `${API_BASE}/export/pdf/${id}`;
+        }
+    });
+
+    // Chạy khi trang tải xong
+    $(document).ready(function() {
+        loadHoaDon();
+    });
 </script>
 
 </body>

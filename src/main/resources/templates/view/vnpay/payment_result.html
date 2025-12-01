@@ -4,80 +4,177 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kết Quả Thanh Toán VNPay</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <style>
-        body { font-family: Arial, sans-serif; padding: 20px; }
-        .container { max-width: 600px; margin: 0 auto; border: 1px solid #ccc; padding: 20px; border-radius: 8px; }
-        h1 { text-align: center; }
-        .success { color: green; border: 1px solid green; padding: 10px; background-color: #e6ffe6; }
-        .fail { color: red; border: 1px solid red; padding: 10px; background-color: #ffe6e6; }
-        .details p { margin: 5px 0; }
-        .details strong { display: inline-block; width: 150px; }
+        :root {
+            --font-main: 'Inter', sans-serif;
+            --primary-blue: #0b72ff;
+            --primary-dark: #0056c7;
+            --success-color: #28a745;
+            --error-color: #dc3545;
+            --border-light: #e0e0e0;
+            --bg-light: #f9f9f9;
+        }
+        body {
+            font-family: var(--font-main);
+            background-color: var(--bg-light);
+            padding: 40px 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 650px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            border: 1px solid var(--border-light);
+        }
+        .header-status {
+            text-align: center;
+            padding: 20px 0;
+            border-bottom: 2px solid var(--border-light);
+            margin-bottom: 20px;
+        }
+        h1 {
+            font-size: 1.8rem;
+            margin: 10px 0 20px 0;
+            font-weight: 700;
+        }
+        h2 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 15px;
+            padding-bottom: 5px;
+            border-bottom: 1px dashed var(--border-light);
+        }
+        .status-box {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            text-align: center;
+            font-weight: 600;
+        }
+        .success {
+            color: var(--success-color);
+            border: 1px solid var(--success-color);
+            background-color: #e6f7eb;
+        }
+        .fail {
+            color: var(--error-color);
+            border: 1px solid var(--error-color);
+            background-color: #fbeded;
+        }
+        .details {
+            padding: 0 10px;
+        }
+        .details p {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            padding: 5px 0;
+            border-bottom: 1px dotted rgba(0,0,0,0.1);
+            font-size: 0.95rem;
+        }
+        .details strong {
+            font-weight: 600;
+            color: #333;
+        }
+        .details span {
+            font-weight: 400;
+            color: #666;
+            text-align: right;
+        }
+        .details p:last-child { border-bottom: none; }
+
+        .btn-home {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            background-color: var(--primary-blue);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: background-color 0.3s, transform 0.3s;
+            margin-top: 25px;
+        }
+        .btn-home:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+        hr {
+            border: none;
+            border-top: 1px solid var(--border-light);
+            margin: 30px 0;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1 th:text="${vnp_ResponseCode == '00'} ? '🎉 Thanh Toán Thành Công' : '⚠️ Thanh Toán Thất Bại / Chờ Xử Lý'">
-        Trạng Thái Thanh Toán
-    </h1>
+    <div class="header-status">
+        <h1 th:if="${vnp_ResponseCode == '00'}">
+            <i class="fa-solid fa-circle-check" style="color: var(--success-color);"></i> Thanh Toán Thành Công
+        </h1>
+        <h1 th:unless="${vnp_ResponseCode == '00'}">
+            <i class="fa-solid fa-triangle-exclamation" style="color: var(--error-color);"></i> Thanh Toán Thất Bại / Chờ Xử Lý
+        </h1>
+    </div>
 
-    <div th:if="${vnp_ResponseCode == '00'}" class="success">
+    <div th:if="${vnp_ResponseCode == '00'}" class="status-box success">
         <p>Giao dịch của bạn đã được thực hiện thành công. Cảm ơn bạn đã sử dụng dịch vụ.</p>
     </div>
 
-    <div th:unless="${vnp_ResponseCode == '00'}" class="fail">
+    <div th:unless="${vnp_ResponseCode == '00'}" class="status-box fail">
         <p th:text="'Giao dịch không thành công. Mã lỗi: ' + ${vnp_ResponseCode}"></p>
         <p th:text="'Chi tiết: ' + ${vnp_Message}"></p>
         <p>Vui lòng kiểm tra lại thông tin hoặc thử lại sau.</p>
     </div>
 
-    <hr/>
-
     <h2>Chi Tiết Giao Dịch</h2>
 
     <div class="details">
         <p>
-            <strong>Mã Giao Dịch VNPAY:</strong>
-            <span th:text="${vnp_TransactionNo}">[VNPay Transaction No]</span>
-        </p>
-        <p>
-            <strong>Mã Đơn Hàng (TxnRef):</strong>
+            <strong>Mã Đơn Hàng (TxnRef)</strong>
             <span th:text="${vnp_TxnRef}">[Order ID]</span>
         </p>
         <p>
-            <strong>Số Tiền:</strong>
+            <strong>Mã Giao Dịch VNPAY</strong>
+            <span th:text="${vnp_TransactionNo}">[VNPay Transaction No]</span>
+        </p>
+        <p>
+            <strong>Số Tiền</strong>
             <span th:text="${#numbers.formatDecimal(vnp_Amount / 100, 0, 'POINT', 0, 'COMMA')} + ' VND'">[Amount]</span>
         </p>
         <p>
-            <strong>Ngân Hàng:</strong>
+            <strong>Ngân Hàng Giao Dịch</strong>
             <span th:text="${vnp_BankCode}">[Bank Code]</span>
         </p>
         <p>
-            <strong>Thời Gian GD:</strong>
+            <strong>Thời Gian Giao Dịch</strong>
             <span th:text="${vnp_PayDate}">[Payment Time]</span>
         </p>
         <p>
-            <strong>Mã Phản Hồi (Code):</strong>
+            <strong>Mã Phản Hồi (Code)</strong>
             <span th:text="${vnp_ResponseCode}">[Response Code]</span>
         </p>
         <p>
-            <strong>Trạng Thái GD:</strong>
+            <strong>Trạng Thái Giao Dịch</strong>
             <span th:text="${vnp_Message}">[Status Message]</span>
         </p>
-
         <p>
-            <strong>Mã Lỗi (VDESK):</strong>
+            <strong>Mã Lỗi VDESK</strong>
             <span th:text="${vnp_TransactionStatus}">[Transaction Status]</span>
         </p>
     </div>
 
-    <hr/>
-
-    <p style="text-align: center;">
-        <a href="/" style="padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px;">
-            Quay lại Trang Chủ
-        </a>
-    </p>
+    <a href="/home" class="btn-home">
+        <i class="fa-solid fa-house"></i> Quay lại Trang Chủ
+    </a>
 
 </div>
 

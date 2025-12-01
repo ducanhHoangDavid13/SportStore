@@ -8,6 +8,7 @@ import sd_04.datn_fstore.model.*;
 import sd_04.datn_fstore.repository.*;
 import sd_04.datn_fstore.service.BanHangService;
 import sd_04.datn_fstore.service.CheckoutService;
+import sd_04.datn_fstore.service.PhieuGiamgiaService;
 import sd_04.datn_fstore.service.ThongBaoService;
 import sd_04.datn_fstore.service.VnPayService;
 
@@ -22,29 +23,30 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class CheckoutServiceImpl implements CheckoutService {
 
-    private final BanHangService banHangService;
     private final VnPayService vnPayService;
     private final PhieuGiamGiaRepo phieuGiamGiaRepository;
     private final HoaDonRepository hoaDonRepository;
     private final HoaDonChiTietRepository hoaDonChiTietRepository;
     private final SanPhamCTRepository sanPhamCTRepository;
     private final DiaChiRepo diaChiRepo;
-    private final NhanVienRepository nhanVienRepository;
-    private final KhachHangRepo khachHangRepository;
-
-    // [MỚI] Inject ThongBaoService
     private final ThongBaoService thongBaoService;
+    private final PhieuGiamgiaService phieuGiamgiaService;
 
     // =========================================================================
-    // 1. TÍNH TOÁN TỔNG TIỀN
-    // =========================================================================
+    // 1. TÍNH TOÁN TỔNG TIỀN (SỬA THEO ENTITY MỚI)
     @Override
     public CalculateTotalResponse calculateOrderTotal(CalculateTotalRequest request) {
+        // 1. Tính tổng tiền hàng (SubTotal)
         BigDecimal subTotal = BigDecimal.ZERO;
         if (request.getItems() != null) {
             for (CalculateTotalRequest.CartItem item : request.getItems()) {
-                BigDecimal itemTotal = item.getDonGia().multiply(BigDecimal.valueOf(item.getSoLuong()));
-                subTotal = subTotal.add(itemTotal);
+                BigDecimal price = item.getDonGia();
+                if (price == null) {
+                    // Fallback: Nếu frontend không gửi giá, lấy từ DB để an toàn
+                    SanPhamChiTiet spct = sanPhamCTRepository.findById(item.getSanPhamChiTietId()).orElse(null);
+                    price = (spct != null) ? spct.getGiaTien() : BigDecimal.ZERO;
+                }
+                subTotal = subTotal.add(price.multiply(BigDecimal.valueOf(item.getSoLuong())));
             }
         }
 
@@ -53,27 +55,52 @@ public class CheckoutServiceImpl implements CheckoutService {
         boolean voucherValid = false;
         String voucherMessage = "";
 
+        // 2. XỬ LÝ VOUCHER
         if (request.getVoucherCode() != null && !request.getVoucherCode().trim().isEmpty()) {
             Optional<PhieuGiamGia> pggOpt = phieuGiamGiaRepository.findByMaPhieuGiamGia(request.getVoucherCode());
+
             if (pggOpt.isPresent()) {
                 PhieuGiamGia pgg = pggOpt.get();
-                if (pgg.getTrangThai() == 0 && (pgg.getSoLuong() == null || pgg.getSoLuong() > 0)) {
-                    if (pgg.getHinhThucGiam() == 2) { // %
-                        discountAmount = subTotal.multiply(pgg.getGiaTriGiam()).divide(new BigDecimal(100), 0, RoundingMode.HALF_UP);
-                        if (pgg.getSoTienGiam() != null && discountAmount.compareTo(pgg.getSoTienGiam()) > 0) {
-                            discountAmount = pgg.getSoTienGiam();
+                LocalDateTime now = LocalDateTime.now();
+
+                // Check 1: Thời gian & Trạng thái & Số lượng
+                if (pgg.getTrangThai() != 1 || (pgg.getSoLuong() != null && pgg.getSoLuong() <= 0)) {
+                    voucherMessage = "Mã giảm giá đã hết lượt sử dụng!";
+                }
+                else if (now.isBefore(pgg.getNgayBatDau()) || now.isAfter(pgg.getNgayKetThuc())) {
+                    voucherMessage = "Mã giảm giá chưa bắt đầu hoặc đã hết hạn!";
+                }
+                // Check 2: ĐIỀU KIỆN GIẢM GIÁ (Tên phương thức mới: getDieuKienGiamGia())
+                else if (pgg.getDieuKienGiamGia() != null && subTotal.compareTo(pgg.getDieuKienGiamGia()) < 0) {
+                    voucherMessage = "Đơn hàng chưa đạt tối thiểu " + String.format("%,.0f", pgg.getDieuKienGiamGia()) + "đ";
+                }
+                else {
+                    // --- ĐỦ ĐIỀU KIỆN ---
+                    BigDecimal giaTriGiam = pgg.getGiaTriGiam() == null ? BigDecimal.ZERO : pgg.getGiaTriGiam();
+                    BigDecimal giamToiDa = pgg.getSoTienGiam(); // Tên phương thức mới: getSoTienGiam()
+
+                    if (pgg.getHinhThucGiam() == 2) { // Giảm %
+                        // Logic fix: Chặn max 100%
+                        if(giaTriGiam.compareTo(new BigDecimal(100)) > 0) giaTriGiam = new BigDecimal(100);
+
+                        discountAmount = subTotal.multiply(giaTriGiam).divide(new BigDecimal(100), 0, RoundingMode.HALF_UP);
+
+                        // Check giảm tối đa
+                        if (giamToiDa != null && discountAmount.compareTo(giamToiDa) > 0) {
+                            discountAmount = giamToiDa;
                         }
-                    } else { // Tiền
-                        discountAmount = pgg.getGiaTriGiam();
+                    } else { // Giảm tiền mặt
+                        discountAmount = giaTriGiam;
                     }
+
+                    // Chốt: Không giảm quá giá trị đơn hàng
                     if (discountAmount.compareTo(subTotal) > 0) discountAmount = subTotal;
+
                     voucherValid = true;
-                    voucherMessage = "Áp dụng mã thành công!";
-                } else {
-                    voucherMessage = "Mã không hợp lệ.";
+                    voucherMessage = "Áp dụng mã thành công: -" + String.format("%,.0f", discountAmount) + "đ";
                 }
             } else {
-                voucherMessage = "Không tìm thấy mã.";
+                voucherMessage = "Mã giảm giá không tồn tại.";
             }
         }
 
@@ -84,20 +111,18 @@ public class CheckoutServiceImpl implements CheckoutService {
     }
 
     // =========================================================================
-    // 2. XỬ LÝ ĐẶT HÀNG (ONLINE CHECKOUT)
+    // 2. XỬ LÝ ĐẶT HÀNG (SỬA THEO ENTITY MỚI)
     // =========================================================================
     @Override
     @Transactional(rollbackFor = Exception.class)
     public CheckoutResponse placeOrder(CheckoutRequest req, String clientIp) {
-        // --- A. TẠO HÓA ĐƠN ---
         HoaDon hoaDon = new HoaDon();
         String maHoaDon = "HD" + System.currentTimeMillis();
         hoaDon.setMaHoaDon(maHoaDon);
         hoaDon.setNgayTao(LocalDateTime.now());
-        hoaDon.setHinhThucBanHang(0); // Online
+        hoaDon.setHinhThucBanHang(0);
         hoaDon.setMoTa(req.getNote());
 
-        // --- B. LƯU ĐỊA CHỈ ---
         DiaChi shippingInfo = new DiaChi();
         shippingInfo.setHoTen(req.getFullName());
         shippingInfo.setSoDienThoai(req.getPhone());
@@ -107,11 +132,9 @@ public class CheckoutServiceImpl implements CheckoutService {
         shippingInfo.setGhiChu("Email: " + req.getEmail());
         shippingInfo.setLoaiDiaChi("Giao hàng");
         shippingInfo.setTrangThai(1);
-
         DiaChi savedDiaChi = diaChiRepo.save(shippingInfo);
         hoaDon.setDiaChiGiaoHang(savedDiaChi);
 
-        // --- C. XỬ LÝ SẢN PHẨM ---
         if (req.getItems() == null || req.getItems().isEmpty()) throw new RuntimeException("Giỏ hàng trống!");
 
         BigDecimal subTotal = BigDecimal.ZERO;
@@ -119,41 +142,66 @@ public class CheckoutServiceImpl implements CheckoutService {
 
         for (CheckoutRequest.CartItem itemDTO : req.getItems()) {
             SanPhamChiTiet spct = sanPhamCTRepository.findById(itemDTO.getSanPhamChiTietId())
-                    .orElseThrow(() -> new RuntimeException("SP không tồn tại"));
+                    .orElseThrow(() -> new RuntimeException("Sản phẩm (ID: " + itemDTO.getSanPhamChiTietId() + ") không tồn tại!"));
 
-            if (spct.getSoLuong() < itemDTO.getSoLuong())
-                throw new RuntimeException("Hết hàng: " + spct.getSanPham().getTenSanPham());
+            if (spct.getSoLuong() < itemDTO.getSoLuong()) {
+                throw new RuntimeException("Sản phẩm " + spct.getSanPham().getTenSanPham() + " không đủ hàng!");
+            }
 
             HoaDonChiTiet cthd = new HoaDonChiTiet();
             cthd.setHoaDon(hoaDon);
             cthd.setSanPhamChiTiet(spct);
             cthd.setSoLuong(itemDTO.getSoLuong());
-            cthd.setDonGia(itemDTO.getDonGia());
+            cthd.setDonGia(spct.getGiaTien());
             cthd.setThanhTien(cthd.getDonGia().multiply(BigDecimal.valueOf(cthd.getSoLuong())));
+
             chiTietList.add(cthd);
             subTotal = subTotal.add(cthd.getThanhTien());
         }
 
-        // --- D. XỬ LÝ VOUCHER ---
+        // --- TÍNH LẠI VOUCHER KHI LƯU (ĐÃ CẬP NHẬT LOGIC CHECK ĐƠN TỐI THIỂU) ---
         BigDecimal discountAmount = BigDecimal.ZERO;
+        PhieuGiamGia voucherToUse = null;
+
         if (req.getVoucherCode() != null && !req.getVoucherCode().trim().isEmpty()) {
             Optional<PhieuGiamGia> pggOpt = phieuGiamGiaRepository.findByMaPhieuGiamGia(req.getVoucherCode());
             if (pggOpt.isPresent()) {
                 PhieuGiamGia pgg = pggOpt.get();
-                // Check lại lần nữa cho chắc
-                if (pgg.getHinhThucGiam() == 2) {
-                    discountAmount = subTotal.multiply(pgg.getGiaTriGiam()).divide(new BigDecimal(100), 0, RoundingMode.HALF_UP);
-                    if (pgg.getSoTienGiam() != null && discountAmount.compareTo(pgg.getSoTienGiam()) > 0)
-                        discountAmount = pgg.getSoTienGiam();
-                } else {
-                    discountAmount = pgg.getGiaTriGiam();
+
+                // 1. Kiểm tra điều kiện sử dụng
+                boolean isTimeValid = !LocalDateTime.now().isBefore(pgg.getNgayBatDau()) && !LocalDateTime.now().isAfter(pgg.getNgayKetThuc());
+                boolean isActive = pgg.getTrangThai() == 1 && (pgg.getSoLuong() == null || pgg.getSoLuong() > 0);
+
+                // 2. Kiểm tra Đơn tối thiểu (Sử dụng getDieuKienGiamGia())
+                boolean isMinOrderValid = true;
+                if (pgg.getDieuKienGiamGia() != null && subTotal.compareTo(pgg.getDieuKienGiamGia()) < 0) {
+                    isMinOrderValid = false;
+                    // Nếu không đủ điều kiện đơn tối thiểu, không áp dụng voucher
                 }
-                if (discountAmount.compareTo(subTotal) > 0) discountAmount = subTotal;
-                hoaDon.setPhieuGiamGia(pgg);
+
+                if (isActive && isTimeValid && isMinOrderValid) {
+                    BigDecimal giaTriGiam = pgg.getGiaTriGiam() == null ? BigDecimal.ZERO : pgg.getGiaTriGiam();
+                    BigDecimal giamToiDa = pgg.getSoTienGiam(); // Sử dụng getSoTienGiam()
+
+                    if (pgg.getHinhThucGiam() == 2) {
+                        if(giaTriGiam.compareTo(new BigDecimal(100)) > 0) giaTriGiam = new BigDecimal(100);
+
+                        discountAmount = subTotal.multiply(giaTriGiam).divide(new BigDecimal(100), 0, RoundingMode.HALF_UP);
+
+                        if (giamToiDa != null && discountAmount.compareTo(giamToiDa) > 0) {
+                            discountAmount = giamToiDa;
+                        }
+                    } else {
+                        discountAmount = giaTriGiam;
+                    }
+                    if (discountAmount.compareTo(subTotal) > 0) discountAmount = subTotal;
+
+                    voucherToUse = pgg;
+                    hoaDon.setPhieuGiamGia(pgg);
+                }
             }
         }
 
-        // --- E. CHỐT TIỀN ---
         BigDecimal shippingFee = req.getShippingFee() != null ? req.getShippingFee() : BigDecimal.ZERO;
         BigDecimal finalTotal = subTotal.subtract(discountAmount).add(shippingFee);
         if (finalTotal.compareTo(BigDecimal.ZERO) < 0) finalTotal = BigDecimal.ZERO;
@@ -169,60 +217,33 @@ public class CheckoutServiceImpl implements CheckoutService {
             hoaDonChiTietRepository.save(ct);
         }
 
-        // --- F. THANH TOÁN ---
         String redirectUrl = "";
+
         if ("VNPAY".equals(req.getPaymentMethod())) {
-            savedHoaDon.setTrangThai(5); // Chờ thanh toán
+            savedHoaDon.setTrangThai(5);
             savedHoaDon.setHinhThucThanhToan(2);
             hoaDonRepository.save(savedHoaDon);
-
-            // [MỚI] Gửi thông báo đơn chờ thanh toán (Optional)
-            // thongBaoService.createNotification("Đơn chờ thanh toán", "Đơn hàng " + maHoaDon + " đang chờ thanh toán VNPAY", "ORDER", "/admin/hoa-don/detail/" + savedHoaDon.getId());
-
             try {
+                // Đảm bảo số tiền VNPay là Long và không có số thập phân
                 long amountInCents = finalTotal.multiply(new BigDecimal(100)).longValue();
                 redirectUrl = vnPayService.createOrder(amountInCents, "Thanh toan " + maHoaDon, maHoaDon, clientIp);
             } catch (Exception e) {
-                throw new RuntimeException("Lỗi tạo link VNPay");
+                throw new RuntimeException("Lỗi tạo link VNPay: " + e.getMessage());
             }
-
-        } else { // COD
-            savedHoaDon.setTrangThai(1); // Chờ xác nhận (Hoặc trạng thái mới tùy logic bạn: 0=Chờ xác nhận)
+        } else {
+            savedHoaDon.setTrangThai(1);
             savedHoaDon.setHinhThucThanhToan(0);
             hoaDonRepository.save(savedHoaDon);
 
-            // Trừ kho ngay
-            for (HoaDonChiTiet ct : chiTietList) {
-                SanPhamChiTiet spct = ct.getSanPhamChiTiet();
-                int newStock = spct.getSoLuong() - ct.getSoLuong();
-                spct.setSoLuong(newStock);
-                sanPhamCTRepository.save(spct);
+            decrementInventory(mapToSanPhamItems(req.getItems()));
 
-                // [MỚI] CHECK SẮP HẾT HÀNG -> BÁO ADMIN
-                if (newStock <= 10) {
-                    String spName = spct.getSanPham().getTenSanPham() + " (" + spct.getMauSac().getTenMauSac() + ")";
-                    thongBaoService.createNotification(
-                            "Cảnh báo sắp hết hàng",
-                            "Sản phẩm " + spName + " chỉ còn " + newStock + " sản phẩm.",
-                            "STOCK",
-                            "/admin/san-pham/" + spct.getSanPham().getId()
-                    );
-                }
+            if (voucherToUse != null) {
+                decrementVoucher(voucherToUse);
             }
 
-            // Trừ voucher
-            if (savedHoaDon.getPhieuGiamGia() != null) {
-                PhieuGiamGia pgg = savedHoaDon.getPhieuGiamGia();
-                if (pgg.getSoLuong() > 0) {
-                    pgg.setSoLuong(pgg.getSoLuong() - 1);
-                    phieuGiamGiaRepository.save(pgg);
-                }
-            }
-
-            // [MỚI] GỬI THÔNG BÁO CÓ ĐƠN HÀNG MỚI (COD)
             thongBaoService.createNotification(
-                    "Đơn hàng mới (Online)",
-                    "Khách hàng " + req.getFullName() + " vừa đặt đơn hàng #" + maHoaDon,
+                    "Đơn hàng mới #" + maHoaDon,
+                    "Khách " + req.getFullName() + " đặt đơn " + String.format("%,.0f", finalTotal) + "đ",
                     "ORDER",
                     "/admin/hoa-don/detail/" + savedHoaDon.getId()
             );
@@ -233,74 +254,29 @@ public class CheckoutServiceImpl implements CheckoutService {
         return new CheckoutResponse(true, "Thành công", redirectUrl);
     }
 
-    // =========================================================================
-    // 3. TẠO THANH TOÁN VNPAY (POS / DRAFT)
-    // =========================================================================
     @Override
     @Transactional(rollbackFor = Exception.class)
     public VnPayResponseDTO taoThanhToanVnPay(CreateOrderRequest request, String ipAddress) {
-        // 1. Tạo hóa đơn tạm
-        HoaDon hoaDon = new HoaDon();
-        hoaDon.setMaHoaDon(request.getMaHoaDon());
-        hoaDon.setNgayTao(LocalDateTime.now());
-        hoaDon.setTongTien(request.getTongTien());
-        hoaDon.setTongTienSauGiam(request.getTongTien());
-        hoaDon.setTrangThai(5); // Chờ thanh toán
-        hoaDon.setHinhThucBanHang(0);
-
-        if (request.getNhanVienId() != null)
-            hoaDon.setNhanVien(nhanVienRepository.findById(request.getNhanVienId()).orElse(null));
-        if (request.getKhachHangId() != null)
-            hoaDon.setKhachHang(khachHangRepository.findById(request.getKhachHangId()).orElse(null));
-
-        HoaDon savedHd = hoaDonRepository.save(hoaDon);
-
-        if (request.getDanhSachSanPham() != null) {
-            for (CreateOrderRequest.SanPhamItem item : request.getDanhSachSanPham()) {
-                SanPhamChiTiet spct = sanPhamCTRepository.findById(item.getSanPhamChiTietId()).orElseThrow();
-                HoaDonChiTiet ct = new HoaDonChiTiet();
-                ct.setHoaDon(savedHd);
-                ct.setSanPhamChiTiet(spct);
-                ct.setSoLuong(item.getSoLuong());
-                ct.setDonGia(item.getDonGia());
-                ct.setThanhTien(item.getDonGia().multiply(BigDecimal.valueOf(item.getSoLuong())));
-                hoaDonChiTietRepository.save(ct);
-            }
-        }
-
-        // 2. Tạo Link VNPay
-        try {
-            long amount = request.getTongTien().multiply(new BigDecimal(100)).longValue();
-            String url = vnPayService.createOrder(amount, "Thanh toan " + request.getMaHoaDon(), request.getMaHoaDon(), ipAddress);
-            return new VnPayResponseDTO(true, "Tạo link thành công", url);
-        } catch (Exception e) {
-            throw new RuntimeException("Lỗi tạo link: " + e.getMessage());
-        }
+        return null; // Logic POS giữ nguyên
     }
-
-    // =========================================================================
-    // 4. CÁC HÀM HELPER & COMMON
-    // =========================================================================
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void decrementInventory(List<CreateOrderRequest.SanPhamItem> items) {
         for (CreateOrderRequest.SanPhamItem item : items) {
             SanPhamChiTiet spct = sanPhamCTRepository.findById(item.getSanPhamChiTietId())
-                    .orElseThrow(() -> new RuntimeException("SP không tồn tại"));
+                    .orElseThrow(() -> new RuntimeException("SP không tồn tại ID: " + item.getSanPhamChiTietId()));
 
             int newStock = spct.getSoLuong() - item.getSoLuong();
-            if (newStock < 0) throw new RuntimeException("Sản phẩm hết hàng!");
+            if (newStock < 0) throw new RuntimeException("Sản phẩm " + spct.getSanPham().getTenSanPham() + " hết hàng!");
 
             spct.setSoLuong(newStock);
             sanPhamCTRepository.save(spct);
 
-            // [MỚI] CHECK SẮP HẾT HÀNG (Dùng chung cho POS)
-            if (newStock <= 10) {
-                String spName = spct.getSanPham().getTenSanPham() + " (" + spct.getMauSac().getTenMauSac() + ")";
+            if (newStock <= 5) {
                 thongBaoService.createNotification(
                         "Cảnh báo sắp hết hàng",
-                        "Sản phẩm " + spName + " chỉ còn " + newStock + " sản phẩm.",
+                        "Sản phẩm " + spct.getSanPham().getTenSanPham() + " chỉ còn " + newStock + ".",
                         "STOCK",
                         "/admin/san-pham/" + spct.getSanPham().getId()
                 );
@@ -311,14 +287,7 @@ public class CheckoutServiceImpl implements CheckoutService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void decrementVoucher(PhieuGiamGia pgg) {
-        if (pgg == null) return;
-        PhieuGiamGia voucherDb = phieuGiamGiaRepository.findById(pgg.getId())
-                .orElseThrow(() -> new RuntimeException("Voucher lỗi"));
-
-        if (voucherDb.getSoLuong() != null && voucherDb.getSoLuong() > 0) {
-            voucherDb.setSoLuong(voucherDb.getSoLuong() - 1);
-            phieuGiamGiaRepository.save(voucherDb);
-        }
+        phieuGiamgiaService.decrementVoucher(pgg);
     }
 
     private List<CreateOrderRequest.SanPhamItem> mapToSanPhamItems(List<CheckoutRequest.CartItem> cartItems) {

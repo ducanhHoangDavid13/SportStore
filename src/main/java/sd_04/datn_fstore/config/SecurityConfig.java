@@ -23,14 +23,32 @@ public class SecurityConfig {
 
     private final UserDetailsService userDetailsService;
 
+    // Trong file sd_04.datn_fstore.config.SecurityConfig.java
+// ...
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(request -> request
-                        .requestMatchers("/", "/styles/*", "/registration","/registration-view", "/api/notifications/**","/login", "/statistics", "/api/**").permitAll()
+                        .requestMatchers(
+                                "/",
+                                // Bổ sung đầy đủ các đường dẫn tài nguyên tĩnh:
+                                "/css/**",
+                                "/js/**",
+                                "/images/**",
+                                "/webjars/**",
+                                "/registration",
+                                "/registration-view",
+                                "/api/notifications/**",
+                                "/login",
+                                "/statistics",
+                                "/api/**",
+                                "/checkout/**"
+                        ).permitAll()
                         .anyRequest().authenticated()
                 )
+
                 .formLogin(form -> form
                         .loginPage("/login")
                         .defaultSuccessUrl("/redirect", true)
