@@ -215,4 +215,82 @@ public class PhieuGiamgiaService {
         // 3. Nếu còn số lượng + Trong khoảng thời gian -> Hoạt động
         return 0;
     }
+
+    // ==================== 5. LOGIC VALIDATE CHO CHECKOUT (QUAN TRỌNG) ====================
+
+    /**
+     * Hàm kiểm tra xem Voucher có dùng được cho đơn hàng hiện tại không
+     * Dùng cho API /api/checkout/calculate
+     */
+    public VoucherCheckResult kiemTraVoucherHople(String code, Double tongTienDonHang) {
+        // 1. Tìm voucher theo mã
+        Optional<PhieuGiamGia> voucherOpt = phieuGiamGiaRepository.findByMaPhieuGiamGia(code);
+
+        if (voucherOpt.isEmpty()) {
+            return new VoucherCheckResult(false, "Mã giảm giá không tồn tại.", 0.0);
+        }
+
+        PhieuGiamGia voucher = voucherOpt.get();
+        LocalDateTime now = LocalDateTime.now(VN_ZONE);
+
+        // 2. Check Trạng thái (0 là Active)
+        if (voucher.getTrangThai() != 0) {
+            return new VoucherCheckResult(false, "Mã giảm giá đã ngừng hoạt động hoặc hết hạn.", 0.0);
+        }
+
+        // 3. Check Số lượng (Double check cho chắc chắn)
+        if (voucher.getSoLuong() <= 0) {
+            return new VoucherCheckResult(false, "Mã giảm giá đã hết lượt sử dụng.", 0.0);
+        }
+
+        // 4. Check Thời gian (Chính xác từng giây)
+        if (now.isBefore(voucher.getNgayBatDau())) {
+            return new VoucherCheckResult(false, "Đợt giảm giá chưa bắt đầu.", 0.0);
+        }
+        if (voucher.getNgayKetThuc() != null && now.isAfter(voucher.getNgayKetThuc())) {
+            return new VoucherCheckResult(false, "Mã giảm giá đã hết hạn.", 0.0);
+        }
+
+        // 5. Check ĐIỀU KIỆN ĐƠN HÀNG TỐI THIỂU (Quan trọng)
+        Double dieuKien = voucher.getDieuKienGiamGia() != null ? voucher.getDieuKienGiamGia().doubleValue() : 0.0;
+        if (tongTienDonHang < dieuKien) {
+            return new VoucherCheckResult(false,
+                    "Đơn hàng phải từ " + formatCurrency(dieuKien) + " mới được dùng mã này.", 0.0);
+        }
+
+        // 6. Tính toán số tiền được giảm
+        Double soTienGiam = 0.0;
+
+        if (voucher.getHinhThucGiam() == 1) {
+            // TH1: Giảm tiền mặt (VND)
+            soTienGiam = voucher.getGiaTriGiam().doubleValue();
+        } else {
+            // TH2: Giảm phần trăm (%)
+            Double phanTram = voucher.getGiaTriGiam().doubleValue();
+            soTienGiam = tongTienDonHang * (phanTram / 100);
+
+            // Check số tiền giảm TỐI ĐA (Nếu có set Max Discount)
+            if (voucher.getSoTienGiam() != null) {
+                Double maxGiam = voucher.getSoTienGiam().doubleValue();
+                if (soTienGiam > maxGiam) {
+                    soTienGiam = maxGiam;
+                }
+            }
+        }
+
+        // Đảm bảo không giảm quá tiền đơn hàng (tránh âm tiền)
+        if (soTienGiam > tongTienDonHang) {
+            soTienGiam = tongTienDonHang;
+        }
+
+        return new VoucherCheckResult(true, "Áp dụng mã giảm giá thành công!", soTienGiam);
+    }
+
+    // Helper format tiền tệ cho thông báo lỗi đẹp
+    private String formatCurrency(Double amount) {
+        return String.format("%,.0f đ", amount);
+    }
+
+    // DTO Record để trả về kết quả
+    public record VoucherCheckResult(boolean isValid, String message, Double discountAmount) {}
 }
