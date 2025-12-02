@@ -39,30 +39,55 @@ public class BanHangServiceImpl implements BanHangService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public HoaDon thanhToanTienMat(CreateOrderRequest request) {
+        // 1. Validation
+        List<CreateOrderRequest.SanPhamItem> itemsList = request.getDanhSachSanPham();
+        if (itemsList == null || itemsList.isEmpty()) {
+            throw new IllegalArgumentException("Không thể thanh toán đơn hàng không có sản phẩm.");
+        }
+
         PhieuGiamGia pgg = getPhieuGiamGiaFromRequest(request);
 
+        // 2. Tạo hóa đơn tạm (Giá trị tiền lúc này chưa quan trọng, sẽ tính lại ở bước 4)
         HoaDon hoaDon = createHoaDonFromPayload(request, pgg);
-        hoaDon.setTrangThai(4); // 1 = Đã thanh toán / Chờ giao
-
+        hoaDon.setTrangThai(4); // Hoàn thành
+        hoaDon.setHinhThucBanHang(1); // Tại quầy
 
         HoaDon savedHoaDon = hoaDonRepository.save(hoaDon);
 
-        // SỬA: getItemsList() -> getDanhSachSanPham()
-        List<CreateOrderRequest.SanPhamItem> itemsList = request.getDanhSachSanPham();
-
+        // 3. Trừ kho
         decrementInventory(itemsList);
-        decrementVoucher(pgg);
-
-        for (CreateOrderRequest.SanPhamItem item : itemsList) {
-            saveHoaDonChiTiet(savedHoaDon, item);
+        if (pgg != null) {
+            decrementVoucher(pgg);
         }
 
-        String title = "Đơn hàng tại quầy";
-        String content = "Mã hóa đơn #" + savedHoaDon.getMaHoaDon() + " đã thanh toán thành công.";
-        String url = "/admin/hoa-don/detail/" + savedHoaDon.getId();
-        thongBaoService.createNotification(title, content, "ORDER", url);
+        // 4. [REAL-TIME] TÍNH LẠI TỔNG TIỀN TỪ DATABASE
+        BigDecimal totalReal = BigDecimal.ZERO;
 
-        return savedHoaDon;
+        for (CreateOrderRequest.SanPhamItem item : itemsList) {
+            // Hàm này lấy giá trực tiếp từ DB để lưu, bỏ qua giá từ Frontend
+            BigDecimal itemTotal = saveHoaDonChiTiet(savedHoaDon, item);
+            totalReal = totalReal.add(itemTotal);
+        }
+
+        // 5. Cập nhật lại Tổng tiền chuẩn vào Hóa Đơn
+        savedHoaDon.setTongTien(totalReal);
+
+        // Tính lại tiền giảm giá (Đảm bảo không âm tiền)
+        BigDecimal tienGiam = request.getTienGiamGia() != null ? request.getTienGiamGia() : BigDecimal.ZERO;
+        if (tienGiam.compareTo(totalReal) > 0) {
+            tienGiam = totalReal;
+        }
+
+        savedHoaDon.setTienGiamGia(tienGiam);
+        savedHoaDon.setTongTienSauGiam(totalReal.subtract(tienGiam));
+
+        // Lưu lần cuối để chốt giá đúng
+        HoaDon finalOrder = hoaDonRepository.save(savedHoaDon);
+
+        // 6. Thông báo
+        sendNotification(finalOrder);
+
+        return finalOrder;
     }
 
     @Override
@@ -71,41 +96,50 @@ public class BanHangServiceImpl implements BanHangService {
         PhieuGiamGia pgg = getPhieuGiamGiaFromRequest(request);
         HoaDon hoaDon = createHoaDonFromPayload(request, pgg);
 
-        // SỬA: getPaymentMethod() -> getPhuongThucThanhToan()
         String pttt = request.getPhuongThucThanhToan();
-
-        if ("VNPAY".equals(pttt)) {
-            hoaDon.setTrangThai(5); // Chờ VNPAY
-        } else if ("TRANSFER".equals(pttt) || "QR".equals(pttt)) {
-            hoaDon.setTrangThai(5); // Chờ Chuyển khoản
+        if ("VNPAY".equals(pttt) || "TRANSFER".equals(pttt) || "QR".equals(pttt)) {
+            hoaDon.setTrangThai(5);
         } else {
-            hoaDon.setTrangThai(0); // Lưu tạm
+            hoaDon.setTrangThai(0); // Treo đơn
         }
 
         HoaDon savedHoaDon = hoaDonRepository.save(hoaDon);
 
-        // SỬA: getDanhSachSanPham()
+        // [REAL-TIME] Tính lại tiền khi lưu tạm
+        BigDecimal totalReal = BigDecimal.ZERO;
         List<CreateOrderRequest.SanPhamItem> itemsList = request.getDanhSachSanPham();
 
-        for (CreateOrderRequest.SanPhamItem item : itemsList) {
-            saveHoaDonChiTiet(savedHoaDon, item);
+        if (itemsList != null) {
+            for (CreateOrderRequest.SanPhamItem item : itemsList) {
+                BigDecimal itemTotal = saveHoaDonChiTiet(savedHoaDon, item);
+                totalReal = totalReal.add(itemTotal);
+            }
         }
 
-        return savedHoaDon;
+        // Cập nhật lại giá đúng
+        savedHoaDon.setTongTien(totalReal);
+        BigDecimal tienGiam = request.getTienGiamGia() != null ? request.getTienGiamGia() : BigDecimal.ZERO;
+        if (tienGiam.compareTo(totalReal) > 0) tienGiam = totalReal;
+
+        savedHoaDon.setTienGiamGia(tienGiam);
+        savedHoaDon.setTongTienSauGiam(totalReal.subtract(tienGiam));
+
+        return hoaDonRepository.save(savedHoaDon);
     }
+
+    // --- CÁC HÀM KHÁC GIỮ NGUYÊN LOGIC ---
 
     @Override
     @Transactional(readOnly = true)
     public List<HoaDon> getDraftOrders() {
-        List<Integer> trangThais = List.of(0, 5);
-        return hoaDonRepository.findByTrangThaiInOrderByNgayTaoDesc(trangThais);
+        return hoaDonRepository.findByTrangThaiInOrderByNgayTaoDesc(List.of(0, 5));
     }
 
     @Override
     @Transactional(readOnly = true)
     public HoaDon getDraftOrderDetail(Integer id) {
         HoaDon hoaDon = hoaDonRepository.findByIdWithDetails(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy Hóa Đơn Tạm ID: " + id));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy Hóa Đơn ID: " + id));
         hoaDon.getHoaDonChiTiets().size();
         return hoaDon;
     }
@@ -113,21 +147,15 @@ public class BanHangServiceImpl implements BanHangService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public VnPayResponseDTO taoThanhToanVnPay(CreateOrderRequest request, String ipAddress) {
-
-        // SỬA: setPhuongThucThanhToan
         request.setPhuongThucThanhToan("VNPAY");
         HoaDon savedHoaDon = this.luuHoaDonTam(request);
 
         long amountInVNDcents = savedHoaDon.getTongTienSauGiam().multiply(new BigDecimal("100")).longValue();
-        String orderCode = savedHoaDon.getMaHoaDon();
-        String orderInfo = "Thanh toan don hang " + orderCode;
-
         try {
-            String paymentUrl = vnPayService.createOrder(amountInVNDcents, orderInfo, orderCode, ipAddress);
-            return new VnPayResponseDTO(true, "Tạo link VNPAY thành công", paymentUrl);
-
+            String paymentUrl = vnPayService.createOrder(amountInVNDcents, "Thanh toan " + savedHoaDon.getMaHoaDon(), savedHoaDon.getMaHoaDon(), ipAddress);
+            return new VnPayResponseDTO(true, "Success", paymentUrl);
         } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException("Lỗi khi tạo link VNPAY: " + e.getMessage());
+            throw new RuntimeException("Lỗi VNPAY: " + e.getMessage());
         }
     }
 
@@ -137,50 +165,33 @@ public class BanHangServiceImpl implements BanHangService {
         for (CreateOrderRequest.SanPhamItem item : items) {
             SanPhamChiTiet spct = sanPhamCTRepository.findById(item.getSanPhamChiTietId())
                     .orElseThrow(() -> new RuntimeException("Sản phẩm không tồn tại"));
-
             int soLuongMua = item.getSoLuong();
             int soLuongTon = spct.getSoLuong();
+            if (soLuongTon < soLuongMua)
+                throw new RuntimeException("Sản phẩm " + spct.getMaSanPhamChiTiet() + " không đủ hàng.");
 
-            if (soLuongTon < soLuongMua) {
-                throw new RuntimeException("Sản phẩm '" + spct.getSanPham().getTenSanPham() + "' không đủ hàng.");
-            }
-
-            int newStock = soLuongTon - soLuongMua;
-            spct.setSoLuong(newStock);
+            spct.setSoLuong(soLuongTon - soLuongMua);
             sanPhamCTRepository.save(spct);
-
-            // [3] GỬI THÔNG BÁO SẮP HẾT HÀNG (Low Stock Alert)
-            if (newStock <= 10) {
-                String spName = spct.getSanPham().getTenSanPham() + " (" + spct.getMauSac().getTenMauSac() + ")";
-                thongBaoService.createNotification(
-                        "Cảnh báo hết hàng",
-                        "Sản phẩm " + spName + " chỉ còn " + newStock + " sản phẩm.",
-                        "STOCK",
-                        "/admin/san-pham/" + spct.getSanPham().getId()
-                );
-            }
         }
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void decrementVoucher(PhieuGiamGia pgg) {
-        if (pgg == null) return;
-        phieuGiamgiaService.decrementVoucher(pgg);
+        if (pgg != null) phieuGiamgiaService.decrementVoucher(pgg);
     }
 
-    // --- CÁC HÀM TIỆN ÍCH (HELPER METHODS) ---
+    // --- HELPER METHODS ---
 
     private PhieuGiamGia getPhieuGiamGiaFromRequest(CreateOrderRequest request) {
         if (request.getPhieuGiamGiaId() != null) {
-            return phieuGiamGiaRepository.findById(request.getPhieuGiamGiaId())
-                    .orElse(null);
+            return phieuGiamGiaRepository.findById(request.getPhieuGiamGiaId()).orElse(null);
         }
         return null;
     }
 
-    // SỬA: Tham số Item -> SanPhamItem
-    private void saveHoaDonChiTiet(HoaDon savedHoaDon, CreateOrderRequest.SanPhamItem item) {
+    // [QUAN TRỌNG] HÀM NÀY ĐẢM BẢO LẤY GIÁ TỪ DB
+    private BigDecimal saveHoaDonChiTiet(HoaDon savedHoaDon, CreateOrderRequest.SanPhamItem item) {
         SanPhamChiTiet spct = sanPhamCTRepository.findById(item.getSanPhamChiTietId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy SPCT ID: " + item.getSanPhamChiTietId()));
 
@@ -188,49 +199,47 @@ public class BanHangServiceImpl implements BanHangService {
         hdct.setHoaDon(savedHoaDon);
         hdct.setSanPhamChiTiet(spct);
         hdct.setSoLuong(item.getSoLuong());
-        hdct.setDonGia(item.getDonGia());
-        hdct.setThanhTien(item.getDonGia().multiply(new BigDecimal(item.getSoLuong())));
+
+        // CHỐT: Lấy giá từ DB, bỏ qua giá từ Request
+        BigDecimal priceDB = spct.getGiaTien();
+        hdct.setDonGia(priceDB);
+
+        BigDecimal thanhTien = priceDB.multiply(new BigDecimal(item.getSoLuong()));
+        hdct.setThanhTien(thanhTien);
+
         hoaDonChiTietRepository.save(hdct);
+
+        return thanhTien; // Trả về để cộng tổng
     }
 
     private HoaDon createHoaDonFromPayload(CreateOrderRequest request, PhieuGiamGia pgg) {
         HoaDon hoaDon = new HoaDon();
-
-        // --- SỬA LỖI Ở ĐÂY ---
-        // 1. Kiểm tra null: Nếu request gửi lên null thì gán mặc định là 0
-        BigDecimal totalAmount = request.getTongTien() != null ? request.getTongTien() : BigDecimal.ZERO;
-        BigDecimal discountAmount = request.getTienGiamGia() != null ? request.getTienGiamGia() : BigDecimal.ZERO;
-
-        // 2. Tính toán lại: Tổng tiền hàng (Gốc) = Số tiền khách phải trả + Số tiền được giảm
-        BigDecimal subtotalAmount = totalAmount.add(discountAmount);
-
-        // Map dữ liệu
         hoaDon.setMaHoaDon(request.getMaHoaDon());
         hoaDon.setNgayTao(LocalDateTime.now(VN_ZONE));
 
-        // setTongTien = Tổng giá trị hàng (chưa trừ giảm giá)
-        hoaDon.setTongTien(subtotalAmount);
-        hoaDon.setTienGiamGia(discountAmount);
-        // setTongTienSauGiam = Khách phải trả
-        hoaDon.setTongTienSauGiam(totalAmount);
+        // Giá trị tạm thời (sẽ bị ghi đè bởi tính toán thực tế)
+        hoaDon.setTongTien(BigDecimal.ZERO);
+        hoaDon.setTienGiamGia(BigDecimal.ZERO);
+        hoaDon.setTongTienSauGiam(BigDecimal.ZERO);
 
         hoaDon.setPhieuGiamGia(pgg);
 
-        // 3. Xử lý Nhân viên
         if (request.getNhanVienId() != null) {
-            NhanVien nv = nhanVienRepository.findById(request.getNhanVienId())
-                    .orElseThrow(() -> new RuntimeException("Không tìm thấy Nhân Viên ID: " + request.getNhanVienId()));
-            hoaDon.setNhanVien(nv);
+            nhanVienRepository.findById(request.getNhanVienId()).ifPresent(hoaDon::setNhanVien);
         }
-
-        // 4. Xử lý Khách hàng (cho phép null nếu là khách lẻ)
-        Integer khachHangId = request.getKhachHangId();
-        if (khachHangId != null) {
-            KhachHang kh = khachHangRepository.findById(khachHangId).orElse(null);
-            hoaDon.setKhachHang(kh);
+        if (request.getKhachHangId() != null) {
+            khachHangRepository.findById(request.getKhachHangId()).ifPresent(hoaDon::setKhachHang);
         }
-
-        hoaDon.setHinhThucBanHang(1); // 1 = Tại quầy
+        hoaDon.setHinhThucBanHang(1);
         return hoaDon;
+    }
+
+    private void sendNotification(HoaDon hd) {
+        try {
+            String url = "/admin/hoa-don/detail/" + hd.getId();
+            thongBaoService.createNotification("Đơn hàng mới", "Thanh toán thành công " + hd.getMaHoaDon(), "ORDER", url);
+        } catch (Exception e) {
+            System.err.println("Lỗi gửi thông báo: " + e.getMessage());
+        }
     }
 }

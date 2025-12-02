@@ -30,6 +30,7 @@
         .modal-header.bg-primary { background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%) !important; }
         .modal-header.bg-warning { background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%) !important; color: white !important; }
         .error-message { color: #dc3545; font-size: 0.75rem; margin-top: 0.25rem; }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
@@ -37,6 +38,7 @@
 
 <div class="page-wrapper">
     <div th:replace="library/navbar :: admin-sidebar"></div>
+
     <main class="main-content pt-4 px-4">
 
         <div class="container-fluid">
@@ -90,14 +92,15 @@
                     <table class="table table-custom table-hover mb-0">
                         <thead>
                         <tr>
-                            <th data-sort-field="maPhieuGiamGia">Mã KM <i class="fas fa-sort text-muted float-end small mt-1"></i></th>
-                            <th data-sort-field="tenPhieuGiamGia">Tên KM <i class="fas fa-sort text-muted float-end small mt-1"></i></th>
-                            <th class="text-center">Số lượng</th>
+                            <th data-sort-field="maPhieuGiamGia">Mã KM</th>
+                            <th data-sort-field="tenPhieuGiamGia">Tên KM</th>
+                            <th class="text-center">SL</th>
                             <th class="text-end">Mức giảm</th>
+                            <th class="text-end">Tối đa</th>
                             <th class="text-end">Đơn tối thiểu</th>
-                            <th class="text-center" data-sort-field="ngayBatDau">Bắt đầu <i class="fas fa-sort text-muted float-end small mt-1"></i></th>
-                            <th class="text-center" data-sort-field="ngayKetThuc">Kết thúc <i class="fas fa-sort text-muted float-end small mt-1"></i></th>
-                            <th class="text-center" data-sort-field="trangThai">Trạng thái <i class="fas fa-sort text-muted float-end small mt-1"></i></th>
+                            <th class="text-center" data-sort-field="ngayBatDau">Bắt đầu</th>
+                            <th class="text-center" data-sort-field="ngayKetThuc">Kết thúc</th>
+                            <th class="text-center" data-sort-field="trangThai">Trạng thái</th>
                             <th class="text-center" style="width: 120px;">Thao tác</th>
                         </tr>
                         </thead>
@@ -122,16 +125,16 @@
                             <div class="row g-3">
                                 <div class="col-md-6">
                                     <label class="form-label fw-bold small">MÃ KHUYẾN MẠI <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" id="add_maPhieuGiamGia" required>
+                                    <input type="text" class="form-control" id="add_maPhieuGiamGia" required placeholder="VD: SALE50">
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label fw-bold small">TÊN KHUYẾN MẠI <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" id="add_tenPhieuGiamGia" required>
+                                    <input type="text" class="form-control" id="add_tenPhieuGiamGia" required placeholder="VD: Giảm 50% Black Friday">
                                 </div>
 
                                 <div class="col-md-6">
                                     <label class="form-label fw-bold small">HÌNH THỨC GIẢM <span class="text-danger">*</span></label>
-                                    <select class="form-select" id="add_hinhThucGiam">
+                                    <select class="form-select" id="add_hinhThucGiam" onchange="toggleDiscountType('add')">
                                         <option value="1">Giảm tiền mặt (VND)</option>
                                         <option value="2">Giảm phần trăm (%)</option>
                                     </select>
@@ -143,13 +146,21 @@
                                 </div>
 
                                 <div class="col-md-6">
-                                    <label class="form-label fw-bold small">GIÁ TRỊ GIẢM <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" id="add_soTienGiam" required>
+                                    <label class="form-label fw-bold small" id="lbl_add_giaTriGiam">GIÁ TRỊ GIẢM (VND) <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control currency-input" id="add_giaTriGiam" required>
                                 </div>
+
+                                <div class="col-md-6 hidden" id="group_add_maxDiscount">
+                                    <label class="form-label fw-bold small">GIẢM TỐI ĐA (VND) <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control currency-input" id="add_soTienGiam" placeholder="VD: 50.000">
+                                    <small class="text-muted" style="font-size: 0.75rem;">Giới hạn số tiền giảm tối đa cho đơn hàng</small>
+                                </div>
+
                                 <div class="col-md-6">
                                     <label class="form-label fw-bold small">ĐƠN TỐI THIỂU <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" id="add_dieuKienGiamGia" required>
+                                    <input type="text" class="form-control currency-input" id="add_dieuKienGiamGia" required placeholder="0">
                                 </div>
+
                                 <div class="col-md-6">
                                     <label class="form-label fw-bold small">NGÀY BẮT ĐẦU <span class="text-danger">*</span></label>
                                     <input type="date" class="form-control" id="add_ngayBatDau" required>
@@ -195,7 +206,7 @@
 
                                 <div class="col-md-6">
                                     <label class="form-label fw-bold small">HÌNH THỨC GIẢM</label>
-                                    <select class="form-select" id="edit_hinhThucGiam">
+                                    <select class="form-select" id="edit_hinhThucGiam" onchange="toggleDiscountType('edit')">
                                         <option value="1">Giảm tiền mặt (VND)</option>
                                         <option value="2">Giảm phần trăm (%)</option>
                                     </select>
@@ -205,18 +216,22 @@
                                     <label class="form-label fw-bold small">SỐ LƯỢNG</label>
                                     <input type="number" class="form-control" id="edit_soLuong" min="0" required>
                                 </div>
-                                <div class="col-md-12">
-                                    <label class="form-label fw-bold small">MÔ TẢ</label>
-                                    <textarea class="form-control" id="edit_moTa" rows="1"></textarea>
-                                </div>
+
                                 <div class="col-md-6">
-                                    <label class="form-label fw-bold small">GIÁ TRỊ GIẢM</label>
-                                    <input type="text" class="form-control" id="edit_soTienGiam" required>
+                                    <label class="form-label fw-bold small" id="lbl_edit_giaTriGiam">GIÁ TRỊ GIẢM</label>
+                                    <input type="text" class="form-control currency-input" id="edit_giaTriGiam" required>
                                 </div>
+
+                                <div class="col-md-6 hidden" id="group_edit_maxDiscount">
+                                    <label class="form-label fw-bold small">GIẢM TỐI ĐA (VND)</label>
+                                    <input type="text" class="form-control currency-input" id="edit_soTienGiam">
+                                </div>
+
                                 <div class="col-md-6">
                                     <label class="form-label fw-bold small">ĐƠN TỐI THIỂU</label>
-                                    <input type="text" class="form-control" id="edit_dieuKienGiamGia" required>
+                                    <input type="text" class="form-control currency-input" id="edit_dieuKienGiamGia" required>
                                 </div>
+
                                 <div class="col-md-6">
                                     <label class="form-label fw-bold small">NGÀY BẮT ĐẦU</label>
                                     <input type="date" class="form-control" id="edit_ngayBatDau" required>
@@ -224,6 +239,10 @@
                                 <div class="col-md-6">
                                     <label class="form-label fw-bold small">NGÀY KẾT THÚC</label>
                                     <input type="date" class="form-control" id="edit_ngayKetThuc" required>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label fw-bold small">MÔ TẢ</label>
+                                    <textarea class="form-control" id="edit_moTa" rows="2"></textarea>
                                 </div>
                             </div>
                         </form>
@@ -263,16 +282,47 @@
         return val ? parseFloat(val).toLocaleString('vi-VN') + ' ₫' : '0 ₫';
     }
 
+    function formatNumber(val) {
+        if (!val) return '0';
+        return parseInt(val).toLocaleString('vi-VN');
+    }
+
     function formatDateDisplay(dateStr) {
         if(!dateStr) return '-';
         const d = new Date(dateStr);
         return `${d.getDate().toString().padStart(2,'0')}/${(d.getMonth()+1).toString().padStart(2,'0')}/${d.getFullYear()}`;
     }
 
+    // Logic ẩn hiện ô nhập liệu dựa trên hình thức giảm
+    function toggleDiscountType(mode) {
+        const type = $(`#${mode}_hinhThucGiam`).val();
+        const maxDiscountGroup = $(`#group_${mode}_maxDiscount`);
+        const labelVal = $(`#lbl_${mode}_giaTriGiam`);
+        const inputVal = $(`#${mode}_giaTriGiam`);
+
+        if (type === "2") { // Giảm phần trăm
+            maxDiscountGroup.removeClass('hidden'); // Hiện ô giảm tối đa
+            labelVal.text('PHẦN TRĂM GIẢM (%)');
+            inputVal.attr('placeholder', 'VD: 10, 20...');
+            // Khi submit sẽ check logic <= 100
+        } else { // Giảm tiền mặt
+            maxDiscountGroup.addClass('hidden'); // Ẩn ô giảm tối đa
+            labelVal.text('SỐ TIỀN GIẢM (VND)');
+            inputVal.attr('placeholder', 'VD: 100.000');
+            $(`#${mode}_soTienGiam`).val(''); // Reset giá trị max discount
+        }
+    }
+
     $(document).ready(function() {
         const API_URL = '/api/phieu-giam-gia';
         const addModal = new bootstrap.Modal(document.getElementById('addPromotionModal'));
         const editModal = new bootstrap.Modal(document.getElementById('editPromotionModal'));
+
+        // Format tiền tệ khi nhập liệu
+        $(document).on('input', '.currency-input', function() {
+            let val = this.value.replace(/[^0-9]/g, '');
+            if(val) this.value = parseInt(val).toLocaleString('vi-VN');
+        });
 
         // Đồng bộ trạng thái khi load
         $.post(`${API_URL}/sync-status`).always(() => loadPromotions(0));
@@ -289,7 +339,7 @@
                 sortDir: $('#current-sort-dir').val()
             };
 
-            $('#promotion-table-body').html('<tr><td colspan="9" class="text-center py-4"><div class="spinner-border text-primary" role="status"></div></td></tr>');
+            $('#promotion-table-body').html('<tr><td colspan="10" class="text-center py-4"><div class="spinner-border text-primary" role="status"></div></td></tr>');
 
             $.ajax({
                 url: API_URL, type: 'GET', data: params,
@@ -298,20 +348,28 @@
                     renderPagination(res);
                 },
                 error: function() {
-                    $('#promotion-table-body').html('<tr><td colspan="9" class="text-center text-danger py-4">Lỗi tải dữ liệu</td></tr>');
+                    $('#promotion-table-body').html('<tr><td colspan="10" class="text-center text-danger py-4">Lỗi tải dữ liệu</td></tr>');
                 }
             });
         }
 
         function renderTable(list) {
             if(!list.length) {
-                $('#promotion-table-body').html('<tr><td colspan="9" class="text-center py-4 text-muted">Không có dữ liệu</td></tr>');
+                $('#promotion-table-body').html('<tr><td colspan="10" class="text-center py-4 text-muted">Không có dữ liệu</td></tr>');
                 return;
             }
             let html = '';
             list.forEach(p => {
-                // Kiểm tra xem backend trả về "giaTriGiam" hay "soTienGiam" để hiển thị cho đúng
-                let displayValue = p.giaTriGiam ? p.giaTriGiam : p.soTienGiam;
+                // Logic hiển thị cột Mức giảm
+                let discountDisplay = '';
+                if (p.hinhThucGiam === 2) {
+                    discountDisplay = `<span class="fw-bold text-danger">${p.giaTriGiam}%</span>`;
+                } else {
+                    discountDisplay = `<span class="fw-bold text-success">${formatCurrencyDisplay(p.giaTriGiam)}</span>`;
+                }
+
+                // Logic hiển thị cột Tối đa (chỉ hiện nếu là %)
+                let maxDiscountDisplay = (p.hinhThucGiam === 2 && p.soTienGiam) ? formatCurrencyDisplay(p.soTienGiam) : '-';
 
                 let actionBtn = '';
                 if (p.trangThai === 1) {
@@ -325,7 +383,8 @@
                     <td class="fw-bold text-primary">#${p.maPhieuGiamGia}</td>
                     <td class="fw-semibold">${p.tenPhieuGiamGia}</td>
                     <td class="text-center fw-bold text-dark">${p.soLuong}</td>
-                    <td class="text-end fw-bold text-success">${formatCurrencyDisplay(displayValue)}</td>
+                    <td class="text-end">${discountDisplay}</td>
+                    <td class="text-end text-muted small">${maxDiscountDisplay}</td>
                     <td class="text-end text-muted small">${formatCurrencyDisplay(p.dieuKienGiamGia)}</td>
                     <td class="text-center small">${formatDateDisplay(p.ngayBatDau)}</td>
                     <td class="text-center small">${formatDateDisplay(p.ngayKetThuc)}</td>
@@ -363,13 +422,21 @@
             if(!$(this).parent().hasClass('disabled')) loadPromotions($(this).data('page'));
         });
 
-        // --- XỬ LÝ THÊM MỚI (ĐÃ SỬA LỖI ID) ---
+        // --- XỬ LÝ THÊM MỚI ---
         $('#addPromotionForm').on('submit', function(e) {
             e.preventDefault();
 
-            // 1. Lấy đúng ID của form THÊM MỚI (add_)
-            const rawGiaTri = $('#add_soTienGiam').val().replace(/[^0-9]/g,'');
+            // Loại bỏ dấu chấm để lấy số nguyên
+            const rawGiaTri = $('#add_giaTriGiam').val().replace(/[^0-9]/g,'');
             const rawDieuKien = $('#add_dieuKienGiamGia').val().replace(/[^0-9]/g,'');
+            const rawMaxDiscount = $('#add_soTienGiam').val().replace(/[^0-9]/g,'') || '0';
+            const hinhThuc = parseInt($('#add_hinhThucGiam').val());
+
+            // Validate sơ bộ
+            if (hinhThuc === 2 && parseFloat(rawGiaTri) > 100) {
+                toastr.warning("Phần trăm giảm không được quá 100%");
+                return;
+            }
 
             const data = {
                 maPhieuGiamGia: $('#add_maPhieuGiamGia').val(),
@@ -377,42 +444,27 @@
                 moTa: $('#add_moTa').val(),
                 soLuong: parseInt($('#add_soLuong').val()),
 
-                // Gửi đúng key: hinhThucGiam và giaTriGiam
-                hinhThucGiam: parseInt($('#add_hinhThucGiam').val()), // Lấy từ form ADD
-                giaTriGiam: parseFloat(rawGiaTri),                    // Lấy từ form ADD
+                hinhThucGiam: hinhThuc,
+                giaTriGiam: parseFloat(rawGiaTri), // Giá trị (tiền hoặc %)
+                soTienGiam: parseFloat(rawMaxDiscount), // Max Discount (nếu là %)
 
                 dieuKienGiamGia: parseFloat(rawDieuKien),
                 ngayBatDau: $('#add_ngayBatDau').val() + 'T00:00:00',
                 ngayKetThuc: $('#add_ngayKetThuc').val() + 'T23:59:59'
             };
 
-            console.log("Sending Create Data:", data);
-
             $.ajax({
-                url: API_URL,
-                type: 'POST',
-                contentType: 'application/json',
-                data: JSON.stringify(data),
-                success: () => {
-                    toastr.success('Thêm thành công');
-                    addModal.hide();
-                    $('#addPromotionForm')[0].reset();
-                    loadPromotions(0);
-                },
+                url: API_URL, type: 'POST', contentType: 'application/json', data: JSON.stringify(data),
+                success: () => { toastr.success('Thêm thành công'); addModal.hide(); $('#addPromotionForm')[0].reset(); loadPromotions(0); },
                 error: (err) => {
-                    console.error(err);
                     let msg = err.responseJSON?.message || 'Lỗi thêm mới';
-                    if(err.responseJSON?.errors) {
-                        // Hiển thị chi tiết lỗi validate từ backend
-                        let detail = Object.values(err.responseJSON.errors).join(", ");
-                        msg += ": " + detail;
-                    }
+                    if(err.responseJSON?.errors) msg += ": " + Object.values(err.responseJSON.errors).join(", ");
                     toastr.error(msg);
                 }
             });
         });
 
-        // --- XỬ LÝ LOAD DỮ LIỆU SỬA (ĐÃ SỬA LỖI) ---
+        // --- XỬ LÝ LOAD DỮ LIỆU SỬA ---
         $(document).on('click', '.edit-btn', function() {
             const id = $(this).data('id');
             $.get(`${API_URL}/${id}`, function(res) {
@@ -422,14 +474,15 @@
                 $('#edit_soLuong').val(res.soLuong);
                 $('#edit_moTa').val(res.moTa);
 
-                // Load hình thức giảm
+                // Load hình thức giảm & Trigger UI
                 $('#edit_hinhThucGiam').val(res.hinhThucGiam);
+                toggleDiscountType('edit');
 
-                // Load giá trị giảm (dùng giaTriGiam từ backend)
-                let valGiam = res.giaTriGiam ? res.giaTriGiam : res.soTienGiam;
-                $('#edit_soTienGiam').val(valGiam.toLocaleString('vi-VN'));
+                // Load giá trị
+                $('#edit_giaTriGiam').val(formatNumber(res.giaTriGiam));
+                $('#edit_soTienGiam').val(formatNumber(res.soTienGiam)); // Load max discount
+                $('#edit_dieuKienGiamGia').val(formatNumber(res.dieuKienGiamGia));
 
-                $('#edit_dieuKienGiamGia').val(res.dieuKienGiamGia.toLocaleString('vi-VN'));
                 $('#edit_ngayBatDau').val(res.ngayBatDau.substring(0,10));
                 $('#edit_ngayKetThuc').val(res.ngayKetThuc.substring(0,10));
 
@@ -437,13 +490,20 @@
             });
         });
 
-        // --- XỬ LÝ SUBMIT SỬA (ĐÃ SỬA KEY) ---
+        // --- XỬ LÝ SUBMIT SỬA ---
         $('#editPromotionForm').on('submit', function(e) {
             e.preventDefault();
             const id = $('#edit_promotionId').val();
 
-            const rawGiaTri = $('#edit_soTienGiam').val().replace(/[^0-9]/g,'');
+            const rawGiaTri = $('#edit_giaTriGiam').val().replace(/[^0-9]/g,'');
             const rawDieuKien = $('#edit_dieuKienGiamGia').val().replace(/[^0-9]/g,'');
+            const rawMaxDiscount = $('#edit_soTienGiam').val().replace(/[^0-9]/g,'') || '0';
+            const hinhThuc = parseInt($('#edit_hinhThucGiam').val());
+
+            if (hinhThuc === 2 && parseFloat(rawGiaTri) > 100) {
+                toastr.warning("Phần trăm giảm không được quá 100%");
+                return;
+            }
 
             const data = {
                 maPhieuGiamGia: $('#edit_maPhieuGiamGia').val(),
@@ -451,9 +511,9 @@
                 moTa: $('#edit_moTa').val(),
                 soLuong: parseInt($('#edit_soLuong').val()),
 
-                // Gửi đúng key hinhThucGiam và giaTriGiam
-                hinhThucGiam: parseInt($('#edit_hinhThucGiam').val()),
+                hinhThucGiam: hinhThuc,
                 giaTriGiam: parseFloat(rawGiaTri),
+                soTienGiam: parseFloat(rawMaxDiscount),
 
                 dieuKienGiamGia: parseFloat(rawDieuKien),
                 ngayBatDau: $('#edit_ngayBatDau').val() + 'T00:00:00',
@@ -465,15 +525,13 @@
                 success: () => { toastr.success('Cập nhật thành công'); editModal.hide(); loadPromotions($('#current-page').val()); },
                 error: (err) => {
                     let msg = err.responseJSON?.message || 'Lỗi cập nhật';
-                    if(err.responseJSON?.errors) {
-                        msg += ": " + Object.values(err.responseJSON.errors).join(", ");
-                    }
+                    if(err.responseJSON?.errors) msg += ": " + Object.values(err.responseJSON.errors).join(", ");
                     toastr.error(msg);
                 }
             });
         });
 
-        // Toggle Status (Dừng/Kích hoạt)
+        // Toggle Status
         $(document).on('click', '.toggle-status-btn', function() {
             const id = $(this).data('id');
             const current = $(this).data('current');
@@ -486,12 +544,6 @@
                     error: (err) => toastr.error(err.responseJSON?.message || 'Lỗi cập nhật')
                 });
             }
-        });
-
-        // Format Input Currency
-        $('input[id$="soTienGiam"], input[id$="dieuKienGiamGia"]').on('input', function() {
-            let val = this.value.replace(/[^0-9]/g, '');
-            if(val) this.value = parseInt(val).toLocaleString('vi-VN');
         });
     });
 </script>

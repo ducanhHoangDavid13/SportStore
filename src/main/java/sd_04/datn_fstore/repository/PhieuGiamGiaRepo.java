@@ -72,11 +72,11 @@ public interface PhieuGiamGiaRepo extends JpaRepository<PhieuGiamGia, Integer> {
      * Lấy các voucher đang HOẠT ĐỘNG (0), còn lượt dùng, và trong thời gian
      * Dùng cho PhieuGiamgiaService.getActive()
      */
-    @Query("SELECT p FROM PhieuGiamGia p WHERE p.trangThai = 0 " +
-            "AND (p.soLuong IS NULL OR p.soLuong > 0) " +
-            "AND p.ngayBatDau <= :now " +
-            "AND (p.ngayKetThuc IS NULL OR p.ngayKetThuc >= :now)")
-    List<PhieuGiamGia> findActiveVouchers(@Param("now") LocalDateTime now);
-
+// Trong PhieuGiamGiaRepo.java
+    @Query("SELECT v FROM PhieuGiamGia v WHERE v.trangThai = 1 " +
+            "AND v.soLuong > 0 " +
+            "AND v.ngayBatDau <= CURRENT_TIMESTAMP " +
+            "AND (v.ngayKetThuc IS NULL OR v.ngayKetThuc >= CURRENT_TIMESTAMP)")
+    List<PhieuGiamGia> findAllActiveVouchers();
 
 }

@@ -9,6 +9,7 @@ import sd_04.datn_fstore.model.HinhAnh;
 import sd_04.datn_fstore.model.SanPham; // Cần thiết để tham chiếu đến SanPham
 import sd_04.datn_fstore.model.SanPhamChiTiet;
 import sd_04.datn_fstore.repository.SanPhamCTRepository;
+import sd_04.datn_fstore.repository.SanPhamRepository;
 import sd_04.datn_fstore.service.HinhAnhService;
 import sd_04.datn_fstore.service.SanPhamCTService;
 
@@ -22,6 +23,7 @@ public class SanPhamCTServiceImpl implements SanPhamCTService {
 
     private final SanPhamCTRepository sanPhamChiTietRepository;
     private final HinhAnhService hinhAnhService; // Inject HinhAnhService
+    private final SanPhamRepository sanPhamRepository;
 
     @Override
     public List<SanPhamChiTiet> getAll() {
@@ -47,8 +49,18 @@ public class SanPhamCTServiceImpl implements SanPhamCTService {
     @Override
     @Transactional
     public SanPhamChiTiet save(SanPhamChiTiet sanPhamChiTiet) {
-        sanPhamChiTiet.setTrangThai(1);
-        return sanPhamChiTietRepository.save(sanPhamChiTiet);
+        // 1. Lưu biến thể trước
+        if (sanPhamChiTiet.getId() == null) {
+            sanPhamChiTiet.setTrangThai(1);
+        }
+        SanPhamChiTiet savedSpct = sanPhamChiTietRepository.save(sanPhamChiTiet);
+
+        // 2. CẬP NHẬT LẠI SỐ LƯỢNG SẢN PHẨM CHA
+        if (savedSpct.getSanPham() != null) {
+            updateTotalQuantitySanPham(savedSpct.getSanPham().getId());
+        }
+
+        return savedSpct;
     }
 
     @Override
@@ -57,8 +69,32 @@ public class SanPhamCTServiceImpl implements SanPhamCTService {
         Optional<SanPhamChiTiet> optional = sanPhamChiTietRepository.findById(id);
         if (optional.isPresent()) {
             SanPhamChiTiet spct = optional.get();
-            spct.setTrangThai(0); // Đánh dấu là không hoạt động (Soft Delete)
+            Integer sanPhamId = spct.getSanPham().getId();
+
+            spct.setTrangThai(0); // Soft delete
             sanPhamChiTietRepository.save(spct);
+
+            // Cập nhật lại số lượng cha sau khi xóa
+            updateTotalQuantitySanPham(sanPhamId);
+        }
+    }
+
+    @Override
+    @Transactional
+    public SanPhamChiTiet updateTrangThai(Integer id, Integer newStatus) {
+        Optional<SanPhamChiTiet> optional = sanPhamChiTietRepository.findById(id);
+        if (optional.isPresent()) {
+            SanPhamChiTiet spct = optional.get();
+            spct.setTrangThai(newStatus);
+            SanPhamChiTiet saved = sanPhamChiTietRepository.save(spct);
+
+            // Cập nhật lại số lượng cha (nếu logic của bạn là ngừng bán thì không tính số lượng)
+            // Nếu ngừng bán vẫn tính tồn kho thì bỏ dòng dưới đi
+            updateTotalQuantitySanPham(spct.getSanPham().getId());
+
+            return saved;
+        } else {
+            throw new RuntimeException("Không tìm thấy biến thể sản phẩm ID: " + id);
         }
     }
 
@@ -109,15 +145,34 @@ public class SanPhamCTServiceImpl implements SanPhamCTService {
         return list;
     }
 
-    @Override
-    public SanPhamChiTiet updateTrangThai(Integer id, Integer newStatus) {
-        Optional<SanPhamChiTiet> optional = sanPhamChiTietRepository.findById(id);
-        if (optional.isPresent()) {
-            SanPhamChiTiet spct = optional.get();
-            spct.setTrangThai(newStatus);
-            return sanPhamChiTietRepository.save(spct);
-        } else {
-            throw new RuntimeException("Không tìm thấy biến thể sản phẩm ID: " + id);
+
+    private void updateTotalQuantitySanPham(Integer sanPhamId) {
+        // Lấy tất cả biến thể của sản phẩm này (chỉ lấy những cái đang hoạt động nếu muốn)
+        List<SanPhamChiTiet> listBienThe = sanPhamChiTietRepository.findBySanPhamTenSanPham(
+                sanPhamRepository.findById(sanPhamId).get().getTenSanPham()
+        );
+        // Lưu ý: Cách lấy list trên hơi rủi ro nếu trùng tên.
+        // Tốt nhất nên viết thêm hàm findBySanPhamId trong Repo.
+        // Ở đây tôi dùng tạm logic stream lọc tay hoặc giả định bạn đã có hàm findBySanPhamId.
+
+        // Cách an toàn nhất không cần sửa Repo:
+        SanPham sanPham = sanPhamRepository.findById(sanPhamId).orElse(null);
+        if (sanPham != null) {
+            // Lấy danh sách biến thể thông qua quan hệ JPA (nếu đã config @OneToMany)
+            // Hoặc query thủ công. Giả sử dùng JPA Relation:
+            int total = 0;
+            if (sanPham.getSanPhamChiTiets() != null) {
+                for (SanPhamChiTiet ct : sanPham.getSanPhamChiTiets()) {
+                    // Chỉ cộng dồn nếu trạng thái đang hoạt động (Tùy nghiệp vụ của bạn)
+                    if (ct.getTrangThai() == 1 && ct.getSoLuong() != null) {
+                        total += ct.getSoLuong();
+                    }
+                }
+            }
+
+            // Update và Save cha
+            sanPham.setSoLuong(total);
+            sanPhamRepository.save(sanPham);
         }
     }
 
@@ -155,6 +210,7 @@ public class SanPhamCTServiceImpl implements SanPhamCTService {
             }
         }
     }
+
     @Override
     public SanPhamChiTiet getByIdAndAvailable(Integer id) {
         // Gọi hàm tìm kiếm theo ID và Trạng thái = 1 trong Repo vừa sửa

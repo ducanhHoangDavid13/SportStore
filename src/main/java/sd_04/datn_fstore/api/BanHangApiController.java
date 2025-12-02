@@ -63,58 +63,58 @@ public class BanHangApiController {
     /**
      * API 3: Tạo Link VNPAY
      */
-    @PostMapping("/tao-thanh-toan-vnpay")
-    public ResponseEntity<?> createVnPayPayment(@RequestBody CreateOrderRequest request,
-                                                HttpServletRequest httpReq) {
-        try {
-            String clientIp = getClientIp(httpReq);
-            VnPayResponseDTO response = banHangService.taoThanhToanVnPay(request, clientIp);
-            return ResponseEntity.ok(response);
-
-        } catch (Exception e) {
-            VnPayResponseDTO errorResponse = new VnPayResponseDTO(false, e.getMessage(), null);
-            return ResponseEntity.badRequest().body(errorResponse);
-        }
-    }
-
-    /**
-     * API 4: Callback/IPN từ VNPAY sau khi thanh toán xong
-     */
-    @GetMapping("/vnpay-callback")
-    public ResponseEntity<?> handleVnPayCallback(HttpServletRequest request) {
-        // Lấy toàn bộ tham số trả về từ VNPAY
-        Map<String, String> vnpParams = request.getParameterMap().entrySet().stream()
-                .filter(entry -> entry.getKey().startsWith("vnp_"))
-                .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        entry -> entry.getValue()[0]
-                ));
-
-        String secureHash = request.getParameter("vnp_SecureHash");
-        if (secureHash != null) {
-            vnpParams.put("vnp_SecureHash", secureHash);
-        }
-
-        try {
-            // Gọi Service xử lý (Kiểm tra hash, cập nhật trạng thái đơn, trừ kho)
-            int result = vnPayService.orderReturn(vnpParams);
-
-            String message;
-            if (result == 1) {
-                message = "Giao dịch thành công.";
-            } else if (result == 0) {
-                message = "Giao dịch thất bại (Không đủ tiền, hủy ngang...).";
-            } else {
-                message = "Lỗi xác thực hoặc lỗi hệ thống.";
-            }
-
-            return ResponseEntity.ok(Map.of("code", result, "message", message));
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.internalServerError().body(Map.of("message", "Lỗi xử lý callback: " + e.getMessage()));
-        }
-    }
+//    @PostMapping("/tao-thanh-toan-vnpay")
+//    public ResponseEntity<?> createVnPayPayment(@RequestBody CreateOrderRequest request,
+//                                                HttpServletRequest httpReq) {
+//        try {
+//            String clientIp = getClientIp(httpReq);
+//            VnPayResponseDTO response = banHangService.taoThanhToanVnPay(request, clientIp);
+//            return ResponseEntity.ok(response);
+//
+//        } catch (Exception e) {
+//            VnPayResponseDTO errorResponse = new VnPayResponseDTO(false, e.getMessage(), null);
+//            return ResponseEntity.badRequest().body(errorResponse);
+//        }
+//    }
+//
+//    /**
+//     * API 4: Callback/IPN từ VNPAY sau khi thanh toán xong
+//     */
+//    @GetMapping("/vnpay-callback")
+//    public ResponseEntity<?> handleVnPayCallback(HttpServletRequest request) {
+//        // Lấy toàn bộ tham số trả về từ VNPAY
+//        Map<String, String> vnpParams = request.getParameterMap().entrySet().stream()
+//                .filter(entry -> entry.getKey().startsWith("vnp_"))
+//                .collect(Collectors.toMap(
+//                        Map.Entry::getKey,
+//                        entry -> entry.getValue()[0]
+//                ));
+//
+//        String secureHash = request.getParameter("vnp_SecureHash");
+//        if (secureHash != null) {
+//            vnpParams.put("vnp_SecureHash", secureHash);
+//        }
+//
+//        try {
+//            // Gọi Service xử lý (Kiểm tra hash, cập nhật trạng thái đơn, trừ kho)
+//            int result = vnPayService.orderReturn(vnpParams);
+//
+//            String message;
+//            if (result == 1) {
+//                message = "Giao dịch thành công.";
+//            } else if (result == 0) {
+//                message = "Giao dịch thất bại (Không đủ tiền, hủy ngang...).";
+//            } else {
+//                message = "Lỗi xác thực hoặc lỗi hệ thống.";
+//            }
+//
+//            return ResponseEntity.ok(Map.of("code", result, "message", message));
+//
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            return ResponseEntity.internalServerError().body(Map.of("message", "Lỗi xử lý callback: " + e.getMessage()));
+//        }
+//    }
 
     // API lấy danh sách hóa đơn tạm (Cho bán hàng tại quầy)
     @GetMapping("/hoa-don-tam")
@@ -139,22 +139,22 @@ public class BanHangApiController {
     }
 
     // --- API QUÉT MÃ VẠCH (SCAN) ---
-    @GetMapping("/scan/{id}")
-    public ResponseEntity<?> scanProductById(@PathVariable("id") Integer id) {
-        try {
-            // Gọi xuống Service (Hàm getByIdAndAvailable bạn vừa thêm ở bước trước)
-            SanPhamChiTiet spct = sanPhamCTService.getByIdAndAvailable(id);
-
-            if (spct != null) {
-                return ResponseEntity.ok(spct);
-            } else {
-                // Trả về 404 nếu không tìm thấy hoặc sp đã ngừng kinh doanh
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body("Không tìm thấy sản phẩm hoặc sản phẩm đã ngừng kinh doanh");
-            }
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Lỗi khi quét sản phẩm: " + e.getMessage());
-        }
-    }
+//    @GetMapping("/scan/{id}")
+//    public ResponseEntity<?> scanProductById(@PathVariable("id") Integer id) {
+//        try {
+//            // Gọi xuống Service (Hàm getByIdAndAvailable bạn vừa thêm ở bước trước)
+//            SanPhamChiTiet spct = sanPhamCTService.getByIdAndAvailable(id);
+//
+//            if (spct != null) {
+//                return ResponseEntity.ok(spct);
+//            } else {
+//                // Trả về 404 nếu không tìm thấy hoặc sp đã ngừng kinh doanh
+//                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+//                        .body("Không tìm thấy sản phẩm hoặc sản phẩm đã ngừng kinh doanh");
+//            }
+//        } catch (Exception e) {
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+//                    .body("Lỗi khi quét sản phẩm: " + e.getMessage());
+//        }
+//    }
 }

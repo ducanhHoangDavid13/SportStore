@@ -13,4 +13,5 @@ public interface ThongBaoService {
 
     // Đánh dấu đã đọc
     void markAsRead(Integer id);
+    void markAllAsRead();
 }

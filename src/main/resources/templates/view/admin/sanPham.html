@@ -213,10 +213,7 @@
                                     <label class="form-label fw-bold small">GIÁ BÁN (VNĐ) <span class="text-danger">*</span></label>
                                     <input type="number" class="form-control" id="newGiaTien" min="0" required>
                                 </div>
-                                <div class="col-md-6">
-                                    <label class="form-label fw-bold small">SỐ LƯỢNG <span class="text-danger">*</span></label>
-                                    <input type="number" class="form-control" id="newSoLuong" min="0" required>
-                                </div>
+
                                 <div class="col-12">
                                     <label class="form-label fw-bold small">MÔ TẢ</label>
                                     <textarea class="form-control" id="newMoTa" rows="2"></textarea>
@@ -410,7 +407,7 @@
                     <td class="text-center"><img src="${imgUrl}" class="product-thumb" onerror="this.src='https://via.placeholder.com/50x50?text=Error'"></td>
                     <td class="fw-semibold">${sp.tenSanPham}</td>
                     <td class="text-end fw-bold text-dark">${formatCurrency(sp.giaTien)}</td>
-                    <td class="text-center">${sp.soLuong}</td>
+                    <td class="text-center" readonly class="border-0 bg-transparent text-center">${sp.soLuong}</td>
                     <td class="text-center">${renderStatusBadge(sp.trangThai)}</td>
                     <td class="text-center small text-muted">${dateStr}</td>
                     <td class="text-center">
@@ -474,7 +471,6 @@
                 maSanPham: $('#newMaSanPham').val().trim(),
                 tenSanPham: $('#newTenSanPham').val().trim(),
                 giaTien: parseFloat($('#newGiaTien').val()),
-                soLuong: parseInt($('#newSoLuong').val()),
                 moTa: $('#newMoTa').val().trim(),
                 trangThai: parseInt($('#newTrangThaiSelect').val())
             };
@@ -542,7 +538,6 @@
                 maSanPham: $('#editMaSanPham').val(),
                 tenSanPham: $('#editTenSanPham').val(),
                 giaTien: parseFloat($('#editGiaTien').val()),
-                soLuong: parseInt($('#editSoLuong').val()),
                 moTa: $('#editMoTa').val(),
                 trangThai: parseInt($('#editTrangThaiSelect').val())
             };

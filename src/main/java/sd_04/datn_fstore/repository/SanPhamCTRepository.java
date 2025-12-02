@@ -151,7 +151,12 @@ public interface SanPhamCTRepository extends JpaRepository<SanPhamChiTiet, Integ
     Integer countBySoLuongLessThanEqual(Integer threshold);
 
     // Tìm sản phẩm có số lượng nhỏ hơn hoặc bằng ngưỡng
-    List<SanPhamChiTiet> findBySoLuongLessThanEqual(Integer soLuong);
+    @Query("SELECT spct FROM SanPhamChiTiet spct " +
+            "JOIN FETCH spct.sanPham " +
+            "JOIN FETCH spct.mauSac " +
+            "JOIN FETCH spct.kichThuoc " +
+            "WHERE spct.soLuong <= :threshold")
+    List<SanPhamChiTiet> findBySoLuongLessThanEqual(@Param("threshold") Integer threshold);
 
     // Top bán chạy (Đã có trong code cũ của bạn, đảm bảo có @Query đúng)
 //    @Query("SELECT new sd_04.datn_fstore.dto.TopProductDTO(...) ... ORDER BY SUM(hdct.soLuong) DESC")
