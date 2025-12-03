@@ -90,4 +90,9 @@ public class SanPhamChiTiet {
     @JsonIgnore
     @OneToMany(mappedBy = "sanPhamChiTiet", fetch = FetchType.LAZY)
     private List<HoaDonChiTiet> hoaDonChiTiets;
+    // Trong file SanPhamChiTiet.java
+    // Sửa lại đoạn cuối thành thế này:
+    public BigDecimal getDonGia() {
+        return this.giaTien; // Trả về giá của chính biến thể này (Size/Màu này)
+    }
 }

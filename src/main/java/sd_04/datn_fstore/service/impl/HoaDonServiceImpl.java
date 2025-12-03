@@ -89,5 +89,26 @@ public class HoaDonServiceImpl implements HoaDonService {
     public List<HoaDon> getByDateRange(LocalDateTime startTime, LocalDateTime endTime) {
         return hoaDonRepository.findByNgayTaoBetweenOrderByNgayTaoDesc(startTime, endTime);
     }
+    @Override
+    @Transactional // Quan trọng: Đảm bảo tính toàn vẹn dữ liệu
+    public void deleteByMaHoaDon(String maHoaDon) {
+        // Bước 1: Kiểm tra xem hóa đơn có tồn tại không
+        HoaDon hoaDon = hoaDonRepository.findByMaHoaDon(maHoaDon)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn có mã: " + maHoaDon));
 
+        // Bước 2: Kiểm tra điều kiện (Optional)
+        // Ví dụ: Chỉ cho xóa nếu là hóa đơn chờ (chưa thanh toán)
+        if (hoaDon.getTrangThai() == 1) { // Giả sử 1 là đã thanh toán
+            throw new RuntimeException("Không thể xóa hóa đơn đã thanh toán!");
+        }
+
+        // Bước 3: Xóa hóa đơn
+        // Nếu trong Entity bạn đã cấu hình CascadeType.ALL hoặc CascadeType.REMOVE
+        // thì Hóa đơn chi tiết sẽ tự động bị xóa theo.
+        hoaDonRepository.delete(hoaDon);
+
+        // Nếu không cấu hình Cascade, bạn phải xóa chi tiết trước:
+        // hoaDonChiTietRepository.deleteByHoaDonId(hoaDon.getId());
+        // hoaDonRepository.delete(hoaDon);
+    }
 }

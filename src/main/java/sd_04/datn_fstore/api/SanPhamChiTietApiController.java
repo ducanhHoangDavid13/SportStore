@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.*;
 import sd_04.datn_fstore.model.SanPhamChiTiet;
 import sd_04.datn_fstore.service.SanPhamCTService;
 
-import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,7 +23,7 @@ public class SanPhamChiTietApiController {
 
     private final SanPhamCTService sanPhamCTService;
 
-    // API tìm kiếm / lọc
+    // API tìm kiếm / lọc (ĐÃ BỎ minPrice, maxPrice)
     @GetMapping
     public ResponseEntity<Page<SanPhamChiTiet>> search(
             Pageable pageable,
@@ -35,19 +34,16 @@ public class SanPhamChiTietApiController {
             @RequestParam(required = false) Integer idChatLieu,
             @RequestParam(required = false) Integer idMauSac,
             @RequestParam(required = false) Integer idTheLoai,
-            @RequestParam(required = false) BigDecimal minPrice,
-            @RequestParam(required = false) BigDecimal maxPrice,
             @RequestParam(required = false) Integer trangThai,
             @RequestParam(required = false) String keyword
     ) {
         Page<SanPhamChiTiet> spctPage = sanPhamCTService.search(
                 pageable, idSanPham, idKichThuoc, idChatLieu, idTheLoai,
-                idXuatXu, idMauSac, idPhanLoai, minPrice, maxPrice, trangThai, keyword
+                idXuatXu, idMauSac, idPhanLoai, trangThai, keyword
         );
         return ResponseEntity.ok(spctPage);
     }
 
-    // API Thêm mới biến thể
     @PostMapping
     public ResponseEntity<?> addVariant(@RequestBody SanPhamChiTiet sanPhamChiTiet) {
         try {
@@ -60,6 +56,7 @@ public class SanPhamChiTietApiController {
                     .body("Thêm mới thất bại: " + e.getMessage());
         }
     }
+
     @PutMapping("/{id}/trang-thai")
     public ResponseEntity<?> updateTrangThai(
             @PathVariable("id") Integer id,
@@ -75,11 +72,9 @@ public class SanPhamChiTietApiController {
         }
     }
 
-    // API Cập nhật biến thể
     @PutMapping("/{id}")
     public ResponseEntity<?> updateVariant(@PathVariable Integer id,
                                            @RequestBody SanPhamChiTiet dataTuJavaScript) {
-
         Optional<SanPhamChiTiet> optSpct = sanPhamCTService.getById(id);
         if (optSpct.isEmpty()) {
             return new ResponseEntity<>("Không tìm thấy biến thể với ID: " + id, HttpStatus.NOT_FOUND);
@@ -87,7 +82,6 @@ public class SanPhamChiTietApiController {
         SanPhamChiTiet spctTrongDB = optSpct.get();
 
         spctTrongDB.setGiaTien(dataTuJavaScript.getGiaTien());
-
         spctTrongDB.setSoLuong(dataTuJavaScript.getSoLuong());
         spctTrongDB.setMoTa(dataTuJavaScript.getMoTa());
         spctTrongDB.setTrangThai(dataTuJavaScript.getTrangThai());
@@ -107,7 +101,6 @@ public class SanPhamChiTietApiController {
         }
     }
 
-    // API lấy chi tiết
     @GetMapping("/{id}")
     @Transactional(readOnly = true)
     public ResponseEntity<SanPhamChiTiet> getById(@PathVariable Integer id) {
@@ -116,7 +109,6 @@ public class SanPhamChiTietApiController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    // API Xóa biến thể
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteVariant(@PathVariable Integer id) {
         if (sanPhamCTService.getById(id).isEmpty()) {
@@ -127,13 +119,8 @@ public class SanPhamChiTietApiController {
             return ResponseEntity.noContent().build();
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body("Không thể xóa biến thể này vì đang được sử dụng (có trong hóa đơn).");
+                    .body("Không thể xóa biến thể này vì đang được sử dụng.");
         }
-    }
-
-    @GetMapping("/available")
-    public List<SanPhamChiTiet> getAvailableProducts() {
-        return sanPhamCTService.getAvailableProducts();
     }
 
     @GetMapping("/search")

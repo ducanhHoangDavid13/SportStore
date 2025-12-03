@@ -14,98 +14,20 @@
     <link rel="stylesheet" th:href="@{/css/navbar.css}"/>
 
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6;
-            color: #374151;
-        }
-
-        /* Card & Table Styling */
-        .card-box {
-            background: #ffffff;
-            border-radius: 12px;
-            border: none;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            margin-bottom: 1.5rem;
-        }
-
-        .table-custom thead th {
-            background-color: #f9fafb;
-            color: #6b7280;
-            font-weight: 600;
-            text-transform: uppercase;
-            font-size: 0.75rem;
-            border-bottom: 2px solid #e5e7eb;
-            padding: 1rem;
-            vertical-align: middle;
-            white-space: nowrap;
-        }
-
-        .table-custom tbody td {
-            vertical-align: middle;
-            padding: 0.75rem 1rem;
-            border-bottom: 1px solid #f3f4f6;
-            font-size: 0.875rem;
-        }
-
-        .table-custom tbody tr:hover {
-            background-color: #f9fafb;
-        }
-
-        /* Badges & Buttons */
-        .badge-status {
-            padding: 0.35em 0.8em;
-            font-size: 0.75rem;
-            font-weight: 600;
-            border-radius: 99px;
-        }
-
-        .badge-active {
-            background: #d1fae5;
-            color: #065f46;
-        }
-
-        .badge-inactive {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-
-        .btn-action {
-            width: 32px;
-            height: 32px;
-            padding: 0;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 6px;
-            transition: .2s;
-        }
-
-        .btn-action:hover {
-            transform: translateY(-2px);
-        }
-
-        /* Modal Styles */
-        .modal-content {
-            border-radius: 16px;
-            border: none;
-        }
-
-        .modal-header {
-            padding: 1.5rem;
-            border-bottom: 1px solid #f3f4f6;
-        }
-
-        .modal-body {
-            padding: 1.5rem;
-        }
-
-        /* Readonly Input Style */
-        .form-control:read-only {
-            background-color: #f3f4f6;
-            color: #6b7280;
-            cursor: not-allowed;
-        }
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; color: #374151; }
+        .card-box { background: #ffffff; border-radius: 12px; border: none; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); margin-bottom: 1.5rem; }
+        .table-custom thead th { background-color: #f9fafb; color: #6b7280; font-weight: 600; text-transform: uppercase; font-size: 0.75rem; border-bottom: 2px solid #e5e7eb; padding: 1rem; vertical-align: middle; white-space: nowrap; }
+        .table-custom tbody td { vertical-align: middle; padding: 0.75rem 1rem; border-bottom: 1px solid #f3f4f6; font-size: 0.875rem; }
+        .table-custom tbody tr:hover { background-color: #f9fafb; }
+        .badge-status { padding: 0.35em 0.8em; font-size: 0.75rem; font-weight: 600; border-radius: 99px; }
+        .badge-active { background: #d1fae5; color: #065f46; }
+        .badge-inactive { background: #fee2e2; color: #991b1b; }
+        .btn-action { width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 6px; transition: .2s; }
+        .btn-action:hover { transform: translateY(-2px); }
+        .modal-content { border-radius: 16px; border: none; }
+        .modal-header { padding: 1.5rem; border-bottom: 1px solid #f3f4f6; }
+        .modal-body { padding: 1.5rem; }
+        .form-control:read-only { background-color: #f3f4f6; color: #6b7280; cursor: not-allowed; }
     </style>
 </head>
 
@@ -123,50 +45,35 @@
 
             <div class="card-box p-4">
                 <div class="d-flex align-items-center mb-3 border-bottom pb-2">
-                    <i class="fas fa-filter text-primary me-2"></i> <span
-                        class="fw-bold text-secondary">Bộ lọc tìm kiếm</span>
+                    <i class="fas fa-filter text-primary me-2"></i> <span class="fw-bold text-secondary">Bộ lọc tìm kiếm</span>
                 </div>
                 <form id="filterForm">
-                    <div class="row g-3">
-                        <div class="col-md-4">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-6">
                             <label class="form-label small fw-bold text-muted">SẢN PHẨM</label>
                             <select class="form-select" id="filterSanPham">
                                 <option value="">-- Tất cả --</option>
-                                <option th:each="sp : ${listSanPham}" th:value="${sp.id}"
-                                        th:text="${sp.tenSanPham}"></option>
+                                <option th:each="sp : ${listSanPham}" th:value="${sp.id}" th:text="${sp.tenSanPham}"></option>
                             </select>
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-md-3">
                             <label class="form-label small fw-bold text-muted">MÀU SẮC</label>
                             <select class="form-select" id="filterMauSac">
                                 <option value="">-- Tất cả --</option>
-                                <option th:each="ms : ${listMauSac}" th:value="${ms.id}"
-                                        th:text="${ms.tenMauSac}"></option>
+                                <option th:each="ms : ${listMauSac}" th:value="${ms.id}" th:text="${ms.tenMauSac}"></option>
                             </select>
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-md-3">
                             <label class="form-label small fw-bold text-muted">KÍCH THƯỚC</label>
                             <select class="form-select" id="filterKichThuoc">
                                 <option value="">-- Tất cả --</option>
-                                <option th:each="kt : ${listKichThuoc}" th:value="${kt.id}"
-                                        th:text="${kt.tenKichThuoc}"></option>
+                                <option th:each="kt : ${listKichThuoc}" th:value="${kt.id}" th:text="${kt.tenKichThuoc}"></option>
                             </select>
                         </div>
-                        <div class="col-md-4">
-                            <label class="form-label small fw-bold text-muted">GIÁ BÁN (KHOẢNG)</label>
-                            <div class="input-group">
-                                <input type="number" class="form-control" id="filterMinPrice" placeholder="Từ">
-                                <span class="input-group-text bg-white">-</span>
-                                <input type="number" class="form-control" id="filterMaxPrice" placeholder="Đến">
-                            </div>
-                        </div>
-                        <div class="col-12 text-end">
-                            <button type="button" class="btn btn-light border me-2" id="btnReset"><i
-                                    class="fas fa-sync-alt me-1"></i> Reset
-                            </button>
-                            <button type="submit" class="btn btn-primary px-4"><i class="fas fa-search me-1"></i> Tìm
-                                kiếm
-                            </button>
+
+                        <div class="col-12 text-end mt-3">
+                            <button type="button" class="btn btn-light border me-2" id="btnReset"><i class="fas fa-sync-alt me-1"></i> Reset</button>
+                            <button type="submit" class="btn btn-primary px-4"><i class="fas fa-search me-1"></i> Tìm kiếm</button>
                         </div>
                     </div>
                 </form>
@@ -198,8 +105,7 @@
                             <th class="text-center" style="width: 100px;">Thao tác</th>
                         </tr>
                         </thead>
-                        <tbody id="spctTableBody">
-                        </tbody>
+                        <tbody id="spctTableBody"></tbody>
                     </table>
                 </div>
 
@@ -211,28 +117,25 @@
         </div>
 
         <div class="modal fade" id="spctModal" tabindex="-1" data-bs-backdrop="static">
-            <div class="modal-dialog modal-lg modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header bg-primary text-white border-0">
-                        <h5 class="modal-title fw-bold" id="modalTitle"><i class="fas fa-box-open me-2"></i>THÊM MỚI
-                            BIẾN THỂ</h5>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body">
-                        <form id="spctForm">
-                            <input type="hidden" id="spctId">
+            <div class="modal-dialog modal-xl modal-dialog-centered"> <div class="modal-content">
+                <div class="modal-header bg-primary text-white border-0">
+                    <h5 class="modal-title fw-bold" id="modalTitle"><i class="fas fa-box-open me-2"></i>THÊM MỚI BIẾN THỂ</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="spctForm">
+                        <input type="hidden" id="spctId">
 
-                            <div class="mb-3">
-                                <label class="form-label fw-bold small text-muted">MÃ BIẾN THỂ (TỰ ĐỘNG)</label>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold small text-muted">MÃ BIẾN THỂ</label>
                                 <input type="text" class="form-control fw-bold text-secondary" id="modalMaSPCT"
                                        placeholder="Hệ thống tự động tạo mã" readonly style="background-color: #f8f9fa;">
                             </div>
-                            <div class="mb-4">
-                                <label class="form-label fw-bold small text-primary">CHỌN SẢN PHẨM GỐC <span
-                                        class="text-danger">*</span></label>
+                            <div class="col-md-8">
+                                <label class="form-label fw-bold small text-primary">CHỌN SẢN PHẨM GỐC <span class="text-danger">*</span></label>
                                 <div class="input-group">
-                                    <span class="input-group-text bg-white"><i
-                                            class="fas fa-search text-muted"></i></span>
+                                    <span class="input-group-text bg-white"><i class="fas fa-search text-muted"></i></span>
                                     <input class="form-control" list="datalistSanPham" id="inputSearchProduct"
                                            placeholder="Gõ tên sản phẩm để tìm kiếm..." autocomplete="off">
                                     <datalist id="datalistSanPham">
@@ -243,92 +146,73 @@
                                                 th:text="'(Mã: ' + ${sp.maSanPham} + ')'"></option>
                                     </datalist>
                                     <input type="hidden" id="hiddenSanPhamId" name="sanPhamId">
-                                    <button class="btn btn-outline-secondary" type="button"
-                                            onclick="clearSearchProduct()"><i class="fas fa-times"></i></button>
+                                    <button class="btn btn-outline-secondary" type="button" onclick="clearSearchProduct()"><i class="fas fa-times"></i></button>
                                 </div>
-                                <div class="form-text ms-1" id="selectedProductText"><i
-                                        class="fas fa-info-circle me-1"></i>Vui lòng chọn sản phẩm trước
-                                </div>
+                                <div class="form-text ms-1" id="selectedProductText"><i class="fas fa-info-circle me-1"></i>Vui lòng chọn sản phẩm trước</div>
                             </div>
+                        </div>
 
-                            <hr class="border-secondary opacity-10">
+                        <hr class="border-secondary opacity-10">
 
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <label class="form-label fw-bold small">MÀU SẮC <span
-                                            class="text-danger">*</span></label>
-                                    <select class="form-select" id="modalMauSac">
-                                        <option value="">-- Chọn màu --</option>
-                                        <option th:each="ms : ${listMauSac}" th:value="${ms.id}"
-                                                th:text="${ms.tenMauSac}"></option>
-                                    </select>
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label fw-bold small">KÍCH THƯỚC <span
-                                            class="text-danger">*</span></label>
-                                    <select class="form-select" id="modalKichThuoc">
-                                        <option value="">-- Chọn size --</option>
-                                        <option th:each="kt : ${listKichThuoc}" th:value="${kt.id}"
-                                                th:text="${kt.tenKichThuoc}"></option>
-                                    </select>
-                                </div>
-
-                                <div class="col-md-6">
-                                    <label class="form-label fw-bold small">GIÁ BÁN (VNĐ)</label>
-                                    <input type="text" class="form-control fw-bold text-success" id="modalGiaTien"
-                                           readonly
-                                           style="background-color: #e9ecef;" placeholder="Tự động theo sản phẩm gốc">
-                                    <div class="form-text small fst-italic">* Giá được lấy cố định từ sản phẩm gốc</div>
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label fw-bold small">SỐ LƯỢNG TỒN <span
-                                            class="text-danger">*</span></label>
-                                    <input type="number" class="form-control" id="modalSoLuong"
-                                           placeholder="Nhập số lượng nhập kho" min="0">
-                                </div>
-
-                                <div class="col-12"><a href="#" class="text-decoration-none small"
-                                                       onclick="$('#moreAttributes').slideToggle()">+ Hiển thị thêm
-                                    thuộc tính phụ</a></div>
-                                <div id="moreAttributes" class="row g-3" style="display:none;">
-                                    <div class="col-md-3">
-                                        <label class="form-label fw-bold small">THỂ LOẠI</label>
-                                        <select class="form-select" id="modalTheLoai">
-                                            <option th:each="tl : ${listTheLoai}" th:value="${tl.id}"
-                                                    th:text="${tl.tenTheLoai}"></option>
-                                        </select>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label class="form-label fw-bold small">CHẤT LIỆU</label>
-                                        <select class="form-select" id="modalChatLieu">
-                                            <option th:each="cl : ${listChatLieu}" th:value="${cl.id}"
-                                                    th:text="${cl.loaiChatLieu}"></option>
-                                        </select>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label class="form-label fw-bold small">XUẤT XỨ</label>
-                                        <select class="form-select" id="modalXuatXu">
-                                            <option th:each="xx : ${listXuatXu}" th:value="${xx.id}"
-                                                    th:text="${xx.tenXuatXu}"></option>
-                                        </select>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label class="form-label fw-bold small">PHÂN LOẠI</label>
-                                        <select class="form-select" id="modalPhanLoai">
-                                            <option th:each="pl : ${listPhanLoai}" th:value="${pl.id}"
-                                                    th:text="${pl.phanLoai}"></option>
-                                        </select>
-                                    </div>
-                                </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold small">MÀU SẮC <span class="text-danger">*</span></label>
+                                <select class="form-select" id="modalMauSac">
+                                    <option value="">-- Chọn màu --</option>
+                                    <option th:each="ms : ${listMauSac}" th:value="${ms.id}" th:text="${ms.tenMauSac}"></option>
+                                </select>
                             </div>
-                        </form>
-                    </div>
-                    <div class="modal-footer border-0 pt-0">
-                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Hủy bỏ</button>
-                        <button type="button" class="btn btn-primary px-4 fw-bold" onclick="saveSPCT()">Lưu thông tin
-                        </button>
-                    </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold small">KÍCH THƯỚC <span class="text-danger">*</span></label>
+                                <select class="form-select" id="modalKichThuoc">
+                                    <option value="">-- Chọn size --</option>
+                                    <option th:each="kt : ${listKichThuoc}" th:value="${kt.id}" th:text="${kt.tenKichThuoc}"></option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold small">CHẤT LIỆU</label>
+                                <select class="form-select" id="modalChatLieu">
+                                    <option th:each="cl : ${listChatLieu}" th:value="${cl.id}" th:text="${cl.loaiChatLieu}"></option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold small">XUẤT XỨ</label>
+                                <select class="form-select" id="modalXuatXu">
+                                    <option th:each="xx : ${listXuatXu}" th:value="${xx.id}" th:text="${xx.tenXuatXu}"></option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold small">THỂ LOẠI</label>
+                                <select class="form-select" id="modalTheLoai">
+                                    <option th:each="tl : ${listTheLoai}" th:value="${tl.id}" th:text="${tl.tenTheLoai}"></option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold small">PHÂN LOẠI</label>
+                                <select class="form-select" id="modalPhanLoai">
+                                    <option th:each="pl : ${listPhanLoai}" th:value="${pl.id}" th:text="${pl.phanLoai}"></option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold small">GIÁ BÁN (VNĐ)</label>
+                                <input type="text" class="form-control fw-bold text-success" id="modalGiaTien"
+                                       readonly style="background-color: #e9ecef;" placeholder="Tự động theo SP gốc">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold small">SỐ LƯỢNG TỒN <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="modalSoLuong" placeholder="Nhập số lượng" min="0">
+                            </div>
+                        </div>
+                    </form>
                 </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Hủy bỏ</button>
+                    <button type="button" class="btn btn-primary px-4 fw-bold" onclick="saveSPCT()">Lưu thông tin</button>
+                </div>
+            </div>
             </div>
         </div>
 
@@ -341,12 +225,7 @@
 
 <script>
     // --- CONFIG ---
-    toastr.options = {
-        "closeButton": true,
-        "progressBar": true,
-        "positionClass": "toast-bottom-right",
-        "timeOut": "3000"
-    };
+    toastr.options = { "closeButton": true, "progressBar": true, "positionClass": "toast-bottom-right", "timeOut": "3000" };
     const API_URL = '/api/san-pham-chi-tiet';
     let spctModal;
     let currentFilter = {page: 0, size: 10};
@@ -396,14 +275,12 @@
         $('#selectedProductText').text('Vui lòng chọn sản phẩm trước');
     }
 
-    // --- LOAD DATA ---
+    // --- LOAD DATA (ĐÃ BỎ LỌC GIÁ) ---
     function loadData() {
-        // Lấy value filter
         currentFilter.idSanPham = $('#filterSanPham').val() || null;
         currentFilter.idMauSac = $('#filterMauSac').val() || null;
         currentFilter.idKichThuoc = $('#filterKichThuoc').val() || null;
-        currentFilter.minPrice = $('#filterMinPrice').val() || null;
-        currentFilter.maxPrice = $('#filterMaxPrice').val() || null;
+        // Bỏ minPrice, maxPrice
 
         $('#spctTableBody').html('<tr><td colspan="12" class="text-center py-4"><div class="spinner-border text-primary"></div></td></tr>');
 
@@ -438,9 +315,7 @@
             html += `
         <tr>
             <td class="text-center text-muted">${index + 1}</td>
-
             <td class="fw-bold text-secondary">${item.maSanPhamChiTiet || 'N/A'}</td>
-
             <td class="fw-bold text-primary">${item.sanPham?.tenSanPham || '-'}</td>
             <td class="text-center">
                 <span class="badge bg-light text-dark border me-1">${item.mauSac?.tenMauSac || '?'}</span>
@@ -466,15 +341,11 @@
     function showAddModal() {
         $('#spctForm')[0].reset();
         $('#spctId').val('');
-
-        // Reset ô mã
         $('#modalMaSPCT').val('Tự động tạo khi lưu');
-
         clearSearchProduct();
 
         $('#inputSearchProduct').prop('disabled', false);
         $('.btn-outline-secondary').show();
-
         $('#modalTitle').html('<i class="fas fa-cube me-2"></i>THÊM MỚI BIẾN THỂ');
         spctModal.show();
     }
@@ -485,8 +356,6 @@
             const data = await res.json();
 
             $('#spctId').val(data.id);
-
-            // Đổ dữ liệu mã
             $('#modalMaSPCT').val(data.maSanPhamChiTiet);
 
             if (data.sanPham) {
@@ -515,7 +384,6 @@
     }
 
     async function saveSPCT() {
-        // Xử lý mã spct để gửi đi (nếu cần thiết cho backend)
         let currentMa = $('#modalMaSPCT').val();
         if(currentMa === 'Tự động tạo khi lưu') currentMa = null;
 
@@ -612,7 +480,6 @@
         currentFilter.page = 0;
         loadData();
     });
-
 </script>
 </body>
 </html>

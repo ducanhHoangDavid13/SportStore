@@ -68,7 +68,9 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Integer> {
     /**
      * Lấy HĐ Tạm cho Modal (Đơn giản)
      */
-    List<HoaDon> findByTrangThaiIn(List<Integer> trangThaiList);
+
+    // Hoặc xóa trực tiếp (cần @Transactional ở Service)
+    void deleteByMaHoaDon(String maHoaDon);
 
     /**
      * Tải chi tiết một HĐ (Fetch Join để tránh lỗi Lazy)

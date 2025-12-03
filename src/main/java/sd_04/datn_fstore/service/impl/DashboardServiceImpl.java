@@ -104,7 +104,7 @@ public class DashboardServiceImpl implements DashboardService {
     // 4. CHARTS - QUARTERLY (Gom nhóm theo 3 tháng)
     @Override
     public List<String> getQuarterLabels() {
-        int currentQuarter = (LocalDate.now().getMonthValue() - 1) / 3 + 1;
+        int currentQuarter = (LocalDate.now().getMonthValue() - 1) / 3 + 1;//3
         int startMonth = (currentQuarter - 1) * 3 + 1;
         return List.of("Tháng " + startMonth, "Tháng " + (startMonth + 1), "Tháng " + (startMonth + 2));
     }
@@ -157,7 +157,10 @@ public class DashboardServiceImpl implements DashboardService {
         } else {
             DateTimeFormatter fmt = DateTimeFormatter.ofPattern("MM/yyyy");
             LocalDate curr = s.withDayOfMonth(1);
-            while (!curr.isAfter(e)) { labels.add(curr.format(fmt)); curr = curr.plusMonths(1); }
+            while (!curr.isAfter(e)) {
+                labels.add(curr.format(fmt));
+                curr = curr.plusMonths(1);
+            }
         }
         return labels;
     }
@@ -217,6 +220,7 @@ public class DashboardServiceImpl implements DashboardService {
     public List<TopProductDTO> getTopSellingProducts() {
         return sanPhamCTRepository.findTopSellingProducts(PageRequest.of(0, 5));
     }
+
     @Override
     public List<Integer> getOrderStatusSummary() {
         // Mặc định lấy dữ liệu của THÁNG NAY
