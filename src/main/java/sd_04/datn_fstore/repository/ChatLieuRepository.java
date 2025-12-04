@@ -8,6 +8,8 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import sd_04.datn_fstore.model.ChatLieu;
 
+import java.util.List;
+
 @Repository
 public interface ChatLieuRepository extends JpaRepository<ChatLieu, Integer> {
 
@@ -27,4 +29,6 @@ public interface ChatLieuRepository extends JpaRepository<ChatLieu, Integer> {
     Page<ChatLieu> findPaginated(Pageable pageable,
                                  @Param("keyword") String keyword,
                                  @Param("trangThai") Integer trangThai);
+
+    List<ChatLieu> findByTrangThai(Integer trangThai);
 }

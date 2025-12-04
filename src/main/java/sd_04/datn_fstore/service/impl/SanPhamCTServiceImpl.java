@@ -194,4 +194,30 @@ public class SanPhamCTServiceImpl implements SanPhamCTService {
             }
         }
     }
+    // SanPhamCTServiceImpl.java
+
+// ... (các imports và constructor)
+
+    // Phương thức mới:
+    @Override
+    public void updateBatchTotalQuantity(List<SanPham> sanPhamList) {
+        for (SanPham sanPham : sanPhamList) {
+            // Ta không cần truy vấn lại sanPhamRepository.findById(sanPham.getId())
+            // vì đối tượng sanPham đã có trong List.
+            int total = 0;
+            // Dùng phương thức findBySanPhamId để lấy tất cả biến thể của sản phẩm này
+            List<SanPhamChiTiet> variants = sanPhamChiTietRepository.findBySanPhamId(sanPham.getId());
+
+            for (SanPhamChiTiet ct : variants) {
+                if (ct.getTrangThai() == 1 && ct.getSoLuong() != null) {
+                    total += ct.getSoLuong();
+                }
+            }
+            // Chỉ cần set SoLuong vào đối tượng trong List, không cần gọi save()
+            // vì nó không phải là hàm cập nhật DB.
+            sanPham.setSoLuong(total);
+        }
+    }
+
+// ... (giữ nguyên hàm private void updateTotalQuantitySanPham cũ)
 }

@@ -2,6 +2,7 @@ package sd_04.datn_fstore.service;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import sd_04.datn_fstore.model.SanPham;
 import sd_04.datn_fstore.model.SanPhamChiTiet;
 
 import java.math.BigDecimal;
@@ -44,4 +45,5 @@ public interface SanPhamCTService {
     List<SanPhamChiTiet> getBySanPhamId(Integer idSanPham);
     List<SanPhamChiTiet> getAllActive();
     List<SanPhamChiTiet> timTheoKhoangGia(BigDecimal maxPrice);
+    void updateBatchTotalQuantity(List<SanPham> sanPhamList);
 }

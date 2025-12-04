@@ -15,6 +15,8 @@
     <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css"
           rel="stylesheet"/>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
     <style>
         :root {
             --primary: #0d6efd;
@@ -399,7 +401,7 @@
                         </div>
                     </div>
                     <div id="qr-hint" class="alert alert-info py-1 small mb-0 d-none text-center">
-                        <i class="bi bi-info-circle"></i> Nhấn <b>THANH TOÁN</b> để lấy mã QR
+                        <i class="bi bi-info-circle"></i> Nhấn **THANH TOÁN (QR)** để hiển thị mã quét
                     </div>
                 </div>
 
@@ -532,7 +534,12 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <img id="qr-code-img" src="" class="qr-popup-img shadow-sm" alt="QR Code">
+                <div id="qr-code-container" class="d-inline-block p-2 border border-secondary rounded shadow-sm"></div>
+                <div class="mt-2 small">
+                    <div class="fw-bold">Số tiền: <span class="text-danger" id="qr-total"></span></div>
+                    <div class="text-muted">Nội dung: <span id="qr-content" class="fw-bold"></span></div>
+                    <div class="text-muted small">NH: Techcombank - STK: 1903 9509 6510 13</div>
+                </div>
                 <div class="mt-3">
                     <button class="btn btn-success w-100 fw-bold py-2" onclick="confirmQRPayment()"><i
                             class="bi bi-check-circle-fill"></i> ĐÃ NHẬN TIỀN
@@ -603,6 +610,16 @@
     const API_DRAFTS = "/api/ban-hang/hoa-don-tam";
     const API_PAYMENT = "/api/ban-hang/thanh-toan";
     const API_SAVE_DRAFT = "/api/ban-hang/luu-tam";
+
+    // 🌟 --- CẤU HÌNH QR CODE (TECHCOMBANK - VIETQR) --- 🌟
+    // Dữ liệu lấy từ hình ảnh: HOANG DUC ANH, 1903 9509 6510 13 (Techcombank)
+    const BANK_ID = "970407"; // Mã BIN/ID Ngân hàng Techcombank
+    const BANK_ACCOUNT_NUMBER = "19039509651013"; // Số tài khoản thụ hưởng
+    const ACCOUNT_NAME_FOR_QR = "HOANG DUC ANH"; // Tên chủ tài khoản
+    const BANK_SHORT_NAME = "Techcombank";
+    const QR_CONTAINER_ID = "qr-code-container"; // ID của thẻ DIV chứa mã QR
+
+    let qrcodeInstance = null; // Biến giữ instance của QRCode.js
 
     const formatter = new Intl.NumberFormat('vi-VN', {style: 'currency', currency: 'VND'});
     toastr.options = {"positionClass": "toast-top-center", "timeOut": "2000"};
@@ -684,19 +701,14 @@
             loadDraftsList();
         });
 
-        // Nút Chọn đơn chờ (Vẫn dùng ID để load chi tiết)
+        // Nút Chọn đơn chờ
         $('#tbody-drafts').on('click', '.btn-select-draft', function () {
             loadDraftDetail($(this).data('id'));
         });
 
-        // [SỬA] Nút Xóa đơn chờ - Dùng MaHoaDon (data-code)
-        // [SỬA] Nút Xóa đơn chờ - Dùng attr để lấy chuỗi chính xác
+        // Nút Xóa đơn chờ
         $('#tbody-drafts').on('click', '.btn-delete-draft', function () {
-            let code = $(this).attr('data-code'); // Dùng attr an toàn hơn data với chuỗi
-
-            // Kiểm tra log xem code có lấy được không
-            console.log("Mã cần xóa:", code);
-
+            let code = $(this).attr('data-code');
             if (!code || code === "undefined") {
                 toastr.error("Lỗi: Không tìm thấy mã hóa đơn!");
                 return;
@@ -705,9 +717,7 @@
         });
     });
 
-    // --- LOGIC HÓA ĐƠN CHỜ ---
-
-    // 1. [SỬA] Tải danh sách (Gắn data-code vào nút xóa)
+    // --- LOGIC HÓA ĐƠN CHỜ (GIỮ NGUYÊN) ---
     async function loadDraftsList() {
         try {
             const res = await fetch(API_DRAFTS);
@@ -751,9 +761,7 @@
         }
     }
 
-    // 2. [SỬA] Hàm xóa đơn chờ theo MaHoaDon
     async function deleteDraftOrder(maHoaDon) {
-        // Chặn ngay nếu mã rỗng
         if (!maHoaDon) {
             toastr.error("Mã hóa đơn không hợp lệ");
             return;
@@ -771,9 +779,6 @@
         }).then(async (result) => {
             if (result.isConfirmed) {
                 try {
-                    // Log URL để kiểm tra
-                    console.log("Calling DELETE:", API_DRAFTS + '/' + maHoaDon);
-
                     const res = await fetch(API_DRAFTS + '/' + maHoaDon, { method: 'DELETE' });
 
                     if (res.ok) {
@@ -785,14 +790,13 @@
                         toastr.error(errMsg || "Xóa thất bại");
                     }
                 } catch (e) {
-                    console.error(e);
                     toastr.error("Lỗi kết nối server");
                 }
             }
         });
     }
 
-    // 3. Tải chi tiết & Phục hồi giỏ hàng (Giữ nguyên dùng ID để load chi tiết cho chính xác)
+    // 3. Tải chi tiết & Phục hồi giỏ hàng
     async function loadDraftDetail(id) {
         Swal.fire({
             title: 'Phục hồi đơn hàng?',
@@ -805,10 +809,20 @@
         }).then(async (result) => {
             if (result.isConfirmed) {
                 try {
-                    const res = await fetch(API_DRAFTS + '/' + id); // Load chi tiết vẫn dùng ID (GET)
-                    if (!res.ok) throw new Error("Lỗi API");
+                    // LOG Bước 1: Gọi API
+                    console.log(`[DRAFT] Đang tải chi tiết đơn hàng: ${id}`);
+                    const res = await fetch(API_DRAFTS + '/' + id);// Load chi tiết vẫn dùng ID (GET)
+
+                    if (!res.ok) {
+                        console.error(`[DRAFT ERROR] Lỗi API khi tải chi tiết: Status ${res.status}`);
+                        throw new Error("Lỗi API khi tải chi tiết đơn hàng");
+                    }
 
                     const order = await res.json();
+
+                    // LOG Bước 2: Dữ liệu nhận được
+                    console.log("[DRAFT SUCCESS] Dữ liệu chi tiết:", order);
+
                     currentOrderCode = order.maHoaDon;
                     $('#ma-don-hang').text(currentOrderCode);
 
@@ -820,12 +834,23 @@
                     }
 
                     cart = [];
+                    // Kiểm tra cả hai tên trường có thể có (hoaDonChiTiet hoặc hoaDonChiTiets)
                     const details = order.hoaDonChiTiet || order.hoaDonChiTiets || [];
+
+                    if (details.length === 0) {
+                        console.warn("[DRAFT WARNING] Không có chi tiết sản phẩm nào trong đơn này.");
+                    }
+
                     details.forEach(d => {
                         const spct = d.sanPhamChiTiet;
-                        if (spct) {
+
+                        if (spct && spct.id) {
                             const originalProd = allProducts.find(p => p.id == spct.id);
                             const realStock = originalProd ? originalProd.soLuong : 0;
+
+                            // LOG Bước 3: Thêm sản phẩm vào giỏ
+                            console.log(`[DRAFT ITEM] Thêm SPCT ID ${spct.id}, SL ${d.soLuong} vào giỏ.`);
+
                             cart.push({
                                 id: spct.id,
                                 name: spct.sanPham.tenSanPham,
@@ -835,20 +860,24 @@
                                 qty: d.soLuong,
                                 stock: realStock
                             });
+                        } else {
+                            console.error("[DRAFT ERROR] Chi tiết hóa đơn thiếu thông tin SPCT:", d);
                         }
                     });
 
+                    // LOG Bước 4: Render giỏ hàng
                     renderCart();
+
                     $('#modal-drafts').modal('hide');
                     toastr.success("Đã phục hồi đơn hàng: " + currentOrderCode);
                 } catch (e) {
-                    toastr.error("Lỗi tải chi tiết đơn hàng");
+                    console.error("[DRAFT FATAL ERROR]", e);
+                    toastr.error("Lỗi tải chi tiết đơn hàng: " + e.message);
                 }
             }
         });
     }
 
-    // 4. Đếm số đơn chờ
     async function updateDraftCount() {
         try {
             const res = await fetch(API_DRAFTS);
@@ -865,7 +894,7 @@
         }
     }
 
-    // --- CÁC HÀM LOGIC CHÍNH (GIỮ NGUYÊN) ---
+    // --- CÁC HÀM LOGIC SẢN PHẨM & GIỎ HÀNG (GIỮ NGUYÊN) ---
 
     async function loadProducts() {
         try {
@@ -1045,6 +1074,74 @@
         updateSummary(subtotal);
     }
 
+    // --- LOGIC QR CODE & PAYMENT (ĐÃ CẬP NHẬT) ---
+
+    function createVietQrPayload(total, orderCode) {
+        // Cấu trúc chuỗi data cho QR Code (để ứng dụng ngân hàng quét và điền tự động)
+        const totalAmount = Math.round(total);
+        const qrContentText = removeVietnameseTones(`TT HD ${orderCode}`).toUpperCase().replace(/ /g, '.');
+
+        // Payload theo chuẩn NAPAS/VietQR (Quy tắc 38, tùy thuộc vào độ phức tạp của thư viện/API)
+        // Vì QRCode.js đơn giản, ta dùng chuỗi thông tin chi tiết để ứng dụng Mobile Banking hiểu
+        // Hoặc dùng format QRIBFT:
+        const qrData = [
+            "000201", // Payload Format Indicator
+            "010211", // Point of Initiation Method
+            "38"+(68).toString().padStart(2, '0'), // Merchant Account Information (Techcombank 68)
+            "0010A000000727", // ID of NAPAS
+            "01" + (BANK_ID.length + BANK_ACCOUNT_NUMBER.length + 3).toString().padStart(2, '0') + BANK_ID + "01" + BANK_ACCOUNT_NUMBER, // Bank info & Account
+            "5303704", // Currency Code (VND 704)
+            "54" + (totalAmount.toString().length).toString().padStart(2, '0') + totalAmount, // Amount
+            "5802VN", // Country Code (VN)
+            "62" + (22 + qrContentText.length).toString().padStart(2, '0'), // Additional Data Field Template
+            "08" + (qrContentText.length).toString().padStart(2, '0') + qrContentText, // Bill Number (Content)
+            "6304" // CRC (Sẽ được tính toán nếu dùng thư viện full, ở đây ta bỏ qua)
+        ].join('');
+
+        // Vì QRCode.js không tính toán CRC, ta đơn giản hóa thành chuỗi dễ đọc hơn cho Mobile Banking:
+        return `STK: ${BANK_ACCOUNT_NUMBER} | NH: ${BANK_SHORT_NAME} | TEN: ${ACCOUNT_NAME_FOR_QR} | SO TIEN: ${totalAmount} | NOI DUNG: ${qrContentText}`;
+    }
+
+    function generateQRCode(totalAmount, orderCode) {
+        const container = document.getElementById(QR_CONTAINER_ID);
+
+        // 1. Xóa mã QR cũ (nếu có)
+        if (qrcodeInstance) {
+            container.innerHTML = '';
+            qrcodeInstance = null;
+        }
+
+        if (totalAmount <= 0) {
+            toastr.warning("Tổng tiền phải lớn hơn 0 để tạo mã QR.");
+            return;
+        }
+
+        const qrData = createVietQrPayload(totalAmount, orderCode);
+        const qrContentText = removeVietnameseTones(`TT HD ${orderCode}`).toUpperCase().replace(/ /g, '.');
+
+        // 2. Hiển thị thông tin trong Modal
+        $('#qr-total').text(formatter.format(totalAmount));
+        $('#qr-content').text(qrContentText);
+
+        // 3. Tạo mã QR mới
+        try {
+            qrcodeInstance = new QRCode(container, {
+                text: qrData, // Dữ liệu đã định dạng
+                width: 200,
+                height: 200,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+
+            $('#modal-qr-payment').modal('show');
+
+        } catch (e) {
+            console.error("Lỗi tạo QR Code:", e);
+            toastr.error("Không thể tạo mã QR thanh toán.");
+        }
+    }
+
     function updateSummary(subtotal) {
         $('#subtotal').data('val', subtotal).text(formatter.format(subtotal));
         let discount = 0;
@@ -1069,6 +1166,11 @@
         $('#discount').text(formatter.format(discount)).data('val', discount);
         $('#total').text(formatter.format(finalTotal)).data('val', finalTotal);
         calculateChange();
+
+        // Cập nhật text hiển thị tổng tiền trong modal QR nếu đang mở
+        if ($('#pay-method-val').val() === 'QR' && $('#modal-qr-payment').hasClass('show')) {
+            $('#qr-total').text(formatter.format(finalTotal));
+        }
     }
 
     function removeFromCart(id) {
@@ -1096,22 +1198,52 @@
         }
         const total = parseFloat($('#total').data('val')) || 0;
         const method = $('#pay-method-val').val();
-        let paidAmount = method === 'CASH' ? parseCurrency($('#customer-paid').val()) : total;
-        if (method === 'CASH' && paidAmount < total) {
-            Swal.fire('Thiếu tiền', 'Khách chưa đưa đủ tiền', 'warning');
-            return;
+
+        if (method === 'CASH') {
+            let paidAmount = parseCurrency($('#customer-paid').val());
+            if (paidAmount < total) {
+                Swal.fire('Thiếu tiền', 'Khách chưa đưa đủ tiền', 'warning');
+                return;
+            }
+            Swal.fire({
+                title: 'Xác nhận thanh toán',
+                html: `<div>Tổng tiền: <b>${formatter.format(total)}</b></div><div>Phương thức: <b>${method}</b></div>`,
+                icon: 'question', showCancelButton: true, confirmButtonText: 'Xác nhận & In hóa đơn'
+            }).then((result) => {
+                if (result.isConfirmed) submitOrder(method, paidAmount);
+            });
+        } else if (method === 'QR') {
+            if (total <= 0) {
+                toastr.error("Tổng tiền phải lớn hơn 0 để thanh toán QR.");
+                return;
+            }
+            // Tạo mã QR và mở modal khi nhấn THANH TOÁN
+            generateQRCode(total, currentOrderCode);
         }
+    }
+
+    function confirmQRPayment() {
+        const total = parseFloat($('#total').data('val')) || 0;
+        // Giả định khách đã chuyển đủ tiền (paidAmount = total)
         Swal.fire({
-            title: 'Xác nhận thanh toán',
-            html: `<div>Tổng tiền: <b>${formatter.format(total)}</b></div><div>Phương thức: <b>${method}</b></div>`,
-            icon: 'question', showCancelButton: true, confirmButtonText: 'Xác nhận & In hóa đơn'
+            title: 'Xác nhận Đã nhận tiền?',
+            text: `Đã kiểm tra tài khoản và nhận đủ ${formatter.format(total)}?`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Đã nhận đủ'
         }).then((result) => {
-            if (result.isConfirmed) submitOrder(method, paidAmount);
+            if (result.isConfirmed) {
+                $('#modal-qr-payment').modal('hide');
+                submitOrder('QR', total);
+            }
         });
     }
 
     async function submitOrder(method, paidAmount) {
-        Swal.showLoading();
+        const btn = $('#btn-checkout');
+        const originalText = btn.text();
+        btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span> Đang xử lý...');
+
         try {
             const payload = {
                 maHoaDon: currentOrderCode,
@@ -1148,6 +1280,8 @@
             }
         } catch (e) {
             Swal.fire('Lỗi', 'Lỗi kết nối', 'error');
+        } finally {
+            btn.prop('disabled', false).text(originalText);
         }
     }
 
@@ -1194,7 +1328,22 @@
         renderCart();
     }
 
-    // Helpers
+    function setPaymentMethod(m) {
+        $('#pay-method-val').val(m);
+        if (m === 'CASH') {
+            $('#cash-section').removeClass('d-none');
+            $('#qr-hint').addClass('d-none');
+            $('#modal-qr-payment').modal('hide');
+            $('#btn-checkout').text('THANH TOÁN');
+        } else {
+            $('#cash-section').addClass('d-none');
+            $('#qr-hint').removeClass('d-none');
+            $('#btn-checkout').html('<i class="bi bi-qr-code"></i> THANH TOÁN (QR)');
+        }
+        calculateChange();
+    }
+
+    // --- CÁC HÀM HỖ TRỢ (GIỮ NGUYÊN) ---
     async function loadCoupons() {
         try {
             const r = await fetch(API_COUPONS);
@@ -1224,18 +1373,6 @@
         $('#customer-name').text(n);
         $('#modal-customer').modal('hide');
         toastr.success("Đã chọn khách");
-    }
-
-    function setPaymentMethod(m) {
-        $('#pay-method-val').val(m);
-        if (m === 'CASH') {
-            $('#cash-section').removeClass('d-none');
-            $('#qr-hint').addClass('d-none');
-        } else {
-            $('#cash-section').addClass('d-none');
-            $('#qr-hint').removeClass('d-none');
-        }
-        calculateChange();
     }
 
     function calculateChange() {

@@ -109,4 +109,14 @@ public class SanPhamServiceImpl implements SanPhamService {
             throw new RuntimeException("Không tìm thấy sản phẩm có ID: " + id);
         }
     }
+    public void updateTotalQuantity(Integer sanPhamId) {
+        // 1. Tính tổng số lượng từ tất cả SanPhamChiTiet
+        Integer totalQuantity = sanPhamRepository.sumQuantityBySanPhamId(sanPhamId);
+
+        // 2. Cập nhật vào SanPham cha
+        sanPhamRepository.findById(sanPhamId).ifPresent(sanPham -> {
+            sanPham.setSoLuong(totalQuantity);
+            sanPhamRepository.save(sanPham);
+        });
+    }
 }

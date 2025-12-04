@@ -15,6 +15,7 @@ import sd_04.datn_fstore.service.VnPayService;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -43,13 +44,27 @@ public class CheckOutApiController {
 
         // 1. KIỂM TRA GIỎ HÀNG CÓ RỖNG KHÔNG
         if (request.getItems() == null || request.getItems().isEmpty()) {
-            return ResponseEntity.badRequest().body("Giỏ hàng của bạn đang trống.");
+            // Trả về OK với total = 0 nếu Frontend gọi calculate khi giỏ hàng trống
+            response.put("subTotal", BigDecimal.ZERO);
+            response.put("shippingFee", FIXED_SHIPPING_FEE);
+            response.put("discountAmount", BigDecimal.ZERO);
+            response.put("finalTotal", FIXED_SHIPPING_FEE);
+            response.put("voucherValid", false);
+            response.put("voucherMessage", "Giỏ hàng trống.");
+            return ResponseEntity.ok(response);
         }
 
-        // 2. TÍNH TỔNG TIỀN HÀNG (SUB-TOTAL) TỪ DATABASE
+        // Dùng DTO mới cho calculate
+        CalculateTotalRequest calcRequest = new CalculateTotalRequest();
+        calcRequest.setVoucherCode(request.getVoucherCode());
+        calcRequest.setShippingFee(FIXED_SHIPPING_FEE);
+
+        List<CalculateTotalRequest.CartItem> calcItems = new java.util.ArrayList<>();
+
+        // 2. TÍNH TỔNG TIỀN HÀNG (SUB-TOTAL) TỪ DATABASE VÀ CHECK TỒN KHO
         for (CheckoutRequest.CartItem item : request.getItems()) {
             if (item.getSanPhamChiTietId() == null) {
-                return ResponseEntity.badRequest().body("Dữ liệu giỏ hàng lỗi: thiếu ID sản phẩm.");
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Dữ liệu giỏ hàng lỗi: thiếu ID sản phẩm."));
             }
 
             Optional<SanPhamChiTiet> spOpt = sanPhamCTRepository.findById(item.getSanPhamChiTietId());
@@ -66,81 +81,35 @@ public class CheckOutApiController {
                 response.put("error", "Sản phẩm '" + sp.getSanPham().getTenSanPham() + "' không đủ hàng (Còn: " + sp.getSoLuong() + ")");
                 response.put("outOfStock", true);
                 response.put("productId", sp.getId());
-                return ResponseEntity.badRequest().body(response);
+                return ResponseEntity.ok(response); // Trả về OK để Frontend xử lý thông báo và xóa khỏi giỏ
             }
 
-            // --- QUAN TRỌNG: LOGIC ƯU TIÊN GIÁ KHUYẾN MÃI ---
-            // Nếu có giá KM và giá KM > 0 thì lấy, ngược lại lấy giá gốc
-            // Thay thế toàn bộ cụm logic tính donGia bị lỗi bằng dòng này:
-
-            BigDecimal donGia = BigDecimal.ZERO;
-            // SỬA: Luôn ưu tiên lấy giá của biến thể (SPCT) vì đó là món khách chọn mua
-            if (sp.getGiaTien() != null) {
-                donGia = sp.getGiaTien();
-            } else if (sp.getSanPham() != null) {
-                // Chỉ lấy giá cha nếu giá con bị null (trường hợp dự phòng)
-                donGia = sp.getSanPham().getGiaTien();
-            }
+            // Lấy giá chuẩn từ SPCT
+            BigDecimal donGia = sp.getGiaTien() != null ? sp.getGiaTien() : BigDecimal.ZERO;
 
             subTotal = subTotal.add(donGia.multiply(BigDecimal.valueOf(item.getSoLuong())));
+
+            // Gán lại cho DTO CalculateTotalRequest (quan trọng để Service tính toán)
+            CalculateTotalRequest.CartItem calcItem = new CalculateTotalRequest.CartItem();
+            calcItem.setSanPhamChiTietId(item.getSanPhamChiTietId());
+            calcItem.setSoLuong(item.getSoLuong());
+            calcItem.setDonGia(donGia);
+            calcItems.add(calcItem);
         }
+        calcRequest.setItems(calcItems);
 
-        // 3. XỬ LÝ MÃ GIẢM GIÁ (AUTO APPLY BEST VOUCHER)
-        BigDecimal discountAmount = BigDecimal.ZERO;
-        String voucherMessage = "";
-        boolean voucherValid = false;
+        // 3. GỌI SERVICE TÍNH TOÁN TỔNG THỂ VÀ VOUCHER
+        CalculateTotalResponse calcRes = checkoutService.calculateOrderTotal(calcRequest);
 
-        // Lấy mã khách nhập (nếu có)
-        String appliedCode = request.getVoucherCode();
-
-        // LOGIC MỚI: Nếu khách KHÔNG nhập mã, hệ thống tự tìm mã tốt nhất
-        if (appliedCode == null || appliedCode.trim().isEmpty()) {
-            // Gọi service tìm mã tốt nhất (Bạn cần đảm bảo Service đã có hàm này như hướng dẫn trước)
-            String bestCode = phieuGiamgiaService.timVoucherTotNhat(subTotal);
-            if (bestCode != null) {
-                appliedCode = bestCode;
-                voucherMessage = "Đã tự động áp dụng mã tốt nhất: " + bestCode;
-            }
-        }
-
-        // Kiểm tra tính hợp lệ của mã (Dù là khách nhập hay hệ thống tự tìm)
-        if (appliedCode != null && !appliedCode.isEmpty()) {
-            PhieuGiamgiaService.VoucherCheckResult result =
-                    phieuGiamgiaService.kiemTraVoucherHople(appliedCode, subTotal);
-
-            if (result.isValid()) {
-                discountAmount = BigDecimal.valueOf(result.discountAmount()); // Convert double sang BigDecimal nếu DTO trả về double
-                voucherValid = true;
-                // Nếu khách tự nhập mã thì lấy thông báo từ kết quả check
-                if (request.getVoucherCode() != null && !request.getVoucherCode().isEmpty()) {
-                    voucherMessage = result.message();
-                }
-            } else {
-                // Nếu mã tự tìm mà lại không hợp lệ (hiếm) thì reset
-                if (request.getVoucherCode() == null || request.getVoucherCode().isEmpty()) {
-                    appliedCode = null;
-                    voucherMessage = "";
-                } else {
-                    voucherMessage = result.message(); // Báo lỗi nếu khách tự nhập sai
-                }
-            }
-        }
-
-        // 4. LẤY PHÍ VẬN CHUYỂN CỐ ĐỊNH
-        BigDecimal shipFee = FIXED_SHIPPING_FEE;
-
-        // 5. TÍNH TỔNG TIỀN CUỐI CÙNG
-        BigDecimal finalTotal = subTotal.add(shipFee).subtract(discountAmount);
-        finalTotal = finalTotal.max(BigDecimal.ZERO); // Không được âm
-
-        // 6. TRẢ VỀ KẾT QUẢ
-        response.put("subTotal", subTotal);
-        response.put("shippingFee", shipFee);
-        response.put("discountAmount", discountAmount);
-        response.put("finalTotal", finalTotal);
-        response.put("voucherValid", voucherValid);
-        response.put("voucherMessage", voucherMessage);
-        response.put("appliedVoucherCode", voucherValid ? appliedCode : null); // Trả về mã đã áp dụng để UI hiển thị
+        // 4. TRẢ VỀ KẾT QUẢ
+        response.put("subTotal", calcRes.getSubTotal());
+        response.put("shippingFee", FIXED_SHIPPING_FEE);
+        response.put("discountAmount", calcRes.getDiscountAmount());
+        response.put("finalTotal", calcRes.getFinalTotal());
+        response.put("voucherValid", calcRes.isVoucherValid());
+        response.put("voucherMessage", calcRes.getVoucherMessage());
+        // Trả về mã đã áp dụng nếu hợp lệ
+        response.put("appliedVoucherCode", calcRes.isVoucherValid() ? request.getVoucherCode() : null);
 
         return ResponseEntity.ok(response);
     }
@@ -157,12 +126,19 @@ public class CheckOutApiController {
 
             String clientIp = getClientIp(httpReq);
             CheckoutResponse response = checkoutService.placeOrder(request, clientIp);
-            return response.isSuccess() ? ResponseEntity.ok(response) : ResponseEntity.badRequest().body(response);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(new CheckoutResponse(false, e.getMessage(), null));
+
+            // Map CheckoutResponse sang format Frontend mong muốn (success/message/redirectUrl)
+            return ResponseEntity.ok(Map.of(
+                    "success", response.isSuccess(),
+                    "message", response.getMessage(),
+                    "redirectUrl", response.getRedirectUrl(),
+                    "paymentMethod", request.getPaymentMethod() // Trả lại payment method cho FE
+            ));
+        } catch (RuntimeException e) { // Bắt các lỗi RuntimeException từ Service (như hết hàng)
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.internalServerError().body(new CheckoutResponse(false, "Đã có lỗi hệ thống xảy ra.", null));
+            return ResponseEntity.internalServerError().body(Map.of("success", false, "message", "Đã có lỗi hệ thống xảy ra."));
         }
     }
 
@@ -171,10 +147,11 @@ public class CheckOutApiController {
         Map<String, String> vnpParams = request.getParameterMap().entrySet().stream()
                 .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue()[0]));
         try {
+            // Giả định orderReturn trả về 1 nếu thành công, 0 nếu thất bại
             int result = vnPayService.orderReturn(vnpParams);
             String orderCode = vnpParams.get("vnp_TxnRef");
             String redirectUrl = (result == 1)
-                    ? "/checkout/success?id=" + orderCode
+                    ? "/checkout/success?orderCode=" + orderCode // Dùng orderCode để truy vấn đơn hàng
                     : "/checkout?error=payment_failed&code=" + orderCode;
             response.sendRedirect(redirectUrl);
         } catch (Exception e) {

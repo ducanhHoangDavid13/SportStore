@@ -1,151 +1,445 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Quản lý Xuất Xứ</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css">
-  <link rel="stylesheet" th:href="@{/css/styles.css}" />
-  <link rel="stylesheet" th:href="@{/css/navbar.css}" />
-  <style>
-    body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; color: #374151; }
-    .card-box { background: #fff; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 1.5rem; }
-    .table-custom th { background-color: #f9fafb; font-size: 0.75rem; text-transform: uppercase; color: #6b7280; padding: 1rem; }
-    .table-custom td { vertical-align: middle; padding: 1rem; font-size: 0.875rem; }
-    .badge-active { background: #d1fae5; color: #065f46; padding: 5px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
-    .badge-inactive { background: #fee2e2; color: #991b1b; padding: 5px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
-    .btn-action { width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; border-radius: 6px; }
-  </style>
+    <meta charset="UTF-8">
+    <title>Quản lý Xuất Xứ</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css">
+    <link rel="stylesheet" th:href="@{/css/styles.css}"/>
+    <link rel="stylesheet" th:href="@{/css/navbar.css}"/>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            color: #374151;
+        }
+
+        .card-box {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            margin-bottom: 1.5rem;
+        }
+
+        .table-custom th {
+            background-color: #f9fafb;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: #6b7280;
+            padding: 1rem;
+        }
+
+        .table-custom td {
+            vertical-align: middle;
+            padding: 1rem;
+            font-size: 0.875rem;
+        }
+
+        .badge-active {
+            background: #d1fae5;
+            color: #065f46;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-inactive {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .btn-action {
+            width: 32px;
+            height: 32px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+        }
+    </style>
 </head>
 <body>
 <nav th:replace="~{library/navbar :: admin-navbar}"></nav>
 <div class="page-wrapper">
-  <div th:replace="~{library/navbar :: admin-sidebar}"></div>
-  <main class="main-content pt-4 px-4">
-    <div class="container-fluid">
-      <div class="d-flex justify-content-between mb-4"><h3 class="fw-bold">Quản lý Xuất Xứ</h3></div>
+    <div th:replace="~{library/navbar :: admin-sidebar}"></div>
+    <main class="main-content pt-4 px-4">
+        <div class="container-fluid">
+            <div class="d-flex justify-content-between mb-4"><h3 class="fw-bold">Quản lý Xuất Xứ</h3></div>
 
-      <div class="card-box p-4">
-        <form id="filterForm">
-          <div class="row g-3 align-items-end">
-            <div class="col-md-4">
-              <label class="form-label small fw-bold text-muted">TỪ KHÓA</label>
-              <input type="text" id="keyword" class="form-control" placeholder="Tên xuất xứ...">
+            <div class="card-box p-4">
+                <form id="filterForm">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold text-muted">TỪ KHÓA</label>
+                            <input type="text" id="keyword" class="form-control" placeholder="Tên xuất xứ...">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold text-muted">TRẠNG THÁI</label>
+                            <select id="trangThaiFilter" class="form-select">
+                                <option value="">Tất cả</option>
+                                <option value="1">Hoạt động</option>
+                                <option value="0">Ngừng hoạt động</option>
+                            </select>
+                        </div>
+                        <div class="col-md-5">
+                            <button type="submit" class="btn btn-primary px-4"><i class="fas fa-search"></i> Tìm
+                            </button>
+                            <button type="button" class="btn btn-light border" id="btnReset"><i class="fas fa-sync"></i>
+                                Reset
+                            </button>
+                        </div>
+                    </div>
+                </form>
             </div>
-            <div class="col-md-3">
-              <label class="form-label small fw-bold text-muted">TRẠNG THÁI</label>
-              <select id="trangThaiFilter" class="form-select">
-                <option value="">Tất cả</option>
-                <option value="1">Hoạt động</option>
-                <option value="0">Ngừng hoạt động</option>
-              </select>
+
+            <div class="card-box">
+                <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold">Danh sách Xuất xứ</h5>
+                    <button class="btn btn-success btn-sm shadow-sm" data-bs-toggle="modal" data-bs-target="#addModal">
+                        <i class="fas fa-plus"></i> Thêm mới
+                    </button>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-custom table-hover mb-0">
+                        <thead>
+                        <tr>
+                            <th class="text-center">ID</th>
+                            <th>Tên Xuất Xứ</th>
+                            <th class="text-center">Trạng thái</th>
+                            <th class="text-center">Ngày tạo</th>
+                            <th class="text-center">Thao tác</th>
+                        </tr>
+                        </thead>
+                        <tbody id="tableBody"></tbody>
+                    </table>
+                </div>
+                <div class="p-3 border-top d-flex justify-content-between align-items-center bg-light bg-opacity-25">
+                    <div id="pageInfo" class="text-muted small"></div>
+                    <nav id="paginationNav"></nav>
+                </div>
             </div>
-            <div class="col-md-5">
-              <button type="submit" class="btn btn-primary px-4"><i class="fas fa-search"></i> Tìm</button>
-              <button type="button" class="btn btn-light border" id="btnReset"><i class="fas fa-sync"></i> Reset</button>
+        </div>
+
+        <div class="modal fade" id="addModal" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <form id="addForm">
+                        <div class="modal-header bg-primary text-white"><h5 class="modal-title fw-bold">THÊM XUẤT
+                            XỨ</h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="mb-3"><label class="fw-bold">Tên Xuất Xứ <span
+                                    class="text-danger">*</span></label><input type="text" class="form-control"
+                                                                               id="newTen" required></div>
+                            <div class="mb-3"><label class="fw-bold">Ngày tạo <span class="text-danger">*</span></label><input
+                                    type="datetime-local" class="form-control" id="newNgayTao" required></div>
+                            <div class="mb-3"><label class="fw-bold">Mô tả</label><textarea class="form-control"
+                                                                                            id="newMoTa"
+                                                                                            rows="3"></textarea></div>
+                            <div class="mb-1"><label class="fw-bold">Trạng thái</label>
+                                <div class="d-flex gap-3">
+                                    <div class="form-check"><input class="form-check-input" type="radio" name="newTT"
+                                                                   value="1" checked> <label class="text-success">Hoạt
+                                        động</label></div>
+                                    <div class="form-check"><input class="form-check-input" type="radio" name="newTT"
+                                                                   value="0"> <label class="text-danger">Ngừng</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer border-0 pt-0">
+                            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Đóng</button>
+                            <button type="submit" class="btn btn-primary">Lưu</button>
+                        </div>
+                    </form>
+                </div>
             </div>
-          </div>
-        </form>
-      </div>
+        </div>
 
-      <div class="card-box">
-        <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
-          <h5 class="mb-0 fw-bold">Danh sách Xuất xứ</h5>
-          <button class="btn btn-success btn-sm shadow-sm" data-bs-toggle="modal" data-bs-target="#addModal"><i class="fas fa-plus"></i> Thêm mới</button>
+        <div class="modal fade" id="editModal" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <form id="editForm">
+                        <input type="hidden" id="editId">
+                        <div class="modal-header bg-warning text-white"><h5 class="modal-title fw-bold">CẬP NHẬT</h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="mb-3"><label class="fw-bold">Tên Xuất Xứ <span
+                                    class="text-danger">*</span></label><input type="text" class="form-control"
+                                                                               id="editTen" required></div>
+                            <div class="mb-3"><label class="fw-bold">Ngày tạo <span class="text-danger">*</span></label><input
+                                    type="datetime-local" class="form-control" id="editNgayTao" required></div>
+                            <div class="mb-3"><label class="fw-bold">Mô tả</label><textarea class="form-control"
+                                                                                            id="editMoTa"
+                                                                                            rows="3"></textarea></div>
+                            <div class="mb-1"><label class="fw-bold">Trạng thái</label>
+                                <div class="d-flex gap-3">
+                                    <div class="form-check"><input class="form-check-input" type="radio" name="editTT"
+                                                                   id="editTTOn" value="1"> <label class="text-success">Hoạt
+                                        động</label></div>
+                                    <div class="form-check"><input class="form-check-input" type="radio" name="editTT"
+                                                                   id="editTTOff" value="0"> <label class="text-danger">Ngừng</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer border-0 pt-0">
+                            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Hủy</button>
+                            <button type="submit" class="btn btn-warning text-white">Cập nhật</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
-        <div class="table-responsive">
-          <table class="table table-custom table-hover mb-0">
-            <thead><tr><th class="text-center">ID</th><th>Tên Xuất Xứ</th><th class="text-center">Trạng thái</th><th class="text-center">Ngày tạo</th><th class="text-center">Thao tác</th></tr></thead>
-            <tbody id="tableBody"></tbody>
-          </table>
-        </div>
-        <div class="p-3 border-top d-flex justify-content-between align-items-center bg-light bg-opacity-25">
-          <div id="pageInfo" class="text-muted small"></div>
-          <nav id="paginationNav"></nav>
-        </div>
-      </div>
-    </div>
-
-    <div class="modal fade" id="addModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content">
-      <form id="addForm">
-        <div class="modal-header bg-primary text-white"><h5 class="modal-title fw-bold">THÊM XUẤT XỨ</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
-        <div class="modal-body">
-          <div class="mb-3"><label class="fw-bold">Tên Xuất Xứ <span class="text-danger">*</span></label><input type="text" class="form-control" id="newTen" required></div>
-          <div class="mb-3"><label class="fw-bold">Ngày tạo <span class="text-danger">*</span></label><input type="datetime-local" class="form-control" id="newNgayTao" required></div>
-          <div class="mb-3"><label class="fw-bold">Mô tả</label><textarea class="form-control" id="newMoTa" rows="3"></textarea></div>
-          <div class="mb-1"><label class="fw-bold">Trạng thái</label>
-            <div class="d-flex gap-3"><div class="form-check"><input class="form-check-input" type="radio" name="newTT" value="1" checked> <label class="text-success">Hoạt động</label></div>
-              <div class="form-check"><input class="form-check-input" type="radio" name="newTT" value="0"> <label class="text-danger">Ngừng</label></div></div>
-          </div>
-        </div>
-        <div class="modal-footer border-0 pt-0"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Đóng</button><button type="submit" class="btn btn-primary">Lưu</button></div>
-      </form>
-    </div></div></div>
-
-    <div class="modal fade" id="editModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content">
-      <form id="editForm">
-        <input type="hidden" id="editId">
-        <div class="modal-header bg-warning text-white"><h5 class="modal-title fw-bold">CẬP NHẬT</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
-        <div class="modal-body">
-          <div class="mb-3"><label class="fw-bold">Tên Xuất Xứ <span class="text-danger">*</span></label><input type="text" class="form-control" id="editTen" required></div>
-          <div class="mb-3"><label class="fw-bold">Ngày tạo <span class="text-danger">*</span></label><input type="datetime-local" class="form-control" id="editNgayTao" required></div>
-          <div class="mb-3"><label class="fw-bold">Mô tả</label><textarea class="form-control" id="editMoTa" rows="3"></textarea></div>
-          <div class="mb-1"><label class="fw-bold">Trạng thái</label>
-            <div class="d-flex gap-3"><div class="form-check"><input class="form-check-input" type="radio" name="editTT" id="editTTOn" value="1"> <label class="text-success">Hoạt động</label></div>
-              <div class="form-check"><input class="form-check-input" type="radio" name="editTT" id="editTTOff" value="0"> <label class="text-danger">Ngừng</label></div></div>
-          </div>
-        </div>
-        <div class="modal-footer border-0 pt-0"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Hủy</button><button type="submit" class="btn btn-warning text-white">Cập nhật</button></div>
-      </form>
-    </div></div></div>
-  </main>
+    </main>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
 <script>
-  toastr.options = { "positionClass": "toast-bottom-right", "timeOut": "3000" };
-  const API = "/api/xuat-xu";
-  let filter = { page: 1, kw: '', tt: '' };
+    // --- 1. CẤU HÌNH & BIẾN TOÀN CỤC ---
+    toastr.options = {
+        "positionClass": "toast-bottom-right",
+        "timeOut": "3000",
+        "closeButton": true
+    };
+    const API = "/api/xuat-xu";
+    let filter = { page: 1, kw: '', tt: '' };
 
-  function getISO() { return new Date(new Date().getTime() - (new Date().getTimezoneOffset() * 60000)).toISOString().slice(0, 16); }
-  function load() {
-    let p = { page: filter.page - 1, size: 5, keyword: filter.kw, trangThai: filter.tt === '' ? null : parseInt(filter.tt) };
-    $.get(API, p, res => { render(res.content); pagination(res.number + 1, res.totalPages); $('#pageInfo').html(`Hiển thị <strong>${res.numberOfElements}</strong> / <strong>${res.totalElements}</strong>`); });
-  }
-  function render(list) {
-    let h = '';
-    if(!list.length) h = '<tr><td colspan="5" class="text-center py-4">Không có dữ liệu</td></tr>';
-    else list.forEach(i => {
-      let st = i.trangThai === 1 ? '<span class="badge-active">Hoạt động</span>' : '<span class="badge-inactive">Ngừng hoạt động</span>';
-      let btn = i.trangThai === 1 ? `<button class="btn btn-action btn-light text-danger border" onclick="toggle(${i.id},0)"><i class="fas fa-ban"></i></button>` : `<button class="btn btn-action btn-light text-success border" onclick="toggle(${i.id},1)"><i class="fas fa-sync-alt"></i></button>`;
-      h += `<tr><td class="text-center fw-bold">#${i.id}</td><td class="fw-semibold">${i.tenXuatXu}</td><td class="text-center">${st}</td><td class="text-center small">${i.ngayTao?new Date(i.ngayTao).toLocaleString('vi-VN'):''}</td><td class="text-center"><button class="btn btn-action btn-light text-warning border me-1" onclick="edit(${i.id})"><i class="fas fa-pen"></i></button>${btn}</td></tr>`;
+    // --- 2. CÁC HÀM TIỆN ÍCH (HELPER) ---
+    function getISO() {
+        return new Date(new Date().getTime() - (new Date().getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
+    }
+
+    // Hàm xử lý lỗi chung (Bắt lỗi trùng lặp & lỗi khác)
+    function handleAjaxError(xhr) {
+        let msg = "Lỗi xử lý hệ thống";
+        if (xhr.responseJSON && xhr.responseJSON.message) {
+            msg = xhr.responseJSON.message;
+        } else if (xhr.responseText) {
+            msg = xhr.responseText;
+        }
+
+        // Check trùng dựa trên Status code 409 hoặc từ khóa trong message
+        if (xhr.status === 409 || msg.toLowerCase().includes("trùng") || msg.toLowerCase().includes("exist")) {
+            toastr.warning("⚠️ Dữ liệu này đã tồn tại! Vui lòng kiểm tra lại.");
+        } else {
+            toastr.error("❌ " + msg);
+        }
+    }
+
+    // --- 3. LOAD & RENDER DỮ LIỆU ---
+    function load() {
+        let p = {
+            page: filter.page - 1,
+            size: 5,
+            keyword: filter.kw,
+            trangThai: filter.tt === '' ? null : parseInt(filter.tt)
+        };
+
+        // Hiển thị loading (tuỳ chọn, để người dùng biết đang tải)
+        $('#tableBody').html('<tr><td colspan="5" class="text-center py-4 text-muted">Đang tải dữ liệu...</td></tr>');
+
+        $.get(API, p, res => {
+            render(res.content);
+            pagination(res.number + 1, res.totalPages);
+            $('#pageInfo').html(`Hiển thị <strong>${res.numberOfElements}</strong> / <strong>${res.totalElements}</strong>`);
+        }).fail(() => {
+            $('#tableBody').html('<tr><td colspan="5" class="text-center py-4 text-danger">Lỗi kết nối server</td></tr>');
+            toastr.error("Lỗi tải danh sách");
+        });
+    }
+
+    function render(list) {
+        let h = '';
+        if (!list || !list.length) {
+            h = '<tr><td colspan="5" class="text-center py-4">Không có dữ liệu</td></tr>';
+        } else {
+            list.forEach(i => {
+                let st = i.trangThai === 1
+                    ? '<span class="badge-active">Hoạt động</span>'
+                    : '<span class="badge-inactive">Ngừng hoạt động</span>';
+
+                let btn = i.trangThai === 1
+                    ? `<button class="btn btn-action btn-light text-danger border" onclick="toggle(${i.id},0)" title="Ngừng hoạt động"><i class="fas fa-ban"></i></button>`
+                    : `<button class="btn btn-action btn-light text-success border" onclick="toggle(${i.id},1)" title="Kích hoạt lại"><i class="fas fa-sync-alt"></i></button>`;
+
+                let dateStr = i.ngayTao ? new Date(i.ngayTao).toLocaleString('vi-VN') : '';
+
+                h += `<tr>
+                        <td class="text-center fw-bold">#${i.id}</td>
+                        <td class="fw-semibold">${i.tenXuatXu}</td>
+                        <td class="text-center">${st}</td>
+                        <td class="text-center small">${dateStr}</td>
+                        <td class="text-center">
+                            <button class="btn btn-action btn-light text-warning border me-1" onclick="edit(${i.id})" title="Sửa"><i class="fas fa-pen"></i></button>
+                            ${btn}
+                        </td>
+                      </tr>`;
+            });
+        }
+        $('#tableBody').html(h);
+    }
+
+    function pagination(c, t) {
+        let n = '<ul class="pagination justify-content-end mb-0">';
+        if (t > 1) {
+            // Nút Previous
+            n += `<li class="page-item ${c === 1 ? 'disabled' : ''}">
+                    <button class="page-link" onclick="if(${c} > 1){filter.page=${c-1};load()}">&laquo;</button>
+                  </li>`;
+
+            // Các trang
+            for (let i = 1; i <= t; i++) {
+                if (i === 1 || i === t || (i >= c - 1 && i <= c + 1)) {
+                    n += `<li class="page-item ${i === c ? 'active' : ''}"><button class="page-link" onclick="filter.page=${i};load()">${i}</button></li>`;
+                } else if (i === c - 2 || i === c + 2) {
+                    n += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+                }
+            }
+
+            // Nút Next
+            n += `<li class="page-item ${c === t ? 'disabled' : ''}">
+                    <button class="page-link" onclick="if(${c} < ${t}){filter.page=${c+1};load()}">&raquo;</button>
+                  </li>`;
+        }
+        $('#paginationNav').html(n + '</ul>');
+    }
+
+    // --- 4. SỰ KIỆN BỘ LỌC ---
+    $('#filterForm').submit(e => {
+        e.preventDefault();
+        filter.kw = $('#keyword').val().trim();
+        filter.tt = $('#trangThaiFilter').val();
+        filter.page = 1;
+        load();
     });
-    $('#tableBody').html(h);
-  }
-  function pagination(c, t) {
-    let n = '<ul class="pagination justify-content-end mb-0">';
-    if(t > 1) for(let i=1; i<=t; i++) n += `<li class="page-item ${i===c?'active':''}"><button class="page-link" onclick="filter.page=${i};load()">${i}</button></li>`;
-    $('#paginationNav').html(n+'</ul>');
-  }
-  $('#filterForm').submit(e => { e.preventDefault(); filter.kw=$('#keyword').val(); filter.tt=$('#trangThaiFilter').val(); filter.page=1; load(); });
-  $('#btnReset').click(() => { $('#keyword').val(''); $('#trangThaiFilter').val(''); filter={page:1, kw:'', tt:''}; load(); });
 
-  $('#addModal').on('show.bs.modal', () => { $('#addForm')[0].reset(); $('#newNgayTao').val(getISO()); });
-  $('#addForm').submit(e => { e.preventDefault();
-    if(new Date($('#newNgayTao').val()) > new Date()) return toastr.warning("Ngày tạo không được ở tương lai");
-    $.ajax({ url: API, type: 'POST', contentType: 'application/json', data: JSON.stringify({ tenXuatXu: $('#newTen').val().trim(), ngayTao: $('#newNgayTao').val(), moTa: $('#newMoTa').val().trim(), trangThai: $('input[name="newTT"]:checked').val() }), success: () => { toastr.success("Thành công"); $('#addModal').modal('hide'); load(); }, error: (e) => toastr.error(e.responseJSON?.message || "Lỗi") });
-  });
-  window.edit = id => $.get(`${API}/${id}`, d => { $('#editId').val(d.id); $('#editTen').val(d.tenXuatXu); $('#editNgayTao').val(d.ngayTao?d.ngayTao.slice(0,16):''); $('#editMoTa').val(d.moTa); if(d.trangThai===1)$('#editTTOn').prop('checked',true);else $('#editTTOff').prop('checked',true); new bootstrap.Modal('#editModal').show(); });
-  $('#editForm').submit(e => { e.preventDefault();
-    if(new Date($('#editNgayTao').val()) > new Date()) return toastr.warning("Ngày tạo không được ở tương lai");
-    $.ajax({ url: `${API}/${$('#editId').val()}`, type: 'PUT', contentType: 'application/json', data: JSON.stringify({ id: $('#editId').val(), tenXuatXu: $('#editTen').val().trim(), ngayTao: $('#editNgayTao').val(), moTa: $('#editMoTa').val().trim(), trangThai: $('input[name="editTT"]:checked').val() }), success: () => { toastr.success("Cập nhật thành công"); $('#editModal').modal('hide'); load(); }, error: (e) => toastr.error(e.responseJSON?.message || "Lỗi") });
-  });
-  window.toggle = (id, s) => { if(confirm(s===1?'Kích hoạt lại?':'Ngừng hoạt động?')) $.ajax({ url: `${API}/${id}/trang-thai?trangThai=${s}`, type: 'PUT', success: () => { toastr.success("Thành công"); load(); }, error: () => toastr.error("Lỗi") }); };
-  load();
+    $('#btnReset').click(() => {
+        $('#keyword').val('');
+        $('#trangThaiFilter').val('');
+        filter = { page: 1, kw: '', tt: '' };
+        load();
+    });
+
+    // --- 5. CHỨC NĂNG THÊM MỚI ---
+    $('#addModal').on('show.bs.modal', () => {
+        $('#addForm')[0].reset();
+        $('#newNgayTao').val(getISO());
+    });
+
+    $('#addForm').submit(function(e) {
+        e.preventDefault();
+        // Validate Client
+        if (new Date($('#newNgayTao').val()) > new Date()) return toastr.warning("Ngày tạo không được ở tương lai");
+        let name = $('#newTen').val().trim();
+        if (!name) return toastr.warning("Tên xuất xứ không được để trống");
+
+        let data = {
+            tenXuatXu: name,
+            ngayTao: $('#newNgayTao').val(),
+            moTa: $('#newMoTa').val().trim(),
+            trangThai: parseInt($('input[name="newTT"]:checked').val())
+        };
+
+        $.ajax({
+            url: API,
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(data),
+            beforeSend: function() {
+                // Khóa nút submit
+                $('#addForm button[type="submit"]').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Đang xử lý...');
+            },
+            success: () => {
+                toastr.success("Thêm mới thành công");
+                $('#addModal').modal('hide');
+                load();
+            },
+            error: handleAjaxError, // Sử dụng hàm xử lý lỗi chung
+            complete: function() {
+                // Mở lại nút submit
+                $('#addForm button[type="submit"]').prop('disabled', false).text('Lưu');
+            }
+        });
+    });
+
+    // --- 6. CHỨC NĂNG CẬP NHẬT (SỬA) ---
+    window.edit = id => $.get(`${API}/${id}`, d => {
+        $('#editId').val(d.id);
+        $('#editTen').val(d.tenXuatXu);
+        $('#editNgayTao').val(d.ngayTao ? d.ngayTao.slice(0, 16) : '');
+        $('#editMoTa').val(d.moTa);
+        if (d.trangThai === 1) $('#editTTOn').prop('checked', true);
+        else $('#editTTOff').prop('checked', true);
+        new bootstrap.Modal('#editModal').show();
+    });
+
+    $('#editForm').submit(function(e) {
+        e.preventDefault();
+        // Validate Client
+        if (new Date($('#editNgayTao').val()) > new Date()) return toastr.warning("Ngày tạo không được ở tương lai");
+        let name = $('#editTen').val().trim();
+        if (!name) return toastr.warning("Tên xuất xứ không được để trống");
+
+        let id = $('#editId').val();
+        let data = {
+            id: id,
+            tenXuatXu: name,
+            ngayTao: $('#editNgayTao').val(),
+            moTa: $('#editMoTa').val().trim(),
+            trangThai: parseInt($('input[name="editTT"]:checked').val())
+        };
+
+        $.ajax({
+            url: `${API}/${id}`,
+            type: 'PUT',
+            contentType: 'application/json',
+            data: JSON.stringify(data),
+            beforeSend: function() {
+                // Khóa nút submit
+                $('#editForm button[type="submit"]').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Đang xử lý...');
+            },
+            success: () => {
+                toastr.success("Cập nhật thành công");
+                $('#editModal').modal('hide');
+                load();
+            },
+            error: handleAjaxError,
+            complete: function() {
+                // Mở lại nút submit
+                $('#editForm button[type="submit"]').prop('disabled', false).text('Cập nhật');
+            }
+        });
+    });
+
+    // --- 7. CHỨC NĂNG ĐỔI TRẠNG THÁI ---
+    window.toggle = (id, s) => {
+        let actionText = s === 1 ? 'Kích hoạt lại' : 'Ngừng hoạt động';
+        if (confirm(`Bạn có chắc muốn ${actionText}?`)) {
+            $.ajax({
+                url: `${API}/${id}/trang-thai?trangThai=${s}`,
+                type: 'PUT',
+                success: () => {
+                    toastr.success("Cập nhật trạng thái thành công");
+                    load();
+                },
+                error: handleAjaxError
+            });
+        }
+    };
+
+    // Khởi chạy lần đầu
+    load();
 </script>
 </body>
 </html>

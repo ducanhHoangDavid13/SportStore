@@ -527,21 +527,75 @@
         return btns;
     }
 
+    // --- CẬP NHẬT PHẦN PHÂN TRANG ---
+
+    // Hàm render phân trang đầy đủ chức năng
     function renderPagination(totalPages) {
         const pagEl = document.getElementById("pagination");
         pagEl.innerHTML = "";
+
+        // Nếu chỉ có 1 trang hoặc không có dữ liệu thì ẩn phân trang
         if (totalPages <= 1) return;
 
-        let html = `<li class="page-item ${state.page===0?'disabled':''}"><button class="page-link" onclick="changePage(${state.page-1})">&laquo;</button></li>`;
-        for (let i = 0; i < totalPages; i++) {
-            html += `<li class="page-item ${i===state.page?'active':''}"><button class="page-link" onclick="changePage(${i})">${i+1}</button></li>`;
+        let current = state.page; // Trang hiện tại (0-index)
+        let html = '';
+
+        // 1. Nút ĐẦU (First)
+        html += `<li class="page-item ${current === 0 ? 'disabled' : ''}">
+                    <button class="page-link" onclick="changePage(0)">
+                        <i class="fas fa-angle-double-left"></i> Đầu
+                    </button>
+                 </li>`;
+
+        // 2. Nút TRƯỚC (Previous)
+        html += `<li class="page-item ${current === 0 ? 'disabled' : ''}">
+                    <button class="page-link" onclick="changePage(${current - 1})">
+                        <i class="fas fa-angle-left"></i>
+                    </button>
+                 </li>`;
+
+        // 3. Các nút SỐ TRANG (Logic hiển thị dạng cửa sổ: 1 ... 4 5 [6] 7 8 ... 20)
+        // Chỉ hiển thị tối đa 5 nút số trang để giao diện gọn gàng
+        let startPage = Math.max(0, current - 2);
+        let endPage = Math.min(totalPages - 1, current + 2);
+
+        // Điều chỉnh nếu đang ở những trang đầu
+        if (current < 2) {
+            endPage = Math.min(totalPages - 1, 4);
         }
-        html += `<li class="page-item ${state.page===totalPages-1?'disabled':''}"><button class="page-link" onclick="changePage(${state.page+1})">&raquo;</button></li>`;
+        // Điều chỉnh nếu đang ở những trang cuối
+        if (current > totalPages - 3) {
+            startPage = Math.max(0, totalPages - 5);
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+            html += `<li class="page-item ${i === current ? 'active' : ''}">
+                        <button class="page-link" onclick="changePage(${i})">${i + 1}</button>
+                     </li>`;
+        }
+
+        // 4. Nút TIẾP (Next)
+        html += `<li class="page-item ${current === totalPages - 1 ? 'disabled' : ''}">
+                    <button class="page-link" onclick="changePage(${current + 1})">
+                        <i class="fas fa-angle-right"></i>
+                    </button>
+                 </li>`;
+
+        // 5. Nút CUỐI (Last)
+        html += `<li class="page-item ${current === totalPages - 1 ? 'disabled' : ''}">
+                    <button class="page-link" onclick="changePage(${totalPages - 1})">
+                        Cuối <i class="fas fa-angle-double-right"></i>
+                    </button>
+                 </li>`;
+
         pagEl.innerHTML = html;
     }
 
+    // Hàm xử lý sự kiện click chuyển trang
     function changePage(p) {
-        if(p >= 0) {
+        // Chỉ reload nếu số trang hợp lệ (lớn hơn hoặc bằng 0)
+        // Không cần check max vì logic render đã disable nút không hợp lệ
+        if (p >= 0 && p !== state.page) {
             state.page = p;
             loadHoaDon();
         }

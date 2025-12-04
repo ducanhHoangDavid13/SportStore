@@ -8,6 +8,8 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import sd_04.datn_fstore.model.TheLoai;
 
+import java.util.List;
+
 @Repository
 public interface TheLoaiRepository extends JpaRepository<TheLoai, Integer> {
 
@@ -26,4 +28,6 @@ public interface TheLoaiRepository extends JpaRepository<TheLoai, Integer> {
     Page<TheLoai> findPaginated(Pageable pageable,
                                 @Param("keyword") String keyword,
                                 @Param("trangThai") Integer trangThai);
+
+    List<TheLoai> findByTrangThai(Integer trangThai);
 }

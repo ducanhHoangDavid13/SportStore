@@ -23,7 +23,10 @@ public class SanPhamChiTietApiController {
 
     private final SanPhamCTService sanPhamCTService;
 
-    // API tìm kiếm / lọc (ĐÃ BỎ minPrice, maxPrice)
+    /**
+     * GET: API tìm kiếm / lọc các Biến thể (SanPhamChiTiet)
+     * Thường dùng cho trang quản lý/admin
+     */
     @GetMapping
     public ResponseEntity<Page<SanPhamChiTiet>> search(
             Pageable pageable,
@@ -37,6 +40,7 @@ public class SanPhamChiTietApiController {
             @RequestParam(required = false) Integer trangThai,
             @RequestParam(required = false) String keyword
     ) {
+        // Gọi Service để thực hiện tìm kiếm/lọc
         Page<SanPhamChiTiet> spctPage = sanPhamCTService.search(
                 pageable, idSanPham, idKichThuoc, idChatLieu, idTheLoai,
                 idXuatXu, idMauSac, idPhanLoai, trangThai, keyword
@@ -44,9 +48,13 @@ public class SanPhamChiTietApiController {
         return ResponseEntity.ok(spctPage);
     }
 
+    /**
+     * POST: Thêm mới một Biến thể (SanPhamChiTiet)
+     */
     @PostMapping
     public ResponseEntity<?> addVariant(@RequestBody SanPhamChiTiet sanPhamChiTiet) {
         try {
+            // Đảm bảo ID được thiết lập là null để Spring Data JPA tự động sinh
             sanPhamChiTiet.setId(null);
             SanPhamChiTiet savedSpct = sanPhamCTService.save(sanPhamChiTiet);
             return new ResponseEntity<>(savedSpct, HttpStatus.CREATED);
@@ -57,34 +65,48 @@ public class SanPhamChiTietApiController {
         }
     }
 
+    /**
+     * PUT: Cập nhật trường trạng thái của một Biến thể theo ID
+     */
     @PutMapping("/{id}/trang-thai")
     public ResponseEntity<?> updateTrangThai(
             @PathVariable("id") Integer id,
             @RequestParam("trangThai") Integer trangThai) {
         try {
+            // Gọi Service để cập nhật trạng thái
             return ResponseEntity.ok(sanPhamCTService.updateTrangThai(id, trangThai));
         } catch (RuntimeException e) {
+            // Xử lý lỗi nghiệp vụ (ví dụ: không tìm thấy ID)
             Map<String, String> err = new HashMap<>();
             err.put("message", e.getMessage());
             return ResponseEntity.badRequest().body(err);
         } catch (Exception e) {
+            // Xử lý lỗi hệ thống
             return ResponseEntity.internalServerError().body("Lỗi server: " + e.getMessage());
         }
     }
 
+    /**
+     * PUT: Cập nhật toàn bộ thông tin của một Biến thể theo ID
+     */
     @PutMapping("/{id}")
     public ResponseEntity<?> updateVariant(@PathVariable Integer id,
                                            @RequestBody SanPhamChiTiet dataTuJavaScript) {
+        // 1. Kiểm tra sự tồn tại của biến thể
         Optional<SanPhamChiTiet> optSpct = sanPhamCTService.getById(id);
         if (optSpct.isEmpty()) {
             return new ResponseEntity<>("Không tìm thấy biến thể với ID: " + id, HttpStatus.NOT_FOUND);
         }
+
         SanPhamChiTiet spctTrongDB = optSpct.get();
 
+        // 2. Cập nhật các trường từ dữ liệu nhận được
         spctTrongDB.setGiaTien(dataTuJavaScript.getGiaTien());
         spctTrongDB.setSoLuong(dataTuJavaScript.getSoLuong());
         spctTrongDB.setMoTa(dataTuJavaScript.getMoTa());
         spctTrongDB.setTrangThai(dataTuJavaScript.getTrangThai());
+
+        // Cập nhật các mối quan hệ (tránh thay đổi ID của SanPham/MauSac/KichThuoc/...)
         spctTrongDB.setSanPham(dataTuJavaScript.getSanPham());
         spctTrongDB.setMauSac(dataTuJavaScript.getMauSac());
         spctTrongDB.setKichThuoc(dataTuJavaScript.getKichThuoc());
@@ -93,6 +115,7 @@ public class SanPhamChiTietApiController {
         spctTrongDB.setTheLoai(dataTuJavaScript.getTheLoai());
 
         try {
+            // 3. Lưu vào DB
             SanPhamChiTiet updatedSpct = sanPhamCTService.save(spctTrongDB);
             return ResponseEntity.ok(updatedSpct);
         } catch (Exception e) {
@@ -101,6 +124,9 @@ public class SanPhamChiTietApiController {
         }
     }
 
+    /**
+     * GET: Lấy thông tin chi tiết của một Biến thể theo ID
+     */
     @GetMapping("/{id}")
     @Transactional(readOnly = true)
     public ResponseEntity<SanPhamChiTiet> getById(@PathVariable Integer id) {
@@ -109,20 +135,29 @@ public class SanPhamChiTietApiController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    /**
+     * DELETE: Xóa một Biến thể theo ID
+     */
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteVariant(@PathVariable Integer id) {
+        // 1. Kiểm tra sự tồn tại
         if (sanPhamCTService.getById(id).isEmpty()) {
             return new ResponseEntity<>("Không tìm thấy biến thể với ID: " + id, HttpStatus.NOT_FOUND);
         }
         try {
+            // 2. Xóa
             sanPhamCTService.delete(id);
             return ResponseEntity.noContent().build();
         } catch (Exception e) {
+            // Xử lý lỗi nếu biến thể đang được tham chiếu (ví dụ: trong Hóa đơn)
             return ResponseEntity.status(HttpStatus.CONFLICT)
                     .body("Không thể xóa biến thể này vì đang được sử dụng.");
         }
     }
 
+    /**
+     * GET: Tìm kiếm danh sách Biến thể dựa trên Tên Sản phẩm cha
+     */
     @GetMapping("/search")
     public List<SanPhamChiTiet> searchBySanPhamTen(@RequestParam("tenSp") String tenSp) {
         return sanPhamCTService.searchBySanPhamTen(tenSp);

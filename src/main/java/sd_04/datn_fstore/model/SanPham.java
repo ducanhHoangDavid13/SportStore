@@ -48,8 +48,6 @@ public class SanPham {
     private BigDecimal giaTien;
 
     @Column(name = "soLuong")
-    @NotNull(message = "Số lượng không được để trống")
-    @Min(value = 0, message = "Số lượng phải lớn hơn hoặc bằng 0")
     private Integer soLuong;
 
     // ================= MỐI QUAN HỆ =================

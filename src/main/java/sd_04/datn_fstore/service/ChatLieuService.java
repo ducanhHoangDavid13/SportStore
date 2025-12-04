@@ -22,4 +22,6 @@ public interface ChatLieuService {
     List<ChatLieu> searchAndFilter(String ten, Integer trangThai);
     // ... các hàm cũ
     ChatLieu updateTrangThai(Integer id, Integer newStatus);
+
+    List<ChatLieu> getAllActive();
 }

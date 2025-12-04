@@ -28,6 +28,15 @@
         .modal-header { padding: 1.5rem; border-bottom: 1px solid #f3f4f6; }
         .modal-body { padding: 1.5rem; }
         .form-control:read-only { background-color: #f3f4f6; color: #6b7280; cursor: not-allowed; }
+
+        /* 🖼️ STYLE CHO HÌNH ẢNH */
+        .product-image {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 1px solid #e5e7eb;
+        }
     </style>
 </head>
 
@@ -92,7 +101,7 @@
                         <thead>
                         <tr>
                             <th style="width: 20px;">#</th>
-                            <th>Mã Biến thể</th>
+                            <th style="width: 60px;">Ảnh</th> <th>Mã Biến thể</th>
                             <th style="min-width: 150px;">Sản phẩm</th>
                             <th class="text-center">Màu & Size</th>
                             <th>Chất liệu</th>
@@ -280,9 +289,9 @@
         currentFilter.idSanPham = $('#filterSanPham').val() || null;
         currentFilter.idMauSac = $('#filterMauSac').val() || null;
         currentFilter.idKichThuoc = $('#filterKichThuoc').val() || null;
-        // Bỏ minPrice, maxPrice
 
-        $('#spctTableBody').html('<tr><td colspan="12" class="text-center py-4"><div class="spinner-border text-primary"></div></td></tr>');
+        // Cập nhật colspan lên 13
+        $('#spctTableBody').html('<tr><td colspan="13" class="text-center py-4"><div class="spinner-border text-primary"></div></td></tr>');
 
         $.ajax({
             url: API_URL, type: 'GET', data: currentFilter,
@@ -292,14 +301,16 @@
                 updatePageInfo(res);
             },
             error: function () {
-                $('#spctTableBody').html('<tr><td colspan="12" class="text-center text-danger py-4">Lỗi tải dữ liệu</td></tr>');
+                // Cập nhật colspan lên 13
+                $('#spctTableBody').html('<tr><td colspan="13" class="text-center text-danger py-4">Lỗi tải dữ liệu</td></tr>');
             }
         });
     }
 
     function renderTable(list) {
         if (!list || list.length === 0) {
-            $('#spctTableBody').html('<tr><td colspan="12" class="text-center py-4 text-muted">Không có dữ liệu</td></tr>');
+            // Cập nhật colspan lên 13
+            $('#spctTableBody').html('<tr><td colspan="13" class="text-center py-4 text-muted">Không có dữ liệu</td></tr>');
             return;
         }
         let html = '';
@@ -312,9 +323,17 @@
                 ? `<button class="btn btn-action btn-light text-danger border" onclick="toggleStatus(${item.id}, 0)" title="Ngừng bán"><i class="fas fa-ban"></i></button>`
                 : `<button class="btn btn-action btn-light text-success border" onclick="toggleStatus(${item.id}, 1)" title="Kích hoạt lại"><i class="fas fa-sync-alt"></i></button>`;
 
+            // 🖼️ LOGIC HIỂN THỊ HÌNH ẢNH
+            const tenHinhAnhChinh = item.sanPham?.tenHinhAnhChinh;
+            let imgUrl = tenHinhAnhChinh ? `/api/hinh-anh/download/${tenHinhAnhChinh}` : 'https://via.placeholder.com/50?text=NoImg';
+
+            const imageHtml = `<td class="text-center"><img src="${imgUrl}" class="product-image" onerror="this.src='https://via.placeholder.com/50?text=Error'"></td>`;
+
+
             html += `
         <tr>
             <td class="text-center text-muted">${index + 1}</td>
+            ${imageHtml}
             <td class="fw-bold text-secondary">${item.maSanPhamChiTiet || 'N/A'}</td>
             <td class="fw-bold text-primary">${item.sanPham?.tenSanPham || '-'}</td>
             <td class="text-center">
@@ -362,6 +381,7 @@
                 $('#inputSearchProduct').val(data.sanPham.tenSanPham);
                 $('#hiddenSanPhamId').val(data.sanPham.id);
                 $('#selectedProductText').html('<span class="text-success fw-bold">Sản phẩm gốc: ' + data.sanPham.tenSanPham + '</span>');
+                // Khi sửa, không cho đổi sản phẩm gốc
                 $('#inputSearchProduct').prop('disabled', true);
                 $('.btn-outline-secondary').hide();
             }

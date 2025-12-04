@@ -7,12 +7,12 @@
     <title>Quản lý Sản phẩm</title>
 
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
-    <link rel="stylesheet" th:href="@{/css/styles.css}" />
-    <link rel="stylesheet" th:href="@{/css/navbar.css}" />
+    <link rel="stylesheet" th:href="@{/css/styles.css}"/>
+    <link rel="stylesheet" th:href="@{/css/navbar.css}"/>
 
     <style>
         body {
@@ -151,8 +151,12 @@
                         </div>
                         <div class="col-md-5">
                             <div class="d-flex gap-2">
-                                <button type="submit" class="btn btn-primary px-4"><i class="fas fa-search me-1"></i> Tìm kiếm</button>
-                                <button type="button" class="btn btn-light border px-3" id="btnReset"><i class="fas fa-sync-alt me-1"></i> Reset</button>
+                                <button type="submit" class="btn btn-primary px-4"><i class="fas fa-search me-1"></i>
+                                    Tìm kiếm
+                                </button>
+                                <button type="button" class="btn btn-light border px-3" id="btnReset"><i
+                                        class="fas fa-sync-alt me-1"></i> Reset
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -163,8 +167,12 @@
                 <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
                     <h5 class="mb-0 fw-bold">Danh sách Sản phẩm</h5>
                     <div>
-                        <button class="btn btn-success btn-sm shadow-sm me-2" data-bs-toggle="modal" data-bs-target="#addSanPhamModal"><i class="fas fa-plus me-1"></i> Thêm mới</button>
-                        <button class="btn btn-outline-success btn-sm shadow-sm" id="btnExportExcel"><i class="fas fa-file-excel me-1"></i> Excel</button>
+                        <button class="btn btn-success btn-sm shadow-sm me-2" data-bs-toggle="modal"
+                                data-bs-target="#addSanPhamModal"><i class="fas fa-plus me-1"></i> Thêm mới
+                        </button>
+                        <button class="btn btn-outline-success btn-sm shadow-sm" id="btnExportExcel"><i
+                                class="fas fa-file-excel me-1"></i> Excel
+                        </button>
                     </div>
                 </div>
                 <div class="table-responsive" style="min-height: 350px;">
@@ -206,11 +214,13 @@
                                     <input type="text" class="form-control" id="newMaSanPham" placeholder="Tự động tạo">
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label fw-bold small">TÊN SẢN PHẨM <span class="text-danger">*</span></label>
+                                    <label class="form-label fw-bold small">TÊN SẢN PHẨM <span
+                                            class="text-danger">*</span></label>
                                     <input type="text" class="form-control" id="newTenSanPham" required>
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label fw-bold small">GIÁ BÁN (VNĐ) <span class="text-danger">*</span></label>
+                                    <label class="form-label fw-bold small">GIÁ BÁN (VNĐ) <span
+                                            class="text-danger">*</span></label>
                                     <input type="number" class="form-control" id="newGiaTien" min="0" required>
                                 </div>
 
@@ -256,7 +266,8 @@
                                     <input type="text" class="form-control bg-light" id="editMaSanPham" readonly>
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label fw-bold small">TÊN SẢN PHẨM <span class="text-danger">*</span></label>
+                                    <label class="form-label fw-bold small">TÊN SẢN PHẨM <span
+                                            class="text-danger">*</span></label>
                                     <input type="text" class="form-control" id="editTenSanPham" required>
                                 </div>
                                 <div class="col-md-6">
@@ -271,7 +282,8 @@
                                            title="Số lượng được tự động tính từ các biến thể chi tiết"
                                            style="cursor: not-allowed;">
                                     <small class="text-muted d-block mt-1" style="font-size: 0.75rem;">
-                                        <i class="fas fa-info-circle me-1"></i>Số lượng được quản lý ở chi tiết sản phẩm.
+                                        <i class="fas fa-info-circle me-1"></i>Số lượng được quản lý ở chi tiết sản
+                                        phẩm.
                                     </small>
                                 </div>
 
@@ -290,7 +302,9 @@
                                 <div class="col-md-6">
                                     <label class="form-label fw-bold small text-primary">CẬP NHẬT ẢNH</label>
                                     <div class="d-flex align-items-center gap-3">
-                                        <img id="editImagePreview" src="https://via.placeholder.com/60" class="rounded border p-1" style="width: 60px; height: 60px; object-fit: cover;">
+                                        <img id="editImagePreview" src="https://via.placeholder.com/60"
+                                             class="rounded border p-1"
+                                             style="width: 60px; height: 60px; object-fit: cover;">
                                         <input type="file" class="form-control" id="editImageUpload" accept="image/*">
                                     </div>
                                 </div>
@@ -299,7 +313,8 @@
                     </div>
                     <div class="modal-footer border-0 pt-0">
                         <button type="button" class="btn btn-light" data-bs-dismiss="modal">Đóng</button>
-                        <button type="submit" form="editSanPhamForm" class="btn btn-warning text-white px-4">Cập nhật</button>
+                        <button type="submit" form="editSanPhamForm" class="btn btn-warning text-white px-4">Cập nhật
+                        </button>
                     </div>
                 </div>
             </div>
@@ -331,6 +346,7 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
+
 <script>
     toastr.options = {
         "closeButton": true,
@@ -340,10 +356,14 @@
     };
 
     function formatCurrency(amount) {
+        // Đảm bảo amount là số trước khi format
+        const numericAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
+        if (isNaN(numericAmount)) return '0 VNĐ';
+
         return new Intl.NumberFormat('vi-VN', {
             style: 'currency',
             currency: 'VND'
-        }).format(amount);
+        }).format(numericAmount);
     }
 
     function renderStatusBadge(status) {
@@ -352,7 +372,7 @@
             '<span class="badge-status badge-inactive"><i class="fas fa-ban me-1"></i>Ngừng bán</span>';
     }
 
-    $(document).ready(function() {
+    $(document).ready(function () {
         let currentFilter = {
             page: 1,
             keyword: '',
@@ -377,13 +397,14 @@
                 type: "GET",
                 data: params,
                 dataType: "json",
-                success: function(res) {
+                success: function (res) {
                     renderTable(res.content);
                     renderPagination(res.number + 1, res.totalPages);
                     updatePageInfo(res);
                 },
-                error: function() {
+                error: function () {
                     $('#sanPhamTableBody').html('<tr><td colspan="8" class="text-center text-danger">Lỗi tải dữ liệu</td></tr>');
+                    toastr.error("Không thể tải danh sách sản phẩm.");
                 }
             });
         }
@@ -395,11 +416,11 @@
             }
             let html = '';
             list.forEach(sp => {
-                // Fix ảnh: Dùng API download hoặc fallback
-                let imgUrl = sp.tenHinhAnhChinh ? `/api/hinh-anh/download/${sp.tenHinhAnhChinh}` : 'https://via.placeholder.com/50x50?text=NoImg';
+                // Fix ảnh: Dùng API download hoặc fallback (Sử dụng tên file đã có UUID)
+                let imgUrl = sp.tenHinhAnhChinh ? `/api/hinh-anh/download/${sp.tenHinhAnhChinh}` : 'https://via.placeholder.com/48?text=NoImg';
                 let dateStr = sp.ngayTao ? new Date(sp.ngayTao).toLocaleDateString('vi-VN') : '-';
 
-                // LOGIC NÚT DỪNG TRẠNG THÁI (THAY CHO NÚT XÓA)
+                // LOGIC NÚT DỪNG TRẠNG THÁI
                 let toggleBtn = '';
                 if (sp.trangThai === 1) {
                     // Đang bán -> Nút đỏ để Dừng
@@ -412,10 +433,10 @@
                 html += `
                 <tr>
                     <td class="fw-bold text-primary">#${sp.maSanPham || 'N/A'}</td>
-                    <td class="text-center"><img src="${imgUrl}" class="product-thumb" onerror="this.src='https://via.placeholder.com/50x50?text=Error'"></td>
+                    <td class="text-center"><img src="${imgUrl}" class="product-thumb" onerror="this.src='https://via.placeholder.com/48?text=Error'"></td>
                     <td class="fw-semibold">${sp.tenSanPham}</td>
                     <td class="text-end fw-bold text-dark">${formatCurrency(sp.giaTien)}</td>
-                    <td class="text-center" readonly class="border-0 bg-transparent text-center">${sp.soLuong}</td>
+                    <td class="text-center">${sp.soLuong || 0}</td>
                     <td class="text-center">${renderStatusBadge(sp.trangThai)}</td>
                     <td class="text-center small text-muted">${dateStr}</td>
                     <td class="text-center">
@@ -429,20 +450,25 @@
         }
 
         function renderPagination(currentPage, totalPages) {
-            if (totalPages <= 1) return;
+            if (totalPages <= 1) {
+                $('#paginationNav').empty();
+                return;
+            }
             let nav = '<ul class="pagination pagination-sm mb-0">';
-            nav += `<li class="page-item ${currentPage===1?'disabled':''}"><a class="page-link" href="#" data-page="${currentPage-1}">&laquo;</a></li>`;
+            nav += `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}"><a class="page-link" href="#" data-page="${currentPage - 1}">&laquo;</a></li>`;
             for (let i = 1; i <= totalPages; i++) {
                 if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1))
-                    nav += `<li class="page-item ${i===currentPage?'active':''}"><a class="page-link" href="#" data-page="${i}">${i}</a></li>`;
-                else if (i === currentPage - 2 || i === currentPage + 2) nav += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+                    nav += `<li class="page-item ${i === currentPage ? 'active' : ''}"><a class="page-link" href="#" data-page="${i}">${i}</a></li>`;
+                else if ((i === currentPage - 2 && i > 1) || (i === currentPage + 2 && i < totalPages))
+                    nav += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
             }
-            nav += `<li class="page-item ${currentPage===totalPages?'disabled':''}"><a class="page-link" href="#" data-page="${currentPage+1}">&raquo;</a></li></ul>`;
+            nav += `<li class="page-item ${currentPage === totalPages ? 'disabled' : ''}"><a class="page-link" href="#" data-page="${currentPage + 1}">&raquo;</a></li></ul>`;
             $('#paginationNav').html(nav);
         }
 
         function updatePageInfo(data) {
             if (data.totalElements > 0) $('#pageInfo').html(`Hiển thị <strong>${data.numberOfElements}</strong> trên <strong>${data.totalElements}</strong> sản phẩm`);
+            else $('#pageInfo').html('Không có dữ liệu');
         }
 
         // --- EVENTS ---
@@ -463,64 +489,86 @@
             };
             loadSanPham();
         });
-        $(document).on('click', '.page-link', function(e) {
+        $(document).on('click', '.page-link', function (e) {
             e.preventDefault();
-            if (!$(this).parent().hasClass('disabled')) {
-                currentFilter.page = $(this).data('page');
+            const page = parseInt($(this).data('page'));
+            if (!$(this).parent().hasClass('disabled') && !isNaN(page)) {
+                currentFilter.page = page;
                 loadSanPham();
             }
         });
 
-        // --- ADD (VỚI XỬ LÝ LỖI 409 CONFLICT) ---
-        $('#addSanPhamForm').submit(function(e) {
+
+        $('#addSanPhamForm').submit(function (e) {
             e.preventDefault();
+
+            // 1. Validate Tên và Giá tiền
+            if (!$('#newTenSanPham').val().trim()) {
+                toastr.warning("Tên sản phẩm không được để trống");
+                return;
+            }
+            const giaTienVal = parseFloat($('#newGiaTien').val());
+            if (isNaN(giaTienVal) || giaTienVal <= 0) {
+                toastr.warning("Giá tiền phải lớn hơn 0");
+                return;
+            }
+
             const formData = new FormData();
             const spData = {
                 maSanPham: $('#newMaSanPham').val().trim(),
                 tenSanPham: $('#newTenSanPham').val().trim(),
-                giaTien: parseFloat($('#newGiaTien').val()),
+                giaTien: giaTienVal,
                 moTa: $('#newMoTa').val().trim(),
                 trangThai: parseInt($('#newTrangThaiSelect').val())
             };
-            formData.append('sanPhamData', JSON.stringify(spData));
-            const file = $('#initialImageUpload')[0].files[0];
-            if (file) formData.append('file', file);
+
+            // 2. Gửi JSON dưới dạng Blob (Cần thiết cho @RequestPart trong Spring Boot)
+            formData.append('sanPhamData', new Blob([JSON.stringify(spData)], {type: 'application/json'}));
+
+            // 3. Append file
+            const fileInput = $('#initialImageUpload')[0];
+            if (fileInput.files && fileInput.files[0]) {
+                formData.append('file', fileInput.files[0]);
+            }
 
             $.ajax({
                 url: "/api/san-pham/create-with-image",
                 type: "POST",
                 data: formData,
-                contentType: false,
-                processData: false,
+                contentType: false, // Bắt buộc
+                processData: false, // Bắt buộc
+                beforeSend: function () {
+                    $('#addSanPhamForm button[type="submit"]').prop('disabled', true).text('Đang xử lý...');
+                },
                 success: () => {
                     toastr.success("Thêm thành công");
                     $('#addSanPhamModal').modal('hide');
                     $('#addSanPhamForm')[0].reset();
                     loadSanPham();
                 },
-                error: function(xhr) {
-                    console.log("Error details:", xhr);
-                    if (xhr.status === 409) {
-                        toastr.warning("⚠️ Mã sản phẩm này ĐÃ TỒN TẠI. Vui lòng chọn mã khác!");
-                    } else if (xhr.responseText && (xhr.responseText.includes("Duplicate") || xhr.responseText.includes("trùng"))) {
-                        toastr.warning("⚠️ Dữ liệu bị trùng lặp (Mã sản phẩm đã có).");
+                error: function (xhr) {
+                    let msg = xhr.responseJSON?.message || xhr.responseText || "Lỗi thêm mới. Kiểm tra lại Backend.";
+                    if (xhr.status === 409 || msg.toLowerCase().includes("trùng")) {
+                        toastr.warning("⚠️ Mã hoặc Tên sản phẩm đã tồn tại!");
                     } else {
-                        let msg = xhr.responseJSON?.message || "Không thể thêm mới. Vui lòng kiểm tra lại dữ liệu!";
-                        toastr.error(msg);
+                        toastr.error(`Lỗi: ${msg}`);
                     }
+                },
+                complete: function () {
+                    $('#addSanPhamForm button[type="submit"]').prop('disabled', false).text('Lưu lại');
                 }
             });
         });
 
         // --- EDIT (LOAD DATA & SHOW IMAGE) ---
-        $(document).on('click', '.btn-edit', function() {
+        $(document).on('click', '.btn-edit', function () {
             const id = $(this).data('id');
-            $.get(`/api/san-pham/${id}`, function(sp) {
+            $.get(`/api/san-pham/${id}`, function (sp) {
                 $('#editSanPhamId').val(sp.id);
                 $('#editMaSanPham').val(sp.maSanPham);
                 $('#editTenSanPham').val(sp.tenSanPham);
                 $('#editGiaTien').val(sp.giaTien);
-                $('#editSoLuong').val(sp.soLuong);
+                $('#editSoLuong').val(sp.soLuong || 0);
                 $('#editMoTa').val(sp.moTa);
                 $('#editTrangThaiSelect').val(sp.trangThai);
 
@@ -533,25 +581,33 @@
                 $('#editImagePreview').attr('src', imgUrl);
 
                 new bootstrap.Modal(document.getElementById('editSanPhamModal')).show();
-            });
+            }).fail(() => toastr.error("Không tìm thấy thông tin sản phẩm."));
         });
 
-        // --- UPDATE ---
-        $('#editSanPhamForm').submit(function(e) {
+        // --- UPDATE SẢN PHẨM ---
+        $('#editSanPhamForm').submit(function (e) {
             e.preventDefault();
             const id = $('#editSanPhamId').val();
             const formData = new FormData();
 
+            // Validation cho Giá tiền (Giá tiền phải > 0)
+            const giaTienVal = parseFloat($('#editGiaTien').val());
+            if (isNaN(giaTienVal) || giaTienVal <= 0) {
+                toastr.warning("Giá tiền phải lớn hơn 0");
+                return;
+            }
+
             const data = {
                 maSanPham: $('#editMaSanPham').val(),
                 tenSanPham: $('#editTenSanPham').val(),
-                giaTien: parseFloat($('#editGiaTien').val()),
+                giaTien: giaTienVal,
                 moTa: $('#editMoTa').val(),
                 trangThai: parseInt($('#editTrangThaiSelect').val())
-                // LƯU Ý: Không gửi 'soLuong' ở đây nữa vì nó chỉ đọc
             };
 
-            formData.append('sanPhamData', JSON.stringify(data));
+            // Gửi JSON dưới dạng Blob để Backend nhận là @RequestPart("sanPhamData")
+            formData.append('sanPhamData', new Blob([JSON.stringify(data)], {type: 'application/json'}));
+
             const file = $('#editImageUpload')[0].files[0];
             if (file) formData.append('file', file);
 
@@ -561,28 +617,33 @@
                 data: formData,
                 contentType: false,
                 processData: false,
+                beforeSend: function () {
+                    $('#editSanPhamForm button[type="submit"]').prop('disabled', true).text('Đang xử lý...');
+                },
                 success: () => {
                     toastr.success("Cập nhật thành công");
                     $('#editSanPhamModal').modal('hide');
                     loadSanPham();
                 },
-                error: (err) => toastr.error(err.responseJSON?.message || "Lỗi cập nhật")
+                error: (xhr) => {
+                    let msg = xhr.responseJSON?.message || xhr.responseText || "Lỗi cập nhật. Kiểm tra lại Backend.";
+                    toastr.error(`Lỗi: ${msg}`);
+                },
+                complete: function () {
+                    $('#editSanPhamForm button[type="submit"]').prop('disabled', false).text('Cập nhật');
+                }
             });
         });
 
-        // --- THAY THẾ NÚT XÓA BẰNG ĐỔI TRẠNG THÁI ---
-        $(document).on('click', '.btn-toggle-status', function() {
+        // --- ĐỔI TRẠNG THÁI ---
+        $(document).on('click', '.btn-toggle-status', function () {
             const id = $(this).data('id');
             const newStatus = $(this).data('status'); // 0 hoặc 1
             const actionText = newStatus === 1 ? "Kích hoạt lại" : "Ngừng kinh doanh";
 
             if (confirm(`Bạn có chắc muốn ${actionText} sản phẩm này?`)) {
-                // LƯU Ý: Bạn cần đảm bảo Backend có API này.
-                // Nếu không có, bạn có thể dùng API Update đầy đủ ở trên.
-                // Đây là ví dụ gọi API cập nhật trạng thái riêng biệt (Best practice).
+                // Sử dụng API cập nhật trạng thái riêng biệt (Nếu có)
                 $.ajax({
-                    // URL này có thể thay đổi tùy vào Controller của bạn.
-                    // Ví dụ: /api/san-pham/{id}/trang-thai?trangThai=0
                     url: `/api/san-pham/${id}/trang-thai?trangThai=${newStatus}`,
                     type: 'PUT',
                     success: () => {
@@ -590,7 +651,7 @@
                         loadSanPham();
                     },
                     error: (err) => {
-                        console.log(err);
+                        console.error(err);
                         toastr.error("Lỗi khi cập nhật trạng thái. Vui lòng kiểm tra lại API Backend.");
                     }
                 });
@@ -603,31 +664,37 @@
             $('#currentProductName').text(name);
             $('#image-preview-area-new').html('<div class="spinner-border text-primary spinner-border-sm"></div>');
 
-            $.get(`/api/hinh-anh/san-pham/${id}`, function(list) {
+            $.get(`/api/hinh-anh/san-pham/${id}`, function (list) {
                 let html = '';
                 if (list.length) {
                     list.forEach(img => {
+                        // Đảm bảo sử dụng tên file đã được lưu bằng UUID
                         html += `
                         <div class="position-relative border rounded" style="width: 80px; height: 80px;">
-                            <img src="/api/hinh-anh/download/${img.tenHinhAnh}" class="w-100 h-100 object-fit-cover rounded">
+                            <img src="/api/hinh-anh/download/${img.tenHinhAnh}" class="w-100 h-100 object-fit-cover rounded" onerror="this.src='https://via.placeholder.com/80?text=Error'">
                             <button class="btn btn-danger btn-sm p-0 position-absolute top-0 end-0 delete-image-btn-new" data-id="${img.id}" style="width:20px;height:20px;">&times;</button>
                         </div>`;
                     });
                 } else html = '<span class="text-muted small">Chưa có ảnh</span>';
                 $('#image-preview-area-new').html(html);
-            });
+            }).fail(() => toastr.error("Lỗi tải album ảnh."));
         }
 
-        $(document).on('click', '.btn-manage-images', function() {
+        $(document).on('click', '.btn-manage-images', function () {
             loadProductImagesForNewModal($(this).data('id'), $(this).data('name'));
             new bootstrap.Modal(document.getElementById('manageImagesModal')).show();
         });
 
-        $('#btnUploadImagesNew').click(function() {
+        $('#btnUploadImagesNew').click(function () {
             const files = $('#newImageUploadNew')[0].files;
             if (!files.length) return toastr.warning("Chọn ảnh để tải lên");
             const fd = new FormData();
-            for (let f of files) fd.append('file', f);
+
+            // Append từng file vào trường 'file' (Nếu muốn upload nhiều file cùng lúc, Backend cần xử lý List<MultipartFile>)
+            for (let f of files) {
+                fd.append('file', f);
+            }
+            // Thêm idSanPham
             fd.append('idSanPham', currentEditingSanPhamId);
 
             $.ajax({
@@ -640,21 +707,25 @@
                     toastr.success("Tải ảnh thành công");
                     $('#newImageUploadNew').val('');
                     loadProductImagesForNewModal(currentEditingSanPhamId, $('#currentProductName').text());
-                    loadSanPham();
+                    loadSanPham(); // Cập nhật lại table để hiển thị ảnh chính mới nếu có
                 },
-                error: () => toastr.error("Lỗi tải ảnh")
+                error: (xhr) => {
+                    let msg = xhr.responseJSON?.message || xhr.responseText || "Lỗi tải ảnh. Kiểm tra kích thước file.";
+                    toastr.error(`Lỗi tải ảnh: ${msg}`);
+                }
             });
         });
 
-        $(document).on('click', '.delete-image-btn-new', function() {
+        $(document).on('click', '.delete-image-btn-new', function () {
             if (!confirm("Xóa ảnh này?")) return;
+            const imageId = $(this).data('id');
             $.ajax({
-                url: `/api/hinh-anh/${$(this).data('id')}`,
+                url: `/api/hinh-anh/${imageId}`,
                 type: 'DELETE',
                 success: () => {
                     toastr.success("Đã xóa ảnh");
                     loadProductImagesForNewModal(currentEditingSanPhamId, $('#currentProductName').text());
-                    loadSanPham();
+                    loadSanPham(); // Cập nhật lại table để đảm bảo ảnh chính mới được hiển thị nếu ảnh bị xóa là ảnh chính cũ
                 },
                 error: () => toastr.error("Lỗi xóa ảnh")
             });
@@ -662,7 +733,7 @@
 
         loadSanPham();
     });
-    $('#btnExportExcel').click(function() {
+    $('#btnExportExcel').click(function () {
         window.location.href = "/api/san-pham/export/excel";
     });
 </script>

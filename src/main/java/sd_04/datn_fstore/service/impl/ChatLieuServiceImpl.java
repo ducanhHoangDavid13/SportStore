@@ -50,4 +50,8 @@ public class ChatLieuServiceImpl implements ChatLieuService {
             throw new RuntimeException("Không tìm thấy chất liệu ID: " + id);
         }
     }
+    @Override
+    public List<ChatLieu> getAllActive() {
+        return chatLieuRepository.findByTrangThai(1);
+    }
 }

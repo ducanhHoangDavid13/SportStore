@@ -19,6 +19,7 @@ import java.util.Map;
 @Controller
 @RequestMapping("/admin")
 @RequiredArgsConstructor
+
 public class DashboardController {
 
     private final DashboardService dashboardService;

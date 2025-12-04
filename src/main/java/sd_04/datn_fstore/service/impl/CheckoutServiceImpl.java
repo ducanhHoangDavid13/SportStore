@@ -33,20 +33,25 @@ public class CheckoutServiceImpl implements CheckoutService {
     private final PhieuGiamgiaService phieuGiamgiaService;
 
     // =========================================================================
-    // 1. TÍNH TOÁN TỔNG TIỀN (SỬA THEO ENTITY MỚI)
+    // 1. TÍNH TOÁN TỔNG TIỀN (SỬA LOGIC VOUCHER)
+    // =========================================================================
     @Override
     public CalculateTotalResponse calculateOrderTotal(CalculateTotalRequest request) {
-        // 1. Tính tổng tiền hàng (SubTotal)
+        // 1. Tính tổng tiền hàng (SubTotal) - LẤY GIÁ TỪ DATABASE
         BigDecimal subTotal = BigDecimal.ZERO;
         if (request.getItems() != null) {
             for (CalculateTotalRequest.CartItem item : request.getItems()) {
-                BigDecimal price = item.getDonGia();
-                if (price == null) {
-                    // Fallback: Nếu frontend không gửi giá, lấy từ DB để an toàn
-                    SanPhamChiTiet spct = sanPhamCTRepository.findById(item.getSanPhamChiTietId()).orElse(null);
-                    price = (spct != null) ? spct.getGiaTien() : BigDecimal.ZERO;
+
+                // 🔥 LUÔN LẤY GIÁ CHUẨN TỪ DATABASE
+                Optional<SanPhamChiTiet> spctOpt = sanPhamCTRepository.findById(item.getSanPhamChiTietId());
+                if (spctOpt.isEmpty()) {
+                    continue; // Bỏ qua nếu SP không tồn tại
                 }
-                subTotal = subTotal.add(price.multiply(BigDecimal.valueOf(item.getSoLuong())));
+
+                SanPhamChiTiet spct = spctOpt.get();
+                BigDecimal realPrice = spct.getGiaTien() != null ? spct.getGiaTien() : BigDecimal.ZERO;
+
+                subTotal = subTotal.add(realPrice.multiply(BigDecimal.valueOf(item.getSoLuong())));
             }
         }
 
@@ -55,7 +60,7 @@ public class CheckoutServiceImpl implements CheckoutService {
         boolean voucherValid = false;
         String voucherMessage = "";
 
-        // 2. XỬ LÝ VOUCHER
+        // 2. XỬ LÝ VOUCHER (Logic voucher đã được tách rõ ràng hơn)
         if (request.getVoucherCode() != null && !request.getVoucherCode().trim().isEmpty()) {
             Optional<PhieuGiamGia> pggOpt = phieuGiamGiaRepository.findByMaPhieuGiamGia(request.getVoucherCode());
 
@@ -63,29 +68,36 @@ public class CheckoutServiceImpl implements CheckoutService {
                 PhieuGiamGia pgg = pggOpt.get();
                 LocalDateTime now = LocalDateTime.now();
 
-                // Check 1: Thời gian & Trạng thái & Số lượng
-                if (pgg.getTrangThai() != 1 || (pgg.getSoLuong() != null && pgg.getSoLuong() <= 0)) {
+                // 🔥 ĐÃ SỬA: Đảm bảo thứ tự kiểm tra: Thời gian -> Trạng thái -> Số lượng -> Điều kiện
+
+                // Check 1: Thời gian (Ưu tiên hết hạn/chưa bắt đầu)
+                if (now.isBefore(pgg.getNgayBatDau())) {
+                    voucherMessage = "Mã giảm giá chưa đến ngày bắt đầu sử dụng!";
+                }
+                else if (now.isAfter(pgg.getNgayKetThuc())) {
+                    voucherMessage = "Mã giảm giá đã hết hạn sử dụng!";
+                }
+                // Check 2: Trạng thái (1: Đang chạy)
+                else if (pgg.getTrangThai() != 1) {
+                    voucherMessage = "Mã giảm giá này đã bị dừng/hủy!";
+                }
+                // Check 3: Số lượng
+                else if (pgg.getSoLuong() != null && pgg.getSoLuong() <= 0) {
                     voucherMessage = "Mã giảm giá đã hết lượt sử dụng!";
                 }
-                else if (now.isBefore(pgg.getNgayBatDau()) || now.isAfter(pgg.getNgayKetThuc())) {
-                    voucherMessage = "Mã giảm giá chưa bắt đầu hoặc đã hết hạn!";
-                }
-                // Check 2: ĐIỀU KIỆN GIẢM GIÁ (Tên phương thức mới: getDieuKienGiamGia())
+                // Check 4: ĐIỀU KIỆN GIẢM GIÁ
                 else if (pgg.getDieuKienGiamGia() != null && subTotal.compareTo(pgg.getDieuKienGiamGia()) < 0) {
                     voucherMessage = "Đơn hàng chưa đạt tối thiểu " + String.format("%,.0f", pgg.getDieuKienGiamGia()) + "đ";
                 }
                 else {
                     // --- ĐỦ ĐIỀU KIỆN ---
                     BigDecimal giaTriGiam = pgg.getGiaTriGiam() == null ? BigDecimal.ZERO : pgg.getGiaTriGiam();
-                    BigDecimal giamToiDa = pgg.getSoTienGiam(); // Tên phương thức mới: getSoTienGiam()
+                    BigDecimal giamToiDa = pgg.getSoTienGiam();
 
                     if (pgg.getHinhThucGiam() == 2) { // Giảm %
-                        // Logic fix: Chặn max 100%
                         if(giaTriGiam.compareTo(new BigDecimal(100)) > 0) giaTriGiam = new BigDecimal(100);
-
+                        // Dùng RoundingMode.HALF_UP để làm tròn lên khi số thập phân >= 0.5
                         discountAmount = subTotal.multiply(giaTriGiam).divide(new BigDecimal(100), 0, RoundingMode.HALF_UP);
-
-                        // Check giảm tối đa
                         if (giamToiDa != null && discountAmount.compareTo(giamToiDa) > 0) {
                             discountAmount = giamToiDa;
                         }
@@ -93,7 +105,6 @@ public class CheckoutServiceImpl implements CheckoutService {
                         discountAmount = giaTriGiam;
                     }
 
-                    // Chốt: Không giảm quá giá trị đơn hàng
                     if (discountAmount.compareTo(subTotal) > 0) discountAmount = subTotal;
 
                     voucherValid = true;
@@ -120,18 +131,19 @@ public class CheckoutServiceImpl implements CheckoutService {
         String maHoaDon = "HD" + System.currentTimeMillis();
         hoaDon.setMaHoaDon(maHoaDon);
         hoaDon.setNgayTao(LocalDateTime.now());
-        hoaDon.setHinhThucBanHang(0);
+        hoaDon.setHinhThucBanHang(0); // 0: Online
         hoaDon.setMoTa(req.getNote());
 
+        // 1. LƯU ĐỊA CHỈ GIAO HÀNG
         DiaChi shippingInfo = new DiaChi();
         shippingInfo.setHoTen(req.getFullName());
         shippingInfo.setSoDienThoai(req.getPhone());
         shippingInfo.setDiaChiCuThe(req.getAddressDetail());
         shippingInfo.setXa(req.getWard());
-        shippingInfo.setThanhPho(req.getDistrict() + " - " + req.getCity());
+        shippingInfo.setThanhPho(req.getDistrict() + " - " + req.getCity()); // Lưu Tỉnh/TP và Quận/Huyện
         shippingInfo.setGhiChu("Email: " + req.getEmail());
         shippingInfo.setLoaiDiaChi("Giao hàng");
-        shippingInfo.setTrangThai(1);
+        shippingInfo.setTrangThai(1); // Mặc định là Active
         DiaChi savedDiaChi = diaChiRepo.save(shippingInfo);
         hoaDon.setDiaChiGiaoHang(savedDiaChi);
 
@@ -140,10 +152,12 @@ public class CheckoutServiceImpl implements CheckoutService {
         BigDecimal subTotal = BigDecimal.ZERO;
         List<HoaDonChiTiet> chiTietList = new ArrayList<>();
 
+        // 2. TẠO CHI TIẾT VÀ CHECK TỒN KHO LẦN CUỐI
         for (CheckoutRequest.CartItem itemDTO : req.getItems()) {
             SanPhamChiTiet spct = sanPhamCTRepository.findById(itemDTO.getSanPhamChiTietId())
                     .orElseThrow(() -> new RuntimeException("Sản phẩm (ID: " + itemDTO.getSanPhamChiTietId() + ") không tồn tại!"));
 
+            // Sử dụng getSoLuong() của SanPhamChiTiet
             if (spct.getSoLuong() < itemDTO.getSoLuong()) {
                 throw new RuntimeException("Sản phẩm " + spct.getSanPham().getTenSanPham() + " không đủ hàng!");
             }
@@ -152,14 +166,14 @@ public class CheckoutServiceImpl implements CheckoutService {
             cthd.setHoaDon(hoaDon);
             cthd.setSanPhamChiTiet(spct);
             cthd.setSoLuong(itemDTO.getSoLuong());
-            cthd.setDonGia(spct.getGiaTien());
+            cthd.setDonGia(spct.getGiaTien()); // Lấy giá từ SPCT
             cthd.setThanhTien(cthd.getDonGia().multiply(BigDecimal.valueOf(cthd.getSoLuong())));
 
             chiTietList.add(cthd);
             subTotal = subTotal.add(cthd.getThanhTien());
         }
 
-        // --- TÍNH LẠI VOUCHER KHI LƯU (ĐÃ CẬP NHẬT LOGIC CHECK ĐƠN TỐI THIỂU) ---
+        // 3. TÍNH LẠI VOUCHER KHI LƯU
         BigDecimal discountAmount = BigDecimal.ZERO;
         PhieuGiamGia voucherToUse = null;
 
@@ -168,44 +182,40 @@ public class CheckoutServiceImpl implements CheckoutService {
             if (pggOpt.isPresent()) {
                 PhieuGiamGia pgg = pggOpt.get();
 
-                // 1. Kiểm tra điều kiện sử dụng
-                boolean isTimeValid = !LocalDateTime.now().isBefore(pgg.getNgayBatDau()) && !LocalDateTime.now().isAfter(pgg.getNgayKetThuc());
-                boolean isActive = pgg.getTrangThai() == 1 && (pgg.getSoLuong() == null || pgg.getSoLuong() > 0);
+                // Dùng logic tính toán đã có
+                CalculateTotalRequest calcReq = new CalculateTotalRequest();
+                calcReq.setVoucherCode(req.getVoucherCode());
+                calcReq.setShippingFee(req.getShippingFee()); // Phí ship đã được set từ Controller
+                // Map items từ CheckoutRequest sang CalculateTotalRequest.CartItem
+                List<CalculateTotalRequest.CartItem> calcItems = req.getItems().stream()
+                        .map(item -> {
+                            CalculateTotalRequest.CartItem c = new CalculateTotalRequest.CartItem();
+                            c.setSanPhamChiTietId(item.getSanPhamChiTietId());
+                            c.setSoLuong(item.getSoLuong());
+                            // Lấy DonGia từ DB để đảm bảo tính toán voucher
+                            SanPhamChiTiet spct = sanPhamCTRepository.findById(item.getSanPhamChiTietId()).get();
+                            c.setDonGia(spct.getGiaTien());
+                            return c;
+                        }).collect(java.util.stream.Collectors.toList());
+                calcReq.setItems(calcItems);
 
-                // 2. Kiểm tra Đơn tối thiểu (Sử dụng getDieuKienGiamGia())
-                boolean isMinOrderValid = true;
-                if (pgg.getDieuKienGiamGia() != null && subTotal.compareTo(pgg.getDieuKienGiamGia()) < 0) {
-                    isMinOrderValid = false;
-                    // Nếu không đủ điều kiện đơn tối thiểu, không áp dụng voucher
-                }
+                // Gọi lại hàm tính toán chính (đã được sửa logic voucher)
+                CalculateTotalResponse calcRes = calculateOrderTotal(calcReq);
 
-                if (isActive && isTimeValid && isMinOrderValid) {
-                    BigDecimal giaTriGiam = pgg.getGiaTriGiam() == null ? BigDecimal.ZERO : pgg.getGiaTriGiam();
-                    BigDecimal giamToiDa = pgg.getSoTienGiam(); // Sử dụng getSoTienGiam()
-
-                    if (pgg.getHinhThucGiam() == 2) {
-                        if(giaTriGiam.compareTo(new BigDecimal(100)) > 0) giaTriGiam = new BigDecimal(100);
-
-                        discountAmount = subTotal.multiply(giaTriGiam).divide(new BigDecimal(100), 0, RoundingMode.HALF_UP);
-
-                        if (giamToiDa != null && discountAmount.compareTo(giamToiDa) > 0) {
-                            discountAmount = giamToiDa;
-                        }
-                    } else {
-                        discountAmount = giaTriGiam;
-                    }
-                    if (discountAmount.compareTo(subTotal) > 0) discountAmount = subTotal;
-
+                if (calcRes.isVoucherValid()) {
+                    discountAmount = calcRes.getDiscountAmount();
                     voucherToUse = pgg;
                     hoaDon.setPhieuGiamGia(pgg);
                 }
             }
         }
 
+        // Cập nhật lại final total sau khi tính toán
         BigDecimal shippingFee = req.getShippingFee() != null ? req.getShippingFee() : BigDecimal.ZERO;
         BigDecimal finalTotal = subTotal.subtract(discountAmount).add(shippingFee);
         if (finalTotal.compareTo(BigDecimal.ZERO) < 0) finalTotal = BigDecimal.ZERO;
 
+        // 4. LƯU HÓA ĐƠN
         hoaDon.setTongTien(subTotal);
         hoaDon.setTienGiamGia(discountAmount);
         hoaDon.setPhiVanChuyen(shippingFee);
@@ -219,28 +229,36 @@ public class CheckoutServiceImpl implements CheckoutService {
 
         String redirectUrl = "";
 
+        // 5. XỬ LÝ THANH TOÁN
         if ("VNPAY".equals(req.getPaymentMethod())) {
-            savedHoaDon.setTrangThai(5);
-            savedHoaDon.setHinhThucThanhToan(2);
+            savedHoaDon.setTrangThai(5); // Chờ thanh toán
+            savedHoaDon.setHinhThucThanhToan(2); // VNPay
             hoaDonRepository.save(savedHoaDon);
             try {
                 // Đảm bảo số tiền VNPay là Long và không có số thập phân
                 long amountInCents = finalTotal.multiply(new BigDecimal(100)).longValue();
+                // Sử dụng mã hóa đơn làm mã giao dịch (TxnRef)
                 redirectUrl = vnPayService.createOrder(amountInCents, "Thanh toan " + maHoaDon, maHoaDon, clientIp);
             } catch (Exception e) {
+                // Rollback giao dịch nếu tạo link VNPay thất bại
                 throw new RuntimeException("Lỗi tạo link VNPay: " + e.getMessage());
             }
+            // Trả về redirect URL của VNPay
+            return new CheckoutResponse(true, "Chuyển hướng VNPay", redirectUrl);
+
         } else {
-            savedHoaDon.setTrangThai(1);
-            savedHoaDon.setHinhThucThanhToan(0);
+            // Thanh toán COD (Thành công ngay)
+            savedHoaDon.setTrangThai(1); // Chờ xác nhận
+            savedHoaDon.setHinhThucThanhToan(0); // COD
             hoaDonRepository.save(savedHoaDon);
 
+            // Trừ tồn kho và voucher
             decrementInventory(mapToSanPhamItems(req.getItems()));
-
             if (voucherToUse != null) {
                 decrementVoucher(voucherToUse);
             }
 
+            // Gửi thông báo đến Admin
             thongBaoService.createNotification(
                     "Đơn hàng mới #" + maHoaDon,
                     "Khách " + req.getFullName() + " đặt đơn " + String.format("%,.0f", finalTotal) + "đ",
@@ -248,16 +266,20 @@ public class CheckoutServiceImpl implements CheckoutService {
                     "/admin/hoa-don/detail/" + savedHoaDon.getId()
             );
 
+            // Chuyển hướng đến trang thành công
             redirectUrl = "/checkout/success?id=" + savedHoaDon.getId();
+            return new CheckoutResponse(true, "Đặt hàng thành công", redirectUrl);
         }
-
-        return new CheckoutResponse(true, "Thành công", redirectUrl);
     }
+
+    // =========================================================================
+    // 3. LOGIC TỒN KHO VÀ VOUCHER
+    // =========================================================================
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public VnPayResponseDTO taoThanhToanVnPay(CreateOrderRequest request, String ipAddress) {
-        return null; // Logic POS giữ nguyên
+        return null; // Giữ nguyên logic POS
     }
 
     @Override
@@ -287,13 +309,16 @@ public class CheckoutServiceImpl implements CheckoutService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void decrementVoucher(PhieuGiamGia pgg) {
+        // Giả định phieuGiamgiaService đã có method này để trừ số lượng sử dụng
         phieuGiamgiaService.decrementVoucher(pgg);
     }
 
+    // Map từ CheckoutRequest.CartItem sang CreateOrderRequest.SanPhamItem (Dùng cho hàm decrementInventory)
     private List<CreateOrderRequest.SanPhamItem> mapToSanPhamItems(List<CheckoutRequest.CartItem> cartItems) {
         List<CreateOrderRequest.SanPhamItem> list = new ArrayList<>();
         for (CheckoutRequest.CartItem c : cartItems) {
-            list.add(new CreateOrderRequest.SanPhamItem(c.getSanPhamChiTietId(), c.getSoLuong(), c.getDonGia()));
+            // DonGia được set là BigDecimal.ZERO vì không cần thiết cho việc trừ kho
+            list.add(new CreateOrderRequest.SanPhamItem(c.getSanPhamChiTietId(), c.getSoLuong(), BigDecimal.ZERO));
         }
         return list;
     }

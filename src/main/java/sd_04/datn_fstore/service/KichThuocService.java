@@ -21,4 +21,6 @@ public interface KichThuocService {
     List<KichThuoc> searchAndFilter(String ten, Integer trangThai);
     // ... các hàm cũ
     KichThuoc updateTrangThai(Integer id, Integer newStatus);
+
+    List<KichThuoc> getAllActive();
 }

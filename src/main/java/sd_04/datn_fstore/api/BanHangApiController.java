@@ -94,12 +94,12 @@ public class BanHangApiController {
     }
 
     @GetMapping("/hoa-don-tam/{id}")
-    public ResponseEntity<?> getChiTietHoaDonTam(@PathVariable String maHoaDon) {
+    public ResponseEntity<?> getChiTietHoaDonTam(@PathVariable String id) { // ⬅️ Sửa từ 'maHoaDon' thành 'id'
         try {
-            HoaDon hoaDon = banHangService.getDraftOrderByCode(maHoaDon);
+            HoaDon hoaDon = banHangService.getDraftOrderByCode(id); // ⬅️ Dùng 'id' để gọi service
             if (hoaDon == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(Map.of("message", "Không tìm thấy hóa đơn có ID: " + maHoaDon));
+                        .body(Map.of("message", "Không tìm thấy hóa đơn có ID: " + id));
             }
             return ResponseEntity.ok(hoaDon);
         } catch (Exception e) {

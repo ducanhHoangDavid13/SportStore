@@ -8,6 +8,8 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import sd_04.datn_fstore.model.XuatXu;
 
+import java.util.List;
+
 @Repository
 public interface XuatXuRepository extends JpaRepository<XuatXu, Integer> {
 
@@ -26,4 +28,6 @@ public interface XuatXuRepository extends JpaRepository<XuatXu, Integer> {
     Page<XuatXu> findPaginated(Pageable pageable,
                                @Param("keyword") String keyword,
                                @Param("trangThai") Integer trangThai);
+
+    List<XuatXu> findByTrangThai(Integer trangThai);
 }

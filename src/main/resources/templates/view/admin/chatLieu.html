@@ -169,42 +169,79 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
 
 <script>
-    toastr.options = { "positionClass": "toast-bottom-right", "timeOut": "3000" };
+    // --- 1. CẤU HÌNH & BIẾN TOÀN CỤC ---
+    toastr.options = {
+        "positionClass": "toast-bottom-right",
+        "timeOut": "3000",
+        "closeButton": true,
+        "progressBar": true
+    };
+
     const API_URL = "/api/chat-lieu";
     let currentFilter = { page: 1, keyword: '', trangThai: '' };
 
+    // --- 2. CÁC HÀM TIỆN ÍCH ---
     function getLocalISOString() {
         const now = new Date();
         return new Date(now.getTime() - (now.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
     }
 
-    function formatDateForInput(isoString) {
-        if (!isoString) return '';
-        return isoString.slice(0, 16);
+    // --- 3. HÀM CHECK TRÙNG (QUAN TRỌNG) ---
+    async function checkDuplicate(tenCheck, idCheck = null) {
+        try {
+            // Gọi API search để tìm xem có tên nào giống không
+            // Lấy size lớn để đảm bảo quét hết kết quả tìm kiếm
+            const res = await $.get(API_URL, { keyword: tenCheck, page: 0, size: 100 });
+
+            if (res && res.content) {
+                // Tìm trong danh sách trả về xem có tên nào trùng khớp hoàn toàn không
+                const isExist = res.content.some(item => {
+                    // So sánh tên (viết hoa/thường đều tính là trùng)
+                    const sameName = item.loaiChatLieu.toLowerCase() === tenCheck.toLowerCase();
+                    // Nếu là sửa (có idCheck), thì bỏ qua chính nó
+                    const diffId = idCheck ? (item.id != idCheck) : true;
+                    return sameName && diffId;
+                });
+                return isExist;
+            }
+            return false;
+        } catch (e) {
+            console.error("Lỗi check trùng:", e);
+            return false; // Lỗi mạng thì tạm cho qua
+        }
     }
 
+    // --- 4. LOAD & RENDER DỮ LIỆU ---
     function loadData() {
         let params = {
-            page: currentFilter.page - 1, size: 5,
+            page: currentFilter.page - 1,
+            size: 5,
             keyword: currentFilter.keyword,
             trangThai: currentFilter.trangThai === '' ? null : parseInt(currentFilter.trangThai)
         };
+
+        $('#chatLieuTableBody').html('<tr><td colspan="5" class="text-center py-4 text-muted"><div class="spinner-border text-primary spinner-border-sm"></div> Đang tải...</td></tr>');
+
         $.get(API_URL, params, function(res) {
             renderTable(res.content);
             renderPagination(res.number + 1, res.totalPages);
             $('#pageInfo').html(`Hiển thị <strong>${res.numberOfElements}</strong> / <strong>${res.totalElements}</strong>`);
+        }).fail(function() {
+            $('#chatLieuTableBody').html('<tr><td colspan="5" class="text-center py-4 text-danger">Lỗi kết nối server</td></tr>');
         });
     }
 
     function renderTable(list) {
         let html = '';
-        if(!list.length) html = '<tr><td colspan="5" class="text-center py-4">Không có dữ liệu</td></tr>';
-        else {
+        if (!list || !list.length) {
+            html = '<tr><td colspan="5" class="text-center py-4">Không có dữ liệu</td></tr>';
+        } else {
             list.forEach(item => {
                 let dateStr = item.ngayTao ? new Date(item.ngayTao).toLocaleString('vi-VN') : '';
                 let status = item.trangThai === 1
-                    ? '<span class="badge-status badge-active">Hoạt động</span>'
-                    : '<span class="badge-status badge-inactive">Ngừng hoạt động</span>';
+                    ? '<span class="badge-active">Hoạt động</span>'
+                    : '<span class="badge-inactive">Ngừng hoạt động</span>';
+
                 let btnToggle = item.trangThai === 1
                     ? `<button class="btn btn-action btn-light text-danger border" onclick="toggleStatus(${item.id}, 0)" title="Ngừng"><i class="fas fa-ban"></i></button>`
                     : `<button class="btn btn-action btn-light text-success border" onclick="toggleStatus(${item.id}, 1)" title="Kích hoạt"><i class="fas fa-sync-alt"></i></button>`;
@@ -224,76 +261,143 @@
         $('#chatLieuTableBody').html(html);
     }
 
-    function renderPagination(curr, total) {
-        let nav = '<ul class="pagination justify-content-end mb-0">';
-        if(total > 1) {
-            for(let i=1; i<=total; i++) {
-                nav += `<li class="page-item ${i===curr?'active':''}"><button class="page-link" onclick="currentFilter.page=${i};loadData()">${i}</button></li>`;
-            }
+    function renderPagination(current, total) {
+        const nav = $('#paginationNav');
+        nav.empty();
+        if (total <= 1) return;
+
+        let html = '<ul class="pagination justify-content-end mb-0">';
+        html += `<li class="page-item ${current === 1 ? 'disabled' : ''}"><button class="page-link" onclick="changePage(1)"><i class="fas fa-angle-double-left"></i></button></li>`;
+        html += `<li class="page-item ${current === 1 ? 'disabled' : ''}"><button class="page-link" onclick="changePage(${current - 1})"><i class="fas fa-angle-left"></i></button></li>`;
+
+        let start = Math.max(1, current - 2), end = Math.min(total, current + 2);
+        if (current < 3) end = Math.min(total, 5);
+        if (current > total - 2) start = Math.max(1, total - 4);
+
+        for (let i = start; i <= end; i++) {
+            html += `<li class="page-item ${i === current ? 'active' : ''}"><button class="page-link" onclick="changePage(${i})">${i}</button></li>`;
         }
-        $('#paginationNav').html(nav + '</ul>');
+
+        html += `<li class="page-item ${current === total ? 'disabled' : ''}"><button class="page-link" onclick="changePage(${current + 1})"><i class="fas fa-angle-right"></i></button></li>`;
+        html += `<li class="page-item ${current === total ? 'disabled' : ''}"><button class="page-link" onclick="changePage(${total})"><i class="fas fa-angle-double-right"></i></button></li>`;
+        html += '</ul>';
+        nav.html(html);
     }
 
-    // Events
-    $('#filterForm').submit(e => { e.preventDefault(); currentFilter.keyword = $('#keyword').val(); currentFilter.trangThai = $('#trangThaiFilter').val(); currentFilter.page = 1; loadData(); });
-    $('#btnReset').click(() => { $('#keyword').val(''); $('#trangThaiFilter').val(''); currentFilter = {page:1, keyword:'', trangThai:''}; loadData(); });
+    function changePage(page) {
+        if (page > 0) { currentFilter.page = page; loadData(); }
+    }
 
-    // Add
-    $('#addChatLieuModal').on('show.bs.modal', () => { $('#addChatLieuForm')[0].reset(); $('#newNgayTao').val(getLocalISOString()); });
-    $('#addChatLieuForm').submit(e => {
+    // --- 5. EVENTS ---
+    $('#filterForm').submit(e => {
         e.preventDefault();
+        currentFilter.keyword = $('#keyword').val().trim();
+        currentFilter.trangThai = $('#trangThaiFilter').val();
+        currentFilter.page = 1;
+        loadData();
+    });
+
+    $('#btnReset').click(() => {
+        $('#keyword').val(''); $('#trangThaiFilter').val('');
+        currentFilter = { page: 1, keyword: '', trangThai: '' };
+        loadData();
+    });
+
+    // --- 6. XỬ LÝ THÊM MỚI (CÓ CHECK TRÙNG) ---
+    $('#addChatLieuModal').on('show.bs.modal', () => {
+        $('#addChatLieuForm')[0].reset();
+        $('#newNgayTao').val(getLocalISOString());
+    });
+
+    $('#addChatLieuForm').submit(async function(e) {
+        e.preventDefault();
+
+        let ten = $('#newLoaiChatLieu').val().trim();
         let dateVal = $('#newNgayTao').val();
-        if(new Date(dateVal) > new Date()) return toastr.warning("Ngày tạo không được ở tương lai");
+
+        if (!ten) return toastr.warning("Vui lòng nhập tên chất liệu");
+        if (new Date(dateVal) > new Date()) return toastr.warning("Ngày tạo không hợp lệ");
+
+        // GỌI HÀM CHECK TRÙNG
+        let isDuplicate = await checkDuplicate(ten);
+        if (isDuplicate) {
+            toastr.warning(`⚠️ Tên chất liệu "${ten}" đã tồn tại!`);
+            return; // Dừng lại, không lưu
+        }
 
         let data = {
-            loaiChatLieu: $('#newLoaiChatLieu').val().trim(),
+            loaiChatLieu: ten,
             ngayTao: dateVal,
             moTa: $('#newMoTa').val().trim(),
-            trangThai: $('input[name="newTrangThai"]:checked').val()
+            trangThai: parseInt($('input[name="newTrangThai"]:checked').val())
         };
 
-        $.ajax({ url: API_URL, type: 'POST', contentType: 'application/json', data: JSON.stringify(data),
-            success: () => { toastr.success("Thêm thành công"); $('#addChatLieuModal').modal('hide'); loadData(); },
-            error: (err) => toastr.error(err.responseJSON?.message || "Lỗi thêm mới")
+        $.ajax({
+            url: API_URL, type: 'POST', contentType: 'application/json', data: JSON.stringify(data),
+            success: () => {
+                toastr.success("Thêm mới thành công");
+                $('#addChatLieuModal').modal('hide');
+                loadData();
+            },
+            error: (xhr) => toastr.error(xhr.responseJSON?.message || "Lỗi thêm mới")
         });
     });
 
-    // Edit
+    // --- 7. XỬ LÝ SỬA (CÓ CHECK TRÙNG) ---
     window.openEdit = function(id) {
         $.get(`${API_URL}/${id}`, function(data) {
             $('#editChatLieuId').val(data.id);
             $('#editLoaiChatLieu').val(data.loaiChatLieu);
-            $('#editNgayTao').val(formatDateForInput(data.ngayTao));
+            $('#editNgayTao').val(data.ngayTao ? data.ngayTao.slice(0, 16) : '');
             $('#editMoTa').val(data.moTa);
-            if(data.trangThai === 1) $('#editTrangThaiOn').prop('checked', true); else $('#editTrangThaiOff').prop('checked', true);
+            if (data.trangThai === 1) $('#editTrangThaiOn').prop('checked', true);
+            else $('#editTrangThaiOff').prop('checked', true);
             new bootstrap.Modal(document.getElementById('editChatLieuModal')).show();
         });
     };
 
-    $('#editChatLieuForm').submit(e => {
+    $('#editChatLieuForm').submit(async function(e) {
         e.preventDefault();
-        let dateVal = $('#editNgayTao').val();
-        if(new Date(dateVal) > new Date()) return toastr.warning("Ngày tạo không được ở tương lai");
 
         let id = $('#editChatLieuId').val();
+        let ten = $('#editLoaiChatLieu').val().trim();
+        let dateVal = $('#editNgayTao').val();
+
+        if (!ten) return toastr.warning("Vui lòng nhập tên chất liệu");
+        if (new Date(dateVal) > new Date()) return toastr.warning("Ngày tạo không hợp lệ");
+
+        // GỌI HÀM CHECK TRÙNG (Truyền ID vào để trừ chính nó ra)
+        let isDuplicate = await checkDuplicate(ten, id);
+        if (isDuplicate) {
+            toastr.warning(`⚠️ Tên chất liệu "${ten}" đã tồn tại!`);
+            return; // Dừng lại
+        }
+
         let data = {
             id: id,
-            loaiChatLieu: $('#editLoaiChatLieu').val().trim(),
+            loaiChatLieu: ten,
             ngayTao: dateVal,
             moTa: $('#editMoTa').val().trim(),
-            trangThai: $('input[name="editTrangThai"]:checked').val()
+            trangThai: parseInt($('input[name="editTrangThai"]:checked').val())
         };
-        $.ajax({ url: `${API_URL}/${id}`, type: 'PUT', contentType: 'application/json', data: JSON.stringify(data),
-            success: () => { toastr.success("Cập nhật thành công"); $('#editChatLieuModal').modal('hide'); loadData(); },
-            error: (err) => toastr.error(err.responseJSON?.message || "Lỗi cập nhật")
+
+        $.ajax({
+            url: `${API_URL}/${id}`, type: 'PUT', contentType: 'application/json', data: JSON.stringify(data),
+            success: () => {
+                toastr.success("Cập nhật thành công");
+                $('#editChatLieuModal').modal('hide');
+                loadData();
+            },
+            error: (xhr) => toastr.error(xhr.responseJSON?.message || "Lỗi cập nhật")
         });
     });
 
-    // Toggle Status
+    // --- 8. ĐỔI TRẠNG THÁI ---
     window.toggleStatus = function(id, newStatus) {
         let action = newStatus === 1 ? 'Kích hoạt' : 'Ngừng hoạt động';
-        if(confirm(`Bạn muốn ${action} chất liệu này?`)) {
-            $.ajax({ url: `${API_URL}/${id}/trang-thai?trangThai=${newStatus}`, type: 'PUT',
+        if (confirm(`Xác nhận ${action}?`)) {
+            $.ajax({
+                url: `${API_URL}/${id}/trang-thai?trangThai=${newStatus}`, type: 'PUT',
                 success: () => { toastr.success("Thành công"); loadData(); },
                 error: () => toastr.error("Lỗi cập nhật trạng thái")
             });
