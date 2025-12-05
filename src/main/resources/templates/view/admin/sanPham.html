@@ -263,10 +263,18 @@
                                     <label class="form-label fw-bold small">GIÁ BÁN</label>
                                     <input type="number" class="form-control" id="editGiaTien" min="0" required>
                                 </div>
+
                                 <div class="col-md-6">
-                                    <label class="form-label fw-bold small">SỐ LƯỢNG</label>
-                                    <input type="number" class="form-control" id="editSoLuong" min="0" required>
+                                    <label class="form-label fw-bold small text-muted">SỐ LƯỢNG TỔNG (Chỉ đọc)</label>
+                                    <input type="text" class="form-control bg-secondary-subtle text-secondary fw-bold"
+                                           id="editSoLuong" readonly
+                                           title="Số lượng được tự động tính từ các biến thể chi tiết"
+                                           style="cursor: not-allowed;">
+                                    <small class="text-muted d-block mt-1" style="font-size: 0.75rem;">
+                                        <i class="fas fa-info-circle me-1"></i>Số lượng được quản lý ở chi tiết sản phẩm.
+                                    </small>
                                 </div>
+
                                 <div class="col-12">
                                     <label class="form-label fw-bold small">MÔ TẢ</label>
                                     <textarea class="form-control" id="editMoTa" rows="2"></textarea>
@@ -540,6 +548,7 @@
                 giaTien: parseFloat($('#editGiaTien').val()),
                 moTa: $('#editMoTa').val(),
                 trangThai: parseInt($('#editTrangThaiSelect').val())
+                // LƯU Ý: Không gửi 'soLuong' ở đây nữa vì nó chỉ đọc
             };
 
             formData.append('sanPhamData', JSON.stringify(data));

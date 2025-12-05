@@ -10,11 +10,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import sd_04.datn_fstore.model.SanPhamChiTiet;
-
-// Import các service
-import sd_04.datn_fstore.service.*; // Import tất cả service cho gọn
-
-import java.math.BigDecimal; // Import kiểu BigDecimal cho giá
+import sd_04.datn_fstore.service.*;
 
 @Controller
 @RequestMapping("/admin/san-pham-chi-tiet")
@@ -23,7 +19,6 @@ public class SanPhamChiTietController {
 
     private final SanPhamCTService sanPhamCTService;
 
-    // Inject các Service cho dropdown (lọc và modal)
     private final SanPhamService sanPhamService;
     private final MauSacService mauSacService;
     private final KichThuocService kichThuocService;
@@ -32,14 +27,9 @@ public class SanPhamChiTietController {
     private final XuatXuService xuatXuService;
     private final PhanLoaiService phanLoaiService;
 
-    /**
-     * Tải trang Quản lý SPCT (Danh sách, Lọc VÀ Modal)
-     */
     @GetMapping
     public String hienThiTrang(Model model,
                                @PageableDefault(size = 1000) Pageable pageable,
-
-                               // --- SỬA 1: Bổ sung đầy đủ các tham số lọc ---
                                @RequestParam(required = false) Integer idSanPham,
                                @RequestParam(required = false) Integer idMauSac,
                                @RequestParam(required = false) Integer idKichThuoc,
@@ -48,41 +38,30 @@ public class SanPhamChiTietController {
                                @RequestParam(required = false) Integer idXuatXu,
                                @RequestParam(required = false) Integer idPhanLoai,
                                @RequestParam(required = false) Integer trangThai,
-                               @RequestParam(required = false) String keyword,
-                               @RequestParam(required = false) BigDecimal minPrice, // Dùng BigDecimal cho giá
-                               @RequestParam(required = false) BigDecimal maxPrice  // Dùng BigDecimal cho giá
+                               @RequestParam(required = false) String keyword
+                               // ĐÃ XÓA minPrice, maxPrice
     ) {
 
-        // --- SỬA 2: Sắp xếp lại thứ tự tham số khi gọi Service ---
-        // (Giả định thứ tự trong Service là: IDs, Prices, Status, Keyword)
+        // Gọi hàm search mới (không có giá)
         Page<SanPhamChiTiet> spctPage = sanPhamCTService.search(
                 pageable,
                 idSanPham, idKichThuoc, idChatLieu,
                 idTheLoai, idXuatXu, idMauSac, idPhanLoai,
-                minPrice, maxPrice, // Giá (BigDecimal) phải được đặt trước
-                trangThai,          // Trạng thái (Integer)
-                keyword             // Keyword (String)
+                trangThai,
+                keyword
         );
         model.addAttribute("spctPage", spctPage);
-
-        // 2. Đối tượng rỗng cho modal "Thêm mới"
         model.addAttribute("spct", new SanPhamChiTiet());
-
-        // 3. Load data cho các bộ lọc và dropdown trong modal
         loadFormDependencies(model);
 
-        // 4. Giữ lại giá trị lọc
+        // Giữ lại giá trị lọc để hiển thị trên View
         model.addAttribute("idSanPham", idSanPham);
         model.addAttribute("idMauSac", idMauSac);
-        // ... (Bạn có thể thêm các thuộc tính khác nếu cần)
+        // ... thêm các attribute khác nếu cần
 
-        // 5. Trả về file: /templates/view/admin/sanPhamCT.html
         return "view/admin/sanPhamCT";
     }
 
-    /**
-     * Helper: Tải dữ liệu cho các dropdown
-     */
     private void loadFormDependencies(Model model) {
         model.addAttribute("listSanPham", sanPhamService.getAll());
         model.addAttribute("listMauSac", mauSacService.getAll());
@@ -92,7 +71,4 @@ public class SanPhamChiTietController {
         model.addAttribute("listXuatXu", xuatXuService.getAll());
         model.addAttribute("listPhanLoai", phanLoaiService.getAll());
     }
-
-    // KHÔNG CÓ @PostMapping("/save")
-    // KHÔNG CÓ @GetMapping("/delete/{id}")
 }

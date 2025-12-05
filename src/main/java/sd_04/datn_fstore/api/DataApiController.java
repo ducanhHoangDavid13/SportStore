@@ -1,4 +1,4 @@
-package sd_04.datn_fstore.api; // (Tạo trong package api)
+package sd_04.datn_fstore.api;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -21,20 +21,21 @@ public class DataApiController {
     private final PhieuGiamgiaService phieuGiamgiaService;
 
     /**
-     * API này khớp với JS: fetch('/api/data/san-pham-active')
+     * API lấy sản phẩm đang hoạt động.
+     * Luôn trả về số lượng tồn kho thực tế tại thời điểm gọi.
      */
-    @GetMapping("/san-pham-chi-tiet-active") // <-- ĐỔI TÊN
+    @GetMapping("/san-pham-chi-tiet-active")
     public ResponseEntity<List<SanPhamChiTiet>> getActiveProductDetails() {
-        // Hàm này trả về List<SanPhamChiTiet> là đúng
-        return ResponseEntity.ok(sanPhamCTService.getAvailableProducts());
+        // SỬA: Gọi hàm không tham số để lấy toàn bộ danh sách
+        return ResponseEntity.ok(sanPhamCTService.getAllActive());
     }
 
     /**
-     * API này khớp với JS: fetch('/api/data/phieu-giam-gia-active')
+     * API lấy phiếu giảm giá đang hoạt động.
      */
     @GetMapping("/phieu-giam-gia-active")
     public ResponseEntity<List<PhieuGiamGia>> getActiveCoupons() {
-        // (Bạn phải tạo hàm getActive() trong Service/Repo)
+        // Đảm bảo Service có hàm getActive() lọc theo ngày bắt đầu/kết thúc và trạng thái
         List<PhieuGiamGia> coupons = phieuGiamgiaService.getActive();
         return ResponseEntity.ok(coupons);
     }

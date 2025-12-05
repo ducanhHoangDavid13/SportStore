@@ -1,5 +1,6 @@
 package sd_04.datn_fstore.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
@@ -75,5 +76,9 @@ public class HoaDon {
     // (Lưu ý: Đây là object DiaChi, không phải String)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_dia_chi_giao_hang")
+    @JsonIgnore // <--- Thêm dòng này
     private DiaChi diaChiGiaoHang;
+
+    @OneToMany(mappedBy = "hoaDon", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<HoaDonChiTiet> chiTietHoaDon;
 }
