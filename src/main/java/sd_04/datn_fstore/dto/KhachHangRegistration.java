@@ -24,7 +24,7 @@ public class KhachHangRegistration {
     private String password;
     private Boolean gioiTinh;
     private String soDienThoai;
-    private LocalDateTime ngaySinh;
+    private Integer namSinh;
     private String vaiTro;
     private Integer trangThai;
 }
