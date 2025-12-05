@@ -8,6 +8,7 @@ import lombok.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Period;
+import java.time.Year;
 import java.util.List;
 
 @Entity
@@ -48,6 +49,8 @@ public class KhachHang {
 
     private LocalDateTime ngayTao;
 
+    @Column(name = "namSinh")
+    private Integer namSinh;
     public KhachHang() {
     }
 
@@ -55,10 +58,9 @@ public class KhachHang {
     @OneToMany(mappedBy = "khachHang", fetch = FetchType.LAZY)
     private List<HoaDon> hoaDons;
 
-    // 🟢 Cập nhật logic tính tuổi theo LocalDateTime
     public Integer getTuoi() {
-        if (this.ngaySinh != null) {
-            return Period.between(this.ngaySinh.toLocalDate(), LocalDate.now()).getYears();
+        if (this.namSinh != null) {
+            return Year.now().getValue() - this.namSinh;
         }
         return null;
     }

@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import sd_04.datn_fstore.model.ChatLieu;
 import sd_04.datn_fstore.service.ChatLieuService;
@@ -49,6 +50,7 @@ public class ChatLieuApiController {
 
     // 1. CHỈ DÙNG CHO THÊM MỚI (CREATE)
     @PostMapping
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<ChatLieu> addChatLieu(@RequestBody ChatLieu chatLieu) {
         try {
             // Đảm bảo ID là null để tránh ghi đè
@@ -73,6 +75,7 @@ public class ChatLieuApiController {
 
     // 2. CHỈ DÙNG CHO CẬP NHẬT (UPDATE)
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<ChatLieu> updateChatLieu(@PathVariable Integer id,
                                                    @RequestBody ChatLieu chatLieu) {
         try {
