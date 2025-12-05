@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import sd_04.datn_fstore.model.SanPhamChiTiet;
@@ -45,6 +46,7 @@ public class SanPhamChiTietApiController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<?> addVariant(@RequestBody SanPhamChiTiet sanPhamChiTiet) {
         try {
             sanPhamChiTiet.setId(null);
@@ -73,6 +75,7 @@ public class SanPhamChiTietApiController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<?> updateVariant(@PathVariable Integer id,
                                            @RequestBody SanPhamChiTiet dataTuJavaScript) {
         Optional<SanPhamChiTiet> optSpct = sanPhamCTService.getById(id);
