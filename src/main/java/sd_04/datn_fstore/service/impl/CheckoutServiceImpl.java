@@ -78,7 +78,7 @@ public class CheckoutServiceImpl implements CheckoutService {
                     voucherMessage = "Mã giảm giá đã hết hạn sử dụng!";
                 }
                 // Check 2: Trạng thái (1: Đang chạy)
-                else if (pgg.getTrangThai() != 1) {
+                else if (pgg.getTrangThai() != 0) {
                     voucherMessage = "Mã giảm giá này đã bị dừng/hủy!";
                 }
                 // Check 3: Số lượng

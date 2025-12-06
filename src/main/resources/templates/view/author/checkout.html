@@ -127,7 +127,7 @@
 
                 <div class="mb-3">
                     <label class="form-label small fw-bold text-muted">MÃ GIẢM GIÁ</label>
-                    <select class="form-select" id="voucherSelect" onchange="applyVoucher()">
+                    <select class="form-select" id="voucherSelect" >
                         <option value="" selected>-- Chọn mã giảm giá --</option>
                     </select>
                 </div>
@@ -252,6 +252,7 @@
     // =========================================================================
     // 3. QUẢN LÝ GIỎ HÀNG & ĐỒNG BỘ GIÁ/TỒN KHO
     // =========================================================================
+
     async function loadCartFromStorage() {
         const json = localStorage.getItem('cartItems');
         currentCart = json ? JSON.parse(json) : [];
@@ -259,12 +260,14 @@
         // 1. Render trước dữ liệu cũ để khách không phải chờ
         renderCartHTML();
 
-        // 2. Nếu giỏ hàng có đồ, tiến hành ĐỒNG BỘ GIÁ MỚI NHẤT & TỒN KHO từ Server
+        // 2. Nếu giỏ hàng có đồ, tiến hành ĐỒNG BỘ và TÍNH TOÁN
         if (currentCart.length > 0) {
-            await syncPricesAndStockWithServer();
+            await syncPricesAndStockWithServer(); // Đồng bộ giá/tồn kho
+            applyVoucher(); // Tính toán tổng tiền sau khi sync
         } else {
             updateTotals(0, 0, 0);
         }
+        document.getElementById('btnPlaceOrder').disabled = (currentCart.length === 0);
     }
 
     // [MỚI] Hàm này gọi API lấy chi tiết từng sản phẩm để cập nhật giá và tồn kho
@@ -337,7 +340,7 @@
                 localStorage.setItem('cartItems', JSON.stringify(currentCart));
             }
 
-            // Luôn gọi renderCartHTML và applyVoucher sau khi kết thúc đồng bộ
+            // Luôn gọi renderCartHTML sau khi kết thúc đồng bộ
             renderCartHTML();
 
             // Kích hoạt nút đặt hàng nếu giỏ hàng không trống
@@ -347,8 +350,7 @@
                 updateTotals(0, 0, 0); // Reset totals nếu giỏ hàng trống
             }
 
-            // Tính toán tổng tiền sau khi đã đồng bộ giá và tồn kho
-            applyVoucher();
+            // LƯU Ý: applyVoucher() sẽ được gọi ở cuối loadCartFromStorage()
 
         } catch (err) {
             console.error("Lỗi đồng bộ giá và tồn kho:", err);
@@ -407,15 +409,23 @@
             return;
         }
 
+        if (stock === 0) {
+            toastr.error(`Sản phẩm đã hết hàng.`);
+            return;
+        }
+
         if (newQty > stock) {
             toastr.warning(`Tồn kho tối đa chỉ còn ${stock} sản phẩm.`);
             newQty = stock; // Điều chỉnh về mức tồn kho tối đa
         }
 
-        item.quantity = newQty;
-        localStorage.setItem('cartItems', JSON.stringify(currentCart));
-        renderCartHTML();
-        applyVoucher(); // Tính lại tiền ngay
+        // Chỉ cập nhật nếu số lượng thay đổi
+        if (item.quantity !== newQty) {
+            item.quantity = newQty;
+            localStorage.setItem('cartItems', JSON.stringify(currentCart));
+            renderCartHTML();
+            applyVoucher(); // Tính lại tiền ngay
+        }
     }
 
     function removeCartItem(index) {
@@ -451,32 +461,55 @@
                 let html = '<option value="">-- Chọn mã giảm giá --</option>';
                 data.forEach(v => {
                     let discountText = v.hinhThucGiam === 2 ? `Giảm ${v.giaTriGiam}%` : `Giảm ${formatCurrency(v.giaTriGiam)}`;
+                    // Lấy điều kiện tối thiểu
                     const minOrder = v.dieuKienGiamGia || 0;
-                    // Note: Thay vì dùng maPhieuGiamGia, nên dùng ID nếu API đặt hàng dùng ID
+
+                    // LƯU Ý: Vẫn giữ value là mã và thêm data-min-order
                     html += `<option value="${v.maPhieuGiamGia}" data-min-order="${minOrder}">
-                                ${v.maPhieuGiamGia} - ${v.tenPhieuGiamGia} [${discountText}] (Đơn từ ${formatCurrency(minOrder)})
-                             </option>`;
+                            ${v.maPhieuGiamGia} - ${v.tenPhieuGiamGia} [${discountText}] (Đơn từ ${formatCurrency(minOrder)})
+                         </option>`;
                 });
                 document.getElementById('voucherSelect').innerHTML = html;
             })
             .catch(() => console.log("Không tải được voucher"));
     }
 
+    /**
+     * Hàm chính tính toán tổng tiền và áp dụng voucher (gọi API Server)
+     */
     function applyVoucher() {
         if (currentCart.length === 0) {
             updateTotals(0, 0, 0);
             return;
         }
 
-        const selectElement = document.getElementById('voucherSelect');
-        let code = selectElement.value;
+        const btnPlaceOrder = document.getElementById('btnPlaceOrder');
+        btnPlaceOrder.disabled = true;
 
-        // Chuẩn bị dữ liệu gửi lên Server
+        const selectElement = document.getElementById('voucherSelect');
+        let code = selectElement.value; // Mã voucher hiện tại
+
+        // --- KIỂM TRA ĐIỀU KIỆN TỐI THIỂU (FRONTEND CHECK) ---
+        if (code) {
+            const subTotal = currentCart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const selectedOption = selectElement.options[selectElement.selectedIndex];
+            // Chắc chắn là số
+            const minOrder = parseFloat(selectedOption.getAttribute('data-min-order')) || 0;
+
+            if (subTotal < minOrder) {
+                toastr.warning(`Đơn hàng chưa đạt tối thiểu ${formatCurrency(minOrder)} để áp dụng mã này!`);
+                selectElement.value = ""; // Reset voucher trên UI
+                code = ""; // Gửi request với mã rỗng
+                // KHÔNG cần return hay gọi lại applyVoucher() nữa, cứ tiếp tục fetch
+            }
+        }
+
         const itemsPayload = currentCart.map(i => ({
             sanPhamChiTietId: i.id,
             soLuong: i.quantity
         }));
 
+        // Bắt đầu Fetch
         fetch('/api/checkout/calculate', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
@@ -487,40 +520,65 @@
             })
         })
             .then(res => {
-                // Kiểm tra response có lỗi HTTP không (500, 400)
                 if (!res.ok) {
-                    throw new Error("Lỗi Server: " + res.status);
+                    // Cố gắng đọc thông báo lỗi từ Server (nếu có)
+                    return res.json().catch(() => {
+                        throw new Error("Lỗi Server: " + res.status);
+                    }).then(errData => {
+                        throw new Error(errData.message || "Lỗi Server: " + res.status);
+                    });
                 }
                 return res.json();
             })
             .then(data => {
-                // Kiểm tra tồn kho (kiểm tra lại lần cuối)
+                let needsRecalculateDueToStock = false;
+
+                // 1. KIỂM TRA TỒN KHO/GIÁ (Nếu Server trả về lỗi)
                 if(data.outOfStock) {
                     toastr.error(data.error);
-                    // Force sync lại để loại bỏ sản phẩm hết hàng
-                    syncPricesAndStockWithServer();
-                    return;
+                    const productId = data.productId;
+
+                    const indexToRemove = currentCart.findIndex(item => item.id === productId);
+                    if (indexToRemove !== -1) {
+                        currentCart.splice(indexToRemove, 1);
+                        localStorage.setItem('cartItems', JSON.stringify(currentCart));
+                        needsRecalculateDueToStock = true;
+                    }
                 }
 
-                // Cập nhật UI
+                if (needsRecalculateDueToStock) {
+                    renderCartHTML();
+                    // Gọi lại applyVoucher() để tính toán lại với giỏ hàng đã được sửa
+                    return applyVoucher();
+                }
+
+                // 2. XỬ LÝ VOUCHER (Backend trả về lỗi)
+                // Chỉ kiểm tra nếu trước đó đã có mã (code khác rỗng)
+                if (code && !data.voucherValid) {
+                    toastr.warning(data.voucherMessage || "Mã không hợp lệ hoặc không đủ điều kiện.");
+                    selectElement.value = ""; // Xóa mã voucher không hợp lệ trên UI
+                    code = ""; // Reset mã để gửi request tính toán lại
+
+                    // Gọi lại applyVoucher() ngay lập tức để Server tính lại tiền với voucher rỗng
+                    return applyVoucher();
+
+                } else if(code && data.voucherValid) {
+                    toastr.success(data.voucherMessage || "Áp dụng mã thành công!");
+                }
+
+                // 3. CẬP NHẬT UI TỔNG TIỀN
                 updateTotals(data.subTotal, data.discountAmount, data.finalTotal);
 
-                // Xử lý thông báo Voucher
-                if (code) {
-                    if (data.voucherValid) {
-                        toastr.success(data.voucherMessage || "Áp dụng thành công!");
-                    } else {
-                        // **SỬA ĐỔI QUAN TRỌNG:** Reset giá trị, không gọi lại applyVoucher()
-                        // Event 'change' sẽ tự động gọi lại hàm này với code rỗng.
-                        toastr.warning(data.voucherMessage || "Mã không hợp lệ");
-                        selectElement.value = "";
-                        // Bỏ: applyVoucher(); // Tránh gọi đệ quy
-                    }
+                // 4. BẬT NÚT ĐẶT HÀNG
+                if (currentCart.length > 0) {
+                    btnPlaceOrder.disabled = false;
                 }
             })
             .catch(err => {
                 console.error("Lỗi tính tiền:", err);
-                toastr.error("Không thể tính lại tổng tiền. Vui lòng thử lại.");
+                // Hiển thị thông báo lỗi từ Server (nếu có)
+                toastr.error(err.message || "Không thể tính lại tổng tiền. Vui lòng thử lại.");
+                btnPlaceOrder.disabled = false;
             });
     }
 

@@ -372,11 +372,13 @@
                 <div class="col-md-7 pe-3 border-end">
                     <div class="mb-2">
                         <label class="small fw-bold text-muted">Phiếu giảm giá</label>
-                        <select class="form-select form-select-sm select2-basic" id="coupon-select"
-                                style="width: 100%;">
-                            <option value="">-- Chọn mã giảm giá --</option>
-                        </select>
-                        <small class="text-success fst-italic" id="coupon-message" style="display: none"></small>
+                        <div class="input-group mb-3">
+                            <select class="form-select select2-basic" id="coupon-select"></select>
+                            <button class="btn btn-primary" type="button" id="btn-find-best-coupon" title="Tìm mã giảm giá tối ưu nhất">
+                                <i class="bi bi-search"></i>
+                            </button>
+                        </div>
+                        <div id="coupon-message" class="small mt-1" style="display: none;"></div>
                     </div>
 
                     <div class="d-flex gap-2 mb-2">
@@ -603,13 +605,15 @@
     // 1. CẤU HÌNH HỆ THỐNG & API
     // ==========================================
     const API_PRODUCTS = "/api/data/san-pham-chi-tiet-active";
-    const API_COUPONS = "/api/data/phieu-giam-gia-active";
+
+    const API_COUPONS = "/api/phieu-giam-gia/active";
+    const API_BEST_COUPON = "/api/phieu-giam-gia/best-voucher";
     const API_DRAFTS = "/api/ban-hang/hoa-don-tam";
     const API_PAYMENT = "/api/ban-hang/thanh-toan";
     const API_SAVE_DRAFT = "/api/ban-hang/luu-tam";
 
     // Cấu hình Tài khoản ngân hàng (VietQR)
-    const BANK_ID = "970407"; // Techcombank (Tra cứu mã Bin tại vietqr.io)
+    const BANK_ID = "970407";
     const BANK_ACCOUNT_NUMBER = "19039509651013";
     const ACCOUNT_NAME_FOR_QR = "HOANG DUC ANH";
     const BANK_SHORT_NAME = "Techcombank";
@@ -627,118 +631,7 @@
     let currentVariants = [], selectedSize = null, selectedColor = null;
 
     // ==========================================
-    // 2. KHỞI TẠO KHI TRANG LOAD
-    // ==========================================
-    $(document).ready(function () {
-        // Init Plugins
-        $('.select2-basic').select2({theme: 'bootstrap-5'});
-        $('.select2-modal').select2({theme: 'bootstrap-5', dropdownParent: $('#modal-filter')});
-
-        // Khởi chạy dữ liệu ban đầu
-        startClock();
-        initNewOrder();
-        loadProducts();
-        loadCoupons();
-        updateDraftCount();
-
-        // --- CÁC SỰ KIỆN (EVENT LISTENERS) ---
-
-        // 1. Tìm kiếm & Lọc sản phẩm
-        $('#product-search').on('input', applyFilter);
-        $('#filter-category, #filter-brand, #filter-material, #filter-size, #filter-color, #sort-price').on('change', applyFilter);
-        $('#btn-open-filter').click(() => $('#modal-filter').modal('show'));
-
-        // 2. Chọn sản phẩm vào giỏ
-        $('#product-grid').on('click', '.prod-card', function () {
-            openProductModal($(this).data('parent-id'));
-        });
-
-        // 3. Xử lý Modal chọn thuộc tính (Size/Color)
-        $('#modal-size-list').on('click', '.variant-option', function () {
-            if ($(this).hasClass('disabled')) return;
-            $('#modal-size-list .variant-option').removeClass('active');
-            $(this).addClass('active');
-            selectedSize = $(this).data('val');
-            updateVariantUI();
-        });
-        $('#modal-color-list').on('click', '.variant-option', function () {
-            if ($(this).hasClass('disabled')) return;
-            $('#modal-color-list .variant-option').removeClass('active');
-            $(this).addClass('active');
-            selectedColor = $(this).data('val');
-            updateVariantUI();
-        });
-
-        $('#btn-confirm-add-cart').click(confirmAddToCart);
-
-        // 4. Thao tác trong giỏ hàng (Xóa, Tăng/Giảm SL)
-        $('#cart-list').on('click', '.btn-remove', function () {
-            removeFromCart($(this).data('id'));
-        });
-
-        $('#cart-list').on('click', '.qty-btn', function () {
-            let input = $(this).siblings('.qty-input');
-            let currentVal = parseInt(input.val()) || 1;
-            let newVal = currentVal + $(this).data('delta');
-            if (newVal < 1) newVal = 1; // Chặn số âm
-            updateQty($(this).data('id'), newVal);
-        });
-
-        $('#cart-list').on('change', '.qty-input', function () {
-            let newQty = parseInt($(this).val());
-            if (isNaN(newQty) || newQty < 1) {
-                newQty = 1;
-                $(this).val(1);
-                toastr.warning("Số lượng tối thiểu là 1");
-            }
-            updateQty($(this).data('id'), newQty);
-        });
-
-        // 5. Input số lượng trong Modal (Chặn âm)
-        $('#modal-qty-input').on('change keyup', function () {
-            let val = parseInt($(this).val());
-            if (isNaN(val) || val < 1) $(this).val(1);
-        });
-
-        // 6. Thanh toán & Hóa đơn
-        $('#btn-checkout').click(handleCheckoutClick);
-        $('#btn-save-draft').click(saveDraft);
-        $('#btn-confirm-qr-paid').click(confirmQRPayment); // Nút "Đã nhận tiền" trong modal QR
-
-        // 7. Tính tiền thừa & Voucher
-        $('#customer-paid').on('input', calculateChange);
-        $('#coupon-select').on('change', function () {
-            // Khi chọn voucher, tính lại tổng tiền ngay lập tức
-            let currentTotal = parseFloat($('#subtotal').data('val')) || 0;
-            updateSummary(currentTotal);
-        });
-
-        // 8. Khách hàng
-        $('#btn-do-search-cust').click(searchCustomer);
-        $('#list-cust-results').on('click', '.item-cust', function () {
-            setCustomer($(this).data('id'), $(this).data('name'));
-        });
-
-        // 9. Phương thức thanh toán
-        $('.btn-pay-method').click(function () {
-            $('.btn-pay-method').removeClass('active');
-            $(this).addClass('active');
-            setPaymentMethod($(this).data('method'));
-        });
-
-        // 10. Xử lý Hóa đơn treo
-        $('#btn-list-drafts').click(loadDraftsList);
-        $('#tbody-drafts').on('click', '.btn-select-draft', function () {
-            loadDraftDetail($(this).data('id'));
-        });
-        $('#tbody-drafts').on('click', '.btn-delete-draft', function () {
-            let code = $(this).attr('data-code');
-            deleteDraftOrder(code);
-        });
-    });
-
-    // ==========================================
-    // 3. LOGIC SẢN PHẨM & GIỎ HÀNG
+    // 3. LOGIC SẢN PHẨM & GIỎ HÀNG (GLOBAL FUNCTIONS)
     // ==========================================
 
     async function loadProducts() {
@@ -797,7 +690,6 @@
         $('#modal-prod-price').text("Vui lòng chọn thuộc tính");
         $('#modal-prod-stock').text("-");
 
-        // Render options
         const sizes = [...new Set(currentVariants.map(v => v.kichThuoc?.tenKichThuoc || "Free"))].sort();
         const colors = [...new Set(currentVariants.map(v => v.mauSac?.tenMauSac || "Free"))].sort();
 
@@ -812,7 +704,6 @@
     }
 
     function updateVariantUI() {
-        // Logic kiểm tra xem sự kết hợp size/color có tồn tại không
         const checkAvailability = (s, c) => currentVariants.some(v =>
             (!s || (v.kichThuoc?.tenKichThuoc || "Free") === s) &&
             (!c || (v.mauSac?.tenMauSac || "Free") === c) &&
@@ -915,17 +806,47 @@
     }
 
     // ==========================================
-    // 4. LOGIC THANH TOÁN & VOUCHER (QUAN TRỌNG)
+    // 4. LOGIC THANH TOÁN & VOUCHER (GLOBAL FUNCTIONS)
     // ==========================================
 
+    async function loadCoupons() {
+        try {
+            const res = await fetch(API_COUPONS);
+            if (!res.ok) throw new Error("API responded with status: " + res.status);
+
+            const list = await res.json();
+
+            if (!Array.isArray(list)) {
+                console.error("Dữ liệu voucher không phải là mảng:", list);
+                toastr.error("Lỗi dữ liệu voucher từ server.");
+                return;
+            }
+
+            let html = '<option value="">-- Chọn mã giảm giá --</option>';
+            list.forEach(c => {
+                let label = c.hinhThucGiam == 2 ? Math.round(c.giaTriGiam) + '%' : formatter.format(c.giaTriGiam);
+                html += `<option value="${c.id}"
+                            data-code="${c.maPhieuGiamGia}"
+                            data-type="${c.hinhThucGiam}"
+                            data-val="${c.giaTriGiam}"
+                            data-min="${c.dieuKienGiamGia || 0}"
+                            data-max="${c.soTienGiamToiDa || 0}">
+                            ${c.maPhieuGiamGia} (${c.tenPhieuGiamGia}) - ${label}
+                         </option>`;
+            });
+            $('#coupon-select').html(html);
+        } catch (e) {
+            console.error("Lỗi tải voucher", e);
+            toastr.error("Lỗi tải voucher. Kiểm tra API.");
+        }
+    }
+
     function updateSummary(subtotal) {
-        // Hiển thị tạm tính
         $('#subtotal').data('val', subtotal).text(formatter.format(subtotal));
 
         let discountAmount = 0;
         let finalTotal = subtotal;
 
-        // Lấy thông tin voucher
         const $option = $('#coupon-select').find(':selected');
         const couponId = $('#coupon-select').val();
         const $msg = $('#coupon-message');
@@ -933,8 +854,7 @@
         $msg.hide().removeClass('text-danger text-success');
 
         if (couponId && subtotal > 0) {
-            // Lấy data từ thẻ option (đã gán ở hàm loadCoupons)
-            const type = parseInt($option.data('type')); // 1: Tiền mặt, 2: %
+            const type = parseInt($option.data('type'));
             const value = parseFloat($option.data('val')) || 0;
             const minBill = parseFloat($option.data('min')) || 0;
             const maxDisc = parseFloat($option.data('max'));
@@ -944,7 +864,6 @@
                 discountAmount = 0;
             } else {
                 if (type === 2) {
-                    // === GIẢM THEO % ===
                     let calculated = subtotal * (value / 100);
                     if (!isNaN(maxDisc) && maxDisc > 0 && calculated > maxDisc) {
                         calculated = maxDisc;
@@ -953,26 +872,54 @@
                     let maxInfo = (maxDisc > 0) ? `(Max: ${formatter.format(maxDisc)})` : '';
                     $msg.text(`Giảm ${value}% ${maxInfo}`).addClass('text-success').show();
                 } else {
-                    // === GIẢM TIỀN MẶT ===
                     discountAmount = value;
                     $msg.text(`Giảm trực tiếp ${formatter.format(value)}`).addClass('text-success').show();
                 }
             }
         }
 
-        // Chặn lỗi giảm quá tổng tiền
         if (discountAmount > subtotal) discountAmount = subtotal;
 
-        // Làm tròn tiền
         discountAmount = Math.round(discountAmount);
         finalTotal = subtotal - discountAmount;
 
-        // Hiển thị kết quả
         $('#discount').text(formatter.format(discountAmount)).data('val', discountAmount);
         $('#total').text(formatter.format(finalTotal)).data('val', finalTotal);
 
-        // Tính lại tiền thừa nếu đang nhập tiền mặt
         calculateChange();
+    }
+
+    async function findBestCoupon() {
+        if (!cart.length) return toastr.warning("Giỏ hàng trống!");
+        const subtotal = parseFloat($('#subtotal').data('val'));
+        if (subtotal <= 0) return toastr.warning("Tổng tiền chưa hợp lệ.");
+
+        const btn = $('#btn-find-best-coupon');
+        btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
+
+        try {
+            const res = await fetch(`${API_BEST_COUPON}?subTotal=${subtotal}`);
+            const data = await res.json();
+            const bestCode = data.bestCode;
+
+            if (bestCode) {
+                const $option = $(`#coupon-select option[data-code="${bestCode}"]`);
+                if ($option.length) {
+                    $('#coupon-select').val($option.val()).trigger('change');
+                    toastr.success(`Đã áp dụng mã tốt nhất: ${bestCode}`);
+                } else {
+                    toastr.info("Mã tốt nhất được tìm thấy nhưng không tồn tại trong danh sách (Cần tải lại danh sách voucher).");
+                }
+            } else {
+                $('#coupon-select').val('').trigger('change');
+                toastr.info("Không tìm thấy mã giảm giá phù hợp.");
+            }
+        } catch (e) {
+            console.error(e);
+            toastr.error("Lỗi tìm mã giảm giá");
+        } finally {
+            btn.prop('disabled', false).html('<i class="bi bi-search"></i>');
+        }
     }
 
     function handleCheckoutClick() {
@@ -995,7 +942,6 @@
                 if (r.isConfirmed) submitOrder('CASH', paid);
             });
         } else {
-            // Chuyển khoản QR
             if (total <= 0) return toastr.error("Tổng tiền không hợp lệ");
             generateQRCode(total, currentOrderCode);
         }
@@ -1006,7 +952,6 @@
         const content = `TT ${code}`;
         $('#qr-content').text(content);
 
-        // Tạo link ảnh VietQR (Không cần thư viện JS ngoài)
         const qrUrl = `https://img.vietqr.io/image/${BANK_SHORT_NAME}-${BANK_ACCOUNT_NUMBER}-compact.png?amount=${total}&addInfo=${content}&accountName=${ACCOUNT_NAME_FOR_QR}`;
 
         $('#qr-code-container').html(`<img src="${qrUrl}" class="img-fluid border" alt="QR Code" style="max-height: 250px;">`);
@@ -1026,7 +971,7 @@
         try {
             const payload = {
                 maHoaDon: currentOrderCode,
-                nhanVienId: $('#current-employee-id').val() || 1, // Lấy ID nhân viên từ input hidden
+                nhanVienId: $('#current-employee-id').val() || 1,
                 khachHangId: currentCustomer?.id || null,
                 tongTien: parseFloat($('#total').data('val')),
                 tienGiamGia: parseFloat($('#discount').data('val')) || 0,
@@ -1057,8 +1002,8 @@
                     showConfirmButton: false
                 }).then(() => {
                     initNewOrder();
-                    loadProducts(); // Cập nhật lại kho
-                    updateDraftCount(); // Cập nhật lại số đơn treo nếu có
+                    loadProducts();
+                    updateDraftCount();
                 });
             } else {
                 Swal.fire('Lỗi', data.message || 'Thanh toán thất bại', 'error');
@@ -1071,35 +1016,12 @@
     }
 
     // ==========================================
-    // 5. CÁC HÀM PHỤ TRỢ (HELPER) & DRAFTS
+    // 5. CÁC HÀM PHỤ TRỢ (HELPER) & DRAFTS (GLOBAL FUNCTIONS)
     // ==========================================
-
-    async function loadCoupons() {
-        try {
-            const res = await fetch(API_COUPONS);
-            const list = await res.json();
-            let html = '<option value="">-- Chọn mã giảm giá --</option>';
-            list.forEach(c => {
-                // Backend: 1=Tiền, 2=%
-                let label = c.hinhThucGiam == 2 ? Math.round(c.giaTriGiam) + '%' : formatter.format(c.giaTriGiam);
-                html += `<option value="${c.id}"
-                            data-type="${c.hinhThucGiam}"
-                            data-val="${c.giaTriGiam}"
-                            data-min="${c.dieuKienGiamGia || 0}"
-                            data-max="${c.soTienGiamToiDa || 0}">
-                            ${c.tenPhieuGiamGia} - ${label}
-                         </option>`;
-            });
-            $('#coupon-select').html(html);
-        } catch (e) {
-            console.error("Lỗi tải voucher", e);
-        }
-    }
 
     function initNewOrder() {
         cart = [];
         currentCustomer = null;
-        // Tạo mã đơn ảo: HD + 6 số cuối timestamp
         currentOrderCode = "HD" + Math.floor(Date.now() / 1000).toString().slice(-6);
 
         $('#ma-don-hang').text(currentOrderCode);
@@ -1124,7 +1046,6 @@
         calculateChange();
     }
 
-    // --- Drafts (Hóa đơn treo) ---
     async function saveDraft() {
         if (!cart.length) return toastr.warning("Giỏ hàng trống!");
 
@@ -1223,7 +1144,6 @@
         } catch {}
     }
 
-    // --- Search & Filter ---
     function loadFilterOptions() {
         const createOptions = (arr, selector) => {
             let html = '<option value="">Tất cả</option>';
@@ -1276,7 +1196,6 @@
         renderProductGrid(result);
     }
 
-    // --- Utils ---
     function startClock() {
         setInterval(() => {
             const now = new Date();
@@ -1326,7 +1245,6 @@
         return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase();
     }
 
-    // Hàm này giúp cập nhật số lượng khi bấm +/- trong modal
     window.adjustModalQty = function(d) {
         let el = $('#modal-qty-input');
         let v = parseInt(el.val()) || 1;
@@ -1334,6 +1252,100 @@
         if(v < 1) v = 1;
         el.val(v);
     };
+
+    // ==========================================
+    // 2. KHỞI TẠO KHI TRANG LOAD (EVENT BINDING)
+    // ==========================================
+    $(document).ready(function () {
+        // Init Plugins
+        $('.select2-basic').select2({theme: 'bootstrap-5'});
+        $('.select2-modal').select2({theme: 'bootstrap-5', dropdownParent: $('#modal-filter')});
+
+        // Khởi chạy dữ liệu ban đầu
+        startClock();
+        initNewOrder();
+        loadProducts();
+        loadCoupons();
+        updateDraftCount();
+
+        // --- CÁC SỰ KIỆN (EVENT LISTENERS) ---
+        $('#product-search').on('input', applyFilter);
+        $('#filter-category, #filter-brand, #filter-material, #filter-size, #filter-color, #sort-price').on('change', applyFilter);
+        $('#btn-open-filter').click(() => $('#modal-filter').modal('show'));
+        $('#product-grid').on('click', '.prod-card', function () {
+            openProductModal($(this).data('parent-id'));
+        });
+        $('#modal-size-list').on('click', '.variant-option', function () {
+            if ($(this).hasClass('disabled')) return;
+            $('#modal-size-list .variant-option').removeClass('active');
+            $(this).addClass('active');
+            selectedSize = $(this).data('val');
+            updateVariantUI();
+        });
+        $('#modal-color-list').on('click', '.variant-option', function () {
+            if ($(this).hasClass('disabled')) return;
+            $('#modal-color-list .variant-option').removeClass('active');
+            $(this).addClass('active');
+            selectedColor = $(this).data('val');
+            updateVariantUI();
+        });
+        $('#btn-confirm-add-cart').click(confirmAddToCart);
+        $('#cart-list').on('click', '.btn-remove', function () {
+            removeFromCart($(this).data('id'));
+        });
+        $('#cart-list').on('click', '.qty-btn', function () {
+            let input = $(this).siblings('.qty-input');
+            let currentVal = parseInt(input.val()) || 1;
+            let newVal = currentVal + $(this).data('delta');
+            if (newVal < 1) newVal = 1;
+            updateQty($(this).data('id'), newVal);
+        });
+        $('#cart-list').on('change', '.qty-input', function () {
+            let newQty = parseInt($(this).val());
+            if (isNaN(newQty) || newQty < 1) {
+                newQty = 1;
+                $(this).val(1);
+                toastr.warning("Số lượng tối thiểu là 1");
+            }
+            updateQty($(this).data('id'), newQty);
+        });
+        $('#modal-qty-input').on('change keyup', function () {
+            let val = parseInt($(this).val());
+            if (isNaN(val) || val < 1) $(this).val(1);
+        });
+        $('#btn-checkout').click(handleCheckoutClick);
+        $('#btn-save-draft').click(saveDraft);
+        $('#btn-confirm-qr-paid').click(confirmQRPayment);
+        $('#customer-paid').on('input', calculateChange);
+        $('#coupon-select').on('change', function () {
+            let currentTotal = parseFloat($('#subtotal').data('val')) || 0;
+            updateSummary(currentTotal);
+        });
+        $('#btn-find-best-coupon').click(findBestCoupon); // NEW EVENT
+        $('#btn-do-search-cust').click(searchCustomer);
+        $('#list-cust-results').on('click', '.item-cust', function () {
+            setCustomer($(this).data('id'), $(this).data('name'));
+        });
+        $('.btn-pay-method').click(function () {
+            $('.btn-pay-method').removeClass('active');
+            $(this).addClass('active');
+            setPaymentMethod($(this).data('method'));
+        });
+        $('#btn-list-drafts').click(loadDraftsList);
+        $('#tbody-drafts').on('click', '.btn-select-draft', function () {
+            loadDraftDetail($(this).data('id'));
+        });
+        $('#tbody-drafts').on('click', '.btn-delete-draft', function () {
+            let code = $(this).attr('data-code');
+            deleteDraftOrder(code);
+        });
+        // Filter reset (tạo hàm dummy để tránh lỗi)
+        window.resetFilter = function() {
+            $('#modal-filter select').val('none').trigger('change');
+            $('#filter-category, #filter-brand, #filter-material, #filter-size, #filter-color').val('');
+            applyFilter();
+        }
+    });
 </script>
 </body>
 </html>

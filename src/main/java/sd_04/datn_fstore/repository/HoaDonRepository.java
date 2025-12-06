@@ -151,4 +151,7 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Integer> {
     // 2. Lấy 5 hóa đơn mới nhất (Trả về Entity để Service tự Map an toàn)
     List<HoaDon> findTop5ByOrderByNgayTaoDesc();
 
+    List<HoaDon> findAllByMaHoaDon(String maHoaDon);
+
+    Optional<HoaDon> findTopByMaHoaDonOrderByNgayTaoDesc(String maHoaDon);
 }

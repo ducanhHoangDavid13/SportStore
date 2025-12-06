@@ -16,9 +16,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import sd_04.datn_fstore.model.HoaDon;
 import sd_04.datn_fstore.model.HoaDonChiTiet;
-import sd_04.datn_fstore.service.HoaDonService;
-import sd_04.datn_fstore.service.HoaDonExportService;
 import sd_04.datn_fstore.service.HoaDonChiTietService;
+import sd_04.datn_fstore.service.HoaDonExportService;
+import sd_04.datn_fstore.service.HoaDonService;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -28,13 +28,14 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/admin/hoadon")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "*") // Cho phép gọi API từ mọi nguồn (tránh lỗi CORS khi dev)
 public class HoaDonApiController {
 
     private final HoaDonService hoaDonService;
     private final HoaDonExportService hoaDonExportService;
     private final HoaDonChiTietService hoaDonChiTietService;
 
-    // --- 1. API SEARCH (ĐÃ SỬA LỖI PROXY) ---
+    // --- 1. API SEARCH (ĐÃ SỬA LỖI PROXY & DÙNG DTO) ---
     @GetMapping("/search")
     @PreAuthorize("hasAnyRole('ADMIN','EMPLOYEE')")
     public ResponseEntity<?> searchFull(
@@ -46,47 +47,20 @@ public class HoaDonApiController {
             @RequestParam(required = false) BigDecimal minPrice,
             @RequestParam(required = false) BigDecimal maxPrice) {
 
+        // Gọi service lấy Page<Entity>
         Page<HoaDon> hoaDonPage = hoaDonService.search(
                 pageable, trangThaiList, ngayBatDau, ngayKetThuc, keyword, minPrice, maxPrice
         );
 
-        // QUAN TRỌNG: Convert Entity sang DTO để tránh lỗi Hibernate Proxy
+        // QUAN TRỌNG: Convert Entity sang DTO để tránh lỗi Hibernate Proxy và Infinite Recursion
         Page<HoaDonResponse> dtoPage = hoaDonPage.map(this::convertToDTO);
 
         return ResponseEntity.ok(dtoPage);
     }
 
-    // Hàm phụ trợ để chuyển đổi (Mapping)
-    private HoaDonResponse convertToDTO(HoaDon hd) {
-        String tenKhach = "Khách lẻ";
-        String sdtKhach = "";
+    // --- 2. CÁC API KHÁC ---
 
-        // Kiểm tra null và lấy thông tin khách hàng an toàn
-        if (hd.getKhachHang() != null) {
-            // Lưu ý: Thay .getTenKhachHang() bằng getter thực tế trong entity KhachHang của bạn
-            try {
-                tenKhach = hd.getKhachHang().getTenKhachHang();
-                sdtKhach = hd.getKhachHang().getSoDienThoai();
-            } catch (Exception e) {
-                // Nếu lazy load lỗi thì bỏ qua
-                tenKhach = "Lỗi tải tên";
-            }
-        }
-
-        return new HoaDonResponse(
-                hd.getId(),
-                hd.getMaHoaDon(),
-                new HoaDonResponse.KhachHangDTO(tenKhach, sdtKhach),
-                hd.getTrangThai(),
-                hd.getHinhThucBanHang(),
-                hd.getNgayTao(),
-                hd.getTongTien(),
-                hd.getTongTien() // Hoặc tongTienSauGiam nếu có
-        );
-    }
-
-    // --- 2. CÁC API KHÁC GIỮ NGUYÊN ---
-
+    // Cập nhật trạng thái hóa đơn
     @PostMapping("/update-status")
     public ResponseEntity<?> updateStatus(
             @RequestParam("hoaDonId") Integer hoaDonId,
@@ -99,20 +73,23 @@ public class HoaDonApiController {
         }
     }
 
+    // Lấy thông tin chi tiết hóa đơn (Header) theo ID
     @GetMapping("/{id}")
     public ResponseEntity<?> getHoaDonById(@PathVariable Integer id) {
         return hoaDonService.getById(id)
-                .map(hd -> ResponseEntity.ok(convertToDTO(hd))) // Dùng luôn hàm convert cho chi tiết
+                .map(hd -> ResponseEntity.ok(convertToDTO(hd))) // Convert sang DTO ngay
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    // Lấy danh sách sản phẩm trong hóa đơn
     @GetMapping("/{hoaDonId}/chi-tiet")
-    public List<HoaDonChiTiet> getHoaDonChiTietList(@PathVariable Integer hoaDonId) {
-        // Lưu ý: Nếu HoaDonChiTiet cũng có quan hệ Lazy ngược về HoaDon, có thể lỗi tương tự.
-        // Tốt nhất nên tạo DTO cho cả cái này, nhưng tạm thời cứ return List xem sao.
-        return hoaDonChiTietService.findByHoaDonId(hoaDonId);
+    public ResponseEntity<?> getHoaDonChiTietList(@PathVariable Integer hoaDonId) {
+        List<HoaDonChiTiet> list = hoaDonChiTietService.findByHoaDonId(hoaDonId);
+        // Lưu ý: Nếu Entity HoaDonChiTiet có quan hệ ngược về HoaDon, hãy đảm bảo có @JsonIgnore bên Entity
+        return ResponseEntity.ok(list);
     }
 
+    // Xuất hóa đơn ra PDF
     @GetMapping("/export/pdf/{hoaDonId}")
     public ResponseEntity<byte[]> exportHoaDonPdf(@PathVariable Integer hoaDonId) {
         try {
@@ -123,11 +100,46 @@ public class HoaDonApiController {
             headers.setContentDispositionFormData(filename, filename);
             return new ResponseEntity<>(pdfContent, headers, HttpStatus.OK);
         } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
-    // --- INNER CLASS DTO (Để ngay trong file này cho gọn) ---
+    // --- 3. HELPER METHODS & DTO ---
+
+    /**
+     * Hàm chuyển đổi từ Entity HoaDon sang DTO HoaDonResponse.
+     * Xử lý vấn đề Lazy Loading của Hibernate khi truy cập KhachHang.
+     */
+    private HoaDonResponse convertToDTO(HoaDon hd) {
+        String tenKhach = "Khách lẻ";
+        String sdtKhach = "";
+
+        // Kiểm tra null và lấy thông tin khách hàng an toàn
+        if (hd.getKhachHang() != null) {
+            try {
+                // Access vào thuộc tính để trigger load dữ liệu (nếu lazy) hoặc lấy giá trị
+                tenKhach = hd.getKhachHang().getTenKhachHang();
+                sdtKhach = hd.getKhachHang().getSoDienThoai();
+            } catch (Exception e) {
+                // Nếu xảy ra lỗi proxy hoặc không load được, set giá trị mặc định
+                tenKhach = "Không xác định";
+            }
+        }
+
+        return new HoaDonResponse(
+                hd.getId(),
+                hd.getMaHoaDon(),
+                new HoaDonResponse.KhachHangDTO(tenKhach, sdtKhach),
+                hd.getTrangThai(),
+                hd.getHinhThucBanHang(),
+                hd.getNgayTao(),
+                hd.getTongTien(),
+                hd.getTongTien() // Nếu bạn có trường tongTienSauGiam thì thay vào đây
+        );
+    }
+
+    // Inner Class DTO - Dùng để trả về JSON sạch sẽ
     @Data
     @AllArgsConstructor
     public static class HoaDonResponse {
@@ -143,7 +155,7 @@ public class HoaDonApiController {
         @Data
         @AllArgsConstructor
         public static class KhachHangDTO {
-            private String tenKhachHang; // Tên biến này phải khớp với JS: hd.khachHang.tenKhachHang
+            private String tenKhachHang;
             private String sdt;
         }
     }

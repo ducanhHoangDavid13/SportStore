@@ -48,4 +48,5 @@ public interface BanHangService {
      */
     @Transactional(rollbackFor = Exception.class)
     void decrementVoucher(PhieuGiamGia pgg);
+    void deleteByMaHoaDon(String maHoaDon);
 }

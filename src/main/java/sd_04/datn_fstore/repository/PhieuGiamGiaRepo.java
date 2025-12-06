@@ -79,4 +79,9 @@ public interface PhieuGiamGiaRepo extends JpaRepository<PhieuGiamGia, Integer> {
             "AND (v.ngayKetThuc IS NULL OR v.ngayKetThuc >= CURRENT_TIMESTAMP)")
     List<PhieuGiamGia> findAllActiveVouchers();
 
+    List<PhieuGiamGia> findByTrangThaiAndNgayBatDauBefore(int i, LocalDateTime now);
+
+    List<PhieuGiamGia> findByTrangThaiAndNgayKetThucBefore(int i, LocalDateTime now);
+    @Query("SELECT p FROM PhieuGiamGia p WHERE p.trangThai = 0 AND p.soLuong > 0 AND p.ngayKetThuc > :now ORDER BY p.ngayBatDau DESC")
+    List<PhieuGiamGia> findAllActiveVouchers(LocalDateTime now);
 }

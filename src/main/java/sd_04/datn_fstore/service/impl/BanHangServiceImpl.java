@@ -15,6 +15,7 @@ import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -83,28 +84,68 @@ public class BanHangServiceImpl implements BanHangService {
     @Transactional(rollbackFor = Exception.class)
     public HoaDon luuHoaDonTam(CreateOrderRequest request) {
         PhieuGiamGia pgg = getPhieuGiamGiaFromRequest(request);
-        HoaDon hoaDon = createHoaDonFromPayload(request, pgg);
 
-        // Logic trạng thái: Nếu là chuyển khoản thường (TRANSFER) thì chờ xác nhận (5), còn lại là treo (0)
+        HoaDon hoaDon;
+
+        // 🔴 CODE CŨ (Gây lỗi):
+        // Optional<HoaDon> existingOpt = hoaDonRepository.findByMaHoaDon(request.getMaHoaDon());
+
+        // 🟢 CODE MỚI (Fix lỗi):
+        // Dù có 10 cái trùng nhau, nó chỉ lấy cái mới nhất để update, không bị lỗi 400 nữa.
+        Optional<HoaDon> existingOpt = hoaDonRepository.findTopByMaHoaDonOrderByNgayTaoDesc(request.getMaHoaDon());
+
+        if (existingOpt.isPresent()) {
+            // --- TRƯỜNG HỢP UPDATE ---
+            hoaDon = existingOpt.get();
+
+            // Xóa sạch chi tiết cũ
+            List<HoaDonChiTiet> oldDetails = hoaDonChiTietRepository.findByHoaDonId(hoaDon.getId());
+            if(oldDetails != null && !oldDetails.isEmpty()){
+                hoaDonChiTietRepository.deleteAll(oldDetails);
+            }
+
+            // Cập nhật ngày sửa (để lần sau nó vẫn hiện lên đầu)
+            hoaDon.setNgayTao(LocalDateTime.now(VN_ZONE));
+        } else {
+            // --- TRƯỜNG HỢP TẠO MỚI ---
+            hoaDon = new HoaDon();
+            hoaDon.setMaHoaDon(request.getMaHoaDon());
+            hoaDon.setNgayTao(LocalDateTime.now(VN_ZONE));
+            hoaDon.setHinhThucBanHang(1);
+        }
+
+        // --- CÁC ĐOẠN DƯỚI GIỮ NGUYÊN ---
+        hoaDon.setPhieuGiamGia(pgg);
+
+        if (request.getNhanVienId() != null)
+            nhanVienRepository.findById(request.getNhanVienId()).ifPresent(hoaDon::setNhanVien);
+
+        if (request.getKhachHangId() != null)
+            khachHangRepository.findById(request.getKhachHangId()).ifPresent(hoaDon::setKhachHang);
+        else
+            hoaDon.setKhachHang(null);
+
+        // Set trạng thái
         String pttt = request.getPhuongThucThanhToan();
+        // Nếu là Transfer thì set chờ xác nhận (5), còn lại là treo (0)
         hoaDon.setTrangThai("TRANSFER".equals(pttt) ? 5 : 0);
 
+        // Lưu Header
         HoaDon savedHoaDon = hoaDonRepository.save(hoaDon);
 
-        // Tính toán lại tiền
+        // Lưu chi tiết sản phẩm
         BigDecimal totalReal = BigDecimal.ZERO;
         List<CreateOrderRequest.SanPhamItem> itemsList = request.getDanhSachSanPham();
 
-        if (itemsList != null) {
+        if (itemsList != null && !itemsList.isEmpty()) {
             for (CreateOrderRequest.SanPhamItem item : itemsList) {
                 BigDecimal itemTotal = saveHoaDonChiTiet(savedHoaDon, item);
                 totalReal = totalReal.add(itemTotal);
             }
         }
 
-        // Tính toán tiền giảm giá
+        // Tính toán lại tiền
         BigDecimal tienGiam = calculateDiscount(totalReal, pgg);
-
         savedHoaDon.setTongTien(totalReal);
         savedHoaDon.setTienGiamGia(tienGiam);
         savedHoaDon.setTongTienSauGiam(totalReal.subtract(tienGiam));
@@ -123,7 +164,7 @@ public class BanHangServiceImpl implements BanHangService {
     @Override
     @Transactional(readOnly = true)
     public HoaDon getDraftOrderByCode(String maHoaDon) {
-        return hoaDonRepository.findByMaHoaDon(maHoaDon)
+        return hoaDonRepository.findTopByMaHoaDonOrderByNgayTaoDesc(maHoaDon)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn có mã: " + maHoaDon));
     }
 
@@ -245,6 +286,38 @@ public class BanHangServiceImpl implements BanHangService {
             thongBaoService.createNotification("Đơn hàng tại quầy", "Thanh toán thành công " + hd.getMaHoaDon(), "ORDER", url);
         } catch (Exception e) {
             System.err.println("Lỗi gửi thông báo (Không ảnh hưởng luồng chính): " + e.getMessage());
+        }
+    }
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteByMaHoaDon(String maHoaDon) {
+        // 1. Lấy danh sách (List) thay vì Optional để xử lý trường hợp trùng mã trong DB
+        List<HoaDon> listHoaDon = hoaDonRepository.findAllByMaHoaDon(maHoaDon);
+
+        if (listHoaDon.isEmpty()) {
+            throw new RuntimeException("Không tìm thấy hóa đơn có mã: " + maHoaDon);
+        }
+
+        // 2. Duyệt qua từng hóa đơn tìm được (để xóa hết nếu bị duplicate)
+        for (HoaDon hoaDon : listHoaDon) {
+
+            // Kiểm tra trạng thái: Chỉ xóa đơn Treo (0) hoặc Chờ xác nhận (5)
+            // Lưu ý: Nếu DB bị lỗi null trạng thái thì coi như -1
+            Integer trangThai = hoaDon.getTrangThai() != null ? Integer.valueOf(hoaDon.getTrangThai().toString()) : -1;
+
+            if (trangThai != 0 && trangThai != 5) {
+                // Nếu gặp đơn đã hoàn thành thì bỏ qua, không xóa, hoặc ném lỗi tùy logic
+                throw new RuntimeException("Mã " + maHoaDon + " chứa hóa đơn đã hoàn thành, không thể xóa!");
+            }
+
+            // 3. Xóa chi tiết hóa đơn trước (Table con)
+            List<HoaDonChiTiet> chiTiets = hoaDonChiTietRepository.findByHoaDonId(hoaDon.getId());
+            if (chiTiets != null && !chiTiets.isEmpty()) {
+                hoaDonChiTietRepository.deleteAll(chiTiets);
+            }
+
+            // 4. Xóa hóa đơn (Table cha)
+            hoaDonRepository.delete(hoaDon);
         }
     }
 }

@@ -28,7 +28,7 @@ public class PhieuGiamgiaService {
 
     public Page<PhieuGiamGia> searchAndFilter(Integer trangThai, String keyword, LocalDateTime ngayBatDau, LocalDateTime ngayKetThuc, int page, int size, String sortField, String sortDir) {
         // Trước khi tìm kiếm, chạy đồng bộ trạng thái để dữ liệu chính xác nhất
-        this.capNhatTrangThaiTuDong();
+        this.syncStatus(); // Đổi tên hàm cho ngắn gọn
 
         String searchKeyword = (keyword != null && !keyword.trim().isEmpty()) ? keyword.trim() : null;
         Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortField).ascending() : Sort.by(sortField).descending();
@@ -41,7 +41,7 @@ public class PhieuGiamgiaService {
     }
 
     public List<PhieuGiamGia> getActive() {
-        // Lấy các phiếu đang active (trangThai = 0)
+        // Trạng thái '0' là Đang hoạt động
         return phieuGiamGiaRepository.findByTrangThai(0);
     }
 
@@ -50,6 +50,7 @@ public class PhieuGiamgiaService {
     // Hàm validate logic giảm giá (Private helper)
     private void validateDiscount(PhieuGiamGia pgg) {
         if (pgg.getHinhThucGiam() != null && pgg.getHinhThucGiam() == 2) { // Nếu là %
+            // Chuyển BigDecimal sang Double để so sánh đơn giản (do đã được validate ở front-end)
             if (pgg.getGiaTriGiam() != null && pgg.getGiaTriGiam().doubleValue() > 100) {
                 throw new IllegalArgumentException("Giảm giá phần trăm không được quá 100%");
             }
@@ -70,6 +71,7 @@ public class PhieuGiamgiaService {
         validateDiscount(pgg);
 
         // Tự động tính trạng thái chuẩn
+        // SỬ DỤNG HÀM CŨ:
         pgg.setTrangThai(determineStatus(pgg));
 
         return phieuGiamGiaRepository.save(pgg);
@@ -82,7 +84,9 @@ public class PhieuGiamgiaService {
 
         // Check trùng mã nếu mã thay đổi
         if (!existingPhieu.getMaPhieuGiamGia().equalsIgnoreCase(updatedPhieu.getMaPhieuGiamGia())) {
-            if (phieuGiamGiaRepository.findByMaPhieuGiamGia(updatedPhieu.getMaPhieuGiamGia()).isPresent()) {
+            // Kiểm tra chỉ khi ID khác (đã có trong hàm findByMaPhieuGiamGia)
+            if (phieuGiamGiaRepository.findByMaPhieuGiamGia(updatedPhieu.getMaPhieuGiamGia()).isPresent() &&
+                    !phieuGiamGiaRepository.findByMaPhieuGiamGia(updatedPhieu.getMaPhieuGiamGia()).get().getId().equals(id)) {
                 throw new IllegalArgumentException("Mã phiếu đã tồn tại.");
             }
         }
@@ -106,40 +110,54 @@ public class PhieuGiamgiaService {
         existingPhieu.setMoTa(updatedPhieu.getMoTa());
 
         // Tính lại trạng thái dựa trên thông tin mới
+        // SỬ DỤNG HÀM CŨ:
         existingPhieu.setTrangThai(determineStatus(existingPhieu));
 
         return phieuGiamGiaRepository.save(existingPhieu);
     }
 
-    // ==================== 3. CÁC HÀM XỬ LÝ KHÁC ====================
+    // ==================== 3. CÁC HÀM XỬ LÝ KHÁC (Tối ưu hóa) ====================
 
-    // Dừng hoạt động (Xóa mềm)
+    // Dừng hoạt động (Chuyển về trạng thái 1)
+    @Transactional
     public PhieuGiamGia softDelete(Integer id) {
         PhieuGiamGia existingPhieu = phieuGiamGiaRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy ID: " + id));
-        existingPhieu.setTrangThai(1); // 1 = Ngừng hoạt động
+        existingPhieu.setTrangThai(1); // 1 = Ngừng hoạt động thủ công
         return phieuGiamGiaRepository.save(existingPhieu);
     }
 
-    // Đảo trạng thái (Toggle: Active <-> Inactive)
+    // Đảo trạng thái (Toggle: Active <-> Inactive thủ công)
     @Transactional
     public void toggleStatus(Integer id) {
         PhieuGiamGia pgg = phieuGiamGiaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy phiếu giảm giá ID: " + id));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy phiếu"));
 
-        if (pgg.getTrangThai() == 1) {
-            // Logic: Đang dừng (1) -> Muốn kích hoạt lại
-            // Cần kiểm tra xem phiếu có hợp lệ (còn hạn, còn số lượng) không
-            int statusChuan = determineStatus(pgg);
+        LocalDateTime now = LocalDateTime.now(VN_ZONE);
+        int currentStatus = pgg.getTrangThai() != null ? pgg.getTrangThai() : determineStatus(pgg); // Lấy status hiện tại
 
-            if (statusChuan == 1) {
-                throw new RuntimeException("Không thể kích hoạt! Phiếu đã hết hạn hoặc hết số lượng.");
-            }
-            // Nếu hợp lệ thì cho về 0 (Active) hoặc 2 (Upcoming) tùy thời gian
-            pgg.setTrangThai(statusChuan);
-        } else {
-            // Logic: Đang chạy (0) hoặc Sắp tới (2) -> Muốn dừng
+        if (currentStatus != 1) {
+            // --- TRƯỜNG HỢP MUỐN DỪNG (0, 2) -> (1) ---
             pgg.setTrangThai(1);
+        } else {
+            // --- TRƯỜNG HỢP MUỐN KÍCH HOẠT LẠI (1) -> (0 hoặc 2) ---
+
+            // 1. Check Số lượng
+            if (pgg.getSoLuong() != null && pgg.getSoLuong() <= 0) {
+                throw new RuntimeException("Phiếu này đã hết số lượng dùng, không thể kích hoạt lại!");
+            }
+
+            // 2. Check Hạn
+            if (pgg.getNgayKetThuc() != null && now.isAfter(pgg.getNgayKetThuc())) {
+                throw new RuntimeException("Phiếu này đã hết hạn, không thể kích hoạt lại! Vui lòng sửa ngày kết thúc.");
+            }
+
+            // 3. Thiết lập trạng thái mới
+            if (now.isBefore(pgg.getNgayBatDau())) {
+                pgg.setTrangThai(2); // Về trạng thái Sắp tới
+            } else {
+                pgg.setTrangThai(0); // Về trạng thái Đang hoạt động
+            }
         }
 
         phieuGiamGiaRepository.save(pgg);
@@ -149,54 +167,56 @@ public class PhieuGiamgiaService {
     @Transactional
     public void decrementVoucher(PhieuGiamGia pgg) {
         if (pgg == null) return;
+
+        // Sử dụng Lock/findById để đảm bảo tính toàn vẹn khi nhiều người dùng cùng lúc đặt hàng
         PhieuGiamGia current = phieuGiamGiaRepository.findById(pgg.getId())
                 .orElseThrow(() -> new RuntimeException("Phiếu giảm giá không tồn tại"));
 
         if (current.getSoLuong() != null) {
             if (current.getSoLuong() <= 0) {
+                // Có thể ném lỗi hoặc chỉ log nếu muốn bỏ qua
                 throw new RuntimeException("Voucher đã hết lượt sử dụng");
             }
             current.setSoLuong(current.getSoLuong() - 1);
-            // Nếu về 0 thì dừng hoạt động
-            if (current.getSoLuong() == 0) {
+
+            // Nếu về 0 thì chuyển trạng thái Đang hoạt động (0) thành Đã dừng (1)
+            // LƯU Ý: Chỉ chuyển nếu đang là 0 hoặc 2, nếu đang là 1 thì giữ nguyên.
+            if (current.getSoLuong() == 0 && current.getTrangThai() != 1) {
                 current.setTrangThai(1);
             }
             phieuGiamGiaRepository.save(current);
         }
     }
 
-    // ==================== 4. LOGIC TỰ ĐỘNG HÓA ====================
+    // ==================== 4. LOGIC TỰ ĐỘNG HÓA (Đã tối ưu hóa) ====================
 
     /**
-     * Hàm này QUAN TRỌNG NHẤT:
-     * Nó quét toàn bộ DB và sửa lại trạng thái đúng với thời gian thực.
+     * Hàm đồng bộ trạng thái tự động (SỬ DỤNG CÁC HÀM QUERY TỐI ƯU TRONG REPO)
+     * Thay thế cho `capNhatTrangThaiTuDong` và `updateStatusAuto`
      */
     @Transactional
-    public void capNhatTrangThaiTuDong() {
-        List<PhieuGiamGia> listPhieu = phieuGiamGiaRepository.findAll();
-        boolean isChanged = false;
+    public void syncStatus() {
+        LocalDateTime now = LocalDateTime.now(VN_ZONE);
 
-        for (PhieuGiamGia p : listPhieu) {
-            int statusChuan = determineStatus(p);
-
-            if (p.getTrangThai() == null || p.getTrangThai() != statusChuan) {
-                // Chỉ update nếu trạng thái hiện tại KHÁC trạng thái chuẩn
-                p.setTrangThai(statusChuan);
-                isChanged = true;
-            }
+        // 1. Chuyển từ Sắp tới (2) sang Đang chạy (0) nếu ĐÃ ĐẾN NGÀY BẮT ĐẦU
+        // Dùng hàm bạn khai báo trong Repo:
+        List<PhieuGiamGia> upcomingToActivate = phieuGiamGiaRepository.findUpcomingPromotionsToActivate(now);
+        for (PhieuGiamGia pgg : upcomingToActivate) {
+            pgg.setTrangThai(0); // 0: Đang chạy
         }
+        phieuGiamGiaRepository.saveAll(upcomingToActivate);
 
-        if (isChanged) {
-            phieuGiamGiaRepository.saveAll(listPhieu);
+
+        // 2. Chuyển từ Đang chạy (0) sang Đã dừng (1) nếu HẾT HẠN
+        // Dùng hàm bạn khai báo trong Repo:
+        List<PhieuGiamGia> expiredActive = phieuGiamGiaRepository.findExpiredActivePromotions(now);
+        for (PhieuGiamGia pgg : expiredActive) {
+            pgg.setTrangThai(1); // 1: Đã dừng
         }
+        phieuGiamGiaRepository.saveAll(expiredActive);
     }
 
-    /**
-     * Logic cốt lõi xác định trạng thái
-     * 0: Đang hoạt động (Active)
-     * 1: Ngừng hoạt động / Hết hạn / Hết số lượng (Inactive)
-     * 2: Sắp diễn ra (Upcoming)
-     */
+    // Giữ lại hàm logic cốt lõi để dùng cho Save/Update/Toggle
     private int determineStatus(PhieuGiamGia pgg) {
         LocalDateTime now = LocalDateTime.now(VN_ZONE);
 
@@ -223,6 +243,7 @@ public class PhieuGiamgiaService {
     /**
      * Hàm kiểm tra xem Voucher có dùng được cho đơn hàng hiện tại không
      * Dùng cho API /api/checkout/calculate
+     * DÙNG TRẠNG THÁI '0' LÀ ACTIVE để thống nhất với logic determineStatus
      */
     public VoucherCheckResult kiemTraVoucherHople(String code, BigDecimal tongTienDonHang) {
         // 1. Validate đầu vào
@@ -238,37 +259,43 @@ public class PhieuGiamgiaService {
         }
 
         PhieuGiamGia voucher = voucherOpt.get();
-        LocalDateTime now = LocalDateTime.now(); // Server time
+        LocalDateTime now = LocalDateTime.now(VN_ZONE);
 
-        // 3. Check Trạng thái (QUAN TRỌNG: Dựa theo file cũ của bạn, 1 là Active)
-        // Nếu hệ thống bạn quy định 0 là Active thì sửa số 1 thành 0 nhé.
-        if (voucher.getTrangThai() != 1) {
-            return new VoucherCheckResult(false, "Mã giảm giá đã ngừng hoạt động.", 0.0);
+        // 3. TÍNH LẠI TRẠNG THÁI CHUẨN: Để đảm bảo không bị dùng mã hết hạn/hết số lượng
+        int statusChuan = determineStatus(voucher);
+
+        // 4. Check Trạng thái
+        if (statusChuan != 0) { // Nếu trạng thái chuẩn KHÔNG phải Đang hoạt động (0)
+            String message;
+            if (statusChuan == 1) {
+                message = voucher.getSoLuong() != null && voucher.getSoLuong() <= 0 ?
+                        "Mã giảm giá đã hết lượt sử dụng." : "Mã giảm giá đã hết hạn hoặc bị ngừng hoạt động.";
+            } else if (statusChuan == 2) {
+                message = "Đợt giảm giá chưa bắt đầu.";
+            } else {
+                message = "Mã giảm giá không áp dụng được lúc này.";
+            }
+            return new VoucherCheckResult(false, message, 0.0);
         }
 
-        // 4. Check Số lượng
-        if (voucher.getSoLuong() != null && voucher.getSoLuong() <= 0) {
-            return new VoucherCheckResult(false, "Mã giảm giá đã hết lượt sử dụng.", 0.0);
-        }
+        // **Bỏ qua check số lượng, thời gian vì đã được determineStatus check**
 
-        // 5. Check Thời gian
-        if (voucher.getNgayBatDau() != null && now.isBefore(voucher.getNgayBatDau())) {
-            return new VoucherCheckResult(false, "Đợt giảm giá chưa bắt đầu.", 0.0);
-        }
-        if (voucher.getNgayKetThuc() != null && now.isAfter(voucher.getNgayKetThuc())) {
-            return new VoucherCheckResult(false, "Mã giảm giá đã hết hạn.", 0.0);
-        }
-
-        // 6. Check ĐIỀU KIỆN ĐƠN HÀNG TỐI THIỂU (Dùng BigDecimal compareTo)
+        // 5. Check ĐIỀU KIỆN ĐƠN HÀNG TỐI THIỂU
         BigDecimal dieuKien = voucher.getDieuKienGiamGia() != null ? voucher.getDieuKienGiamGia() : BigDecimal.ZERO;
-        // tongTien < dieuKien (compareTo trả về -1)
         if (tongTienDonHang.compareTo(dieuKien) < 0) {
-            // Format tiền tệ để hiển thị thông báo đẹp hơn
             String msg = String.format("Đơn hàng phải từ %,.0fđ mới được dùng mã này.", dieuKien.doubleValue());
             return new VoucherCheckResult(false, msg, 0.0);
         }
 
-        // 7. Tính toán số tiền được giảm
+        // 6. Tính toán số tiền được giảm
+        BigDecimal soTienGiam = tinhToanSoTienGiam(voucher, tongTienDonHang);
+
+        // Trả về kết quả
+        return new VoucherCheckResult(true, "Áp dụng mã thành công!", soTienGiam.doubleValue());
+    }
+
+    // Hàm Helper tính toán mức giảm (Giúp code gọn hơn)
+    private BigDecimal tinhToanSoTienGiam(PhieuGiamGia voucher, BigDecimal tongTienDonHang) {
         BigDecimal soTienGiam = BigDecimal.ZERO;
         BigDecimal giaTriGiam = voucher.getGiaTriGiam() != null ? voucher.getGiaTriGiam() : BigDecimal.ZERO;
 
@@ -277,17 +304,15 @@ public class PhieuGiamgiaService {
             soTienGiam = giaTriGiam;
         } else {
             // --- TH2: Giảm phần trăm (%) ---
-            // Logic: (Tổng tiền * % giảm) / 100
-            // Chặn % không quá 100
             if (giaTriGiam.compareTo(new BigDecimal(100)) > 0) {
                 giaTriGiam = new BigDecimal(100);
             }
 
             soTienGiam = tongTienDonHang.multiply(giaTriGiam)
-                    .divide(new BigDecimal(100), 0, RoundingMode.HALF_UP); // Làm tròn
+                    .divide(new BigDecimal(100), 0, RoundingMode.HALF_UP);
 
             // Check số tiền giảm TỐI ĐA (Max Discount)
-            if (voucher.getSoTienGiam() != null) { // Lưu ý: Cột này là mức giảm tối đa
+            if (voucher.getSoTienGiam() != null) {
                 BigDecimal maxGiam = voucher.getSoTienGiam();
                 if (soTienGiam.compareTo(maxGiam) > 0) {
                     soTienGiam = maxGiam;
@@ -295,23 +320,20 @@ public class PhieuGiamgiaService {
             }
         }
 
-        // 8. Chốt chặn cuối cùng: Không bao giờ giảm quá giá trị đơn hàng
+        // Chốt chặn cuối cùng: Không bao giờ giảm quá giá trị đơn hàng
         if (soTienGiam.compareTo(tongTienDonHang) > 0) {
             soTienGiam = tongTienDonHang;
         }
-
-        // Trả về kết quả (Convert BigDecimal sang double để khớp với DTO cũ của bạn)
-        return new VoucherCheckResult(true, "Áp dụng mã thành công!", soTienGiam.doubleValue());
+        return soTienGiam;
     }
 
-    // Helper format tiền tệ cho thông báo lỗi đẹp
-    private String formatCurrency(Double amount) {
-        return String.format("%,.0f đ", amount);
-    }
-// Trong PhieuGiamgiaService.java
+    // ==================== 6. TÌM VOUCHER TỐT NHẤT ====================
 
     public String timVoucherTotNhat(BigDecimal subTotal) {
-        // 1. Lấy tất cả voucher đang hoạt động
+        // 1. Lấy tất cả voucher đang hoạt động (Trạng thái 0)
+        // **LƯU Ý:** Hàm findByTrangThai(0) là cách đơn giản nhất, nhưng nếu hàm findAllActiveVouchers
+        // trong Repo đã được sửa để lấy những thằng có số lượng > 0 và còn hạn, thì nên dùng nó.
+        // Giả định dùng hàm findAllActiveVouchers đã được sửa trong Repo (trạng thái = 0)
         List<PhieuGiamGia> activeVouchers = phieuGiamGiaRepository.findAllActiveVouchers();
 
         String bestCode = null;
@@ -321,38 +343,14 @@ public class PhieuGiamgiaService {
             // 2. Kiểm tra điều kiện đơn hàng tối thiểu
             BigDecimal dieuKien = v.getDieuKienGiamGia() != null ? v.getDieuKienGiamGia() : BigDecimal.ZERO;
 
-            // Nếu tổng tiền < điều kiện -> Bỏ qua voucher này
             if (subTotal.compareTo(dieuKien) < 0) {
                 continue;
             }
 
             // 3. Tính toán số tiền giảm thử
-            BigDecimal currentDiscount = BigDecimal.ZERO;
-
-            if (v.getHinhThucGiam() == 1) {
-                // -- Giảm tiền mặt --
-                currentDiscount = v.getGiaTriGiam();
-            } else {
-                // -- Giảm phần trăm --
-                BigDecimal phanTram = v.getGiaTriGiam();
-                // Chặn > 100%
-                if (phanTram.compareTo(new BigDecimal(100)) > 0) phanTram = new BigDecimal(100);
-
-                currentDiscount = subTotal.multiply(phanTram).divide(new BigDecimal(100));
-
-                // Kiểm tra giảm tối đa (Max Cap)
-                if (v.getSoTienGiam() != null && currentDiscount.compareTo(v.getSoTienGiam()) > 0) {
-                    currentDiscount = v.getSoTienGiam();
-                }
-            }
-
-            // Không được giảm quá tổng tiền đơn hàng
-            if (currentDiscount.compareTo(subTotal) > 0) {
-                currentDiscount = subTotal;
-            }
+            BigDecimal currentDiscount = tinhToanSoTienGiam(v, subTotal);
 
             // 4. So sánh để tìm Best Option
-            // Nếu mức giảm này lớn hơn mức giảm lớn nhất hiện tại -> Cập nhật
             if (currentDiscount.compareTo(maxDiscount) > 0) {
                 maxDiscount = currentDiscount;
                 bestCode = v.getMaPhieuGiamGia();
@@ -361,6 +359,58 @@ public class PhieuGiamgiaService {
 
         return bestCode; // Trả về mã tốt nhất (hoặc null nếu không tìm được)
     }
+
+    public List<PhieuGiamGia> findAllActiveVouchers() {
+        // Đồng bộ trạng thái trước khi lấy để đảm bảo tính chính xác
+        this.syncStatus();
+
+        // Lấy thời gian hiện tại
+        LocalDateTime now = LocalDateTime.now(VN_ZONE);
+
+        // Gọi hàm đã tạo trong Repository
+        return phieuGiamGiaRepository.findAllActiveVouchers(now);
+    }
+    // Trong PhieuGiamgiaServiceImpl.java
+
+// ... (Các imports và RequiredArgsConstructor)
+
+    public PhieuGiamGia kiemTraVaLayVoucherHople(String maVoucher, BigDecimal subTotal) {
+        if (maVoucher == null || maVoucher.trim().isEmpty()) {
+            return null;
+        }
+
+        Optional<PhieuGiamGia> pggOpt = phieuGiamGiaRepository.findByMaPhieuGiamGia(maVoucher);
+        if (pggOpt.isEmpty()) {
+            throw new IllegalArgumentException("Mã giảm giá không tồn tại.");
+        }
+
+        PhieuGiamGia pgg = pggOpt.get();
+        LocalDateTime now = LocalDateTime.now();
+
+        if (now.isBefore(pgg.getNgayBatDau())) {
+            throw new IllegalArgumentException("Mã giảm giá chưa đến ngày bắt đầu sử dụng!");
+        }
+        if (now.isAfter(pgg.getNgayKetThuc())) {
+            throw new IllegalArgumentException("Mã giảm giá đã hết hạn sử dụng!");
+        }
+
+        // 🔥 CHECK TRẠNG THÁI THEO ĐỊNH NGHĨA CỦA BẠN: Nếu 1 là Active
+        if (pgg.getTrangThai() != 1) {
+            throw new IllegalArgumentException("Mã giảm giá này đã bị dừng/hủy!");
+        }
+
+        if (pgg.getSoLuong() != null && pgg.getSoLuong() <= 0) {
+            throw new IllegalArgumentException("Mã giảm giá đã hết lượt sử dụng!");
+        }
+
+        if (pgg.getDieuKienGiamGia() != null && subTotal.compareTo(pgg.getDieuKienGiamGia()) < 0) {
+            // Thông báo điều kiện tối thiểu
+            throw new IllegalArgumentException("Đơn hàng chưa đạt tối thiểu " + String.format("%,.0f", pgg.getDieuKienGiamGia()) + "đ");
+        }
+
+        return pgg;
+    }
+
     // DTO Record để trả về kết quả
     public record VoucherCheckResult(boolean isValid, String message, Double discountAmount) {}
 }
