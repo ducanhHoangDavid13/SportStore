@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <link rel="stylesheet" th:href="@{/css/header.css}">
 
 <link rel="stylesheet" th:href="@{/css/styles.css}">
@@ -48,9 +48,16 @@
                     <span class="cart-badge" th:text="2">2</span> <!-- TODO: Thay bằng số lượng thực tế -->
                 </a>
 
-                <!-- Account Dropdown -->
-                <div class="dropdown">
-                    <a href="#" class="btn dropdown-toggle p-0 d-flex align-items-center" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <!-- Khi CHƯA đăng nhập -->
+                <div sec:authorize="isAnonymous()">
+                    <button type="button" class="btn btn-primary" onclick="window.location.href='/login'">
+                        Đăng nhập
+                    </button>
+                </div>
+
+                <!-- Khi ĐÃ đăng nhập -->
+                <div class="dropdown" sec:authorize="isAuthenticated()">
+                    <a href="#" class="btn dropdown-toggle p-0 d-flex align-items-center" data-bs-toggle="dropdown">
                         <span class="ms-2 d-none d-lg-block">Tài khoản</span>
                     </a>
 
@@ -58,13 +65,17 @@
                         <li><a class="dropdown-item" th:href="@{/profile}">
                             <i class="fas fa-user-circle"></i> Thông tin cá nhân
                         </a></li>
+
                         <li><a class="dropdown-item" th:href="@{/orders-user}">
                             <i class="fas fa-box-open"></i> Đơn hàng của tôi
                         </a></li>
+
                         <li><a class="dropdown-item" th:href="@{/address}">
                             <i class="fas fa-map-marker-alt"></i> Sổ địa chỉ
                         </a></li>
+
                         <li><hr class="dropdown-divider"></li>
+
                         <li><a class="dropdown-item" th:href="@{/logout}">
                             <i class="fas fa-sign-out-alt"></i> Đăng xuất
                         </a></li>
