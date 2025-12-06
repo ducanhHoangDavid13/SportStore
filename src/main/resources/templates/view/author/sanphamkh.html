@@ -591,23 +591,6 @@
             window.location.href = `/san-pham/chi-tiet/${id}`;
         });
     });
-    // Đoạn mã JavaScript mẫu để gọi API
-    $.ajax({
-        url: '/api/cart/add',
-        type: 'POST',
-        data: {
-            productDetailId: YOUR_PRODUCT_ID, // Lấy ID sản phẩm bạn muốn thêm
-            quantity: 1 // Lấy số lượng bạn muốn thêm
-        },
-        success: function(response) {
-            if (response.success) {
-                // Cập nhật số lượng mới lên header
-                $('#cart-count').text(response.newCount);
-                // Cập nhật giá trị hiển thị cũ (th:text="2")
-            }
-        }
-        // ... xử lý lỗi (error handling)
-    });
 </script>
 </body>
 </html>

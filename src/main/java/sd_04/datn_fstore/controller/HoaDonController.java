@@ -1,7 +1,6 @@
 package sd_04.datn_fstore.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,7 +11,6 @@ import sd_04.datn_fstore.service.HoaDonService;
 
 @Controller
 @RequestMapping("/admin/hoa-don")
-@PreAuthorize("hasRole('ROLE_ADMIN')")
 @RequiredArgsConstructor
 public class HoaDonController {
 

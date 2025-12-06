@@ -5,7 +5,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import sd_04.datn_fstore.model.SanPhamChiTiet;
@@ -53,7 +52,6 @@ public class SanPhamChiTietApiController {
      * POST: Thêm mới một Biến thể (SanPhamChiTiet)
      */
     @PostMapping
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<?> addVariant(@RequestBody SanPhamChiTiet sanPhamChiTiet) {
         try {
             // Đảm bảo ID được thiết lập là null để Spring Data JPA tự động sinh
@@ -92,7 +90,6 @@ public class SanPhamChiTietApiController {
      * PUT: Cập nhật toàn bộ thông tin của một Biến thể theo ID
      */
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<?> updateVariant(@PathVariable Integer id,
                                            @RequestBody SanPhamChiTiet dataTuJavaScript) {
         // 1. Kiểm tra sự tồn tại của biến thể

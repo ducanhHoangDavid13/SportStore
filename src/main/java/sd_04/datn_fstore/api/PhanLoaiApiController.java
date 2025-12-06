@@ -6,7 +6,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import sd_04.datn_fstore.model.PhanLoai;
 import sd_04.datn_fstore.service.PhanLoaiService;
@@ -48,7 +47,6 @@ public class PhanLoaiApiController {
      * Chỉ xử lý Thêm mới (Create)
      */
     @PostMapping
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<PhanLoai> addPhanLoai(@RequestBody PhanLoai phanLoai) {
         try {
             // Đảm bảo ID là null để server không ghi đè lên đối tượng cũ
@@ -64,7 +62,6 @@ public class PhanLoaiApiController {
      * Chỉ xử lý Cập nhật (Update)
      */
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<PhanLoai> updatePhanLoai(@PathVariable Integer id,
                                                    @RequestBody PhanLoai phanLoai) {
         try {
