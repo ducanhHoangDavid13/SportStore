@@ -12,11 +12,14 @@ public interface CheckoutService {
     CheckoutResponse placeOrder(CheckoutRequest request, String clientIp);
 
     @Transactional(rollbackFor = Exception.class)
-    VnPayResponseDTO taoThanhToanVnPay(CreateOrderRequest request, String ipAddress);
+    VnPayResponseDTO taoThanhToanVnPay(CheckoutRequest request, String ipAddress);
 
     @Transactional(rollbackFor = Exception.class)
     void decrementInventory(List<CreateOrderRequest.SanPhamItem> items);
 
     @Transactional(rollbackFor = Exception.class)
     void decrementVoucher(PhieuGiamGia pgg);
+//    HoaDon hoanTatThanhToanVnPay(String maHoaDon, String vnpResponseCode);
+//
+//    void capNhatTrangThaiVnPayThatBai(String maHoaDon, String vnpResponseCode, String message);
 }

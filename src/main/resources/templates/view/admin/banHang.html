@@ -1142,35 +1142,49 @@
         }
     }
 
+    // File: ban-hang-tai-quay.html (trong thẻ <script>)
+
     function updateSummary(subtotal) {
         $('#subtotal').data('val', subtotal).text(formatter.format(subtotal));
         let discount = 0;
         const opt = $('#coupon-select').find(':selected');
         const cId = $('#coupon-select').val();
         $('#coupon-message').hide();
+
         if (cId) {
-            const type = parseInt(opt.data('type'));
-            const val = parseFloat(opt.data('val')) || 0;
-            const min = parseFloat(opt.data('min')) || 0;
-            const max = parseFloat(opt.data('max')) || 999999999;
+            const type = parseInt(opt.data('type')); // Quy ước: 1 = Tiền mặt, 2 = Phần trăm
+
+            // Dùng parseCurrency để đảm bảo lấy được số nguyên (ví dụ: 35000)
+            const val = parseCurrency(opt.data('val'));
+            const min = parseCurrency(opt.data('min'));
+            const maxData = opt.data('max');
+            const max = (maxData === undefined || maxData === null || parseCurrency(maxData) === 0) ? 999999999 : parseCurrency(maxData);
+
             if (subtotal < min) {
-                $('#coupon-message').text(`Đơn tối thiểu ${formatter.format(min)} mới được áp dụng`).removeClass('text-success').addClass('text-danger').show();
+                // ... (Lỗi đơn tối thiểu)
             } else {
-                discount = (type === 1) ? subtotal * (val / 100) : val;
-                if (discount > max) discount = max;
+                // ✅ SỬA LOGIC: Kiểm tra nếu là GIẢM PHẦN TRĂM (type === 2)
+                if (type === 2) {
+                    // Giảm phần trăm
+                    discount = subtotal * (val / 100);
+                    if (discount > max) discount = max;
+                } else if (type === 1) {
+                    // Giảm tiền mặt
+                    discount = val;
+                } else {
+                    discount = 0; // Loại không xác định
+                }
+
                 $('#coupon-message').text(`Áp dụng mã thành công: -${formatter.format(discount)}`).removeClass('text-danger').addClass('text-success').show();
             }
         }
+
+        // ... (Phần tính toán tổng tiền còn lại giữ nguyên)
         if (discount > subtotal) discount = subtotal;
         const finalTotal = subtotal - discount;
         $('#discount').text(formatter.format(discount)).data('val', discount);
         $('#total').text(formatter.format(finalTotal)).data('val', finalTotal);
         calculateChange();
-
-        // Cập nhật text hiển thị tổng tiền trong modal QR nếu đang mở
-        if ($('#pay-method-val').val() === 'QR' && $('#modal-qr-payment').hasClass('show')) {
-            $('#qr-total').text(formatter.format(finalTotal));
-        }
     }
 
     function removeFromCart(id) {
