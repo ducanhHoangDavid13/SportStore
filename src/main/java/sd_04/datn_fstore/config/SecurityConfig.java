@@ -44,6 +44,7 @@ public class SecurityConfig {
                                 "/login",
                                 "/statistics",
                                 "/api/**",
+                                "/admin/**",
                                 "/checkout/**",
                                 "/error/**"
                         ).permitAll()
@@ -57,7 +58,7 @@ public class SecurityConfig {
                 )
                 .logout(logout -> logout
                         .logoutUrl("/logout")
-                        .logoutSuccessUrl("/login?logout")
+                        .logoutSuccessUrl("/home?logout")
                         .permitAll()
                 )
                 .exceptionHandling(e -> e
