@@ -6,7 +6,6 @@ import org.springframework.transaction.annotation.Transactional;
 import sd_04.datn_fstore.dto.*;
 import sd_04.datn_fstore.model.*;
 import sd_04.datn_fstore.repository.*;
-import sd_04.datn_fstore.service.BanHangService;
 import sd_04.datn_fstore.service.CheckoutService;
 import sd_04.datn_fstore.service.PhieuGiamgiaService;
 import sd_04.datn_fstore.service.ThongBaoService;
@@ -77,7 +76,7 @@ public class CheckoutServiceImpl implements CheckoutService {
                 else if (now.isAfter(pgg.getNgayKetThuc())) {
                     voucherMessage = "Mã giảm giá đã hết hạn sử dụng!";
                 }
-                // Check 2: Trạng thái (1: Đang chạy)
+                // Check 2: Trạng thái (0: Đang chạy)
                 else if (pgg.getTrangThai() != 0) {
                     voucherMessage = "Mã giảm giá này đã bị dừng/hủy!";
                 }
@@ -122,7 +121,7 @@ public class CheckoutServiceImpl implements CheckoutService {
     }
 
     // =========================================================================
-    // 2. XỬ LÝ ĐẶT HÀNG (SỬA THEO ENTITY MỚI)
+    // 2. XỬ LÝ ĐẶT HÀNG (SỬA THEO ENTITY MỚI) - Bao gồm cả xử lý VNPay
     // =========================================================================
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -185,7 +184,7 @@ public class CheckoutServiceImpl implements CheckoutService {
                 // Dùng logic tính toán đã có
                 CalculateTotalRequest calcReq = new CalculateTotalRequest();
                 calcReq.setVoucherCode(req.getVoucherCode());
-                calcReq.setShippingFee(req.getShippingFee()); // Phí ship đã được set từ Controller
+                calcReq.setShippingFee(req.getShippingFee());
                 // Map items từ CheckoutRequest sang CalculateTotalRequest.CartItem
                 List<CalculateTotalRequest.CartItem> calcItems = req.getItems().stream()
                         .map(item -> {
@@ -231,7 +230,7 @@ public class CheckoutServiceImpl implements CheckoutService {
 
         // 5. XỬ LÝ THANH TOÁN
         if ("VNPAY".equals(req.getPaymentMethod())) {
-            savedHoaDon.setTrangThai(5); // Chờ thanh toán
+            savedHoaDon.setTrangThai(1); // Chờ thanh toán
             savedHoaDon.setHinhThucThanhToan(2); // VNPay
             hoaDonRepository.save(savedHoaDon);
             try {
@@ -272,15 +271,28 @@ public class CheckoutServiceImpl implements CheckoutService {
         }
     }
 
-    // =========================================================================
-    // 3. LOGIC TỒN KHO VÀ VOUCHER
-    // =========================================================================
+// Đặt đoạn code này vào vị trí của phương thức taoThanhToanVnPay cũ trong CheckoutServiceImpl.java
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public VnPayResponseDTO taoThanhToanVnPay(CreateOrderRequest request, String ipAddress) {
-        return null; // Giữ nguyên logic POS
+    public VnPayResponseDTO taoThanhToanVnPay(CheckoutRequest request, String ipAddress) {
+        // 1. Set phương thức thanh toán là VNPAY để kích hoạt logic VNPAY trong placeOrder
+        request.setPaymentMethod("VNPAY");
+
+        // 2. Gọi lại placeOrder. placeOrder sẽ tạo HoaDon, lưu ChiTiet, và tạo URL VNPAY
+        CheckoutResponse response = placeOrder(request, ipAddress);
+
+        // 3. Kiểm tra và trả về DTO
+        if (response.isSuccess() && response.getRedirectUrl() != null) {
+            // placeOrder trả về CheckoutResponse, chuyển đổi sang VnPayResponseDTO
+            return new VnPayResponseDTO(true, response.getMessage(), response.getRedirectUrl());
+        } else {
+            // Nếu placeOrder thất bại (hoặc không trả về URL), throw exception
+            throw new RuntimeException("Đặt hàng thất bại hoặc không nhận được URL VNPAY: " + response.getMessage());
+        }
     }
+
+
 
     @Override
     @Transactional(rollbackFor = Exception.class)

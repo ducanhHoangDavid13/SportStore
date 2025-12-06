@@ -50,4 +50,7 @@ public class GioHang {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "idHoaDon")
     private HoaDon hoaDon;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "idSanPhamChiTiet")
+    private SanPhamChiTiet SanphamChiTiet;
 }
