@@ -60,7 +60,7 @@ public class KhachhangService {
         khachhang.setSoDienThoai(registration.getSoDienThoai());
         khachhang.setEmail(registration.getEmail());
         khachhang.setGioiTinh(registration.getGioiTinh());
-        khachhang.setNamSinh(registration.getNamSinh());
+        khachhang.setNgaySinh(registration.getNgaySinh());
         khachhang.setVaiTro(registration.getVaiTro());
         khachhang.setNgayTao(LocalDateTime.now());
         khachhang.setTrangThai(1);
@@ -106,15 +106,4 @@ public class KhachhangService {
     public KhachHang findByEmail(String email) {
         return khachHangRepo.findByEmail(email).orElse(null);
     }
-
-    public KhachHang saveKH(KhachHang khachhang) {
-        // Nếu thêm mới
-        if (khachhang.getId() == null) {
-            khachhang.setTrangThai(1); // trạng thái mặc định
-            khachhang.setNgayTao(LocalDateTime.now());
-        }
-
-        return khachHangRepo.save(khachhang);
-    }
-
 }

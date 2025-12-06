@@ -138,9 +138,6 @@ public class BanHangServiceImpl implements BanHangService {
 //    }
 
     // --- LOGIC TÍNH TIỀN VOUCHER (% VÀ TIỀN MẶT) ---
-// File: sd_04.datn_fstore.service.impl.BanHangServiceImpl.java
-
-    // --- LOGIC TÍNH TIỀN VOUCHER (% VÀ TIỀN MẶT) ---
     private BigDecimal calculateDiscount(BigDecimal tongTienHang, PhieuGiamGia pgg) {
         if (pgg == null) return BigDecimal.ZERO;
 
@@ -150,9 +147,8 @@ public class BanHangServiceImpl implements BanHangService {
         }
 
         BigDecimal discountAmount;
-        Integer loaiGiam = pgg.getHinhThucGiam(); // Quy ước: 1 = Tiền mặt, 2 = Phần trăm
+        Integer loaiGiam = pgg.getHinhThucGiam(); // 1 = Tiền mặt, 2 = Phần trăm
 
-        // ✅ SỬA LOGIC: Kiểm tra nếu là GIẢM PHẦN TRĂM (loaiGiam == 2)
         if (loaiGiam != null && loaiGiam == 2) {
             // --- GIẢM PHẦN TRĂM ---
             BigDecimal phanTram = pgg.getGiaTriGiam().divide(new BigDecimal(100));
@@ -162,12 +158,9 @@ public class BanHangServiceImpl implements BanHangService {
             if (pgg.getSoTienGiam() != null && discountAmount.compareTo(pgg.getSoTienGiam()) > 0) {
                 discountAmount = pgg.getSoTienGiam();
             }
-        } else if (loaiGiam != null && loaiGiam == 1) { // ✅ THÊM: Nếu là GIẢM TIỀN MẶT (loaiGiam == 1)
+        } else {
             // --- GIẢM TIỀN MẶT ---
             discountAmount = pgg.getGiaTriGiam();
-        } else {
-            // Trường hợp không xác định (Mặc định không giảm)
-            discountAmount = BigDecimal.ZERO;
         }
 
         // Không được giảm quá tổng tiền hàng

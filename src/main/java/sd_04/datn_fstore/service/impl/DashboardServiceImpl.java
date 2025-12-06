@@ -29,8 +29,6 @@ public class DashboardServiceImpl implements DashboardService {
     private final KhachHangRepo khachHangRepository;
     private final SanPhamCTRepository sanPhamCTRepository;
 
-    private static final int TRANG_THAI_HOAN_THANH = 4; // Định nghĩa hằng số cho trạng thái
-
     // 1. CARDS
     @Override
     public int countAllKhachHangNew() {
@@ -47,14 +45,13 @@ public class DashboardServiceImpl implements DashboardService {
     @Override
     public BigDecimal todayRevenue() {
         BigDecimal revenue = hoaDonRepository.sumTotalAmountByDateAndStatus(
-                LocalDate.now().atStartOfDay(), LocalDate.now().atTime(LocalTime.MAX), TRANG_THAI_HOAN_THANH);
+                LocalDate.now().atStartOfDay(), LocalDate.now().atTime(LocalTime.MAX), 4);
         return revenue != null ? revenue : BigDecimal.ZERO;
     }
 
     @Override
     public int totalSanPhamSapHet() {
-        // 🛠️ SỬA LỖI ÉP KIỂU (HÀNG 54): Ép kiểu long thành int để khớp với kiểu trả về
-        return (int) sanPhamCTRepository.countBySoLuongLessThanEqual(10);
+        return sanPhamCTRepository.countBySoLuongLessThanEqual(10);
     }
 
     // 2. CHARTS - WEEKLY
@@ -74,7 +71,7 @@ public class DashboardServiceImpl implements DashboardService {
         for (int i = 6; i >= 0; i--) {
             LocalDate date = today.minusDays(i);
             BigDecimal total = hoaDonRepository.sumTotalAmountByDateAndStatus(
-                    date.atStartOfDay(), date.atTime(LocalTime.MAX), TRANG_THAI_HOAN_THANH);
+                    date.atStartOfDay(), date.atTime(LocalTime.MAX), 4);
             data.add(total != null ? total.longValue() : 0L);
         }
         return data;
@@ -83,8 +80,7 @@ public class DashboardServiceImpl implements DashboardService {
     // 3. CHARTS - MONTHLY
     @Override
     public List<String> getWeekLabelsInMonth() {
-        // 🛠️ SỬA LỖI LOGIC: Đổi "Còn lại" thành "Tuần 5" để đồng bộ hiển thị Chart
-        return List.of("Tuần 1", "Tuần 2", "Tuần 3", "Tuần 4", "Tuần 5");
+        return List.of("Tuần 1", "Tuần 2", "Tuần 3", "Tuần 4", "Còn lại");
     }
 
     @Override
@@ -98,7 +94,7 @@ public class DashboardServiceImpl implements DashboardService {
             int endDay = Math.min((i + 1) * 7, lengthOfMonth);
             LocalDate s = LocalDate.of(today.getYear(), today.getMonth(), startDay);
             LocalDate e = LocalDate.of(today.getYear(), today.getMonth(), endDay);
-            BigDecimal total = hoaDonRepository.sumTotalAmountByDateAndStatus(s.atStartOfDay(), e.atTime(LocalTime.MAX), TRANG_THAI_HOAN_THANH);
+            BigDecimal total = hoaDonRepository.sumTotalAmountByDateAndStatus(s.atStartOfDay(), e.atTime(LocalTime.MAX), 4);
             data.add(total != null ? total.longValue() : 0L);
         }
         while (data.size() < 5) data.add(0L);
@@ -124,7 +120,7 @@ public class DashboardServiceImpl implements DashboardService {
             int month = startMonth + i;
             LocalDate s = LocalDate.of(year, month, 1);
             LocalDate e = s.with(TemporalAdjusters.lastDayOfMonth());
-            BigDecimal total = hoaDonRepository.sumTotalAmountByDateAndStatus(s.atStartOfDay(), e.atTime(LocalTime.MAX), TRANG_THAI_HOAN_THANH);
+            BigDecimal total = hoaDonRepository.sumTotalAmountByDateAndStatus(s.atStartOfDay(), e.atTime(LocalTime.MAX), 4);
             data.add(total != null ? total.longValue() : 0L);
         }
         return data;
@@ -145,7 +141,7 @@ public class DashboardServiceImpl implements DashboardService {
         for (int i = 1; i <= 12; i++) {
             LocalDate s = LocalDate.of(year, i, 1);
             LocalDate e = s.with(TemporalAdjusters.lastDayOfMonth());
-            BigDecimal total = hoaDonRepository.sumTotalAmountByDateAndStatus(s.atStartOfDay(), e.atTime(LocalTime.MAX), TRANG_THAI_HOAN_THANH);
+            BigDecimal total = hoaDonRepository.sumTotalAmountByDateAndStatus(s.atStartOfDay(), e.atTime(LocalTime.MAX), 4);
             data.add(total != null ? total.longValue() : 0L);
         }
         return data;
@@ -174,7 +170,7 @@ public class DashboardServiceImpl implements DashboardService {
         List<Long> data = new ArrayList<>();
         if (s.until(e).getDays() <= 31) {
             s.datesUntil(e.plusDays(1)).forEach(d -> {
-                BigDecimal t = hoaDonRepository.sumTotalAmountByDateAndStatus(d.atStartOfDay(), d.atTime(LocalTime.MAX), TRANG_THAI_HOAN_THANH);
+                BigDecimal t = hoaDonRepository.sumTotalAmountByDateAndStatus(d.atStartOfDay(), d.atTime(LocalTime.MAX), 4);
                 data.add(t != null ? t.longValue() : 0L);
             });
         } else {
@@ -182,7 +178,7 @@ public class DashboardServiceImpl implements DashboardService {
             while (!curr.isAfter(e)) {
                 LocalDateTime start = (curr.isBefore(s) ? s : curr).atStartOfDay();
                 LocalDateTime end = (curr.with(TemporalAdjusters.lastDayOfMonth()).isAfter(e) ? e : curr.with(TemporalAdjusters.lastDayOfMonth())).atTime(LocalTime.MAX);
-                BigDecimal t = hoaDonRepository.sumTotalAmountByDateAndStatus(start, end, TRANG_THAI_HOAN_THANH);
+                BigDecimal t = hoaDonRepository.sumTotalAmountByDateAndStatus(start, end, 4);
                 data.add(t != null ? t.longValue() : 0L);
                 curr = curr.plusMonths(1);
             }

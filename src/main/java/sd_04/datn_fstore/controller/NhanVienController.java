@@ -4,7 +4,6 @@ package sd_04.datn_fstore.controller;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import sd_04.datn_fstore.dto.NhanVienRegistration;
@@ -25,7 +24,6 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/nhanvien")
 @CrossOrigin(origins = "*") // Cho phép frontend truy cập
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ROLE_ADMIN')")
 public class NhanVienController {
 
     private final NhanVienRepository nhanVienRepository;
