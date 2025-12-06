@@ -6,7 +6,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import sd_04.datn_fstore.model.HinhAnh;
-import sd_04.datn_fstore.model.SanPham; // Cần thiết để tham chiếu đến SanPham
+import sd_04.datn_fstore.model.SanPham;
 import sd_04.datn_fstore.model.SanPhamChiTiet;
 import sd_04.datn_fstore.repository.SanPhamCTRepository;
 import sd_04.datn_fstore.service.HinhAnhService;
@@ -21,7 +21,7 @@ import java.util.Optional;
 public class SanPhamCTServiceImpl implements SanPhamCTService {
 
     private final SanPhamCTRepository sanPhamChiTietRepository;
-    private final HinhAnhService hinhAnhService; // Inject HinhAnhService
+    private final HinhAnhService hinhAnhService;
 
     @Override
     public List<SanPhamChiTiet> getAll() {
@@ -57,7 +57,7 @@ public class SanPhamCTServiceImpl implements SanPhamCTService {
         Optional<SanPhamChiTiet> optional = sanPhamChiTietRepository.findById(id);
         if (optional.isPresent()) {
             SanPhamChiTiet spct = optional.get();
-            spct.setTrangThai(0); // Đánh dấu là không hoạt động (Soft Delete)
+            spct.setTrangThai(0);
             sanPhamChiTietRepository.save(spct);
         }
     }
@@ -121,51 +121,45 @@ public class SanPhamCTServiceImpl implements SanPhamCTService {
         }
     }
 
+    // 💡 PHƯƠNG THỨC ĐÃ SỬA: Lấy danh sách SPCT theo ID Sản phẩm (cha)
     @Override
     public List<SanPhamChiTiet> getBySanPhamId(Integer id) {
-        return List.of();
+        // GIẢ ĐỊNH: findBySanPhamId đã được định nghĩa trong SanPhamCTRepository
+        List<SanPhamChiTiet> list = sanPhamChiTietRepository.findBySanPhamId(id);
+        list.forEach(this::loadTenHinhAnhChinh);
+        return list;
     }
 
-    /**
-     * Phương thức dùng để gán tên hình ảnh chính vào đối tượng SanPham (cha)
-     * nằm bên trong SanPhamChiTiet, giúp API trả về có đủ thông tin.
-     */
     private void loadTenHinhAnhChinh(SanPhamChiTiet spct) {
-        // Kiểm tra mối quan hệ SanPham có tồn tại không
         if (spct.getSanPham() == null) {
             return;
         }
 
-        // Lấy đối tượng SanPham (cha)
         SanPham sanPhamCha = spct.getSanPham();
         Integer sanPhamId = sanPhamCha.getId();
 
-        // 1. Ưu tiên tìm hình ảnh Avatar
         Optional<HinhAnh> avatarOpt = hinhAnhService.getAvatar(sanPhamId);
 
         if (avatarOpt.isPresent()) {
-            // Gán vào đối tượng SanPham (sanPhamCha)
             sanPhamCha.setTenHinhAnhChinh(avatarOpt.get().getTenHinhAnh());
         } else {
-            // 2. Nếu không có Avatar, lấy hình ảnh đầu tiên trong danh sách
             List<HinhAnh> allImages = hinhAnhService.getBySanPhamId(sanPhamId);
             if (!allImages.isEmpty()) {
-                // Gán vào đối tượng SanPham (sanPhamCha)
                 sanPhamCha.setTenHinhAnhChinh(allImages.get(0).getTenHinhAnh());
             }
         }
     }
+
     @Override
     public SanPhamChiTiet getByIdAndAvailable(Integer id) {
-        // Gọi hàm tìm kiếm theo ID và Trạng thái = 1 trong Repo vừa sửa
+        // Giả định: findByIdAndAvailable đã được định nghĩa trong SanPhamCTRepository
         Optional<SanPhamChiTiet> optional = sanPhamChiTietRepository.findByIdAndAvailable(id);
 
         if (optional.isPresent()) {
             SanPhamChiTiet spct = optional.get();
-            // QUAN TRỌNG: Load ảnh đại diện để hiển thị trên POS
             loadTenHinhAnhChinh(spct);
             return spct;
         }
-        return null; // Hoặc ném ngoại lệ tùy logic của bạn
+        return null;
     }
 }

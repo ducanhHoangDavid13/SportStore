@@ -7,7 +7,6 @@
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
@@ -17,7 +16,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" />
 
     <style>
-        /* (GIỮ NGUYÊN CSS CỦA BẠN - KHÔNG THAY ĐỔI) */
+        /* CSS CHÍNH CỦA TRANG */
         :root { --font-main: 'Inter', sans-serif; --font-heading: 'Oswald', sans-serif; --primary: #0b72ff; --primary-dark: #0056c7; --dark: #111111; --gray: #64748b; --light-bg: #f8fafc; --border: #e2e8f0; --radius: 12px; --shadow: 0 10px 30px rgba(0,0,0,0.06); }
         body { font-family: var(--font-main); background-color: #fff; color: var(--dark); }
         h1, h2, h3, h4, h5 { font-family: var(--font-heading); text-transform: uppercase; }
@@ -44,14 +43,34 @@
         .desc-short { font-size: 1rem; line-height: 1.6; color: var(--gray); margin-bottom: 30px; border-bottom: 1px solid var(--border); padding-bottom: 20px; }
         .option-group { margin-bottom: 25px; }
         .option-label { font-weight: 700; margin-bottom: 10px; display: block; font-size: 0.95rem; }
-        .color-list { display: flex; gap: 12px; }
-        .color-item { width: 32px; height: 32px; border-radius: 50%; cursor: pointer; border: 2px solid #fff; box-shadow: 0 0 0 1px #cbd5e1; transition: 0.2s; }
-        .color-item:hover { transform: scale(1.1); }
-        .color-item.active { box-shadow: 0 0 0 2px var(--primary); transform: scale(1.1); }
+
+        /* CSS CHO NÚT MÀU SẮC (Dạng chữ) */
+        .color-list { display: flex; flex-wrap: wrap; gap: 10px; }
+        .color-item {
+            min-width: 80px;
+            height: 40px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.9rem;
+            background: #fff;
+            padding: 0 10px;
+        }
+        .color-item:hover { border-color: var(--primary); color: var(--primary); }
+        .color-item.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+        /* CSS cho Kích thước */
         .size-list { display: flex; flex-wrap: wrap; gap: 10px; }
         .size-item { min-width: 45px; height: 40px; border: 1px solid var(--border); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 0.9rem; background: #fff; padding: 0 10px; }
         .size-item:hover { border-color: var(--primary); color: var(--primary); }
         .size-item.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+        /* CSS Số lượng và Nút hành động */
         .qty-wrapper { display: inline-flex; align-items: center; border: 1px solid var(--border); border-radius: 6px; height: 44px; overflow: hidden; }
         .qty-btn { width: 40px; height: 100%; border: none; background: #f8fafc; font-size: 1rem; cursor: pointer; transition: 0.2s; }
         .qty-btn:hover { background: #e2e8f0; }
@@ -68,16 +87,7 @@
         .tab-btn.active { color: var(--primary); }
         .tab-btn.active::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 100%; height: 2px; background: var(--primary); }
         .tab-content { line-height: 1.8; color: #475569; font-size: 1rem; }
-        .related-section { margin-top: 80px; }
-        .section-header { margin-bottom: 30px; }
-        .product-card { background: #fff; border-radius: 12px; overflow: hidden; border: 1px solid #f1f5f9; transition: 0.3s; position: relative; height: 100%; }
-        .product-card:hover { box-shadow: 0 15px 30px rgba(0,0,0,0.1); border-color: transparent; transform: translateY(-5px); }
-        .product-img-wrap { position: relative; overflow: hidden; padding-top: 100%; background: #f8fafc; }
-        .product-img-wrap img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; transition: 0.5s; }
-        .product-card:hover .product-img-wrap img { transform: scale(1.08); }
-        .product-card-info { padding: 15px; text-align: center; }
-        .card-name { font-size: 1rem; font-weight: 600; margin-bottom: 5px; color: var(--dark); display: block; }
-        .card-price { color: var(--primary); font-weight: 700; }
+        /* Media Queries giữ nguyên */
         @media (max-width: 991px) { .product-gallery { position: static; margin-bottom: 30px; } .product-info { padding-left: 0; } .product-title { font-size: 1.8rem; } }
     </style>
 </head>
@@ -106,9 +116,6 @@
                     <div class="thumb-item active" onclick="changeImage(this)">
                         <img th:src="@{'/image/' + ${product.tenHinhAnhChinh}}" alt="Thumb">
                     </div>
-                    <div class="thumb-item" onclick="changeImage(this)">
-                        <img src="https://images.pexels.com/photos/841130/pexels-photo-841130.jpeg" alt="Thumb">
-                    </div>
                 </div>
             </div>
         </div>
@@ -122,54 +129,69 @@
                         <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
                     </div>
                     <span>|</span>
-                    <span>Mã: <strong th:text="${product.id}">ID</strong></span>
+                    <span>Mã: <strong th:text="${product.maSanPham}">Mã SP</strong></span>
                     <span>|</span>
                     <div th:if="${product.trangThai == 1}" class="status-badge">Còn hàng</div>
                     <div th:if="${product.trangThai != 1}" class="status-badge out">Hết hàng</div>
                 </div>
 
-                <div class="product-price" th:text="${#numbers.formatDecimal(product.giaTien, 0, 'COMMA', 0, 'POINT')} + ' ₫'">
+                <div class="product-price" id="displayPrice" th:text="${#numbers.formatDecimal(product.giaTien, 0, 'COMMA', 0, 'POINT')} + ' ₫'">
                     0 ₫
                 </div>
 
                 <div class="desc-short" th:text="${product.moTa}">Mô tả ngắn...</div>
 
-                <div class="option-group">
-                    <span class="option-label">MÀU SẮC: <span id="selectedColor" class="fw-normal text-primary">Mặc định</span></span>
-                    <div class="color-list">
-                        <div class="color-item active" style="background-color: #333;" data-name="Đen" onclick="selectColor(this)"></div>
-                        <div class="color-item" style="background-color: #0b72ff;" data-name="Xanh Dương" onclick="selectColor(this)"></div>
-                        <div class="color-item" style="background-color: #fff;" data-name="Trắng" onclick="selectColor(this)"></div>
-                    </div>
-                </div>
+                <form id="addToCartForm" th:action="@{/cart/add}" method="post">
 
-                <div class="option-group">
-                    <span class="option-label">KÍCH THƯỚC: <span id="selectedSize" class="fw-normal text-primary">M</span></span>
-                    <div class="size-list">
-                        <div class="size-item" onclick="selectSize(this)">S</div>
-                        <div class="size-item active" onclick="selectSize(this)">M</div>
-                        <div class="size-item" onclick="selectSize(this)">L</div>
-                        <div class="size-item" onclick="selectSize(this)">XL</div>
-                    </div>
-                </div>
+                    <input type="hidden" id="spctIdInput" name="idSpCt" value="">
+                    <input type="hidden" name="khachHangId" value="1"/>
 
-                <div class="option-group">
-                    <span class="option-label">SỐ LƯỢNG:</span>
-                    <div class="qty-wrapper">
-                        <button class="qty-btn" onclick="updateQty(-1)"><i class="fa-solid fa-minus"></i></button>
-                        <input type="text" id="qtyInput" class="qty-input" value="1" readonly>
-                        <button class="qty-btn" onclick="updateQty(1)"><i class="fa-solid fa-plus"></i></button>
+                    <div class="option-group">
+                        <span class="option-label">MÀU SẮC: <span id="selectedColor" class="fw-normal text-primary"></span></span>
+                        <div class="color-list">
+                            <div th:each="mau : ${listMauSac}"
+                                 class="color-item"
+                                 th:data-id="${mau.id}"
+                                 th:data-name="${mau.tenMauSac}"
+                                 onclick="selectColor(this)"
+                                 th:text="${mau.tenMauSac}">
+                            </div>
+                        </div>
                     </div>
-                </div>
 
-                <div class="action-group">
-                    <button class="btn-main btn-add-cart" onclick="addToCart(false)">
-                        <i class="fa-solid fa-cart-plus"></i> Thêm vào giỏ
-                    </button>
-                    <button class="btn-main btn-buy-now" onclick="addToCart(true)">
-                        Mua ngay <i class="fa-solid fa-arrow-right"></i>
-                    </button>
-                </div>
+                    <div class="option-group">
+                        <span class="option-label">KÍCH THƯỚC: <span id="selectedSize" class="fw-normal text-primary"></span></span>
+                        <div class="size-list">
+                            <div th:each="size : ${listKichCo}"
+                                 class="size-item"
+                                 th:data-id="${size.id}"
+                                 th:data-name="${size.tenKichThuoc}"
+                                 onclick="selectSize(this)"
+                                 th:text="${size.tenKichThuoc}">
+                            </div>
+                        </div>
+                        <div id="stockInfo" class="text-danger small mt-2"></div>
+                    </div>
+
+                    <div class="option-group">
+                        <span class="option-label">SỐ LƯỢNG:</span>
+                        <div class="qty-wrapper">
+                            <button type="button" class="qty-btn" onclick="updateQty(-1)"><i class="fa-solid fa-minus"></i></button>
+                            <input type="text" id="qtyInput" name="soLuong" class="qty-input" value="1" readonly>
+                            <button type="button" class="qty-btn" onclick="updateQty(1)"><i class="fa-solid fa-plus"></i></button>
+                        </div>
+                    </div>
+
+                    <div class="action-group">
+                        <button type="button" class="btn-main btn-add-cart" onclick="submitCart(false)">
+                            <i class="fa-solid fa-cart-plus"></i> Thêm vào giỏ
+                        </button>
+                        <button type="button" class="btn-main btn-buy-now" onclick="submitCart(true)">
+                            Mua ngay <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+
+                </form>
 
                 <div style="margin-top: 20px; font-size: 0.9rem; color: #16a34a;">
                     <i class="fa-solid fa-truck-fast me-2"></i> Miễn phí vận chuyển toàn quốc
@@ -180,139 +202,248 @@
 
     <div class="product-tabs">
         <div class="tab-buttons">
-            <button class="tab-btn active" onclick="openTab('desc')">Mô tả chi tiết</button>
-            <button class="tab-btn" onclick="openTab('shipping')">Chính sách</button>
+            <button class="tab-btn active" onclick="openTab('desc', this)">Mô tả chi tiết</button>
+            <button class="tab-btn" onclick="openTab('shipping', this)">Chính sách</button>
         </div>
-        <div id="tab-desc" class="tab-content">
+        <div id="tab-desc" class="tab-content" style="display: block;">
             <p th:text="${product.moTa}">Nội dung mô tả...</p>
+        </div>
+        <div id="tab-shipping" class="tab-content" style="display: none;">
+            <p>Chính sách đổi trả và vận chuyển...</p>
         </div>
     </div>
 </main>
 
 <footer th:replace="~{/library/footer :: footer}"></footer>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
+    <script th:inline="javascript">
+        /*<![CDATA[*/
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
-<script th:inline="javascript">
-    /*<![CDATA[*/
+        // Dữ liệu SPCT từ Server (Bắt buộc phải có để JS tìm kiếm ID)
+        const allSpctList = /*[[${allSpctList}]]*/ [];
 
-    // 1. LẤY DỮ LIỆU TỪ SERVER (Sử dụng cú pháp comment để tránh lỗi IDE)
-    const productData = {
-        // Cú pháp: /*[[${biến_server}]]*/ giá_trị_mặc_định_khi_code
+        // Biến lưu ID Màu và Size đang được chọn
+        let selectedColorId = null;
+        let selectedSizeId = null;
+        let currentSpctPrice = /*[[${product.giaTien}]]*/ 0;
+        let currentStock = 0;
+        let currentSpctId = null;
 
-        id: /*[[${product.id}]]*/ 0,
+        // Cấu hình Toastr
+        toastr.options = { "positionClass": "toast-bottom-right", "timeOut": "2000" };
 
-        // Thymeleaf tự động thêm ngoặc kép cho chuỗi, bạn KHÔNG cần tự thêm
-        name: /*[[${product.tenSanPham}]]*/ "Tên sản phẩm mẫu",
+        // Định dạng tiền tệ
+        const currencyFormatter = new Intl.NumberFormat('vi-VN', {
+            style: 'currency',
+            currency: 'VND',
+            minimumFractionDigits: 0
+        });
 
-        price: /*[[${product.giaTien}]]*/ 0,
+        // --- LOGIC GIAO DIỆN & BIẾN THỂ ---
 
-        // Ghép chuỗi an toàn
-        image: '/image/' + /*[[${product.tenHinhAnhChinh}]]*/ "default.png",
+        // Tìm kiếm SPCT và cập nhật giá/tồn kho
+        function findAndDisplaySpct() {
+            const stockInfo = document.getElementById('stockInfo');
+            const displayPrice = document.getElementById('displayPrice');
+            const qtyInput = document.getElementById('qtyInput');
 
-        // Các giá trị mặc định để xử lý logic chọn
-        color: "Đen",
-        size: "M"
-    };
+            // Reset trạng thái
+            stockInfo.innerHTML = '';
+            currentSpctId = null;
+            currentStock = 0;
 
-    /*]]>*/
+            // Cập nhật giá mặc định (giá sản phẩm cha)
+            displayPrice.innerText = currencyFormatter.format(currentSpctPrice);
 
-    // Cấu hình Toastr
-    toastr.options = { "positionClass": "toast-bottom-right", "timeOut": "2000" };
+            // 1. Chỉ tìm kiếm khi đã chọn đủ cả Màu và Kích thước
+            if (selectedColorId !== null && selectedSizeId !== null) {
 
-    // --- LOGIC GIAO DIỆN ---
-    function updateQty(change) {
-        const input = document.getElementById('qtyInput');
-        let val = parseInt(input.value) + change;
-        if (val < 1) val = 1;
-        input.value = val;
-    }
+                const matchingSpct = allSpctList.find(spct =>
+                    spct.mauSac.id === selectedColorId &&
+                    spct.kichThuoc.id === selectedSizeId
+                );
 
-    function changeImage(el) {
-        document.getElementById('mainImage').src = el.querySelector('img').src;
-        document.querySelectorAll('.thumb-item').forEach(e => e.classList.remove('active'));
-        el.classList.add('active');
-    }
+                if (matchingSpct) {
+                    // Đã tìm thấy biến thể hợp lệ
+                    currentSpctId = matchingSpct.id;
+                    currentSpctPrice = matchingSpct.giaTien;
 
-    function selectColor(el) {
-        document.querySelectorAll('.color-item').forEach(e => e.classList.remove('active'));
-        el.classList.add('active');
+                    currentStock = matchingSpct.soLuong;
 
-        // Lấy tên màu từ attribute data-name
-        const colorName = el.getAttribute('data-name') || "Mặc định";
-        document.getElementById('selectedColor').innerText = colorName;
-        productData.color = colorName;
-    }
+                    // Cập nhật giá & tồn kho trên giao diện
+                    displayPrice.innerText = currencyFormatter.format(currentSpctPrice);
 
-    function selectSize(el) {
-        document.querySelectorAll('.size-item').forEach(e => e.classList.remove('active'));
-        el.classList.add('active');
-
-        const sizeName = el.innerText;
-        // Kiểm tra xem element hiển thị size có tồn tại không trước khi gán
-        const sizeDisplay = document.getElementById('selectedSize');
-        if(sizeDisplay) sizeDisplay.innerText = sizeName;
-
-        productData.size = sizeName;
-    }
-
-    function openTab(tabName) {
-        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-        // Logic ẩn hiện tab content có thể thêm ở đây
-        if(event && event.target) event.target.classList.add('active');
-    }
-
-    // --- LOGIC GIỎ HÀNG ---
-    function addToCart(isBuyNow) {
-        // 1. Lấy số lượng
-        const qtyInput = document.getElementById('qtyInput');
-        const qty = qtyInput ? parseInt(qtyInput.value) : 1;
-
-        // 2. Lấy giỏ hàng từ LocalStorage
-        let cart = JSON.parse(localStorage.getItem('cartItems')) || [];
-
-        // 3. Tạo item mới
-        const newItem = {
-            id: productData.id,
-            name: productData.name,
-            price: productData.price,
-            image: productData.image,
-            color: productData.color,
-            size: productData.size,
-            quantity: qty
-        };
-
-        // 4. Kiểm tra trùng (Cùng ID + Màu + Size)
-        const existingItemIndex = cart.findIndex(i =>
-            i.id === newItem.id &&
-            i.color === newItem.color &&
-            i.size === newItem.size
-        );
-
-        if (existingItemIndex > -1) {
-            // Nếu đã có -> Cộng dồn số lượng
-            cart[existingItemIndex].quantity += qty;
-        } else {
-            // Nếu chưa có -> Thêm mới
-            cart.push(newItem);
+                    if (currentStock > 0) {
+                        stockInfo.innerHTML = `Kho: ${currentStock} sản phẩm`;
+                        stockInfo.classList.remove('text-danger');
+                        stockInfo.classList.add('text-success');
+                        // Đảm bảo số lượng không vượt quá tồn kho
+                        if(parseInt(qtyInput.value) > currentStock) {
+                            qtyInput.value = currentStock;
+                        }
+                    } else {
+                        // Hết hàng
+                        stockInfo.innerHTML = 'Sản phẩm này tạm thời hết hàng';
+                        stockInfo.classList.add('text-danger');
+                        stockInfo.classList.remove('text-success');
+                        qtyInput.value = 1;
+                    }
+                } else {
+                    // Biến thể không tồn tại trong DB
+                    stockInfo.innerHTML = 'Biến thể này không tồn tại';
+                    stockInfo.classList.add('text-danger');
+                    stockInfo.classList.remove('text-success');
+                    qtyInput.value = 1;
+                }
+            } else {
+                // Chưa chọn đủ Màu hoặc Kích thước
+                stockInfo.innerHTML = '';
+                stockInfo.classList.remove('text-success', 'text-danger');
+            }
         }
 
-        // 5. Lưu lại vào LocalStorage
-        localStorage.setItem('cartItems', JSON.stringify(cart));
+        // Cập nhật số lượng
+        function updateQty(change) {
+            const input = document.getElementById('qtyInput');
+            let val = parseInt(input.value) + change;
 
-        // 6. Điều hướng
-        if (isBuyNow) {
-            window.location.href = "/checkout";
-        } else {
-            toastr.success(`Đã thêm ${qty} sản phẩm vào giỏ!`);
+            if (val < 1) {
+                val = 1;
+                toastr.info("Số lượng phải lớn hơn 0.");
+            }
+
+            // Chỉ kiểm tra tồn kho nếu đã có SPCT được chọn
+            if (currentSpctId !== null && currentStock > 0) {
+                if (val > currentStock) {
+                    val = currentStock;
+                    toastr.warning(`Chỉ còn ${currentStock} sản phẩm trong kho!`);
+                }
+            } else if (currentSpctId !== null && currentStock === 0) {
+                // Không thể tăng số lượng khi hết hàng
+                val = 1;
+                toastr.warning("Sản phẩm đã hết hàng.");
+            }
+
+            input.value = val;
         }
-    }
-</script>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+        function changeImage(el) {
+            document.getElementById('mainImage').src = el.querySelector('img').src;
+            document.querySelectorAll('.thumb-item').forEach(e => e.classList.remove('active'));
+            el.classList.add('active');
+        }
+
+        function selectColor(el) {
+            document.querySelectorAll('.color-item').forEach(e => e.classList.remove('active'));
+            el.classList.add('active');
+
+            document.getElementById('selectedColor').innerText = el.getAttribute('data-name');
+            selectedColorId = parseInt(el.getAttribute('data-id'));
+            findAndDisplaySpct();
+        }
+
+        function selectSize(el) {
+            document.querySelectorAll('.size-item').forEach(e => e.classList.remove('active'));
+            el.classList.add('active');
+
+            document.getElementById('selectedSize').innerText = el.innerText;
+            selectedSizeId = parseInt(el.getAttribute('data-id'));
+            findAndDisplaySpct();
+        }
+
+        function openTab(tabId, el) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.style.display = 'none');
+
+            el.classList.add('active');
+            document.getElementById('tab-' + tabId).style.display = 'block';
+        }
+
+        // --- LOGIC SUBMIT FORM GIỎ HÀNG ---
+        function submitCart(isBuyNow) {
+            const qty = parseInt(document.getElementById('qtyInput').value);
+
+            if (selectedColorId === null || selectedSizeId === null) {
+                toastr.error("Vui lòng chọn Màu sắc và Kích thước.");
+                return;
+            }
+
+            // Kiểm tra SPCT ID đã được tìm thấy chưa
+            if (currentSpctId === null) {
+                toastr.error("Biến thể này không hợp lệ.");
+                return;
+            }
+
+            // Kiểm tra tồn kho (lấy từ biến currentStock đã update)
+            if (currentStock === 0) {
+                toastr.error("Sản phẩm đã hết hàng.");
+                return;
+            }
+
+            if (currentStock < qty) {
+                toastr.warning(`Chỉ còn ${currentStock} sản phẩm trong kho! Vui lòng giảm số lượng.`);
+                return;
+            }
+
+            // Gán SPCT ID và SUBMIT FORM
+            document.getElementById('spctIdInput').value = currentSpctId;
+
+            const form = document.getElementById('addToCartForm');
+
+            if (isBuyNow) {
+                // Action cho "Mua ngay"
+                form.action = '/checkout';
+            } else {
+                // 🔥 ACTION CHO "THÊM VÀO GIỎ" ĐÃ ĐƯỢC CHỈNH LẠI
+                form.action = '/cart/add';
+            }
+
+            // Thêm trường ẩn để báo hiệu đây là mua ngay nếu cần thiết cho Controller
+            if(isBuyNow) {
+                $('<input>').attr({
+                    type: 'hidden',
+                    id: 'isBuyNowInput',
+                    name: 'isBuyNow',
+                    value: 'true'
+                }).appendTo('#addToCartForm');
+            }
+
+            form.submit();
+        }
+
+        // Khởi tạo trạng thái mặc định
+        $(document).ready(function() {
+            // 1. Khởi tạo Màu và Size đầu tiên
+            const firstColor = $('.color-item').first();
+            const firstSize = $('.size-item').first();
+
+            if (firstColor.length > 0) {
+                firstColor.addClass('active');
+                document.getElementById('selectedColor').innerText = firstColor.attr('data-name');
+                selectedColorId = parseInt(firstColor.attr('data-id'));
+            }
+
+            if (firstSize.length > 0) {
+                firstSize.addClass('active');
+                document.getElementById('selectedSize').innerText = firstSize.text();
+                selectedSizeId = parseInt(firstSize.attr('data-id'));
+            }
+
+            // 2. Gọi tìm kiếm biến thể lần đầu
+            if (selectedColorId !== null && selectedSizeId !== null) {
+                findAndDisplaySpct();
+            }
+
+            // 3. Khởi tạo Tabs
+            openTab('desc', document.querySelector('.tab-buttons .tab-btn.active'));
+        });
+
+        /*]]>*/
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>
 </html>

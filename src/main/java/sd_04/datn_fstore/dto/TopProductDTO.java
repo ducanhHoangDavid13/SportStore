@@ -14,11 +14,14 @@ public class TopProductDTO {
     private BigDecimal price;
     private String productImage;
 
-    // --- [QUAN TRỌNG] THÊM CONSTRUCTOR NÀY ĐỂ FIX LỖI ĐỎ ---
-    // Thứ tự tham số phải khớp 100% với câu @Query
-    // 1. String (Tên)
-    // 2. BigDecimal (Giá - MAX(donGia))
-    // 3. Long (Số lượng - SUM(soLuong))
+    // --- [SỬA LỖI ĐỎ] CONSTRUCTOR CHỈ DÙNG CHO @Query (Chỉ có Tên và Tổng số lượng) ---
+    // Constructor này khớp với: SELECT NEW TopProductDTO(Tên, SUM(Số lượng))
+    public TopProductDTO(String productName, Long totalSold) {
+        this.productName = productName;
+        this.totalSold = totalSold;
+    }
+
+    // Constructor cũ của bạn (Nếu bạn dùng nó cho mục đích khác, hãy giữ lại)
     public TopProductDTO(String productName, BigDecimal price, Long totalSold) {
         this.productName = productName;
         this.price = price;
