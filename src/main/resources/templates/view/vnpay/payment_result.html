@@ -4,112 +4,188 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kết Quả Thanh Toán VNPay</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <style>
         :root {
             --font-main: 'Inter', sans-serif;
-            --primary-blue: #0b72ff;
-            --primary-dark: #0056c7;
-            --success-color: #28a745;
+            --primary-color: #0d6efd;
+            --primary-hover: #0b5ed7;
+            --success-color: #198754;
+            --success-bg: #d1e7dd;
             --error-color: #dc3545;
-            --border-light: #e0e0e0;
-            --bg-light: #f9f9f9;
+            --error-bg: #f8d7da;
+            --text-dark: #212529;
+            --text-gray: #6c757d;
+            --bg-body: #f0f2f5;
+            --card-bg: #ffffff;
+            --border-radius: 16px;
         }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
         body {
             font-family: var(--font-main);
-            background-color: var(--bg-light);
-            padding: 40px 20px;
-            color: #333;
+            background-color: var(--bg-body);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            color: var(--text-dark);
         }
+
         .container {
-            max-width: 650px;
-            margin: 0 auto;
-            background: #fff;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-            border: 1px solid var(--border-light);
+            width: 100%;
+            max-width: 550px;
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+            animation: fadeIn 0.5s ease-in-out;
         }
+
+        /* Header Animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes scaleIn {
+            from { transform: scale(0); }
+            to { transform: scale(1); }
+        }
+
         .header-status {
             text-align: center;
-            padding: 20px 0;
-            border-bottom: 2px solid var(--border-light);
-            margin-bottom: 20px;
+            padding: 40px 30px 20px;
         }
-        h1 {
-            font-size: 1.8rem;
-            margin: 10px 0 20px 0;
-            font-weight: 700;
-        }
-        h2 {
-            font-size: 1.2rem;
-            font-weight: 600;
-            color: #555;
+
+        .status-icon {
+            font-size: 4rem;
             margin-bottom: 15px;
-            padding-bottom: 5px;
-            border-bottom: 1px dashed var(--border-light);
+            display: inline-block;
+            animation: scaleIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-        .status-box {
-            padding: 15px 20px;
+
+        .status-icon.success { color: var(--success-color); }
+        .status-icon.fail { color: var(--error-color); }
+
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text-dark);
+        }
+
+        .status-message {
+            font-size: 0.95rem;
+            color: var(--text-gray);
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        /* Alert Box for Errors */
+        .alert-box {
+            margin: 0 30px 20px;
+            padding: 15px;
             border-radius: 8px;
-            margin-bottom: 25px;
+            font-size: 0.9rem;
             text-align: center;
-            font-weight: 600;
         }
-        .success {
+
+        .alert-box.success {
+            background-color: var(--success-bg);
             color: var(--success-color);
-            border: 1px solid var(--success-color);
-            background-color: #e6f7eb;
+            border: 1px solid #badbcc;
         }
-        .fail {
+
+        .alert-box.fail {
+            background-color: var(--error-bg);
             color: var(--error-color);
-            border: 1px solid var(--error-color);
-            background-color: #fbeded;
+            border: 1px solid #f5c2c7;
         }
-        .details {
-            padding: 0 10px;
+
+        /* Invoice Details */
+        .details-card {
+            background-color: #fafafa;
+            border-top: 1px solid #eee;
+            border-bottom: 1px solid #eee;
+            padding: 20px 30px;
         }
-        .details p {
+
+        .details-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .detail-row {
             display: flex;
             justify-content: space-between;
-            margin: 10px 0;
-            padding: 5px 0;
-            border-bottom: 1px dotted rgba(0,0,0,0.1);
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #eee;
             font-size: 0.95rem;
         }
-        .details strong {
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-row strong {
+            color: var(--text-gray);
+            font-weight: 500;
+        }
+
+        .detail-row span {
             font-weight: 600;
-            color: #333;
-        }
-        .details span {
-            font-weight: 400;
-            color: #666;
+            color: var(--text-dark);
             text-align: right;
+            word-break: break-all; /* Tránh vỡ layout nếu mã giao dịch quá dài */
+            max-width: 60%;
         }
-        .details p:last-child { border-bottom: none; }
+
+        /* Highlight Total Amount */
+        .detail-row.total span {
+            color: var(--primary-color);
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        /* Footer Actions */
+        .card-footer {
+            padding: 30px;
+        }
 
         .btn-home {
-            display: block;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
             width: 100%;
             padding: 14px;
-            background-color: var(--primary-blue);
+            background-color: var(--primary-color);
             color: white;
             text-decoration: none;
-            border-radius: 8px;
+            border-radius: 10px;
             font-weight: 600;
             font-size: 1rem;
-            transition: background-color 0.3s, transform 0.3s;
-            margin-top: 25px;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(13, 110, 253, 0.2);
         }
+
         .btn-home:hover {
-            background-color: var(--primary-dark);
+            background-color: var(--primary-hover);
             transform: translateY(-2px);
-        }
-        hr {
-            border: none;
-            border-top: 1px solid var(--border-light);
-            margin: 30px 0;
+            box-shadow: 0 6px 15px rgba(13, 110, 253, 0.3);
         }
     </style>
 </head>
@@ -117,64 +193,58 @@
 
 <div class="container">
     <div class="header-status">
-        <h1 th:if="${vnp_ResponseCode == '00'}">
-            <i class="fa-solid fa-circle-check" style="color: var(--success-color);"></i> Thanh Toán Thành Công
-        </h1>
-        <h1 th:unless="${vnp_ResponseCode == '00'}">
-            <i class="fa-solid fa-triangle-exclamation" style="color: var(--error-color);"></i> Thanh Toán Thất Bại / Chờ Xử Lý
-        </h1>
+        <div th:if="${vnp_ResponseCode == '00'}">
+            <i class="fa-solid fa-circle-check status-icon success"></i>
+            <h1>Thanh Toán Thành Công!</h1>
+            <p class="status-message">Cảm ơn bạn đã mua hàng. Đơn hàng của bạn đã được xác nhận.</p>
+        </div>
+
+        <div th:unless="${vnp_ResponseCode == '00'}">
+            <i class="fa-solid fa-circle-xmark status-icon fail"></i>
+            <h1>Thanh Toán Thất Bại</h1>
+            <p class="status-message">Rất tiếc, giao dịch không thể thực hiện. Vui lòng thử lại.</p>
+        </div>
     </div>
 
-    <div th:if="${vnp_ResponseCode == '00'}" class="status-box success">
-        <p>Giao dịch của bạn đã được thực hiện thành công. Cảm ơn bạn đã sử dụng dịch vụ.</p>
+    <div th:unless="${vnp_ResponseCode == '00'}" class="alert-box fail">
+        <strong>Mã lỗi: </strong> <span th:text="${vnp_ResponseCode}"></span> <br>
+        <strong>Nội dung: </strong> <span th:text="${vnp_Message}"></span>
     </div>
 
-    <div th:unless="${vnp_ResponseCode == '00'}" class="status-box fail">
-        <p th:text="'Giao dịch không thành công. Mã lỗi: ' + ${vnp_ResponseCode}"></p>
-        <p th:text="'Chi tiết: ' + ${vnp_Message}"></p>
-        <p>Vui lòng kiểm tra lại thông tin hoặc thử lại sau.</p>
-    </div>
+    <div class="details-card">
+        <div class="details-title">Chi Tiết Giao Dịch</div>
 
-    <h2>Chi Tiết Giao Dịch</h2>
-
-    <div class="details">
-        <p>
-            <strong>Mã Đơn Hàng (TxnRef)</strong>
-            <span th:text="${vnp_TxnRef}">[Order ID]</span>
-        </p>
-        <p>
-            <strong>Mã Giao Dịch VNPAY</strong>
-            <span th:text="${vnp_TransactionNo}">[VNPay Transaction No]</span>
-        </p>
-        <p>
+        <div class="detail-row total">
             <strong>Số Tiền</strong>
-            <span th:text="${#numbers.formatDecimal(vnp_Amount / 100, 0, 'POINT', 0, 'COMMA')} + ' VND'">[Amount]</span>
-        </p>
-        <p>
-            <strong>Ngân Hàng Giao Dịch</strong>
-            <span th:text="${vnp_BankCode}">[Bank Code]</span>
-        </p>
-        <p>
-            <strong>Thời Gian Giao Dịch</strong>
-            <span th:text="${vnp_PayDate}">[Payment Time]</span>
-        </p>
-        <p>
-            <strong>Mã Phản Hồi (Code)</strong>
-            <span th:text="${vnp_ResponseCode}">[Response Code]</span>
-        </p>
-        <p>
-            <strong>Trạng Thái Giao Dịch</strong>
-            <span th:text="${vnp_Message}">[Status Message]</span>
-        </p>
-        <p>
-            <strong>Mã Lỗi VDESK</strong>
-            <span th:text="${vnp_TransactionStatus}">[Transaction Status]</span>
-        </p>
+            <span th:text="${#numbers.formatDecimal(vnp_Amount / 100, 0, 'POINT', 0, 'COMMA')} + ' VND'">0 VND</span>
+        </div>
+        <div class="detail-row">
+            <strong>Mã Đơn Hàng (TxnRef)</strong>
+            <span th:text="${vnp_TxnRef}">#123456</span>
+        </div>
+        <div class="detail-row">
+            <strong>Mã Giao Dịch VNPAY</strong>
+            <span th:text="${vnp_TransactionNo}">000000</span>
+        </div>
+        <div class="detail-row">
+            <strong>Ngân Hàng</strong>
+            <span th:text="${vnp_BankCode}">NCB</span>
+        </div>
+        <div class="detail-row">
+            <strong>Thời Gian</strong>
+            <span th:text="${vnp_PayDate}">20251206120000</span>
+        </div>
+        <div class="detail-row">
+            <strong>Trạng Thái</strong>
+            <span th:text="${vnp_ResponseCode == '00' ? 'Thành công' : 'Thất bại'}">Pending</span>
+        </div>
     </div>
 
-    <a href="/home" class="btn-home">
-        <i class="fa-solid fa-house"></i> Quay lại Trang Chủ
-    </a>
+    <div class="card-footer">
+        <a href="/home" class="btn-home">
+            <i class="fa-solid fa-house"></i> Quay lại Trang Chủ
+        </a>
+    </div>
 
 </div>
 

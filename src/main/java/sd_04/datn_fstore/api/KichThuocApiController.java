@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import sd_04.datn_fstore.model.KichThuoc;
 import sd_04.datn_fstore.service.KichThuocService;
@@ -72,6 +73,7 @@ public class KichThuocApiController {
      * POST: Thêm mới 1 kích thước
      */
     @PostMapping
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<?> create(@RequestBody KichThuoc kichThuoc) {
         try {
             // 1. Validation cơ bản
@@ -97,6 +99,7 @@ public class KichThuocApiController {
      * PUT: Cập nhật 1 kích thước
      */
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<?> update(@PathVariable Integer id, @RequestBody KichThuoc kichThuocDetails) {
         try {
             Optional<KichThuoc> optionalKichThuoc = kichThuocService.getById(id);

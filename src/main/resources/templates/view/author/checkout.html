@@ -182,20 +182,26 @@
     const API_XA = "https://esgoo.net/api-tinhthanh/3/";
 
     let currentCart = [];
+    // Lưu trữ tồn kho thực tế từ Server sau khi sync
+    let productStock = {};
 
     // Cấu hình thông báo
     toastr.options = { "closeButton": true, "progressBar": true, "positionClass": "toast-top-right", "timeOut": "3000" };
+
+    // Định dạng tiền tệ
+    function formatCurrency(amount) {
+        if (amount === undefined || amount === null || isNaN(amount)) return "0 ₫";
+        return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+    }
 
     document.addEventListener("DOMContentLoaded", function () {
         loadAddressData();      // Tải Tỉnh/Thành
         loadCartFromStorage();  // Tải giỏ hàng từ LocalStorage
         loadActiveVouchers();   // Tải mã giảm giá
-    });
 
-    function formatCurrency(amount) {
-        if (amount === undefined || amount === null) return "0 ₫";
-        return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
-    }
+        // Lắng nghe sự kiện thay đổi voucher để tính lại tiền ngay
+        document.getElementById('voucherSelect').addEventListener('change', applyVoucher);
+    });
 
     // =========================================================================
     // 2. XỬ LÝ ĐỊA CHỈ (GIỮ NGUYÊN)
@@ -244,7 +250,7 @@
     }
 
     // =========================================================================
-    // 3. QUẢN LÝ GIỎ HÀNG & ĐỒNG BỘ GIÁ
+    // 3. QUẢN LÝ GIỎ HÀNG & ĐỒNG BỘ GIÁ/TỒN KHO
     // =========================================================================
     async function loadCartFromStorage() {
         const json = localStorage.getItem('cartItems');
@@ -253,58 +259,100 @@
         // 1. Render trước dữ liệu cũ để khách không phải chờ
         renderCartHTML();
 
-        // 2. Nếu giỏ hàng có đồ, tiến hành ĐỒNG BỘ GIÁ MỚI NHẤT từ Server
+        // 2. Nếu giỏ hàng có đồ, tiến hành ĐỒNG BỘ GIÁ MỚI NHẤT & TỒN KHO từ Server
         if (currentCart.length > 0) {
-            await syncPricesWithServer();
+            await syncPricesAndStockWithServer();
         } else {
-            // Reset các chỉ số về 0
             updateTotals(0, 0, 0);
         }
     }
 
-    // [MỚI] Hàm này sẽ gọi API lấy chi tiết từng sản phẩm để cập nhật giá đúng
-    async function syncPricesWithServer() {
-        // Tạo danh sách các Promise để gọi API song song (nhanh hơn gọi từng cái)
+    // [MỚI] Hàm này gọi API lấy chi tiết từng sản phẩm để cập nhật giá và tồn kho
+    async function syncPricesAndStockWithServer() {
+        productStock = {}; // Reset tồn kho
+        const btn = document.getElementById('btnPlaceOrder');
+        btn.disabled = true;
+
+        // Tạo danh sách các Promise để gọi API song song
         const promises = currentCart.map(item =>
             fetch(`/api/san-pham-chi-tiet/${item.id}`).then(res => {
                 if(res.ok) return res.json();
                 return null;
-            })
+            }).catch(() => null)
         );
 
         try {
             const products = await Promise.all(promises);
             let hasChange = false;
+            let indicesToRemove = []; // Dùng để lưu index các sản phẩm cần xóa
 
             products.forEach((product, index) => {
+                const item = currentCart[index];
                 if (product) {
-                    // Logic ưu tiên giá: Lấy giá SPCT trước, nếu null thì lấy giá SP cha
-                    let realPrice = product.giaTien;
-                    if (!realPrice && product.sanPham) {
-                        realPrice = product.sanPham.giaTien;
-                    }
+                    // Logic giá: Lấy giá SPCT
+                    const realPrice = product.giaTien;
+                    const stock = product.soLuong; // Lấy tồn kho (Chú ý: Dùng 'soLuong' thay vì 'soLuongTon' nếu entity dùng 'soLuong')
 
-                    // Nếu giá trong LocalStorage khác giá Server => Cập nhật
-                    if (realPrice && currentCart[index].price !== realPrice) {
-                        console.log(`Cập nhật giá SP ${product.id}: ${currentCart[index].price} -> ${realPrice}`);
-                        currentCart[index].price = realPrice;
+                    // Lưu tồn kho thực tế
+                    productStock[item.id] = stock;
+
+                    // 1. Cập nhật giá nếu khác
+                    if (realPrice && item.price !== realPrice) {
+                        item.price = realPrice;
                         hasChange = true;
                     }
+
+                    // 2. Kiểm tra số lượng tồn
+                    if (item.quantity > stock) {
+                        if (stock === 0) {
+                            toastr.error(`Sản phẩm "${item.name}" (${item.size}/${item.color}) đã hết hàng và bị xóa khỏi giỏ.`);
+                            indicesToRemove.push(index); // Đánh dấu xóa
+                        } else {
+                            item.quantity = stock; // Giảm về tồn kho tối đa
+                            toastr.warning(`Sản phẩm "${item.name}" (${item.size}/${item.color}) chỉ còn ${stock} sản phẩm. Số lượng đã được điều chỉnh.`);
+                        }
+                        hasChange = true;
+                    } else if (stock === 0 && item.quantity > 0) {
+                        // Trường hợp ban đầu vẫn còn, nhưng sau sync thì hết
+                        toastr.error(`Sản phẩm "${item.name}" (${item.size}/${item.color}) đã hết hàng và bị xóa khỏi giỏ.`);
+                        indicesToRemove.push(index);
+                        hasChange = true;
+                    }
+
+                } else {
+                    // Sản phẩm bị xóa khỏi hệ thống
+                    toastr.error(`Sản phẩm "${item.name}" đã bị xóa khỏi hệ thống và được loại bỏ khỏi giỏ.`);
+                    indicesToRemove.push(index);
+                    hasChange = true;
                 }
             });
 
-            // Nếu có thay đổi giá, lưu lại vào LocalStorage và Render lại HTML
-            if (hasChange) {
-                localStorage.setItem('cartItems', JSON.stringify(currentCart));
-                renderCartHTML(); // Vẽ lại giao diện với giá mới
-                toastr.info("Đã cập nhật giá mới nhất cho giỏ hàng.");
+            // Thực hiện xóa các sản phẩm đã đánh dấu (phải xóa ngược để không ảnh hưởng index)
+            for(let i = indicesToRemove.length - 1; i >= 0; i--) {
+                currentCart.splice(indicesToRemove[i], 1);
             }
 
-            // Tính toán tổng tiền sau khi đã đồng bộ giá
+            // Nếu có thay đổi (giá, số lượng, xóa) thì lưu lại và render
+            if (hasChange) {
+                localStorage.setItem('cartItems', JSON.stringify(currentCart));
+            }
+
+            // Luôn gọi renderCartHTML và applyVoucher sau khi kết thúc đồng bộ
+            renderCartHTML();
+
+            // Kích hoạt nút đặt hàng nếu giỏ hàng không trống
+            if (currentCart.length > 0) {
+                btn.disabled = false;
+            } else {
+                updateTotals(0, 0, 0); // Reset totals nếu giỏ hàng trống
+            }
+
+            // Tính toán tổng tiền sau khi đã đồng bộ giá và tồn kho
             applyVoucher();
 
         } catch (err) {
-            console.error("Lỗi đồng bộ giá:", err);
+            console.error("Lỗi đồng bộ giá và tồn kho:", err);
+            toastr.error("Lỗi kết nối server khi đồng bộ giỏ hàng.");
         }
     }
 
@@ -312,22 +360,30 @@
         const container = document.getElementById('cartItemsList');
         if (currentCart.length === 0) {
             container.innerHTML = `<div class="text-center py-5 text-muted"><i class="fa-solid fa-basket-shopping fs-1 mb-2"></i><p>Giỏ hàng đang trống</p><a href="/san-pham" class="btn btn-sm btn-outline-primary rounded-pill">Mua sắm ngay</a></div>`;
+            document.getElementById('btnPlaceOrder').disabled = true;
             return;
         }
 
         let html = '';
         currentCart.forEach((item, index) => {
+            const stock = productStock[item.id] !== undefined ? productStock[item.id] : '...'; // Lấy tồn kho đã sync
+            const isOutOfStock = stock === 0;
+            const isMaxStock = item.quantity >= stock && stock > 0;
+
             html += `
                 <div class="order-item align-items-center">
                     <img src="${item.image || 'https://placehold.co/64?text=Img'}" class="item-img" onerror="this.src='https://placehold.co/64?text=Img'">
                     <div class="item-info flex-grow-1 ps-3">
                         <span class="item-name text-truncate" style="max-width: 180px;">${item.name}</span>
-                        <div class="item-meta mb-1">Size: <b>${item.size}</b> | Màu: <b>${item.color}</b></div>
+                        <div class="item-meta mb-1 small text-dark">
+                            Size: <b>${item.size}</b> | Màu: <b>${item.color}</b>
+                            <span class="text-${isOutOfStock ? 'danger' : 'success'} ms-2">(Tồn: ${stock})</span>
+                        </div>
                         <div class="d-flex justify-content-between align-items-center">
                             <div class="input-group input-group-sm" style="width: 100px;">
-                                <button class="btn btn-outline-secondary px-2" type="button" onclick="changeQuantity(${index}, -1)">-</button>
+                                <button class="btn btn-outline-secondary px-2" type="button" onclick="changeQuantity(${index}, -1)" ${item.quantity <= 1 || isOutOfStock ? 'disabled' : ''}>-</button>
                                 <input type="text" class="form-control text-center px-1" value="${item.quantity}" readonly style="background: #fff;">
-                                <button class="btn btn-outline-secondary px-2" type="button" onclick="changeQuantity(${index}, 1)">+</button>
+                                <button class="btn btn-outline-secondary px-2" type="button" onclick="changeQuantity(${index}, 1)" ${isMaxStock || isOutOfStock ? 'disabled' : ''}>+</button>
                             </div>
                             <span class="item-price fw-bold text-primary">${formatCurrency(item.price * item.quantity)}</span>
                         </div>
@@ -338,12 +394,24 @@
                 </div>`;
         });
         container.innerHTML = html;
+        document.getElementById('btnPlaceOrder').disabled = (currentCart.length === 0);
     }
 
     function changeQuantity(index, delta) {
         let item = currentCart[index];
         let newQty = item.quantity + delta;
-        if (newQty < 1) { removeCartItem(index); return; }
+        const stock = productStock[item.id];
+
+        if (newQty < 1) {
+            removeCartItem(index);
+            return;
+        }
+
+        if (newQty > stock) {
+            toastr.warning(`Tồn kho tối đa chỉ còn ${stock} sản phẩm.`);
+            newQty = stock; // Điều chỉnh về mức tồn kho tối đa
+        }
+
         item.quantity = newQty;
         localStorage.setItem('cartItems', JSON.stringify(currentCart));
         renderCartHTML();
@@ -352,12 +420,14 @@
 
     function removeCartItem(index) {
         Swal.fire({
-            title: 'Xóa sản phẩm?', text: "Bỏ sản phẩm này khỏi đơn hàng?", icon: 'warning', showCancelButton: true, confirmButtonColor: '#ef4444', confirmButtonText: 'Xóa'
+            title: 'Xóa sản phẩm?', text: "Bỏ sản phẩm này khỏi đơn hàng?", icon: 'warning', showCancelButton: true, confirmButtonColor: '#ef4444', confirmButtonText: 'Xóa', cancelButtonText: 'Hủy'
         }).then((result) => {
             if (result.isConfirmed) {
                 currentCart.splice(index, 1);
                 localStorage.setItem('cartItems', JSON.stringify(currentCart));
-                loadCartFromStorage(); // Load lại quy trình
+                // Không cần gọi loadCartFromStorage(), chỉ cần render và applyVoucher
+                renderCartHTML();
+                applyVoucher();
                 toastr.success('Đã cập nhật giỏ hàng');
             }
         });
@@ -382,6 +452,7 @@
                 data.forEach(v => {
                     let discountText = v.hinhThucGiam === 2 ? `Giảm ${v.giaTriGiam}%` : `Giảm ${formatCurrency(v.giaTriGiam)}`;
                     const minOrder = v.dieuKienGiamGia || 0;
+                    // Note: Thay vì dùng maPhieuGiamGia, nên dùng ID nếu API đặt hàng dùng ID
                     html += `<option value="${v.maPhieuGiamGia}" data-min-order="${minOrder}">
                                 ${v.maPhieuGiamGia} - ${v.tenPhieuGiamGia} [${discountText}] (Đơn từ ${formatCurrency(minOrder)})
                              </option>`;
@@ -392,6 +463,11 @@
     }
 
     function applyVoucher() {
+        if (currentCart.length === 0) {
+            updateTotals(0, 0, 0);
+            return;
+        }
+
         const selectElement = document.getElementById('voucherSelect');
         let code = selectElement.value;
 
@@ -410,12 +486,20 @@
                 items: itemsPayload
             })
         })
-            .then(res => res.json())
+            .then(res => {
+                // Kiểm tra response có lỗi HTTP không (500, 400)
+                if (!res.ok) {
+                    throw new Error("Lỗi Server: " + res.status);
+                }
+                return res.json();
+            })
             .then(data => {
-                // Kiểm tra tồn kho
+                // Kiểm tra tồn kho (kiểm tra lại lần cuối)
                 if(data.outOfStock) {
                     toastr.error(data.error);
-                    // Có thể disable nút đặt hàng nếu muốn
+                    // Force sync lại để loại bỏ sản phẩm hết hàng
+                    syncPricesAndStockWithServer();
+                    return;
                 }
 
                 // Cập nhật UI
@@ -426,14 +510,17 @@
                     if (data.voucherValid) {
                         toastr.success(data.voucherMessage || "Áp dụng thành công!");
                     } else {
+                        // **SỬA ĐỔI QUAN TRỌNG:** Reset giá trị, không gọi lại applyVoucher()
+                        // Event 'change' sẽ tự động gọi lại hàm này với code rỗng.
                         toastr.warning(data.voucherMessage || "Mã không hợp lệ");
                         selectElement.value = "";
-                        applyVoucher(); // Reset lại tiền nếu mã sai
+                        // Bỏ: applyVoucher(); // Tránh gọi đệ quy
                     }
                 }
             })
             .catch(err => {
                 console.error("Lỗi tính tiền:", err);
+                toastr.error("Không thể tính lại tổng tiền. Vui lòng thử lại.");
             });
     }
 
@@ -453,9 +540,18 @@
         }
         if (currentCart.length === 0) { toastr.error('Giỏ hàng trống!'); return; }
 
+        // Kiểm tra finalTotal để chắc chắn không phải là NaN
+        const finalTotalText = document.getElementById('finalTotal').innerText;
+        if(finalTotalText === '0 ₫' && currentCart.length > 0) {
+            // Có thể có lỗi tính toán, yêu cầu chạy lại applyVoucher
+            toastr.warning('Đang kiểm tra lại tổng tiền. Vui lòng chờ 1 chút.');
+            applyVoucher();
+            return;
+        }
+
         Swal.fire({
             title: 'Xác nhận đặt hàng?', text: "Đơn hàng sẽ được gửi đi.", icon: 'question',
-            showCancelButton: true, confirmButtonColor: '#0b72ff', confirmButtonText: 'Đồng ý, Đặt hàng!'
+            showCancelButton: true, confirmButtonColor: '#0b72ff', confirmButtonText: 'Đồng ý, Đặt hàng!', cancelButtonText: 'Hủy'
         }).then((result) => {
             if (result.isConfirmed) submitOrderToServer();
         });
@@ -466,13 +562,19 @@
         const distSel = document.getElementById('district');
         const wardSel = document.getElementById('ward');
 
+        // Lấy lại tên đầy đủ từ thuộc tính data-name (nếu cần cho Server)
+        const selectedCityName = citySel.value ? citySel.options[citySel.selectedIndex].getAttribute('data-name') : '';
+        const selectedDistrictName = distSel.value ? distSel.options[distSel.selectedIndex].getAttribute('data-name') : '';
+        const selectedWardName = wardSel.value ? wardSel.options[wardSel.selectedIndex].getAttribute('data-name') : '';
+
         const payload = {
             fullName: document.getElementById('fullName').value,
             phone: document.getElementById('phone').value,
             email: document.getElementById('email').value,
-            city: citySel.options[citySel.selectedIndex].getAttribute('data-name'),
-            district: distSel.options[distSel.selectedIndex].getAttribute('data-name'),
-            ward: wardSel.options[wardSel.selectedIndex].getAttribute('data-name'),
+            // Sử dụng tên Tỉnh/Thành, Quận/Huyện, Phường/Xã
+            city: selectedCityName,
+            district: selectedDistrictName,
+            ward: selectedWardName,
             addressDetail: document.getElementById('addressDetail').value,
             note: document.getElementById('note').value,
             paymentMethod: document.querySelector('input[name="paymentMethod"]:checked').value,
@@ -493,10 +595,17 @@
             body: JSON.stringify(payload)
         }).then(res => res.json()).then(data => {
             if(data.success) {
+                // Xóa giỏ hàng chỉ khi thanh toán COD thành công hoặc khi VNPAY chuyển hướng
+                if(data.paymentMethod === 'COD' || data.redirectUrl) {
+                    localStorage.removeItem('cartItems');
+                }
+
                 if(data.redirectUrl) {
-                    if(!data.redirectUrl.includes('vnpay')) localStorage.removeItem('cartItems');
-                    Swal.fire({ icon: 'success', title: 'Thành công!', timer: 1500, showConfirmButton: false })
+                    Swal.fire({ icon: 'success', title: 'Chuyển hướng thanh toán...', timer: 1500, showConfirmButton: false })
                         .then(() => window.location.href = data.redirectUrl);
+                } else {
+                    Swal.fire({ icon: 'success', title: 'Đặt hàng thành công!', text: 'Đơn hàng của bạn đang được xử lý.', showConfirmButton: false, timer: 2000 })
+                        .then(() => window.location.href = '/order-success');
                 }
             } else {
                 Swal.fire({ icon: 'error', title: 'Thất bại', text: data.message });

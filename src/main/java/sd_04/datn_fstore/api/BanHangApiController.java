@@ -68,9 +68,11 @@ public class BanHangApiController {
     @DeleteMapping("/hoa-don-tam/{maHoaDon}")
     public ResponseEntity<?> deleteHoaDonTam(@PathVariable String maHoaDon) {
         try {
-            hoaDonService.deleteByMaHoaDon(maHoaDon); // Gọi hàm xóa theo mã vừa viết
+            // Gọi service để xử lý logic xóa (bao gồm xóa cả sản phẩm bên trong)
+            hoaDonService.deleteByMaHoaDon(maHoaDon);
             return ResponseEntity.ok().build();
         } catch (Exception e) {
+            // Trả về lỗi 400 kèm thông báo chi tiết
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }

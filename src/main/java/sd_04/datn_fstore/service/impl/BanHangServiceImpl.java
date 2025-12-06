@@ -11,6 +11,7 @@ import sd_04.datn_fstore.service.PhieuGiamgiaService;
 import sd_04.datn_fstore.service.ThongBaoService;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
@@ -39,9 +40,10 @@ public class BanHangServiceImpl implements BanHangService {
             throw new IllegalArgumentException("Đơn hàng phải có ít nhất 1 sản phẩm.");
         }
 
+        // Lấy thông tin phiếu giảm giá mới nhất từ DB
         PhieuGiamGia pgg = getPhieuGiamGiaFromRequest(request);
 
-        // 2. Tạo hóa đơn (Lưu vào DB)
+        // 2. Tạo hóa đơn (Lưu vào DB với trạng thái Hoàn thành)
         HoaDon hoaDon = createHoaDonFromPayload(request, pgg);
         hoaDon.setTrangThai(4); // 4: Hoàn thành
         hoaDon.setHinhThucBanHang(1); // 1: Tại quầy
@@ -53,14 +55,14 @@ public class BanHangServiceImpl implements BanHangService {
             decrementVoucher(pgg);
         }
 
-        // 4. [REAL-TIME] TÍNH TỔNG TIỀN TỪ DATABASE (Tránh hack giá từ FE)
+        // 4. [REAL-TIME] TÍNH TỔNG TIỀN TỪ DATABASE (Tránh hack giá từ Frontend)
         BigDecimal totalReal = BigDecimal.ZERO;
         for (CreateOrderRequest.SanPhamItem item : itemsList) {
             BigDecimal itemTotal = saveHoaDonChiTiet(savedHoaDon, item);
             totalReal = totalReal.add(itemTotal);
         }
 
-        // 5. TÍNH TOÁN TIỀN GIẢM GIÁ
+        // 5. TÍNH TOÁN TIỀN GIẢM GIÁ (Logic đã sửa)
         BigDecimal tienGiam = calculateDiscount(totalReal, pgg);
 
         // 6. Cập nhật số liệu cuối cùng
@@ -68,7 +70,7 @@ public class BanHangServiceImpl implements BanHangService {
         savedHoaDon.setTienGiamGia(tienGiam);
         savedHoaDon.setTongTienSauGiam(totalReal.subtract(tienGiam));
 
-        // Lưu lần cuối
+        // Lưu lần cuối để cập nhật tiền
         HoaDon finalOrder = hoaDonRepository.save(savedHoaDon);
 
         // 7. Gửi thông báo
@@ -100,7 +102,7 @@ public class BanHangServiceImpl implements BanHangService {
             }
         }
 
-        // TÍNH TOÁN TIỀN GIẢM GIÁ
+        // Tính toán tiền giảm giá
         BigDecimal tienGiam = calculateDiscount(totalReal, pgg);
 
         savedHoaDon.setTongTien(totalReal);
@@ -118,9 +120,6 @@ public class BanHangServiceImpl implements BanHangService {
         return hoaDonRepository.findByTrangThaiInOrderByNgayTaoDesc(List.of(0, 5));
     }
 
-    /**
-     * ✅ ĐÃ THÊM MỚI: Tìm hóa đơn theo Mã Hóa Đơn (String)
-     */
     @Override
     @Transactional(readOnly = true)
     public HoaDon getDraftOrderByCode(String maHoaDon) {
@@ -128,42 +127,45 @@ public class BanHangServiceImpl implements BanHangService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn có mã: " + maHoaDon));
     }
 
-    // Lưu ý: Hàm getDraftOrderDetail(Integer id) có thể xóa nếu không dùng nữa,
-    // hoặc giữ lại để tương thích ngược. Ở đây tôi giữ lại.
-//    @Override
-//    @Transactional(readOnly = true)
-//    public HoaDon getDraftOrderDetail(Integer id) {
-//        return hoaDonRepository.findByIdWithDetails(id)
-//                .orElseThrow(() -> new RuntimeException("Không tìm thấy Hóa Đơn ID: " + id));
-//    }
-
     // --- LOGIC TÍNH TIỀN VOUCHER (% VÀ TIỀN MẶT) ---
+    // ✅ ĐÃ SỬA: Dùng RoundingMode để tránh lỗi chia số lẻ và làm tròn tiền Việt
     private BigDecimal calculateDiscount(BigDecimal tongTienHang, PhieuGiamGia pgg) {
-        if (pgg == null) return BigDecimal.ZERO;
-
-        // Kiểm tra đơn tối thiểu
-        if (pgg.getDieuKienGiamGia() != null && tongTienHang.compareTo(pgg.getDieuKienGiamGia()) < 0) {
+        // 1. Check null & Giá trị cơ bản
+        if (pgg == null || tongTienHang == null || tongTienHang.compareTo(BigDecimal.ZERO) <= 0) {
             return BigDecimal.ZERO;
         }
 
-        BigDecimal discountAmount;
-        Integer loaiGiam = pgg.getHinhThucGiam(); // 1 = Tiền mặt, 2 = Phần trăm
-
-        if (loaiGiam != null && loaiGiam == 2) {
-            // --- GIẢM PHẦN TRĂM ---
-            BigDecimal phanTram = pgg.getGiaTriGiam().divide(new BigDecimal(100));
-            discountAmount = tongTienHang.multiply(phanTram);
-
-            // Kiểm tra Giảm Tối Đa
-            if (pgg.getSoTienGiam() != null && discountAmount.compareTo(pgg.getSoTienGiam()) > 0) {
-                discountAmount = pgg.getSoTienGiam();
-            }
-        } else {
-            // --- GIẢM TIỀN MẶT ---
-            discountAmount = pgg.getGiaTriGiam();
+        // 2. Check Điều kiện đơn hàng tối thiểu
+        BigDecimal dieuKien = pgg.getDieuKienGiamGia() != null ? pgg.getDieuKienGiamGia() : BigDecimal.ZERO;
+        if (tongTienHang.compareTo(dieuKien) < 0) {
+            return BigDecimal.ZERO;
         }
 
-        // Không được giảm quá tổng tiền hàng
+        BigDecimal discountAmount = BigDecimal.ZERO;
+        Integer loaiGiam = pgg.getHinhThucGiam(); // 1: Tiền mặt, 2: %
+        BigDecimal giaTriGiam = pgg.getGiaTriGiam() != null ? pgg.getGiaTriGiam() : BigDecimal.ZERO;
+
+        if (loaiGiam != null && loaiGiam == 2) {
+            // ================= GIẢM THEO PHẦN TRĂM (%) =================
+            // Logic: (Tổng tiền * % Giảm) / 100
+            // Sử dụng RoundingMode.HALF_UP để làm tròn thành tiền nguyên (VND)
+            discountAmount = tongTienHang.multiply(giaTriGiam)
+                    .divide(new BigDecimal(100), 0, RoundingMode.HALF_UP);
+
+            // Check Giảm Tối Đa (Max Discount Amount)
+            BigDecimal maxGiam = pgg.getSoTienGiam();
+            if (maxGiam != null && maxGiam.compareTo(BigDecimal.ZERO) > 0) {
+                if (discountAmount.compareTo(maxGiam) > 0) {
+                    discountAmount = maxGiam;
+                }
+            }
+
+        } else if (loaiGiam != null && loaiGiam == 1) {
+            // ================= GIẢM TIỀN MẶT TRỰC TIẾP =================
+            discountAmount = giaTriGiam;
+        }
+
+        // 3. Chốt chặn cuối cùng: Không bao giờ giảm quá tổng tiền đơn hàng
         if (discountAmount.compareTo(tongTienHang) > 0) {
             discountAmount = tongTienHang;
         }
@@ -178,9 +180,12 @@ public class BanHangServiceImpl implements BanHangService {
     public void decrementInventory(List<CreateOrderRequest.SanPhamItem> items) {
         for (CreateOrderRequest.SanPhamItem item : items) {
             SanPhamChiTiet spct = sanPhamCTRepository.findById(item.getSanPhamChiTietId())
-                    .orElseThrow(() -> new RuntimeException("SPCT không tồn tại"));
-            if (spct.getSoLuong() < item.getSoLuong())
-                throw new RuntimeException("Sản phẩm " + spct.getId() + " không đủ hàng.");
+                    .orElseThrow(() -> new RuntimeException("Sản phẩm ID " + item.getSanPhamChiTietId() + " không tồn tại"));
+
+            if (spct.getSoLuong() < item.getSoLuong()) {
+                throw new RuntimeException("Sản phẩm " + spct.getSanPham().getTenSanPham() + " không đủ hàng (Còn: " + spct.getSoLuong() + ")");
+            }
+
             spct.setSoLuong(spct.getSoLuong() - item.getSoLuong());
             sanPhamCTRepository.save(spct);
         }
@@ -189,6 +194,7 @@ public class BanHangServiceImpl implements BanHangService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void decrementVoucher(PhieuGiamGia pgg) {
+        // Gọi service voucher để xử lý logic trừ số lượng và cập nhật trạng thái
         if (pgg != null) phieuGiamgiaService.decrementVoucher(pgg);
     }
 
@@ -198,7 +204,6 @@ public class BanHangServiceImpl implements BanHangService {
         }
         return null;
     }
-
 
     private BigDecimal saveHoaDonChiTiet(HoaDon savedHoaDon, CreateOrderRequest.SanPhamItem item) {
         SanPhamChiTiet spct = sanPhamCTRepository.findById(item.getSanPhamChiTietId())
@@ -235,10 +240,11 @@ public class BanHangServiceImpl implements BanHangService {
 
     private void sendNotification(HoaDon hd) {
         try {
+            // URL trỏ về trang chi tiết hóa đơn admin
             String url = "/admin/hoa-don/detail/" + hd.getId();
-            thongBaoService.createNotification("Đơn hàng mới", "Thanh toán thành công " + hd.getMaHoaDon(), "ORDER", url);
+            thongBaoService.createNotification("Đơn hàng tại quầy", "Thanh toán thành công " + hd.getMaHoaDon(), "ORDER", url);
         } catch (Exception e) {
-            System.err.println("Lỗi gửi thông báo: " + e.getMessage());
+            System.err.println("Lỗi gửi thông báo (Không ảnh hưởng luồng chính): " + e.getMessage());
         }
     }
 }
