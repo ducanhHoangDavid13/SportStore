@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @ControllerAdvice
-@RequestMapping("/error")
+@RequestMapping("/error-v1")
 public class ErrorPageController {
 
     @GetMapping("/401")
