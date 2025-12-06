@@ -39,9 +39,13 @@ public class GioHang {
     @Column(name = "maGioHang", length = 50)
     private String maGioHang;
 
+    // =========================================================
+    // ĐÃ SỬA ĐỔI: Liên kết với SanPhamChiTiet (Biến thể)
+    // Thay thế cho @ManyToOne(name = "idSanPham") cũ
+    // =========================================================
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "idSanPham")
-    private SanPham sanPham;
+    @JoinColumn(name = "idSanPhamChiTiet")
+    private SanPhamChiTiet sanPhamChiTiet;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "idKhachHang")

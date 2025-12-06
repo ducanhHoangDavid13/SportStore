@@ -7,7 +7,7 @@ import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.ToString; // ⬅️ Thêm import Lombok ToString
+import lombok.ToString;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -52,27 +52,26 @@ public class SanPham {
 
     // ================= MỐI QUAN HỆ =================
 
-    // 1. Hình ảnh
+    // 1. Hình ảnh: SanPham (One) -> HinhAnh (Many)
     @OneToMany(mappedBy = "sanPham", fetch = FetchType.LAZY)
     @JsonIgnore
-    @ToString.Exclude // ⬅️ NGẮT VÒNG LẶP cho toString()
+    @ToString.Exclude
     private List<HinhAnh> hinhAnh;
 
     // Field phụ để xử lý hiển thị ảnh chính (không lưu DB)
     @Transient
     private String tenHinhAnhChinh;
 
-    // 2. Biến thể (Sản phẩm chi tiết)
+    // 2. Biến thể (Sản phẩm chi tiết): SanPham (One) -> SanPhamChiTiet (Many)
     @OneToMany(mappedBy = "sanPham", fetch = FetchType.LAZY)
     @JsonIgnore
-    @ToString.Exclude // ⬅️ NGẮT VÒNG LẶP cho toString()
+    @ToString.Exclude
     private List<SanPhamChiTiet> sanPhamChiTiets;
 
-    // 3. Giỏ hàng
-    @OneToMany(mappedBy = "sanPham", fetch = FetchType.LAZY)
-    @JsonIgnore
-    @ToString.Exclude // ⬅️ NGẮT VÒNG LẶP cho toString()
-    private List<GioHang> gioHangs;
+    // 3. Giỏ hàng:
+    // ⚠️ ĐÃ XÓA MỐI QUAN HỆ TRỰC TIẾP TỪ SANPHAM -> GIOHANG.
+    // Lỗi 'mappedBy' xảy ra do GioHang giờ liên kết với SanPhamChiTiet.
+    // Nếu bạn cần truy vấn giỏ hàng theo Sản phẩm, hãy làm qua SanPhamChiTiet.
 
-    // ... (Các mối quan hệ tùy chọn khác)
+    // ... (Các mối quan hệ tùy chọn khác nếu có)
 }
