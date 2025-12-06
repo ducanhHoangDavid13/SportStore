@@ -2,242 +2,221 @@
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 
 <head>
-  <meta charset="UTF-8">
-  <title>Quản lý Biến thể Sản phẩm</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Quản lý Biến thể Sản phẩm</title>
 
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
-  <link rel="stylesheet" th:href="@{/css/styles.css}" />
-  <link rel="stylesheet" th:href="@{/css/navbar.css}" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+    <link rel="stylesheet" th:href="@{/css/styles.css}"/>
+    <link rel="stylesheet" th:href="@{/css/navbar.css}"/>
 
-  <style>
-    body {
-      font-family: 'Inter', sans-serif;
-      background-color: #f3f4f6;
-      color: #374151;
-    }
-
-    .card-box {
-      background: #fff;
-      border-radius: 12px;
-      border: none;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-      margin-bottom: 1.5rem;
-    }
-
-    .table-custom thead th {
-      background: #f9fafb;
-      color: #6b7280;
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      padding: 1rem 0.75rem;
-      border-bottom: 2px solid #e5e7eb;
-      vertical-align: middle;
-    }
-
-    .table-custom tbody td {
-      vertical-align: middle;
-      padding: 0.75rem;
-      border-bottom: 1px solid #f3f4f6;
-      font-size: 0.875rem;
-    }
-
-    .badge-status {
-      padding: 0.35em 0.8em;
-      font-size: 0.75rem;
-      font-weight: 600;
-      border-radius: 99px;
-    }
-
-    .badge-active {
-      background: #d1fae5;
-      color: #065f46;
-    }
-
-    .badge-inactive {
-      background: #fee2e2;
-      color: #991b1b;
-    }
-
-    .btn-action {
-      width: 32px;
-      height: 32px;
-      padding: 0;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 6px;
-      transition: .2s;
-    }
-
-    .btn-action:hover {
-      transform: translateY(-2px);
-    }
-  </style>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; color: #374151; }
+        .card-box { background: #ffffff; border-radius: 12px; border: none; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); margin-bottom: 1.5rem; }
+        .table-custom thead th { background-color: #f9fafb; color: #6b7280; font-weight: 600; text-transform: uppercase; font-size: 0.75rem; border-bottom: 2px solid #e5e7eb; padding: 1rem; vertical-align: middle; white-space: nowrap; }
+        .table-custom tbody td { vertical-align: middle; padding: 0.75rem 1rem; border-bottom: 1px solid #f3f4f6; font-size: 0.875rem; }
+        .table-custom tbody tr:hover { background-color: #f9fafb; }
+        .badge-status { padding: 0.35em 0.8em; font-size: 0.75rem; font-weight: 600; border-radius: 99px; }
+        .badge-active { background: #d1fae5; color: #065f46; }
+        .badge-inactive { background: #fee2e2; color: #991b1b; }
+        .btn-action { width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 6px; transition: .2s; }
+        .btn-action:hover { transform: translateY(-2px); }
+        .modal-content { border-radius: 16px; border: none; }
+        .modal-header { padding: 1.5rem; border-bottom: 1px solid #f3f4f6; }
+        .modal-body { padding: 1.5rem; }
+        .form-control:read-only { background-color: #f3f4f6; color: #6b7280; cursor: not-allowed; }
+    </style>
 </head>
 
 <body>
-
 <nav th:replace="library/navbar :: admin-navbar"></nav>
 
 <div class="page-wrapper">
-  <div th:replace="library/navbar :: admin-sidebar"></div>
-  <main class="main-content pt-4 px-4">
+    <div th:replace="library/navbar :: admin-sidebar"></div>
+    <main class="main-content pt-4 px-4">
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <h3 class="fw-bold text-dark mb-0">Quản lý Chi tiết Sản phẩm</h3>
-    </div>
+        <div class="container-fluid">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="fw-bold text-dark mb-0">Quản lý Biến thể Sản phẩm</h3>
+            </div>
 
-    <div class="card-box p-4">
-      <h6 class="fw-bold text-muted mb-3"><i class="fas fa-filter me-2"></i>BỘ LỌC TÌM KIẾM</h6>
-      <form id="filterForm">
-        <div class="row g-3">
-          <div class="col-md-4">
-            <label class="form-label small fw-bold">SẢN PHẨM</label>
-            <select class="form-select" id="filterSanPham">
-              <option value="">-- Tất cả --</option>
-              <option th:each="sp : ${listSanPham}" th:value="${sp.id}" th:text="${sp.tenSanPham}"></option>
-            </select>
-          </div>
-          <div class="col-md-2">
-            <label class="form-label small fw-bold">MÀU SẮC</label>
-            <select class="form-select" id="filterMauSac">
-              <option value="">-- Tất cả --</option>
-              <option th:each="ms : ${listMauSac}" th:value="${ms.id}" th:text="${ms.tenMauSac}"></option>
-            </select>
-          </div>
-          <div class="col-md-2">
-            <label class="form-label small fw-bold">KÍCH THƯỚC</label>
-            <select class="form-select" id="filterKichThuoc">
-              <option value="">-- Tất cả --</option>
-              <option th:each="kt : ${listKichThuoc}" th:value="${kt.id}" th:text="${kt.tenKichThuoc}"></option>
-            </select>
-          </div>
-          <div class="col-md-2">
-            <label class="form-label small fw-bold">GIÁ TỪ</label>
-            <input type="number" class="form-control" id="filterMinPrice" placeholder="0">
-          </div>
-          <div class="col-md-2">
-            <label class="form-label small fw-bold">ĐẾN</label>
-            <input type="number" class="form-control" id="filterMaxPrice" placeholder="Max">
-          </div>
-          <div class="col-12 text-end">
-            <button type="button" class="btn btn-light border me-2" id="btnReset"><i class="fas fa-sync-alt me-1"></i> Reset</button>
-            <button type="submit" class="btn btn-primary px-4"><i class="fas fa-search me-1"></i> Lọc dữ liệu</button>
-          </div>
+            <div class="card-box p-4">
+                <div class="d-flex align-items-center mb-3 border-bottom pb-2">
+                    <i class="fas fa-filter text-primary me-2"></i> <span class="fw-bold text-secondary">Bộ lọc tìm kiếm</span>
+                </div>
+                <form id="filterForm">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-muted">SẢN PHẨM</label>
+                            <select class="form-select" id="filterSanPham">
+                                <option value="">-- Tất cả --</option>
+                                <option th:each="sp : ${listSanPham}" th:value="${sp.id}" th:text="${sp.tenSanPham}"></option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold text-muted">MÀU SẮC</label>
+                            <select class="form-select" id="filterMauSac">
+                                <option value="">-- Tất cả --</option>
+                                <option th:each="ms : ${listMauSac}" th:value="${ms.id}" th:text="${ms.tenMauSac}"></option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold text-muted">KÍCH THƯỚC</label>
+                            <select class="form-select" id="filterKichThuoc">
+                                <option value="">-- Tất cả --</option>
+                                <option th:each="kt : ${listKichThuoc}" th:value="${kt.id}" th:text="${kt.tenKichThuoc}"></option>
+                            </select>
+                        </div>
+
+                        <div class="col-12 text-end mt-3">
+                            <button type="button" class="btn btn-light border me-2" id="btnReset"><i class="fas fa-sync-alt me-1"></i> Reset</button>
+                            <button type="submit" class="btn btn-primary px-4"><i class="fas fa-search me-1"></i> Tìm kiếm</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="card-box">
+                <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold">Danh sách Biến thể</h5>
+                    <button class="btn btn-success btn-sm shadow-sm fw-bold" onclick="showAddModal()">
+                        <i class="fas fa-plus me-1"></i> Thêm biến thể
+                    </button>
+                </div>
+
+                <div class="table-responsive" style="min-height: 350px;">
+                    <table class="table table-custom table-hover mb-0">
+                        <thead>
+                        <tr>
+                            <th style="width: 20px;">#</th>
+                            <th>Mã Biến thể</th>
+                            <th style="min-width: 150px;">Sản phẩm</th>
+                            <th class="text-center">Màu & Size</th>
+                            <th>Chất liệu</th>
+                            <th>Xuất xứ</th>
+                            <th>Phân loại</th>
+                            <th>Thể loại</th>
+                            <th class="text-end">Giá bán</th>
+                            <th class="text-center">Tồn kho</th>
+                            <th class="text-center">Trạng thái</th>
+                            <th class="text-center" style="width: 100px;">Thao tác</th>
+                        </tr>
+                        </thead>
+                        <tbody id="spctTableBody"></tbody>
+                    </table>
+                </div>
+
+                <div class="p-3 border-top d-flex justify-content-between align-items-center">
+                    <span class="text-muted small" id="pageInfo"></span>
+                    <nav id="paginationNav"></nav>
+                </div>
+            </div>
         </div>
-      </form>
-    </div>
 
-    <div class="card-box">
-      <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
-        <h5 class="mb-0 fw-bold text-dark">Danh sách Biến thể</h5>
-        <button class="btn btn-success btn-sm shadow-sm" onclick="showAddModal()">
-          <i class="fas fa-plus me-1"></i> Thêm biến thể
-        </button>
-      </div>
+        <div class="modal fade" id="spctModal" tabindex="-1" data-bs-backdrop="static">
+            <div class="modal-dialog modal-xl modal-dialog-centered"> <div class="modal-content">
+                <div class="modal-header bg-primary text-white border-0">
+                    <h5 class="modal-title fw-bold" id="modalTitle"><i class="fas fa-box-open me-2"></i>THÊM MỚI BIẾN THỂ</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="spctForm">
+                        <input type="hidden" id="spctId">
 
-      <div class="table-responsive" style="min-height: 300px;">
-        <table class="table table-custom table-hover mb-0">
-          <thead>
-          <tr>
-            <th>Sản phẩm</th>
-            <th class="text-center">Màu sắc</th>
-            <th class="text-center">Size</th>
-            <th>Thể loại</th>
-            <th class="text-end">Giá bán</th>
-            <th class="text-center">SL Tồn</th>
-            <th class="text-center">Trạng thái</th>
-            <th class="text-center" style="width: 120px;">Thao tác</th>
-          </tr>
-          </thead>
-          <tbody id="spctTableBody">
-          </tbody>
-        </table>
-      </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold small text-muted">MÃ BIẾN THỂ</label>
+                                <input type="text" class="form-control fw-bold text-secondary" id="modalMaSPCT"
+                                       placeholder="Hệ thống tự động tạo mã" readonly style="background-color: #f8f9fa;">
+                            </div>
+                            <div class="col-md-8">
+                                <label class="form-label fw-bold small text-primary">CHỌN SẢN PHẨM GỐC <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white"><i class="fas fa-search text-muted"></i></span>
+                                    <input class="form-control" list="datalistSanPham" id="inputSearchProduct"
+                                           placeholder="Gõ tên sản phẩm để tìm kiếm..." autocomplete="off">
+                                    <datalist id="datalistSanPham">
+                                        <option th:each="sp : ${listSanPham}"
+                                                th:value="${sp.tenSanPham}"
+                                                th:data-id="${sp.id}"
+                                                th:data-price="${sp.giaTien}"
+                                                th:text="'(Mã: ' + ${sp.maSanPham} + ')'"></option>
+                                    </datalist>
+                                    <input type="hidden" id="hiddenSanPhamId" name="sanPhamId">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="clearSearchProduct()"><i class="fas fa-times"></i></button>
+                                </div>
+                                <div class="form-text ms-1" id="selectedProductText"><i class="fas fa-info-circle me-1"></i>Vui lòng chọn sản phẩm trước</div>
+                            </div>
+                        </div>
 
-      <div class="p-3 border-top bg-light bg-opacity-25 d-flex justify-content-between align-items-center">
-        <span class="text-muted small" id="pageInfo"></span>
-        <nav id="paginationNav"></nav>
-      </div>
-    </div>
+                        <hr class="border-secondary opacity-10">
 
-    <div class="modal fade" id="spctModal" tabindex="-1">
-      <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-          <div class="modal-header bg-primary text-white border-0">
-            <h5 class="modal-title fw-bold" id="modalTitle">THÊM MỚI BIẾN THỂ</h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-          </div>
-          <div class="modal-body">
-            <form id="spctForm">
-              <input type="hidden" id="spctId">
-              <div class="row g-3">
-                <div class="col-12">
-                  <label class="form-label fw-bold small">SẢN PHẨM <span class="text-danger">*</span></label>
-                  <select class="form-select" id="modalSanPham" required>
-                    <option value="">-- Chọn sản phẩm --</option>
-                    <option th:each="sp : ${listSanPham}" th:value="${sp.id}" th:text="${sp.tenSanPham}"></option>
-                  </select>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold small">MÀU SẮC <span class="text-danger">*</span></label>
+                                <select class="form-select" id="modalMauSac">
+                                    <option value="">-- Chọn màu --</option>
+                                    <option th:each="ms : ${listMauSac}" th:value="${ms.id}" th:text="${ms.tenMauSac}"></option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold small">KÍCH THƯỚC <span class="text-danger">*</span></label>
+                                <select class="form-select" id="modalKichThuoc">
+                                    <option value="">-- Chọn size --</option>
+                                    <option th:each="kt : ${listKichThuoc}" th:value="${kt.id}" th:text="${kt.tenKichThuoc}"></option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold small">CHẤT LIỆU</label>
+                                <select class="form-select" id="modalChatLieu">
+                                    <option th:each="cl : ${listChatLieu}" th:value="${cl.id}" th:text="${cl.loaiChatLieu}"></option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold small">XUẤT XỨ</label>
+                                <select class="form-select" id="modalXuatXu">
+                                    <option th:each="xx : ${listXuatXu}" th:value="${xx.id}" th:text="${xx.tenXuatXu}"></option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold small">THỂ LOẠI</label>
+                                <select class="form-select" id="modalTheLoai">
+                                    <option th:each="tl : ${listTheLoai}" th:value="${tl.id}" th:text="${tl.tenTheLoai}"></option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold small">PHÂN LOẠI</label>
+                                <select class="form-select" id="modalPhanLoai">
+                                    <option th:each="pl : ${listPhanLoai}" th:value="${pl.id}" th:text="${pl.phanLoai}"></option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold small">GIÁ BÁN (VNĐ)</label>
+                                <input type="text" class="form-control fw-bold text-success" id="modalGiaTien"
+                                       readonly style="background-color: #e9ecef;" placeholder="Tự động theo SP gốc">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold small">SỐ LƯỢNG TỒN <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="modalSoLuong" placeholder="Nhập số lượng" min="0">
+                            </div>
+                        </div>
+                    </form>
                 </div>
-                <div class="col-md-6">
-                  <label class="form-label fw-bold small">MÀU SẮC <span class="text-danger">*</span></label>
-                  <select class="form-select" id="modalMauSac" required>
-                    <option th:each="ms : ${listMauSac}" th:value="${ms.id}" th:text="${ms.tenMauSac}"></option>
-                  </select>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Hủy bỏ</button>
+                    <button type="button" class="btn btn-primary px-4 fw-bold" onclick="saveSPCT()">Lưu thông tin</button>
                 </div>
-                <div class="col-md-6">
-                  <label class="form-label fw-bold small">KÍCH THƯỚC <span class="text-danger">*</span></label>
-                  <select class="form-select" id="modalKichThuoc" required>
-                    <option th:each="kt : ${listKichThuoc}" th:value="${kt.id}" th:text="${kt.tenKichThuoc}"></option>
-                  </select>
-                </div>
-                <div class="col-md-6">
-                  <label class="form-label fw-bold small">THỂ LOẠI</label>
-                  <select class="form-select" id="modalTheLoai">
-                    <option th:each="tl : ${listTheLoai}" th:value="${tl.id}" th:text="${tl.tenTheLoai}"></option>
-                  </select>
-                </div>
-                <div class="col-md-6">
-                  <label class="form-label fw-bold small">CHẤT LIỆU</label>
-                  <select class="form-select" id="modalChatLieu">
-                    <option th:each="cl : ${listChatLieu}" th:value="${cl.id}" th:text="${cl.loaiChatLieu}"></option>
-                  </select>
-                </div>
-                <div class="col-md-6">
-                  <label class="form-label fw-bold small">XUẤT XỨ</label>
-                  <select class="form-select" id="modalXuatXu">
-                    <option th:each="xx : ${listXuatXu}" th:value="${xx.id}" th:text="${xx.tenXuatXu}"></option>
-                  </select>
-                </div>
-                <div class="col-md-6">
-                  <label class="form-label fw-bold small">PHÂN LOẠI</label>
-                  <select class="form-select" id="modalPhanLoai">
-                    <option th:each="pl : ${listPhanLoai}" th:value="${pl.id}" th:text="${pl.phanLoai}"></option>
-                  </select>
-                </div>
-                <div class="col-md-6">
-                  <label class="form-label fw-bold small">GIÁ BÁN (VNĐ) <span class="text-danger">*</span></label>
-                  <input type="number" class="form-control" id="modalGiaTien" required min="0">
-                </div>
-                <div class="col-md-6">
-                  <label class="form-label fw-bold small">SỐ LƯỢNG <span class="text-danger">*</span></label>
-                  <input type="number" class="form-control" id="modalSoLuong" required min="0">
-                </div>
-              </div>
-            </form>
-          </div>
-          <div class="modal-footer border-0 pt-0">
-            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Đóng</button>
-            <button type="button" class="btn btn-primary px-4" onclick="saveSPCT()">Lưu lại</button>
-          </div>
+            </div>
+            </div>
         </div>
-      </div>
-    </div>
 
-  </main>
+    </main>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
@@ -245,237 +224,262 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
 <script>
-  toastr.options = {
-    "closeButton": true,
-    "progressBar": true,
-    "positionClass": "toast-bottom-right",
-    "timeOut": "3000"
-  };
+    // --- CONFIG ---
+    toastr.options = { "closeButton": true, "progressBar": true, "positionClass": "toast-bottom-right", "timeOut": "3000" };
+    const API_URL = '/api/san-pham-chi-tiet';
+    let spctModal;
+    let currentFilter = {page: 0, size: 10};
 
-  const API_URL = '/api/san-pham-chi-tiet';
-  let spctModal;
-  let currentFilter = {
-    page: 0,
-    size: 10
-  };
-
-  $(document).ready(function() {
-    spctModal = new bootstrap.Modal(document.getElementById('spctModal'));
-    loadData();
-  });
-
-  // --- 1. LOAD DATA (AJAX) ---
-  function loadData() {
-    currentFilter.idSanPham = $('#filterSanPham').val() || null;
-    currentFilter.idMauSac = $('#filterMauSac').val() || null;
-    currentFilter.idKichThuoc = $('#filterKichThuoc').val() || null;
-    currentFilter.minPrice = $('#filterMinPrice').val() || null;
-    currentFilter.maxPrice = $('#filterMaxPrice').val() || null;
-
-    $('#spctTableBody').html('<tr><td colspan="8" class="text-center py-4"><div class="spinner-border text-primary"></div></td></tr>');
-
-    $.ajax({
-      url: API_URL,
-      type: 'GET',
-      data: currentFilter,
-      success: function(res) {
-        renderTable(res.content);
-        renderPagination(res);
-        updatePageInfo(res);
-      },
-      error: function() {
-        $('#spctTableBody').html('<tr><td colspan="8" class="text-center text-danger py-4">Lỗi tải dữ liệu</td></tr>');
-      }
-    });
-  }
-
-  function renderTable(list) {
-    if (!list || list.length === 0) {
-      $('#spctTableBody').html('<tr><td colspan="8" class="text-center py-4 text-muted">Không có dữ liệu</td></tr>');
-      return;
-    }
-    let html = '';
-    list.forEach(item => {
-      const gia = item.giaTien ? item.giaTien.toLocaleString('vi-VN') + ' ₫' : '0 ₫';
-
-      // Logic hiển thị trạng thái và nút bấm
-      let statusBadge = '';
-      let actionButton = '';
-
-      if (item.trangThai === 1) {
-        statusBadge = '<span class="badge-status badge-active">Đang bán</span>';
-        actionButton = `<button class="btn btn-action btn-light text-danger border" onclick="toggleStatus(${item.id}, 0)" title="Ngừng kinh doanh"><i class="fas fa-ban"></i></button>`;
-      } else {
-        statusBadge = '<span class="badge-status badge-inactive">Ngừng bán</span>';
-        actionButton = `<button class="btn btn-action btn-light text-success border" onclick="toggleStatus(${item.id}, 1)" title="Kích hoạt lại"><i class="fas fa-sync-alt"></i></button>`;
-      }
-
-      html += `
-            <tr>
-                <td class="fw-semibold text-dark">${item.sanPham?.tenSanPham || '-'}</td>
-                <td class="text-center"><span class="badge bg-light text-dark border">${item.mauSac?.tenMauSac || '-'}</span></td>
-                <td class="text-center"><span class="badge bg-light text-dark border">${item.kichThuoc?.tenKichThuoc || '-'}</span></td>
-                <td>${item.theLoai?.tenTheLoai || '-'}</td>
-                <td class="text-end fw-bold text-success">${gia}</td>
-                <td class="text-center">${item.soLuong}</td>
-                <td class="text-center">${statusBadge}</td>
-                <td class="text-center">
-                    <button class="btn btn-action btn-light text-warning border me-1" onclick="openEdit(${item.id})"><i class="fas fa-pen"></i></button>
-                    ${actionButton}
-                </td>
-            </tr>`;
-    });
-    $('#spctTableBody').html(html);
-  }
-
-  // --- 2. PHÂN TRANG ---
-  function renderPagination(pageData) {
-    if (pageData.totalPages <= 1) {
-      $('#paginationNav').empty();
-      return;
-    }
-    let html = '<ul class="pagination pagination-sm mb-0">';
-    html += `<li class="page-item ${pageData.first ? 'disabled' : ''}"><button class="page-link" onclick="changePage(${pageData.number - 1})">&laquo;</button></li>`;
-    for (let i = 0; i < pageData.totalPages; i++) {
-      if (i === 0 || i === pageData.totalPages - 1 || (i >= pageData.number - 1 && i <= pageData.number + 1)) {
-        html += `<li class="page-item ${i===pageData.number ? 'active' : ''}"><button class="page-link" onclick="changePage(${i})">${i + 1}</button></li>`;
-      } else if (i === pageData.number - 2 || i === pageData.number + 2) {
-        html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
-      }
-    }
-    html += `<li class="page-item ${pageData.last ? 'disabled' : ''}"><button class="page-link" onclick="changePage(${pageData.number + 1})">&raquo;</button></li></ul>`;
-    $('#paginationNav').html(html);
-  }
-
-  function changePage(p) {
-    if (p < 0) return;
-    currentFilter.page = p;
-    loadData();
-  }
-
-  function updatePageInfo(data) {
-    if (data.totalElements > 0) {
-      const start = data.number * data.size + 1;
-      const end = start + data.numberOfElements - 1;
-      $('#pageInfo').html(`Hiển thị <strong>${start}-${end}</strong> trên <strong>${data.totalElements}</strong> bản ghi`);
-    } else {
-      $('#pageInfo').html('');
-    }
-  }
-
-  // --- 3. ADD / EDIT / TOGGLE STATUS ---
-  function showAddModal() {
-    $('#spctForm')[0].reset();
-    $('#spctId').val('');
-    $('#modalTitle').text('THÊM MỚI BIẾN THỂ');
-    spctModal.show();
-  }
-
-  async function openEdit(id) {
-    try {
-      const res = await fetch(`${API_URL}/${id}`);
-      const data = await res.json();
-      $('#spctId').val(data.id);
-      $('#modalSanPham').val(data.sanPham?.id || '');
-      $('#modalMauSac').val(data.mauSac?.id || '');
-      $('#modalKichThuoc').val(data.kichThuoc?.id || '');
-      $('#modalTheLoai').val(data.theLoai?.id || '');
-      $('#modalChatLieu').val(data.chatLieu?.id || '');
-      $('#modalXuatXu').val(data.xuatXu?.id || '');
-      $('#modalPhanLoai').val(data.phanLoai?.id || '');
-      $('#modalGiaTien').val(data.giaTien);
-      $('#modalSoLuong').val(data.soLuong);
-      $('#modalTitle').text('CẬP NHẬT BIẾN THỂ');
-      spctModal.show();
-    } catch (e) {
-      toastr.error('Lỗi tải dữ liệu');
-    }
-  }
-
-  async function saveSPCT() {
-    const id = $('#spctId').val();
-    const payload = {
-      id: id || null,
-      sanPham: {
-        id: $('#modalSanPham').val()
-      },
-      mauSac: {
-        id: $('#modalMauSac').val()
-      },
-      kichThuoc: {
-        id: $('#modalKichThuoc').val()
-      },
-      theLoai: {
-        id: $('#modalTheLoai').val()
-      },
-      chatLieu: {
-        id: $('#modalChatLieu').val()
-      },
-      xuatXu: {
-        id: $('#modalXuatXu').val()
-      },
-      phanLoai: {
-        id: $('#modalPhanLoai').val()
-      },
-      giaTien: parseFloat($('#modalGiaTien').val()),
-      soLuong: parseInt($('#modalSoLuong').val()),
-      trangThai: 1 // Mặc định khi thêm/sửa là Active (hoặc giữ nguyên logic cũ của bạn)
-    };
-
-    if (!payload.sanPham.id || !payload.mauSac.id || !payload.kichThuoc.id || isNaN(payload.giaTien)) {
-      return toastr.warning('Vui lòng điền đủ thông tin bắt buộc (*)');
+    function formatCurrency(amount) {
+        if (!amount) return '0 ₫';
+        return new Intl.NumberFormat('vi-VN', {style: 'currency', currency: 'VND'}).format(amount);
     }
 
-    try {
-      const method = id ? 'PUT' : 'POST';
-      const url = id ? `${API_URL}/${id}` : API_URL;
-      const res = await fetch(url, {
-        method: method,
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      });
-      if (!res.ok) throw new Error(await res.text());
-      toastr.success(id ? 'Cập nhật thành công' : 'Thêm mới thành công');
-      spctModal.hide();
-      loadData();
-    } catch (e) {
-      toastr.error('Lưu thất bại: ' + e.message);
-    }
-  }
-
-  // --- HÀM MỚI: ĐỔI TRẠNG THÁI ---
-  async function toggleStatus(id, newStatus) {
-    const actionText = newStatus === 1 ? "Kích hoạt lại" : "Ngừng kinh doanh";
-    if (!confirm(`Bạn có chắc muốn ${actionText} biến thể này?`)) return;
-
-    try {
-      const res = await fetch(`${API_URL}/${id}/trang-thai?trangThai=${newStatus}`, {
-        method: 'PUT'
-      });
-      if (res.ok) {
-        toastr.success(`Đã ${actionText} thành công!`);
+    $(document).ready(function () {
+        spctModal = new bootstrap.Modal(document.getElementById('spctModal'));
         loadData();
-      } else {
-        toastr.error('Lỗi cập nhật trạng thái');
-      }
-    } catch (e) {
-      toastr.error('Lỗi server');
-    }
-  }
 
-  $('#filterForm').submit(function(e) {
-    e.preventDefault();
-    currentFilter.page = 0;
-    loadData();
-  });
-  $('#btnReset').click(function() {
-    $('#filterForm')[0].reset();
-    currentFilter.page = 0;
-    loadData();
-  });
+        // --- XỬ LÝ CHỌN SẢN PHẨM & TỰ ĐỘNG LẤY GIÁ ---
+        $('#inputSearchProduct').on('input', function () {
+            const val = $(this).val();
+            const list = $('#datalistSanPham option');
+            let hiddenId = '';
+            let autoPrice = 0;
+            let found = false;
+
+            for (let i = 0; i < list.length; i++) {
+                if (list[i].value === val) {
+                    hiddenId = list[i].getAttribute('data-id');
+                    autoPrice = parseFloat(list[i].getAttribute('data-price')) || 0;
+                    found = true;
+                    break;
+                }
+            }
+
+            if (found) {
+                $('#hiddenSanPhamId').val(hiddenId);
+                $('#modalGiaTien').val(autoPrice);
+                $('#selectedProductText').html('<span class="text-success fw-bold"><i class="fas fa-check-circle"></i> Đã chọn SP: ' + val + '</span>');
+            } else {
+                $('#hiddenSanPhamId').val('');
+                $('#modalGiaTien').val('');
+                $('#selectedProductText').html('<span class="text-warning">Đang tìm kiếm...</span>');
+            }
+        });
+    });
+
+    function clearSearchProduct() {
+        $('#inputSearchProduct').val('');
+        $('#hiddenSanPhamId').val('');
+        $('#modalGiaTien').val('');
+        $('#selectedProductText').text('Vui lòng chọn sản phẩm trước');
+    }
+
+    // --- LOAD DATA (ĐÃ BỎ LỌC GIÁ) ---
+    function loadData() {
+        currentFilter.idSanPham = $('#filterSanPham').val() || null;
+        currentFilter.idMauSac = $('#filterMauSac').val() || null;
+        currentFilter.idKichThuoc = $('#filterKichThuoc').val() || null;
+        // Bỏ minPrice, maxPrice
+
+        $('#spctTableBody').html('<tr><td colspan="12" class="text-center py-4"><div class="spinner-border text-primary"></div></td></tr>');
+
+        $.ajax({
+            url: API_URL, type: 'GET', data: currentFilter,
+            success: function (res) {
+                renderTable(res.content);
+                renderPagination(res);
+                updatePageInfo(res);
+            },
+            error: function () {
+                $('#spctTableBody').html('<tr><td colspan="12" class="text-center text-danger py-4">Lỗi tải dữ liệu</td></tr>');
+            }
+        });
+    }
+
+    function renderTable(list) {
+        if (!list || list.length === 0) {
+            $('#spctTableBody').html('<tr><td colspan="12" class="text-center py-4 text-muted">Không có dữ liệu</td></tr>');
+            return;
+        }
+        let html = '';
+        list.forEach((item, index) => {
+            const statusBadge = item.trangThai === 1
+                ? '<span class="badge-status badge-active"><i class="fas fa-check-circle me-1"></i>Đang bán</span>'
+                : '<span class="badge-status badge-inactive"><i class="fas fa-ban me-1"></i>Ngừng bán</span>';
+
+            const toggleBtn = item.trangThai === 1
+                ? `<button class="btn btn-action btn-light text-danger border" onclick="toggleStatus(${item.id}, 0)" title="Ngừng bán"><i class="fas fa-ban"></i></button>`
+                : `<button class="btn btn-action btn-light text-success border" onclick="toggleStatus(${item.id}, 1)" title="Kích hoạt lại"><i class="fas fa-sync-alt"></i></button>`;
+
+            html += `
+        <tr>
+            <td class="text-center text-muted">${index + 1}</td>
+            <td class="fw-bold text-secondary">${item.maSanPhamChiTiet || 'N/A'}</td>
+            <td class="fw-bold text-primary">${item.sanPham?.tenSanPham || '-'}</td>
+            <td class="text-center">
+                <span class="badge bg-light text-dark border me-1">${item.mauSac?.tenMauSac || '?'}</span>
+                <span class="badge bg-light text-dark border">${item.kichThuoc?.tenKichThuoc || '?'}</span>
+            </td>
+            <td>${item.chatLieu?.loaiChatLieu || '-'}</td>
+            <td>${item.xuatXu?.tenXuatXu || '-'}</td>
+            <td>${item.phanLoai?.phanLoai || '-'}</td>
+            <td>${item.theLoai?.tenTheLoai || '-'}</td>
+            <td class="text-end fw-bold text-dark">${formatCurrency(item.giaTien)}</td>
+            <td class="text-center fw-bold">${item.soLuong}</td>
+            <td class="text-center">${statusBadge}</td>
+            <td class="text-center">
+                <button class="btn btn-action btn-light text-warning border me-1" onclick="openEdit(${item.id})" title="Sửa"><i class="fas fa-edit"></i></button>
+                ${toggleBtn}
+            </td>
+        </tr>`;
+        });
+        $('#spctTableBody').html(html);
+    }
+
+    // --- CRUD ---
+    function showAddModal() {
+        $('#spctForm')[0].reset();
+        $('#spctId').val('');
+        $('#modalMaSPCT').val('Tự động tạo khi lưu');
+        clearSearchProduct();
+
+        $('#inputSearchProduct').prop('disabled', false);
+        $('.btn-outline-secondary').show();
+        $('#modalTitle').html('<i class="fas fa-cube me-2"></i>THÊM MỚI BIẾN THỂ');
+        spctModal.show();
+    }
+
+    async function openEdit(id) {
+        try {
+            const res = await fetch(`${API_URL}/${id}`);
+            const data = await res.json();
+
+            $('#spctId').val(data.id);
+            $('#modalMaSPCT').val(data.maSanPhamChiTiet);
+
+            if (data.sanPham) {
+                $('#inputSearchProduct').val(data.sanPham.tenSanPham);
+                $('#hiddenSanPhamId').val(data.sanPham.id);
+                $('#selectedProductText').html('<span class="text-success fw-bold">Sản phẩm gốc: ' + data.sanPham.tenSanPham + '</span>');
+                $('#inputSearchProduct').prop('disabled', true);
+                $('.btn-outline-secondary').hide();
+            }
+
+            $('#modalMauSac').val(data.mauSac?.id || '');
+            $('#modalKichThuoc').val(data.kichThuoc?.id || '');
+            $('#modalTheLoai').val(data.theLoai?.id || '');
+            $('#modalChatLieu').val(data.chatLieu?.id || '');
+            $('#modalXuatXu').val(data.xuatXu?.id || '');
+            $('#modalPhanLoai').val(data.phanLoai?.id || '');
+
+            $('#modalGiaTien').val(data.giaTien);
+            $('#modalSoLuong').val(data.soLuong);
+
+            $('#modalTitle').html('<i class="fas fa-edit me-2"></i>CẬP NHẬT BIẾN THỂ');
+            spctModal.show();
+        } catch (e) {
+            toastr.error('Lỗi tải dữ liệu chi tiết');
+        }
+    }
+
+    async function saveSPCT() {
+        let currentMa = $('#modalMaSPCT').val();
+        if(currentMa === 'Tự động tạo khi lưu') currentMa = null;
+
+        const payload = {
+            id: $('#spctId').val() || null,
+            maSanPhamChiTiet: currentMa,
+            sanPham: {id: $('#hiddenSanPhamId').val()},
+            mauSac: {id: $('#modalMauSac').val()},
+            kichThuoc: {id: $('#modalKichThuoc').val()},
+            theLoai: {id: $('#modalTheLoai').val()},
+            chatLieu: {id: $('#modalChatLieu').val()},
+            xuatXu: {id: $('#modalXuatXu').val()},
+            phanLoai: {id: $('#modalPhanLoai').val()},
+            giaTien: parseFloat($('#modalGiaTien').val()),
+            soLuong: parseInt($('#modalSoLuong').val()),
+            trangThai: 1
+        };
+
+        if (!payload.sanPham.id) return toastr.warning("Vui lòng chọn sản phẩm gốc!");
+        if (!payload.mauSac.id || !payload.kichThuoc.id) return toastr.warning("Vui lòng chọn Màu sắc và Kích thước!");
+        if (isNaN(payload.soLuong) || payload.soLuong < 0) return toastr.warning("Số lượng không hợp lệ!");
+
+        try {
+            const method = payload.id ? 'PUT' : 'POST';
+            const url = payload.id ? `${API_URL}/${payload.id}` : API_URL;
+
+            const res = await fetch(url, {
+                method: method,
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(payload)
+            });
+
+            if (res.ok) {
+                toastr.success(payload.id ? 'Cập nhật thành công' : 'Thêm mới thành công');
+                spctModal.hide();
+                loadData();
+            } else {
+                const err = await res.text();
+                toastr.error("Lỗi: " + err);
+            }
+        } catch (e) {
+            toastr.error('Lỗi kết nối server');
+        }
+    }
+
+    async function toggleStatus(id, newStatus) {
+        if (!confirm("Bạn có chắc chắn muốn thay đổi trạng thái?")) return;
+        try {
+            await fetch(`${API_URL}/${id}/trang-thai?trangThai=${newStatus}`, {method: 'PUT'});
+            toastr.success("Cập nhật trạng thái thành công");
+            loadData();
+        } catch (e) {
+            toastr.error("Lỗi hệ thống");
+        }
+    }
+
+    // --- PAGINATION ---
+    function renderPagination(data) {
+        if (data.totalPages <= 1) {
+            $('#paginationNav').empty();
+            return;
+        }
+        let html = '<ul class="pagination pagination-sm mb-0">';
+        html += `<li class="page-item ${data.first ? 'disabled' : ''}"><button class="page-link" onclick="changePage(${data.number - 1})">&laquo;</button></li>`;
+        for (let i = 0; i < data.totalPages; i++) {
+            if (i === 0 || i === data.totalPages - 1 || (i >= data.number - 1 && i <= data.number + 1))
+                html += `<li class="page-item ${i === data.number ? 'active' : ''}"><button class="page-link" onclick="changePage(${i})">${i + 1}</button></li>`;
+            else if (i === data.number - 2 || i === data.number + 2)
+                html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+        }
+        html += `<li class="page-item ${data.last ? 'disabled' : ''}"><button class="page-link" onclick="changePage(${data.number + 1})">&raquo;</button></li></ul>`;
+        $('#paginationNav').html(html);
+    }
+
+    function changePage(p) {
+        if (p >= 0) {
+            currentFilter.page = p;
+            loadData();
+        }
+    }
+
+    function updatePageInfo(data) {
+        if (data.totalElements > 0) $('#pageInfo').html(`Hiển thị <strong>${data.numberOfElements}</strong> / <strong>${data.totalElements}</strong> biến thể`);
+        else $('#pageInfo').empty();
+    }
+
+    $('#filterForm').submit(e => {
+        e.preventDefault();
+        currentFilter.page = 0;
+        loadData();
+    });
+    $('#btnReset').click(() => {
+        $('#filterForm')[0].reset();
+        currentFilter.page = 0;
+        loadData();
+    });
 </script>
 </body>
-
 </html>

@@ -7,6 +7,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import sd_04.datn_fstore.model.HinhAnh;
 import sd_04.datn_fstore.model.SanPham;
+import sd_04.datn_fstore.model.SanPhamChiTiet;
+import sd_04.datn_fstore.repository.SanPhamCTRepository; // [MỚI]
 import sd_04.datn_fstore.repository.SanPhamRepository;
 import sd_04.datn_fstore.service.HinhAnhService;
 import sd_04.datn_fstore.service.SanPhamService;
@@ -19,6 +21,7 @@ import java.util.Optional;
 public class SanPhamServiceImpl implements SanPhamService {
 
     private final SanPhamRepository sanPhamRepository;
+    private final SanPhamCTRepository sanPhamCTRepository; // [MỚI] Inject thêm cái này
     private final HinhAnhService hinhAnhService;
 
     @Override
@@ -31,28 +34,39 @@ public class SanPhamServiceImpl implements SanPhamService {
     @Override
     public Optional<SanPham> getById(Integer id) {
         Optional<SanPham> sanPhamOpt = sanPhamRepository.findById(id);
-
         sanPhamOpt.ifPresent(this::loadHinhAnhChinh);
-
         return sanPhamOpt;
     }
 
     @Override
     @Transactional
     public SanPham save(SanPham sanPham) {
-        return sanPhamRepository.save(sanPham);
+        // 1. Lưu sản phẩm cha trước
+        SanPham savedSanPham = sanPhamRepository.save(sanPham);
+
+        // 2. [LOGIC MỚI] Đồng bộ giá cho tất cả sản phẩm chi tiết (con)
+        if (savedSanPham.getId() != null) {
+            List<SanPhamChiTiet> listCon = sanPhamCTRepository.findBySanPhamId(savedSanPham.getId());
+            if (!listCon.isEmpty()) {
+                for (SanPhamChiTiet chiTiet : listCon) {
+                    // Gán giá của con = giá của cha
+                    chiTiet.setGiaTien(savedSanPham.getGiaTien());
+                }
+                // Lưu lại danh sách con đã cập nhật giá
+                sanPhamCTRepository.saveAll(listCon);
+            }
+        }
+
+        return savedSanPham;
     }
 
     @Override
     @Transactional
     public void delete(Integer id) {
         Optional<SanPham> sanPhamOpt = sanPhamRepository.findById(id);
-
         if (sanPhamOpt.isPresent()) {
             SanPham sanPham = sanPhamOpt.get();
-
             hinhAnhService.deleteBySanPham(sanPham);
-
             sanPhamRepository.delete(sanPham);
         }
     }
@@ -62,17 +76,13 @@ public class SanPhamServiceImpl implements SanPhamService {
         if (keyword != null && keyword.trim().isEmpty()) {
             keyword = null;
         }
-
         Page<SanPham> sanPhamPage = sanPhamRepository.findPaginated(pageable, keyword, trangThai);
-
         sanPhamPage.getContent().forEach(this::loadHinhAnhChinh);
-
         return sanPhamPage;
     }
 
     private void loadHinhAnhChinh(SanPham sanPham) {
         Optional<HinhAnh> avatarOpt = hinhAnhService.getAvatar(sanPham.getId());
-
         if (avatarOpt.isPresent()) {
             sanPham.setTenHinhAnhChinh(avatarOpt.get().getTenHinhAnh());
         } else {
@@ -87,15 +97,13 @@ public class SanPhamServiceImpl implements SanPhamService {
     public boolean existsByMaSanPham(String maSanPham) {
         return sanPhamRepository.findByMaSanPham(maSanPham).isPresent();
     }
+
     @Override
     public SanPham updateTrangThai(Integer id, Integer newStatus) {
         Optional<SanPham> optionalSanPham = sanPhamRepository.findById(id);
-
         if (optionalSanPham.isPresent()) {
             SanPham sanPham = optionalSanPham.get();
-
             sanPham.setTrangThai(newStatus);
-
             return sanPhamRepository.save(sanPham);
         } else {
             throw new RuntimeException("Không tìm thấy sản phẩm có ID: " + id);

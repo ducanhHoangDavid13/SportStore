@@ -9,6 +9,7 @@ import sd_04.datn_fstore.model.HinhAnh;
 import sd_04.datn_fstore.model.SanPham;
 import sd_04.datn_fstore.model.SanPhamChiTiet;
 import sd_04.datn_fstore.repository.SanPhamCTRepository;
+import sd_04.datn_fstore.repository.SanPhamRepository;
 import sd_04.datn_fstore.service.HinhAnhService;
 import sd_04.datn_fstore.service.SanPhamCTService;
 
@@ -22,6 +23,10 @@ public class SanPhamCTServiceImpl implements SanPhamCTService {
 
     private final SanPhamCTRepository sanPhamChiTietRepository;
     private final HinhAnhService hinhAnhService;
+<<<<<<< HEAD
+=======
+    private final SanPhamRepository sanPhamRepository;
+>>>>>>> 88acbdeaf7b068cb7c67e415a4bf4650adf7384d
 
     @Override
     public List<SanPhamChiTiet> getAll() {
@@ -47,8 +52,28 @@ public class SanPhamCTServiceImpl implements SanPhamCTService {
     @Override
     @Transactional
     public SanPhamChiTiet save(SanPhamChiTiet sanPhamChiTiet) {
-        sanPhamChiTiet.setTrangThai(1);
-        return sanPhamChiTietRepository.save(sanPhamChiTiet);
+        if (sanPhamChiTiet.getId() == null) {
+            sanPhamChiTiet.setTrangThai(1);
+        }
+
+        // [LOGIC MỚI] Tự động lấy giá tiền từ Sản Phẩm cha nếu có
+        if (sanPhamChiTiet.getSanPham() != null && sanPhamChiTiet.getSanPham().getId() != null) {
+            // Tìm sản phẩm cha trong DB để đảm bảo lấy được giá mới nhất
+            SanPham spCha = sanPhamRepository.findById(sanPhamChiTiet.getSanPham().getId()).orElse(null);
+            if (spCha != null) {
+                // Gán giá cha cho con
+                sanPhamChiTiet.setGiaTien(spCha.getGiaTien());
+                // Gán lại object cha để chắc chắn
+                sanPhamChiTiet.setSanPham(spCha);
+            }
+        }
+
+        SanPhamChiTiet savedSpct = sanPhamChiTietRepository.save(sanPhamChiTiet);
+
+        if (savedSpct.getSanPham() != null) {
+            updateTotalQuantitySanPham(savedSpct.getSanPham().getId());
+        }
+        return savedSpct;
     }
 
     @Override
@@ -57,8 +82,30 @@ public class SanPhamCTServiceImpl implements SanPhamCTService {
         Optional<SanPhamChiTiet> optional = sanPhamChiTietRepository.findById(id);
         if (optional.isPresent()) {
             SanPhamChiTiet spct = optional.get();
+<<<<<<< HEAD
             spct.setTrangThai(0);
+=======
+            Integer sanPhamId = spct.getSanPham().getId();
+
+            spct.setTrangThai(0); // Soft delete
+>>>>>>> 88acbdeaf7b068cb7c67e415a4bf4650adf7384d
             sanPhamChiTietRepository.save(spct);
+            updateTotalQuantitySanPham(sanPhamId);
+        }
+    }
+
+    @Override
+    @Transactional
+    public SanPhamChiTiet updateTrangThai(Integer id, Integer newStatus) {
+        Optional<SanPhamChiTiet> optional = sanPhamChiTietRepository.findById(id);
+        if (optional.isPresent()) {
+            SanPhamChiTiet spct = optional.get();
+            spct.setTrangThai(newStatus);
+            SanPhamChiTiet saved = sanPhamChiTietRepository.save(spct);
+            updateTotalQuantitySanPham(spct.getSanPham().getId());
+            return saved;
+        } else {
+            throw new RuntimeException("Không tìm thấy biến thể sản phẩm ID: " + id);
         }
     }
 
@@ -72,8 +119,6 @@ public class SanPhamCTServiceImpl implements SanPhamCTService {
             Integer idXuatXu,
             Integer idMauSac,
             Integer idPhanLoai,
-            BigDecimal minPrice,
-            BigDecimal maxPrice,
             Integer trangThai,
             String keyword
     ) {
@@ -86,8 +131,6 @@ public class SanPhamCTServiceImpl implements SanPhamCTService {
                 idXuatXu,
                 idMauSac,
                 idPhanLoai,
-                minPrice,
-                maxPrice,
                 trangThai,
                 keyword
         );
@@ -96,8 +139,27 @@ public class SanPhamCTServiceImpl implements SanPhamCTService {
     }
 
     @Override
-    public List<SanPhamChiTiet> getAvailableProducts() {
+    public List<SanPhamChiTiet> getAvailableProducts(Integer idSanPham) {
+        List<SanPhamChiTiet> list = sanPhamChiTietRepository.findAvailableVariants(idSanPham);
+        list.forEach(this::loadTenHinhAnhChinh);
+        return list;
+    }
+
+    @Override
+    public List<SanPhamChiTiet> getAllActive() {
         List<SanPhamChiTiet> list = sanPhamChiTietRepository.getAvailableProductsWithDetails(1, 0);
+        list.forEach(this::loadTenHinhAnhChinh);
+        return list;
+    }
+
+    @Override
+    public List<SanPhamChiTiet> timTheoKhoangGia(BigDecimal maxPrice) {
+        return sanPhamChiTietRepository.findBySanPham_GiaTienLessThanEqual(maxPrice);
+    }
+
+    @Override
+    public List<SanPhamChiTiet> getBySanPhamId(Integer idSanPham) {
+        List<SanPhamChiTiet> list = sanPhamChiTietRepository.findBySanPhamId(idSanPham);
         list.forEach(this::loadTenHinhAnhChinh);
         return list;
     }
@@ -109,18 +171,22 @@ public class SanPhamCTServiceImpl implements SanPhamCTService {
         return list;
     }
 
-    @Override
-    public SanPhamChiTiet updateTrangThai(Integer id, Integer newStatus) {
-        Optional<SanPhamChiTiet> optional = sanPhamChiTietRepository.findById(id);
-        if (optional.isPresent()) {
-            SanPhamChiTiet spct = optional.get();
-            spct.setTrangThai(newStatus);
-            return sanPhamChiTietRepository.save(spct);
-        } else {
-            throw new RuntimeException("Không tìm thấy biến thể sản phẩm ID: " + id);
+    private void updateTotalQuantitySanPham(Integer sanPhamId) {
+        SanPham sanPham = sanPhamRepository.findById(sanPhamId).orElse(null);
+        if (sanPham != null) {
+            int total = 0;
+            List<SanPhamChiTiet> variants = sanPhamChiTietRepository.findBySanPhamId(sanPhamId);
+            for (SanPhamChiTiet ct : variants) {
+                if (ct.getTrangThai() == 1 && ct.getSoLuong() != null) {
+                    total += ct.getSoLuong();
+                }
+            }
+            sanPham.setSoLuong(total);
+            sanPhamRepository.save(sanPham);
         }
     }
 
+<<<<<<< HEAD
     // 💡 PHƯƠNG THỨC ĐÃ SỬA: Lấy danh sách SPCT theo ID Sản phẩm (cha)
     @Override
     public List<SanPhamChiTiet> getBySanPhamId(Integer id) {
@@ -135,11 +201,14 @@ public class SanPhamCTServiceImpl implements SanPhamCTService {
             return;
         }
 
+=======
+    private void loadTenHinhAnhChinh(SanPhamChiTiet spct) {
+        if (spct.getSanPham() == null) return;
+>>>>>>> 88acbdeaf7b068cb7c67e415a4bf4650adf7384d
         SanPham sanPhamCha = spct.getSanPham();
         Integer sanPhamId = sanPhamCha.getId();
 
         Optional<HinhAnh> avatarOpt = hinhAnhService.getAvatar(sanPhamId);
-
         if (avatarOpt.isPresent()) {
             sanPhamCha.setTenHinhAnhChinh(avatarOpt.get().getTenHinhAnh());
         } else {
@@ -149,6 +218,7 @@ public class SanPhamCTServiceImpl implements SanPhamCTService {
             }
         }
     }
+<<<<<<< HEAD
 
     @Override
     public SanPhamChiTiet getByIdAndAvailable(Integer id) {
@@ -162,4 +232,6 @@ public class SanPhamCTServiceImpl implements SanPhamCTService {
         }
         return null;
     }
+=======
+>>>>>>> 88acbdeaf7b068cb7c67e415a4bf4650adf7384d
 }

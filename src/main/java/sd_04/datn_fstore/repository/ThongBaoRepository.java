@@ -13,4 +13,5 @@ public interface ThongBaoRepository extends JpaRepository<ThongBao, Integer> {
     // Lấy 10 thông báo gần nhất (kể cả đã đọc) để hiển thị lịch sử
     List<ThongBao> findTop10ByOrderByNgayTaoDesc();
     boolean existsByLoaiThongBaoAndNoiDungAndTrangThai(String loaiThongBao, String noiDung, Integer trangThai);
+
 }

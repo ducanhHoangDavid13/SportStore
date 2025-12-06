@@ -25,16 +25,13 @@
             .main-content { margin-left: 0; width: 100%; }
         }
 
-        /* --- COMPONENTS --- */
-        
-
-        /* Card Styles */
         .card-box {
             background: #ffffff;
             border-radius: 12px;
             border: none;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
             margin-bottom: 1.5rem;
+            padding-bottom: 30px;
         }
 
         /* Table Styles */
@@ -112,7 +109,7 @@
 <div class="page-wrapper">
     <div th:replace="~{library/navbar :: admin-sidebar}"></div>
 
-    <main class="main-content">
+    <main class="main-content" style="margin-top: 100px ;margin-left: 20px">
         <div class="container-fluid p-0">
 
             <div class="d-flex justify-content-between align-items-center mb-4">
@@ -125,7 +122,7 @@
                 </button>
             </div>
 
-            <div class="custom-card mb-4">
+            <div class="card-box ">
                 <form id="filterForm">
                     <div class="row g-3 align-items-end">
                         <div class="col-md-4">
@@ -242,10 +239,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-12">
-                            <label class="form-label fw-bold small">Mật khẩu</label>
-                            <input type="password" class="form-control" id="newPassword">
-                        </div>
+
                     </div>
                 </form>
             </div>
@@ -380,6 +374,7 @@
         function validateForm(prefix) {
             clearValidationErrors(prefix);
             let isValid = true;
+
             const setError = (id, msg) => {
                 $(`#${prefix}${id}`).addClass('is-invalid');
                 $(`#error-${prefix}${id}`).text(msg);
@@ -391,12 +386,23 @@
             const email = $(`#${prefix}Email`).val().trim();
 
             if (!ten) setError('TenKhachHang', 'Tên không được để trống');
-            if (prefix === 'new' && !$(`#newMaKhachHang`).val().trim()) setError('MaKhachHang', 'Mã không được để trống');
-            if (sdt && !/^0\d{9}$/.test(sdt)) setError('SoDienThoai', 'SĐT phải có 10 số (VD: 09xx)');
-            if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) setError('Email', 'Email không đúng định dạng');
+
+            if (prefix === 'new' && !$(`#newMaKhachHang`).val().trim())
+                setError('MaKhachHang', 'Mã không được để trống');
+
+            // ==== SỬA Ở ĐÂY ====
+            if (!sdt) {
+                setError('SoDienThoai', 'SĐT không được để trống');
+            } else if (!/^0\d{9}$/.test(sdt)) {
+                setError('SoDienThoai', 'SĐT phải bắt đầu bằng 0 và có đúng 10 số');
+            }
+
+            if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+                setError('Email', 'Email không đúng định dạng');
 
             return isValid;
         }
+
 
         // 2. LOAD DATA
         function loadKhachHang() {
@@ -445,7 +451,7 @@
                                 </td>
                                 <td>${kh.soDienThoai || '-'}</td>
                                 <td>${kh.email || '<span class="text-muted small">trống</span>'}</td>
-                                <td class="text-center text-gray">${kh.namSinh || '-'}</td>
+                                <td class="text-center text-gray">${kh.tuoi || '-'}</td>
                                 <td class="text-center">${gender}</td>
                                 <td class="text-end pe-4">
                                     <button class="btn btn-sm btn-outline-primary border-0 btn-view me-1" data-id="${kh.id}" title="Xem chi tiết">
@@ -550,13 +556,12 @@
                 tenKhachHang: $('#newTenKhachHang').val(),
                 soDienThoai: $('#newSoDienThoai').val(),
                 email: $('#newEmail').val(),
-                password: $('#newPassword').val(),
                 namSinh: $('#newNamSinh').val(),
                 gioiTinh: $('input[name="newGioiTinh"]:checked').val() === 'true'
             };
 
             $.ajax({
-                url: "/api/khach-hang", type: "POST", contentType: "application/json", data: JSON.stringify(data),
+                url: "/api/khach-hang/add", type: "POST", contentType: "application/json", data: JSON.stringify(data),
                 success: function () {
                     toastr.success("Thêm thành công");
                     $('#addKhachHangModal').modal('hide');

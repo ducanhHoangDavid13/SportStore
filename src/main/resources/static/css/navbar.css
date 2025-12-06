@@ -1,29 +1,45 @@
-
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
 
 :root {
-    --sidebar-width: 280px; /* Rộng hơn chút để thoáng */
+    --sidebar-width: 280px;
     --sidebar-bg-start: #0f172a; /* Slate 900 */
     --sidebar-bg-end: #1e293b;   /* Slate 800 */
-    --accent-color: #6366f1;     /* Indigo 500 - Màu điểm nhấn */
+    --accent-color: #6366f1;     /* Indigo 500 */
     --accent-glow: rgba(99, 102, 241, 0.3);
     --text-secondary: #94a3b8;
     --body-bg: #f1f5f9;
+    --navbar-height: 70px;       /* Định nghĩa biến chiều cao navbar */
 }
 
 body {
     background-color: var(--body-bg);
-    font-family: 'Poppins', sans-serif; /* Font chữ hiện đại */
+    font-family: 'Poppins', sans-serif;
     font-size: 0.9rem;
+
+    /* QUAN TRỌNG: Đẩy nội dung xuống bằng chiều cao Navbar để không bị che */
+    padding-top: var(--navbar-height);
+
+    /* Mặc định trên mobile không có padding trái (sidebar ẩn) */
+    padding-left: 0;
+    transition: padding-left 0.3s ease;
 }
 
 /* --- NAVBAR --- */
 .navbar-admin {
     background: #ffffff;
-    height: 70px;
+    height: var(--navbar-height);
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
     padding: 0 25px;
+
+    /* QUAN TRỌNG: Cố định Navbar lên trên cùng */
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: 0; /* Mặc định full màn hình (mobile) */
     z-index: 1000;
+
+    /* Hiệu ứng trượt mượt mà khi đổi kích thước */
+    transition: all 0.3s ease;
 }
 
 .search-box input {
@@ -36,6 +52,7 @@ body {
 .search-box input:focus {
     background-color: #fff;
     box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    outline: none;
 }
 .search-icon {
     position: absolute;
@@ -52,14 +69,22 @@ body {
     position: fixed;
     top: 0;
     left: 0;
-    /* Gradient dọc tạo chiều sâu */
     background: linear-gradient(180deg, var(--sidebar-bg-start) 0%, var(--sidebar-bg-end) 100%);
     color: #fff;
-    z-index: 1001;
+    z-index: 1001; /* Cao hơn Navbar để đè lên nếu cần, hoặc Navbar sẽ né sang phải */
     overflow-y: auto;
     box-shadow: 10px 0 30px rgba(0,0,0,0.1);
     padding: 20px 15px;
+
+    /* Ẩn sidebar trên mobile (nếu muốn, hoặc dùng JS để toggle) */
+    /* transform: translateX(-100%); */
+    /* transition: transform 0.3s ease; */
 }
+
+/* Scrollbar đẹp cho Sidebar */
+.sidebar-wrapper::-webkit-scrollbar { width: 6px; }
+.sidebar-wrapper::-webkit-scrollbar-track { background: transparent; }
+.sidebar-wrapper::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
 
 .sidebar-header {
     margin-bottom: 30px;
@@ -71,11 +96,12 @@ body {
     color: var(--text-secondary);
     padding: 12px 15px;
     margin-bottom: 5px;
-    border-radius: 12px; /* Bo tròn */
+    border-radius: 12px;
     transition: all 0.3s ease;
     font-weight: 500;
     display: flex;
     align-items: center;
+    text-decoration: none; /* Bỏ gạch chân mặc định của thẻ a */
 }
 
 .sidebar-wrapper .nav-link i {
@@ -91,14 +117,13 @@ body {
 .sidebar-wrapper .nav-link:hover {
     color: #fff;
     background-color: rgba(255, 255, 255, 0.08);
-    transform: translateX(5px); /* Trượt nhẹ sang phải */
+    transform: translateX(5px);
 }
 
-/* Class active giả lập (Bạn cần logic thymeleaf để thêm class này vào thẻ <a> đang chọn) */
 .sidebar-wrapper .nav-link.active-tab {
     background: var(--accent-color);
     color: #fff;
-    box-shadow: 0 4px 15px var(--accent-glow); /* Hiệu ứng phát sáng */
+    box-shadow: 0 4px 15px var(--accent-glow);
 }
 
 /* Group Title */
@@ -134,16 +159,20 @@ body {
     background-color: #fff;
 }
 
-/* --- RESPONSIVE --- */
+/* --- RESPONSIVE LAYOUT (Desktop) --- */
 @media (min-width: 992px) {
-    body { padding-left: var(--sidebar-width); }
+    /* Khi màn hình lớn: Hiện sidebar và đẩy nội dung sang phải */
+
+    .sidebar-wrapper {
+        transform: translateX(0); /* Luôn hiện sidebar */
+    }
+
+    body {
+        padding-left: var(--sidebar-width); /* Đẩy body sang phải */
+    }
+
     .navbar-admin {
-        margin-left: var(--sidebar-width);
-        width: calc(100% - var(--sidebar-width));
+        left: var(--sidebar-width); /* Navbar bắt đầu từ mép sidebar */
+        width: calc(100% - var(--sidebar-width)); /* Chiều rộng còn lại */
     }
 }
-
-/* Scrollbar đẹp cho Chrome */
-.sidebar-wrapper::-webkit-scrollbar { width: 6px; }
-.sidebar-wrapper::-webkit-scrollbar-track { background: transparent; }
-.sidebar-wrapper::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }

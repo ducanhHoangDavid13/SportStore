@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
 import sd_04.datn_fstore.model.PhieuGiamGia;
 import sd_04.datn_fstore.repository.PhieuGiamGiaRepo;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
@@ -222,75 +224,143 @@ public class PhieuGiamgiaService {
      * Hàm kiểm tra xem Voucher có dùng được cho đơn hàng hiện tại không
      * Dùng cho API /api/checkout/calculate
      */
-    public VoucherCheckResult kiemTraVoucherHople(String code, Double tongTienDonHang) {
-        // 1. Tìm voucher theo mã
-        Optional<PhieuGiamGia> voucherOpt = phieuGiamGiaRepository.findByMaPhieuGiamGia(code);
+    public VoucherCheckResult kiemTraVoucherHople(String code, BigDecimal tongTienDonHang) {
+        // 1. Validate đầu vào
+        if (code == null || code.trim().isEmpty()) {
+            return new VoucherCheckResult(false, "Mã giảm giá không hợp lệ.", 0.0);
+        }
+        if (tongTienDonHang == null) tongTienDonHang = BigDecimal.ZERO;
 
+        // 2. Tìm voucher
+        Optional<PhieuGiamGia> voucherOpt = phieuGiamGiaRepository.findByMaPhieuGiamGia(code);
         if (voucherOpt.isEmpty()) {
             return new VoucherCheckResult(false, "Mã giảm giá không tồn tại.", 0.0);
         }
 
         PhieuGiamGia voucher = voucherOpt.get();
-        LocalDateTime now = LocalDateTime.now(VN_ZONE);
+        LocalDateTime now = LocalDateTime.now(); // Server time
 
-        // 2. Check Trạng thái (0 là Active)
-        if (voucher.getTrangThai() != 0) {
-            return new VoucherCheckResult(false, "Mã giảm giá đã ngừng hoạt động hoặc hết hạn.", 0.0);
+        // 3. Check Trạng thái (QUAN TRỌNG: Dựa theo file cũ của bạn, 1 là Active)
+        // Nếu hệ thống bạn quy định 0 là Active thì sửa số 1 thành 0 nhé.
+        if (voucher.getTrangThai() != 1) {
+            return new VoucherCheckResult(false, "Mã giảm giá đã ngừng hoạt động.", 0.0);
         }
 
-        // 3. Check Số lượng (Double check cho chắc chắn)
-        if (voucher.getSoLuong() <= 0) {
+        // 4. Check Số lượng
+        if (voucher.getSoLuong() != null && voucher.getSoLuong() <= 0) {
             return new VoucherCheckResult(false, "Mã giảm giá đã hết lượt sử dụng.", 0.0);
         }
 
-        // 4. Check Thời gian (Chính xác từng giây)
-        if (now.isBefore(voucher.getNgayBatDau())) {
+        // 5. Check Thời gian
+        if (voucher.getNgayBatDau() != null && now.isBefore(voucher.getNgayBatDau())) {
             return new VoucherCheckResult(false, "Đợt giảm giá chưa bắt đầu.", 0.0);
         }
         if (voucher.getNgayKetThuc() != null && now.isAfter(voucher.getNgayKetThuc())) {
             return new VoucherCheckResult(false, "Mã giảm giá đã hết hạn.", 0.0);
         }
 
-        // 5. Check ĐIỀU KIỆN ĐƠN HÀNG TỐI THIỂU (Quan trọng)
-        Double dieuKien = voucher.getDieuKienGiamGia() != null ? voucher.getDieuKienGiamGia().doubleValue() : 0.0;
-        if (tongTienDonHang < dieuKien) {
-            return new VoucherCheckResult(false,
-                    "Đơn hàng phải từ " + formatCurrency(dieuKien) + " mới được dùng mã này.", 0.0);
+        // 6. Check ĐIỀU KIỆN ĐƠN HÀNG TỐI THIỂU (Dùng BigDecimal compareTo)
+        BigDecimal dieuKien = voucher.getDieuKienGiamGia() != null ? voucher.getDieuKienGiamGia() : BigDecimal.ZERO;
+        // tongTien < dieuKien (compareTo trả về -1)
+        if (tongTienDonHang.compareTo(dieuKien) < 0) {
+            // Format tiền tệ để hiển thị thông báo đẹp hơn
+            String msg = String.format("Đơn hàng phải từ %,.0fđ mới được dùng mã này.", dieuKien.doubleValue());
+            return new VoucherCheckResult(false, msg, 0.0);
         }
 
-        // 6. Tính toán số tiền được giảm
-        Double soTienGiam = 0.0;
+        // 7. Tính toán số tiền được giảm
+        BigDecimal soTienGiam = BigDecimal.ZERO;
+        BigDecimal giaTriGiam = voucher.getGiaTriGiam() != null ? voucher.getGiaTriGiam() : BigDecimal.ZERO;
 
         if (voucher.getHinhThucGiam() == 1) {
-            // TH1: Giảm tiền mặt (VND)
-            soTienGiam = voucher.getGiaTriGiam().doubleValue();
+            // --- TH1: Giảm tiền mặt (VND) ---
+            soTienGiam = giaTriGiam;
         } else {
-            // TH2: Giảm phần trăm (%)
-            Double phanTram = voucher.getGiaTriGiam().doubleValue();
-            soTienGiam = tongTienDonHang * (phanTram / 100);
+            // --- TH2: Giảm phần trăm (%) ---
+            // Logic: (Tổng tiền * % giảm) / 100
+            // Chặn % không quá 100
+            if (giaTriGiam.compareTo(new BigDecimal(100)) > 0) {
+                giaTriGiam = new BigDecimal(100);
+            }
 
-            // Check số tiền giảm TỐI ĐA (Nếu có set Max Discount)
-            if (voucher.getSoTienGiam() != null) {
-                Double maxGiam = voucher.getSoTienGiam().doubleValue();
-                if (soTienGiam > maxGiam) {
+            soTienGiam = tongTienDonHang.multiply(giaTriGiam)
+                    .divide(new BigDecimal(100), 0, RoundingMode.HALF_UP); // Làm tròn
+
+            // Check số tiền giảm TỐI ĐA (Max Discount)
+            if (voucher.getSoTienGiam() != null) { // Lưu ý: Cột này là mức giảm tối đa
+                BigDecimal maxGiam = voucher.getSoTienGiam();
+                if (soTienGiam.compareTo(maxGiam) > 0) {
                     soTienGiam = maxGiam;
                 }
             }
         }
 
-        // Đảm bảo không giảm quá tiền đơn hàng (tránh âm tiền)
-        if (soTienGiam > tongTienDonHang) {
+        // 8. Chốt chặn cuối cùng: Không bao giờ giảm quá giá trị đơn hàng
+        if (soTienGiam.compareTo(tongTienDonHang) > 0) {
             soTienGiam = tongTienDonHang;
         }
 
-        return new VoucherCheckResult(true, "Áp dụng mã giảm giá thành công!", soTienGiam);
+        // Trả về kết quả (Convert BigDecimal sang double để khớp với DTO cũ của bạn)
+        return new VoucherCheckResult(true, "Áp dụng mã thành công!", soTienGiam.doubleValue());
     }
 
     // Helper format tiền tệ cho thông báo lỗi đẹp
     private String formatCurrency(Double amount) {
         return String.format("%,.0f đ", amount);
     }
+// Trong PhieuGiamgiaService.java
 
+    public String timVoucherTotNhat(BigDecimal subTotal) {
+        // 1. Lấy tất cả voucher đang hoạt động
+        List<PhieuGiamGia> activeVouchers = phieuGiamGiaRepository.findAllActiveVouchers();
+
+        String bestCode = null;
+        BigDecimal maxDiscount = BigDecimal.ZERO;
+
+        for (PhieuGiamGia v : activeVouchers) {
+            // 2. Kiểm tra điều kiện đơn hàng tối thiểu
+            BigDecimal dieuKien = v.getDieuKienGiamGia() != null ? v.getDieuKienGiamGia() : BigDecimal.ZERO;
+
+            // Nếu tổng tiền < điều kiện -> Bỏ qua voucher này
+            if (subTotal.compareTo(dieuKien) < 0) {
+                continue;
+            }
+
+            // 3. Tính toán số tiền giảm thử
+            BigDecimal currentDiscount = BigDecimal.ZERO;
+
+            if (v.getHinhThucGiam() == 1) {
+                // -- Giảm tiền mặt --
+                currentDiscount = v.getGiaTriGiam();
+            } else {
+                // -- Giảm phần trăm --
+                BigDecimal phanTram = v.getGiaTriGiam();
+                // Chặn > 100%
+                if (phanTram.compareTo(new BigDecimal(100)) > 0) phanTram = new BigDecimal(100);
+
+                currentDiscount = subTotal.multiply(phanTram).divide(new BigDecimal(100));
+
+                // Kiểm tra giảm tối đa (Max Cap)
+                if (v.getSoTienGiam() != null && currentDiscount.compareTo(v.getSoTienGiam()) > 0) {
+                    currentDiscount = v.getSoTienGiam();
+                }
+            }
+
+            // Không được giảm quá tổng tiền đơn hàng
+            if (currentDiscount.compareTo(subTotal) > 0) {
+                currentDiscount = subTotal;
+            }
+
+            // 4. So sánh để tìm Best Option
+            // Nếu mức giảm này lớn hơn mức giảm lớn nhất hiện tại -> Cập nhật
+            if (currentDiscount.compareTo(maxDiscount) > 0) {
+                maxDiscount = currentDiscount;
+                bestCode = v.getMaPhieuGiamGia();
+            }
+        }
+
+        return bestCode; // Trả về mã tốt nhất (hoặc null nếu không tìm được)
+    }
     // DTO Record để trả về kết quả
     public record VoucherCheckResult(boolean isValid, String message, Double discountAmount) {}
 }

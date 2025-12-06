@@ -188,7 +188,7 @@
 
     document.addEventListener("DOMContentLoaded", function () {
         loadAddressData();      // Tải Tỉnh/Thành
-        loadCartFromStorage();  // Tải giỏ hàng
+        loadCartFromStorage();  // Tải giỏ hàng từ LocalStorage
         loadActiveVouchers();   // Tải mã giảm giá
     });
 
@@ -197,7 +197,9 @@
         return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
     }
 
-    // ... (Giữ nguyên phần 2: XỬ LÝ ĐỊA CHỈ - không thay đổi) ...
+    // =========================================================================
+    // 2. XỬ LÝ ĐỊA CHỈ (GIỮ NGUYÊN)
+    // =========================================================================
     function loadAddressData() {
         fetch(API_TINH).then(r => r.json()).then(data => {
             if (data.error === 0) {
@@ -242,17 +244,74 @@
     }
 
     // =========================================================================
-    // 3. QUẢN LÝ GIỎ HÀNG
+    // 3. QUẢN LÝ GIỎ HÀNG & ĐỒNG BỘ GIÁ
     // =========================================================================
-    function loadCartFromStorage() {
+    async function loadCartFromStorage() {
         const json = localStorage.getItem('cartItems');
         currentCart = json ? JSON.parse(json) : [];
-        const container = document.getElementById('cartItemsList');
 
-        if (currentCart.length === 0) {
-            container.innerHTML = `<div class="text-center py-5 text-muted"><i class="fa-solid fa-basket-shopping fs-1 mb-2"></i><p>Giỏ hàng đang trống</p><a href="/san-pham" class="btn btn-sm btn-outline-primary rounded-pill">Mua sắm ngay</a></div>`;
+        // 1. Render trước dữ liệu cũ để khách không phải chờ
+        renderCartHTML();
+
+        // 2. Nếu giỏ hàng có đồ, tiến hành ĐỒNG BỘ GIÁ MỚI NHẤT từ Server
+        if (currentCart.length > 0) {
+            await syncPricesWithServer();
+        } else {
             // Reset các chỉ số về 0
             updateTotals(0, 0, 0);
+        }
+    }
+
+    // [MỚI] Hàm này sẽ gọi API lấy chi tiết từng sản phẩm để cập nhật giá đúng
+    async function syncPricesWithServer() {
+        // Tạo danh sách các Promise để gọi API song song (nhanh hơn gọi từng cái)
+        const promises = currentCart.map(item =>
+            fetch(`/api/san-pham-chi-tiet/${item.id}`).then(res => {
+                if(res.ok) return res.json();
+                return null;
+            })
+        );
+
+        try {
+            const products = await Promise.all(promises);
+            let hasChange = false;
+
+            products.forEach((product, index) => {
+                if (product) {
+                    // Logic ưu tiên giá: Lấy giá SPCT trước, nếu null thì lấy giá SP cha
+                    let realPrice = product.giaTien;
+                    if (!realPrice && product.sanPham) {
+                        realPrice = product.sanPham.giaTien;
+                    }
+
+                    // Nếu giá trong LocalStorage khác giá Server => Cập nhật
+                    if (realPrice && currentCart[index].price !== realPrice) {
+                        console.log(`Cập nhật giá SP ${product.id}: ${currentCart[index].price} -> ${realPrice}`);
+                        currentCart[index].price = realPrice;
+                        hasChange = true;
+                    }
+                }
+            });
+
+            // Nếu có thay đổi giá, lưu lại vào LocalStorage và Render lại HTML
+            if (hasChange) {
+                localStorage.setItem('cartItems', JSON.stringify(currentCart));
+                renderCartHTML(); // Vẽ lại giao diện với giá mới
+                toastr.info("Đã cập nhật giá mới nhất cho giỏ hàng.");
+            }
+
+            // Tính toán tổng tiền sau khi đã đồng bộ giá
+            applyVoucher();
+
+        } catch (err) {
+            console.error("Lỗi đồng bộ giá:", err);
+        }
+    }
+
+    function renderCartHTML() {
+        const container = document.getElementById('cartItemsList');
+        if (currentCart.length === 0) {
+            container.innerHTML = `<div class="text-center py-5 text-muted"><i class="fa-solid fa-basket-shopping fs-1 mb-2"></i><p>Giỏ hàng đang trống</p><a href="/san-pham" class="btn btn-sm btn-outline-primary rounded-pill">Mua sắm ngay</a></div>`;
             return;
         }
 
@@ -279,9 +338,6 @@
                 </div>`;
         });
         container.innerHTML = html;
-
-        // Gọi API ngay lập tức để đồng bộ giá từ Server (Tránh lệch giá Local vs DB)
-        applyVoucher();
     }
 
     function changeQuantity(index, delta) {
@@ -290,7 +346,8 @@
         if (newQty < 1) { removeCartItem(index); return; }
         item.quantity = newQty;
         localStorage.setItem('cartItems', JSON.stringify(currentCart));
-        loadCartFromStorage();
+        renderCartHTML();
+        applyVoucher(); // Tính lại tiền ngay
     }
 
     function removeCartItem(index) {
@@ -300,7 +357,7 @@
             if (result.isConfirmed) {
                 currentCart.splice(index, 1);
                 localStorage.setItem('cartItems', JSON.stringify(currentCart));
-                loadCartFromStorage();
+                loadCartFromStorage(); // Load lại quy trình
                 toastr.success('Đã cập nhật giỏ hàng');
             }
         });
@@ -311,8 +368,6 @@
         document.getElementById('subTotal').innerText = formatCurrency(subTotal);
         document.getElementById('shippingFee').innerText = formatCurrency(SHIPPING_FEE);
         document.getElementById('discountAmount').innerText = discount > 0 ? "-" + formatCurrency(discount) : "0₫";
-
-        // Dùng finalTotal từ Server (đã trừ hết các thứ và max(0))
         document.getElementById('finalTotal').innerText = formatCurrency(finalTotal);
     }
 
@@ -341,7 +396,6 @@
         let code = selectElement.value;
 
         // Chuẩn bị dữ liệu gửi lên Server
-        // Server sẽ lấy giá từ DB dựa trên ID, không tin giá từ LocalStorage
         const itemsPayload = currentCart.map(i => ({
             sanPhamChiTietId: i.id,
             soLuong: i.quantity
@@ -358,8 +412,13 @@
         })
             .then(res => res.json())
             .then(data => {
-                // Cập nhật UI bằng dữ liệu Server trả về (Chính xác 100%)
-                // data.finalTotal đã được tính toán trong Java: max(0, subTotal + ship - discount)
+                // Kiểm tra tồn kho
+                if(data.outOfStock) {
+                    toastr.error(data.error);
+                    // Có thể disable nút đặt hàng nếu muốn
+                }
+
+                // Cập nhật UI
                 updateTotals(data.subTotal, data.discountAmount, data.finalTotal);
 
                 // Xử lý thông báo Voucher
@@ -368,15 +427,13 @@
                         toastr.success(data.voucherMessage || "Áp dụng thành công!");
                     } else {
                         toastr.warning(data.voucherMessage || "Mã không hợp lệ");
-                        selectElement.value = ""; // Reset nếu mã lỗi
-                        // Gọi lại lần nữa không có mã để reset tiền về gốc
-                        applyVoucher();
+                        selectElement.value = "";
+                        applyVoucher(); // Reset lại tiền nếu mã sai
                     }
                 }
             })
             .catch(err => {
                 console.error("Lỗi tính tiền:", err);
-                // toastr.error("Có lỗi kết nối Server");
             });
     }
 
@@ -384,7 +441,6 @@
     // 5. XỬ LÝ ĐẶT HÀNG
     // =========================================================================
     document.getElementById('btnPlaceOrder').addEventListener('click', function() {
-        // ... (Validate thông tin giao hàng giữ nguyên như cũ) ...
         const fullName = document.getElementById('fullName').value.trim();
         const phone = document.getElementById('phone').value.trim();
         const address = document.getElementById('addressDetail').value.trim();

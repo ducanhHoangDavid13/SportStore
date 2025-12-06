@@ -44,7 +44,8 @@ public class SecurityConfig {
                                 "/login",
                                 "/statistics",
                                 "/api/**",
-                                "/checkout/**"
+                                "/checkout/**",
+                                "/error/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
@@ -64,18 +65,18 @@ public class SecurityConfig {
                             if (req.getRequestURI().startsWith("/api/")) {
                                 res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                                 res.setContentType("application/json;charset=UTF-8");
-                                res.getWriter().write("{\"error\":\"Unauthorized\"}");
+                                req.getRequestDispatcher("/error/401").forward(req, res);
                             } else {
-                                res.sendRedirect("/login");
+                                res.sendRedirect("/error/401");
                             }
                         })
                         .accessDeniedHandler((req, res, ex) -> {
                             if (req.getRequestURI().startsWith("/api/")) {
                                 res.setStatus(HttpServletResponse.SC_FORBIDDEN);
                                 res.setContentType("application/json;charset=UTF-8");
-                                res.getWriter().write("{\"error\":\"Access Denied\"}");
+                                req.getRequestDispatcher("/error/403").forward(req, res);
                             } else {
-                                res.sendRedirect("/access-denied");
+                                res.sendRedirect("/error/403");
                             }
                         })
                 );

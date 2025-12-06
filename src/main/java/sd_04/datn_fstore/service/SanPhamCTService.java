@@ -3,20 +3,21 @@ package sd_04.datn_fstore.service;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import sd_04.datn_fstore.model.SanPhamChiTiet;
+
 import java.math.BigDecimal;
-import java.util.List; // Phải thêm
-import java.util.Optional; // Phải thêm
+import java.util.List;
+import java.util.Optional;
 
 public interface SanPhamCTService {
 
-    // THÊM LẠI CÁC PHƯƠNG THỨC CRUD CƠ BẢN
+    // CRUD CƠ BẢN
     List<SanPhamChiTiet> getAll();
     Page<SanPhamChiTiet> getAll(Pageable pageable);
     Optional<SanPhamChiTiet> getById(Integer id);
     SanPhamChiTiet save(SanPhamChiTiet sanPhamChiTiet);
     void delete(Integer id);
 
-    // PHƯƠNG THỨC SEARCH 12 THAM SỐ (Đã cập nhật)
+    // SEARCH 10 THAM SỐ (Đã bỏ MinPrice, MaxPrice)
     Page<SanPhamChiTiet> search(
             Pageable pageable,
             Integer idSanPham,
@@ -26,15 +27,21 @@ public interface SanPhamCTService {
             Integer idXuatXu,
             Integer idMauSac,
             Integer idPhanLoai,
-            BigDecimal minPrice, // Đã thêm
-            BigDecimal maxPrice, // Đã thêm
             Integer trangThai,
-            String keyword      // Đã thêm
+            String keyword
     );
-    List<SanPhamChiTiet> getAvailableProducts();
+
+    // Lấy biến thể active của 1 sản phẩm (Cho khách hàng chọn size/màu)
+    List<SanPhamChiTiet> getAvailableProducts(Integer idSanPham);
+
+    // Tìm nhanh theo tên
     List<SanPhamChiTiet> searchBySanPhamTen(String tenSp);
+
+    // Đổi trạng thái nhanh
     SanPhamChiTiet updateTrangThai(Integer id, Integer newStatus);
 
-    List<SanPhamChiTiet> getBySanPhamId(Integer id);
-    SanPhamChiTiet getByIdAndAvailable(Integer id);
+    // Lấy tất cả biến thể của 1 sản phẩm (Cho Admin quản lý)
+    List<SanPhamChiTiet> getBySanPhamId(Integer idSanPham);
+    List<SanPhamChiTiet> getAllActive();
+    List<SanPhamChiTiet> timTheoKhoangGia(BigDecimal maxPrice);
 }
