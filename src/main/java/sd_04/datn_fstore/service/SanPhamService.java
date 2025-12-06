@@ -37,5 +37,5 @@ public interface SanPhamService {
      */
     boolean existsByMaSanPham(String maSanPham);
     SanPham updateTrangThai(Integer id, Integer newStatus);
-
+    void updateTotalQuantity(Integer sanPhamId);
 }

@@ -23,14 +23,34 @@ public class SecurityConfig {
 
     private final UserDetailsService userDetailsService;
 
+    // Trong file sd_04.datn_fstore.config.SecurityConfig.java
+// ...
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(request -> request
-                        .requestMatchers("/", "/styles/*", "/registration","/registration-view", "/login", "/statistics", "/api/**").permitAll()
+                        .requestMatchers(
+                                "/",
+                                // Bổ sung đầy đủ các đường dẫn tài nguyên tĩnh:
+                                "/css/**",
+                                "/js/**",
+                                "/images/**",
+                                "/webjars/**",
+                                "/registration",
+                                "/registration-view",
+                                "/api/notifications/**",
+                                "/login",
+                                "/statistics",
+                                "/api/**",
+                                "/admin/**",
+                                "/checkout/**",
+                                "/error/**"
+                        ).permitAll()
                         .anyRequest().authenticated()
                 )
+
                 .formLogin(form -> form
                         .loginPage("/login")
                         .defaultSuccessUrl("/redirect", true)
@@ -38,7 +58,7 @@ public class SecurityConfig {
                 )
                 .logout(logout -> logout
                         .logoutUrl("/logout")
-                        .logoutSuccessUrl("/login?logout")
+                        .logoutSuccessUrl("/home?logout")
                         .permitAll()
                 )
                 .exceptionHandling(e -> e
@@ -46,18 +66,18 @@ public class SecurityConfig {
                             if (req.getRequestURI().startsWith("/api/")) {
                                 res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                                 res.setContentType("application/json;charset=UTF-8");
-                                res.getWriter().write("{\"error\":\"Unauthorized\"}");
+                                req.getRequestDispatcher("/error/401").forward(req, res);
                             } else {
-                                res.sendRedirect("/login");
+                                res.sendRedirect("/error/401");
                             }
                         })
                         .accessDeniedHandler((req, res, ex) -> {
                             if (req.getRequestURI().startsWith("/api/")) {
                                 res.setStatus(HttpServletResponse.SC_FORBIDDEN);
                                 res.setContentType("application/json;charset=UTF-8");
-                                res.getWriter().write("{\"error\":\"Access Denied\"}");
+                                req.getRequestDispatcher("/error/403").forward(req, res);
                             } else {
-                                res.sendRedirect("/access-denied");
+                                res.sendRedirect("/error/403");
                             }
                         })
                 );

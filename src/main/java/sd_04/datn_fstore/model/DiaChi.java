@@ -1,5 +1,6 @@
 package sd_04.datn_fstore.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*; // Import
 import lombok.*;
@@ -10,6 +11,7 @@ import lombok.*;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @Table(name = "DiaChi")
 public class DiaChi {
     @Id

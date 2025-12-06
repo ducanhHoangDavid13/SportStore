@@ -6,9 +6,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import sd_04.datn_fstore.model.HinhAnh;
-import sd_04.datn_fstore.model.SanPham; // Cần thiết để tham chiếu đến SanPham
+import sd_04.datn_fstore.model.SanPham;
 import sd_04.datn_fstore.model.SanPhamChiTiet;
 import sd_04.datn_fstore.repository.SanPhamCTRepository;
+import sd_04.datn_fstore.repository.SanPhamRepository;
 import sd_04.datn_fstore.service.HinhAnhService;
 import sd_04.datn_fstore.service.SanPhamCTService;
 
@@ -21,7 +22,8 @@ import java.util.Optional;
 public class SanPhamCTServiceImpl implements SanPhamCTService {
 
     private final SanPhamCTRepository sanPhamChiTietRepository;
-    private final HinhAnhService hinhAnhService; // Inject HinhAnhService
+    private final HinhAnhService hinhAnhService;
+    private final SanPhamRepository sanPhamRepository;
 
     @Override
     public List<SanPhamChiTiet> getAll() {
@@ -47,8 +49,28 @@ public class SanPhamCTServiceImpl implements SanPhamCTService {
     @Override
     @Transactional
     public SanPhamChiTiet save(SanPhamChiTiet sanPhamChiTiet) {
-        sanPhamChiTiet.setTrangThai(1);
-        return sanPhamChiTietRepository.save(sanPhamChiTiet);
+        if (sanPhamChiTiet.getId() == null) {
+            sanPhamChiTiet.setTrangThai(1);
+        }
+
+        // [LOGIC MỚI] Tự động lấy giá tiền từ Sản Phẩm cha nếu có
+        if (sanPhamChiTiet.getSanPham() != null && sanPhamChiTiet.getSanPham().getId() != null) {
+            // Tìm sản phẩm cha trong DB để đảm bảo lấy được giá mới nhất
+            SanPham spCha = sanPhamRepository.findById(sanPhamChiTiet.getSanPham().getId()).orElse(null);
+            if (spCha != null) {
+                // Gán giá cha cho con
+                sanPhamChiTiet.setGiaTien(spCha.getGiaTien());
+                // Gán lại object cha để chắc chắn
+                sanPhamChiTiet.setSanPham(spCha);
+            }
+        }
+
+        SanPhamChiTiet savedSpct = sanPhamChiTietRepository.save(sanPhamChiTiet);
+
+        if (savedSpct.getSanPham() != null) {
+            updateTotalQuantitySanPham(savedSpct.getSanPham().getId());
+        }
+        return savedSpct;
     }
 
     @Override
@@ -57,8 +79,26 @@ public class SanPhamCTServiceImpl implements SanPhamCTService {
         Optional<SanPhamChiTiet> optional = sanPhamChiTietRepository.findById(id);
         if (optional.isPresent()) {
             SanPhamChiTiet spct = optional.get();
-            spct.setTrangThai(0); // Đánh dấu là không hoạt động (Soft Delete)
+            Integer sanPhamId = spct.getSanPham().getId();
+
+            spct.setTrangThai(0); // Soft delete
             sanPhamChiTietRepository.save(spct);
+            updateTotalQuantitySanPham(sanPhamId);
+        }
+    }
+
+    @Override
+    @Transactional
+    public SanPhamChiTiet updateTrangThai(Integer id, Integer newStatus) {
+        Optional<SanPhamChiTiet> optional = sanPhamChiTietRepository.findById(id);
+        if (optional.isPresent()) {
+            SanPhamChiTiet spct = optional.get();
+            spct.setTrangThai(newStatus);
+            SanPhamChiTiet saved = sanPhamChiTietRepository.save(spct);
+            updateTotalQuantitySanPham(spct.getSanPham().getId());
+            return saved;
+        } else {
+            throw new RuntimeException("Không tìm thấy biến thể sản phẩm ID: " + id);
         }
     }
 
@@ -72,8 +112,6 @@ public class SanPhamCTServiceImpl implements SanPhamCTService {
             Integer idXuatXu,
             Integer idMauSac,
             Integer idPhanLoai,
-            BigDecimal minPrice,
-            BigDecimal maxPrice,
             Integer trangThai,
             String keyword
     ) {
@@ -86,8 +124,6 @@ public class SanPhamCTServiceImpl implements SanPhamCTService {
                 idXuatXu,
                 idMauSac,
                 idPhanLoai,
-                minPrice,
-                maxPrice,
                 trangThai,
                 keyword
         );
@@ -96,8 +132,27 @@ public class SanPhamCTServiceImpl implements SanPhamCTService {
     }
 
     @Override
-    public List<SanPhamChiTiet> getAvailableProducts() {
+    public List<SanPhamChiTiet> getAvailableProducts(Integer idSanPham) {
+        List<SanPhamChiTiet> list = sanPhamChiTietRepository.findAvailableVariants(idSanPham);
+        list.forEach(this::loadTenHinhAnhChinh);
+        return list;
+    }
+
+    @Override
+    public List<SanPhamChiTiet> getAllActive() {
         List<SanPhamChiTiet> list = sanPhamChiTietRepository.getAvailableProductsWithDetails(1, 0);
+        list.forEach(this::loadTenHinhAnhChinh);
+        return list;
+    }
+
+    @Override
+    public List<SanPhamChiTiet> timTheoKhoangGia(BigDecimal maxPrice) {
+        return sanPhamChiTietRepository.findBySanPham_GiaTienLessThanEqual(maxPrice);
+    }
+
+    @Override
+    public List<SanPhamChiTiet> getBySanPhamId(Integer idSanPham) {
+        List<SanPhamChiTiet> list = sanPhamChiTietRepository.findBySanPhamId(idSanPham);
         list.forEach(this::loadTenHinhAnhChinh);
         return list;
     }
@@ -109,50 +164,60 @@ public class SanPhamCTServiceImpl implements SanPhamCTService {
         return list;
     }
 
-    @Override
-    public SanPhamChiTiet updateTrangThai(Integer id, Integer newStatus) {
-        Optional<SanPhamChiTiet> optional = sanPhamChiTietRepository.findById(id);
-        if (optional.isPresent()) {
-            SanPhamChiTiet spct = optional.get();
-            spct.setTrangThai(newStatus);
-            return sanPhamChiTietRepository.save(spct);
-        } else {
-            throw new RuntimeException("Không tìm thấy biến thể sản phẩm ID: " + id);
+    private void updateTotalQuantitySanPham(Integer sanPhamId) {
+        SanPham sanPham = sanPhamRepository.findById(sanPhamId).orElse(null);
+        if (sanPham != null) {
+            int total = 0;
+            List<SanPhamChiTiet> variants = sanPhamChiTietRepository.findBySanPhamId(sanPhamId);
+            for (SanPhamChiTiet ct : variants) {
+                if (ct.getTrangThai() == 1 && ct.getSoLuong() != null) {
+                    total += ct.getSoLuong();
+                }
+            }
+            sanPham.setSoLuong(total);
+            sanPhamRepository.save(sanPham);
         }
     }
 
-    @Override
-    public List<SanPhamChiTiet> getBySanPhamId(Integer id) {
-        return List.of();
-    }
-
-    /**
-     * Phương thức dùng để gán tên hình ảnh chính vào đối tượng SanPham (cha)
-     * nằm bên trong SanPhamChiTiet, giúp API trả về có đủ thông tin.
-     */
     private void loadTenHinhAnhChinh(SanPhamChiTiet spct) {
-        // Kiểm tra mối quan hệ SanPham có tồn tại không
-        if (spct.getSanPham() == null) {
-            return;
-        }
-
-        // Lấy đối tượng SanPham (cha)
+        if (spct.getSanPham() == null) return;
         SanPham sanPhamCha = spct.getSanPham();
         Integer sanPhamId = sanPhamCha.getId();
 
-        // 1. Ưu tiên tìm hình ảnh Avatar
         Optional<HinhAnh> avatarOpt = hinhAnhService.getAvatar(sanPhamId);
-
         if (avatarOpt.isPresent()) {
-            // Gán vào đối tượng SanPham (sanPhamCha)
             sanPhamCha.setTenHinhAnhChinh(avatarOpt.get().getTenHinhAnh());
         } else {
-            // 2. Nếu không có Avatar, lấy hình ảnh đầu tiên trong danh sách
             List<HinhAnh> allImages = hinhAnhService.getBySanPhamId(sanPhamId);
             if (!allImages.isEmpty()) {
-                // Gán vào đối tượng SanPham (sanPhamCha)
                 sanPhamCha.setTenHinhAnhChinh(allImages.get(0).getTenHinhAnh());
             }
         }
     }
+    // SanPhamCTServiceImpl.java
+
+// ... (các imports và constructor)
+
+    // Phương thức mới:
+    @Override
+    public void updateBatchTotalQuantity(List<SanPham> sanPhamList) {
+        for (SanPham sanPham : sanPhamList) {
+            // Ta không cần truy vấn lại sanPhamRepository.findById(sanPham.getId())
+            // vì đối tượng sanPham đã có trong List.
+            int total = 0;
+            // Dùng phương thức findBySanPhamId để lấy tất cả biến thể của sản phẩm này
+            List<SanPhamChiTiet> variants = sanPhamChiTietRepository.findBySanPhamId(sanPham.getId());
+
+            for (SanPhamChiTiet ct : variants) {
+                if (ct.getTrangThai() == 1 && ct.getSoLuong() != null) {
+                    total += ct.getSoLuong();
+                }
+            }
+            // Chỉ cần set SoLuong vào đối tượng trong List, không cần gọi save()
+            // vì nó không phải là hàm cập nhật DB.
+            sanPham.setSoLuong(total);
+        }
+    }
+
+// ... (giữ nguyên hàm private void updateTotalQuantitySanPham cũ)
 }

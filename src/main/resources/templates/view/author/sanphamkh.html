@@ -6,20 +6,18 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Sản Phẩm - SPORTX</title>
 
-        <!-- Bootstrap 5 -->
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-        <!-- FontAwesome -->
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
 
-        <!-- CSS Project -->
         <link rel="stylesheet" th:href="@{/css/styles.css}">
         <link rel="stylesheet" th:href="@{/css/header.css}">
     </div>
 
     <style>
+        /* [Giữ nguyên CSS] */
         /* ======================= 1. VARIABLES & RESET (MATCH HOMEPAGE) ======================= */
         :root {
             --font-main: 'Inter', sans-serif;
@@ -52,7 +50,7 @@
         .sort-box { position: relative; min-width: 200px; }
         .sort-select {
             width: 100%; padding: 10px 15px; border-radius: 50px; border: 1px solid var(--border-color);
-            appearance: none; background: #fff url("data:image/svg+xml,...") no-repeat right 15px center; /* Icon mũi tên */
+            appearance: none; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%236c757d'%3E%3Cpath fill-rule='evenodd' d='M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.25 4.25a.75.75 0 01-1.06 0L5.21 8.27a.75.75 0 01.02-1.06z' clip-rule='evenodd' /%3E%3C/svg%3E") no-repeat right 15px center; background-size: 16px;
             font-family: var(--font-main); font-size: 0.9rem; cursor: pointer;
             box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
@@ -88,10 +86,6 @@
         /* Trạng thái Checked */
         .custom-check input:checked ~ .check-indicator { background-color: var(--primary); border-color: var(--primary); }
         .custom-check input:checked ~ .check-indicator::after { content: '\f00c'; font-family: 'Font Awesome 6 Free'; font-weight: 900; color: #fff; font-size: 12px; }
-
-        /* Radio button style (cho Giá) */
-        .custom-check input[type="radio"] ~ .check-indicator { border-radius: 50%; }
-        .custom-check input[type="radio"]:checked ~ .check-indicator::after { content: ''; width: 10px; height: 10px; background: #fff; border-radius: 50%; }
 
         /* ======================= 4. PRODUCT CARD (COPY FROM HOMEPAGE) ======================= */
         .product-card {
@@ -137,6 +131,10 @@
             display: flex; align-items: center; justify-content: center; backdrop-filter: blur(2px);
         }
 
+        /* Cần thiết cho slider */
+        .form-range { margin-bottom: 15px; }
+
+
         /* Responsive */
         @media (max-width: 991px) {
             .filter-sidebar { margin-bottom: 30px; position: static; }
@@ -147,12 +145,10 @@
 </head>
 <body>
 
-<!-- Header -->
 <header th:replace="~{/library/header :: header}"></header>
 
 <main class="main-container">
 
-    <!-- Title & Sort -->
     <div class="page-header-wrapper">
         <h2 class="page-title">CỬA HÀNG</h2>
         <div class="sort-box">
@@ -166,7 +162,6 @@
     </div>
 
     <div class="row">
-        <!-- 1. SIDEBAR FILTER -->
         <div class="col-lg-3">
             <div class="filter-sidebar">
                 <div class="filter-header">
@@ -174,33 +169,37 @@
                     <button id="reset-filter-btn" class="reset-btn">Xóa tất cả</button>
                 </div>
 
-                <!-- Khoảng giá -->
+                <div class="filter-group">
+                    <span class="filter-title">TÌM KIẾM TÊN SP</span>
+                    <input type="text" id="keyword-search" class="form-control" placeholder="Nhập tên sản phẩm..." style="border-radius: 50px;">
+                </div>
+
                 <div class="filter-group">
                     <span class="filter-title">KHOẢNG GIÁ</span>
-                    <div class="filter-list" id="priceRangeOptions">
-                        <!-- JS render -->
+                    <div style="margin-top: 10px;">
+                        <p class="mb-2 fw-semibold">
+                            Tối đa: <span id="max-price-display">10.000.000 VND</span>
+                        </p>
+
+                        <input type="range" class="form-range" id="max-price-slider" min="0" max="10000000" step="500000" value="10000000">
                     </div>
                 </div>
 
-                <!-- Thể loại -->
                 <div class="filter-group">
                     <span class="filter-title">THỂ LOẠI</span>
                     <div class="filter-list" id="theLoaiOptions" data-filter-key="theLoaiIds"></div>
                 </div>
 
-                <!-- Thương hiệu (Xuất xứ) -->
                 <div class="filter-group">
                     <span class="filter-title">THƯƠNG HIỆU</span>
                     <div class="filter-list" id="xuatXuOptions" data-filter-key="xuatXuIds"></div>
                 </div>
 
-                <!-- Đối tượng -->
                 <div class="filter-group">
                     <span class="filter-title">ĐỐI TƯỢNG</span>
                     <div class="filter-list" id="phanLoaiOptions" data-filter-key="phanLoaiIds"></div>
                 </div>
 
-                <!-- Chất liệu -->
                 <div class="filter-group">
                     <span class="filter-title">CHẤT LIỆU</span>
                     <div class="filter-list" id="chatLieuOptions" data-filter-key="chatLieuIds"></div>
@@ -208,40 +207,32 @@
             </div>
         </div>
 
-        <!-- 2. PRODUCT GRID -->
         <div class="col-lg-9 position-relative">
-            <!-- Loading Spinner -->
             <div id="loading-overlay" style="display: none;">
                 <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;"></div>
             </div>
 
-            <!-- Grid Sản Phẩm -->
             <div class="row row-cols-2 row-cols-md-3 row-cols-xl-3 g-4" id="product-grid">
-                <!-- JS Render Products Here -->
             </div>
 
-            <!-- Phân trang -->
             <div id="pagination-container" class="mt-5 d-flex justify-content-center"></div>
         </div>
     </div>
 </main>
 
-<!-- Footer -->
 <footer th:replace="~{/library/footer :: footer}"></footer>
 
-<!-- Nút Messenger -->
 <a href="#" class="floating-chat-btn position-fixed bottom-0 end-0 m-4 p-3 rounded-circle shadow-lg text-white" style="background: #0084FF; width: 60px; height: 60px; display:flex; align-items:center; justify-content:center; z-index:9999;">
     <i class="fa-brands fa-facebook-messenger fs-2"></i>
 </a>
 
-<!-- SCRIPTS -->
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
     const API_URL = "/api/san-pham/filter";
+    const MAX_PRICE_VALUE = 10000000;
 
-    // Config: API endpoint & key name
     const FILTER_CONFIG = {
         'theLoaiOptions': { url: '/api/the-loai', nameKey: 'tenTheLoai', type: 'checkbox' },
         'xuatXuOptions': { url: '/api/xuat-xu', nameKey: 'tenXuatXu', type: 'checkbox' },
@@ -249,23 +240,37 @@
         'chatLieuOptions': { url: '/api/chat-lieu', nameKey: 'loaiChatLieu', type: 'checkbox' }
     };
 
-    const PRICE_RANGES = [
-        { label: 'Tất cả mức giá', value: '0,999999999' },
-        { label: 'Dưới 1 triệu', value: '0,1000000' },
-        { label: '1 - 5 triệu', value: '1000000,5000000' },
-        { label: 'Trên 5 triệu', value: '5000000,999999999' }
-    ];
-
     let currentPage = 0;
-    let currentSize = 9; // Grid 3x3 đẹp hơn
+    let currentSize = 9;
     let productImagesMap = {};
+    let isFetching = false; // Biến kiểm soát việc gọi API
 
     let filterParams = {
         xuatXuIds: null, theLoaiIds: null, phanLoaiIds: null, chatLieuIds: null,
-        minPrice: 0, maxPrice: 999999999, sort: "id,desc"
+        minPrice: 0,
+        maxPrice: MAX_PRICE_VALUE,
+        sort: "id,desc",
+        keyword: null
     };
 
-    // --- 1. TẢI ẢNH (Dùng Map để map ID sản phẩm -> Ảnh) ---
+    // Hàm Debounce
+    function debounce(func, delay) {
+        let timeout;
+        return function() {
+            const context = this;
+            const args = arguments;
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(context, args), delay);
+        };
+    }
+
+    // Hàm định dạng tiền tệ
+    function formatCurrency(number) {
+        if (number === undefined || number === null) return '0 VND';
+        return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', minimumFractionDigits: 0 }).format(number);
+    }
+
+    // --- 1. TẢI ẢNH ---
     function loadAllImagesAndMap() {
         return new Promise((resolve) => {
             $.ajax({
@@ -277,10 +282,13 @@
                     productImagesMap = {};
                     if (Array.isArray(images)) {
                         images.forEach(image => {
+                            // SỬA: Đảm bảo lấy tên trường ảnh chính xác và là ảnh đầu tiên cho mỗi sản phẩm
                             const productId = image.sanPham?.id;
-                            if (productId) {
-                                if (!productImagesMap[productId]) productImagesMap[productId] = [];
-                                productImagesMap[productId].push(image);
+                            const tenHinhAnh = image.tenHinhAnh; // Giả sử đây là tên file
+                            if (productId && tenHinhAnh) {
+                                if (!productImagesMap[productId]) {
+                                    productImagesMap[productId] = tenHinhAnh;
+                                }
                             }
                         });
                     }
@@ -291,26 +299,43 @@
         });
     }
 
-    // --- 2. RENDER CARD (HTML CHUẨN MỚI) ---
+    // --- 2. RENDER CARD ---
     function createProductCard(product) {
-        const formattedPrice = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(product.giaTien);
+        const formattedPrice = formatCurrency(product.giaTien);
 
-        // Lấy ảnh
-        let imageUrl = 'https://placehold.co/400x400?text=No+Image'; // Ảnh placeholder nếu lỗi
-        if (productImagesMap[product.id] && productImagesMap[product.id].length > 0) {
-            imageUrl = '/image/' + productImagesMap[product.id][0].tenHinhAnh;
+        // Lấy ảnh từ Map
+        let imageUrl = 'https://placehold.co/400x400?text=No+Image';
+        if (productImagesMap[product.id]) {
+            imageUrl = '/image/' + productImagesMap[product.id];
         }
+
+        /*
+         * ĐÃ SỬA LOGIC TỒN KHO:
+         * soLuong là trường tổng tồn kho.
+         * TrangThai: 1=Đang bán, 0=Ngừng bán/Ẩn.
+         */
+        const soLuongTon = product.soLuong || 0;
+        const trangThai = product.trangThai;
+
+        const isOutOfStock = (trangThai === 0) || (soLuongTon <= 0);
+
+        // Hiệu ứng hết hàng (làm mờ và vô hiệu hóa)
+        const stockStatusStyle = isOutOfStock ? 'opacity: 0.5; pointer-events: none;' : '';
+        const stockStatusText = isOutOfStock ? '<span class="text-danger fw-bold mt-1 d-block">HẾT HÀNG</span>' : '';
+
+        const actionButton = isOutOfStock
+            ? '<button class="action-btn" title="Hết hàng" style="background: #dc3545; color: #fff;"><i class="fa-solid fa-ban"></i></button>'
+            : `<button class="action-btn btn-add-to-cart" title="Thêm vào giỏ" data-product-id="${product.id}">
+                    <i class="fa-solid fa-cart-plus"></i>
+                </button>`;
 
         return `
         <div class="col">
-            <div class="product-card" data-product-id="${product.id}">
+            <div class="product-card" data-product-id="${product.id}" style="${stockStatusStyle}">
                 <div class="product-img-wrap">
-                    <img src="${imageUrl}" alt="${product.tenSanPham}" loading="lazy">
-                    <!-- Action Buttons Floating -->
+                    <img src="${imageUrl}" alt="${product.tenSanPham}" loading="lazy" onerror="this.onerror=null;this.src='https://placehold.co/400x400?text=No+Image';">
                     <div class="product-actions">
-                        <button class="action-btn btn-add-to-cart" title="Thêm vào giỏ">
-                            <i class="fa-solid fa-cart-plus"></i>
-                        </button>
+                        ${actionButton}
                         <button class="action-btn btn-detail" title="Xem chi tiết">
                             <i class="fa-regular fa-eye"></i>
                         </button>
@@ -322,12 +347,13 @@
                         <a href="/san-pham/chi-tiet/${product.id}" class="text-dark">${product.tenSanPham}</a>
                     </h3>
                     <div class="product-price">${formattedPrice}</div>
+                    ${stockStatusText}
                 </div>
             </div>
         </div>`;
     }
 
-    // --- 3. TẠO FILTER UI (Custom Checkbox) ---
+    // --- 3. TẠO FILTER UI & SLIDER ---
     function populateFilterOptions(containerId, apiUrl, nameKey, type) {
         const $container = $('#' + containerId);
         return new Promise((resolve) => {
@@ -339,10 +365,9 @@
                         data.forEach(item => {
                             const id = item.id;
                             const name = item[nameKey] || item.ten;
-                            // Custom Checkbox HTML Structure
                             const optionHtml = `
                                 <label class="custom-check">
-                                    <input type="${type}" name="${containerId}" value="${id}" class="filter-trigger">
+                                    <input type="${type}" name="${containerId}" value="${id}" class="filter-checkbox-trigger">
                                     <span class="check-indicator"></span>
                                     ${name}
                                 </label>`;
@@ -356,60 +381,80 @@
         });
     }
 
-    function populatePriceRanges() {
-        const $container = $('#priceRangeOptions');
-        PRICE_RANGES.forEach((range, index) => {
-            const isChecked = index === 0 ? 'checked' : '';
-            const optionHtml = `
-                <label class="custom-check">
-                    <input type="radio" name="priceRange" value="${range.value}" class="filter-trigger" ${isChecked}>
-                    <span class="check-indicator"></span>
-                    ${range.label}
-                </label>`;
-            $container.append(optionHtml);
-        });
+    // Logic cho Range Slider (Chỉ dùng Max Price)
+    function setupPriceSlider() {
+        const $maxSlider = $('#max-price-slider');
+        const $maxDisplay = $('#max-price-display');
+
+        // Khởi tạo giá trị ban đầu
+        $maxDisplay.text(formatCurrency(parseInt($maxSlider.val())));
+
+        // Hàm xử lý khi slider thay đổi (có debounce)
+        const handleSliderChange = debounce(function() {
+            let maxVal = parseInt($maxSlider.val());
+            $maxDisplay.text(formatCurrency(maxVal));
+            filterParams.maxPrice = maxVal;
+            loadProducts(0);
+        }, 300);
+
+        // Bắt sự kiện Input
+        $maxSlider.on('input', handleSliderChange);
     }
+
 
     // --- 4. LOAD & RENDER PRODUCTS ---
     function loadProducts(page = 0) {
+        if (isFetching) return;
+        isFetching = true;
+
         currentPage = page;
-        $('#loading-overlay').show(); // Show loading
+        $('#loading-overlay').show();
 
         const params = { ...filterParams, page: currentPage, size: currentSize };
-        // Cleanup null/undefined
         const finalParams = {};
         for (const key in params) {
-            if (params[key] !== null && params[key] !== undefined) finalParams[key] = params[key];
+            // Đảm bảo không gửi giá trị null/undefined lên API
+            if (params[key] !== null && params[key] !== undefined && params[key] !== '') {
+                finalParams[key] = params[key];
+            }
         }
 
         $.ajax({
             url: API_URL, data: $.param(finalParams, true), method: 'GET', dataType: 'json',
             success: function(response) {
-                setTimeout(() => { $('#loading-overlay').hide(); }, 300); // Fake delay nhẹ cho mượt
+                setTimeout(() => {
+                    $('#loading-overlay').hide();
+                    isFetching = false;
+                }, 300);
 
                 const products = response.content;
                 if (!products || products.length === 0) {
                     $('#product-grid').html(`
                         <div class="col-12 py-5 text-center">
                             <i class="fa-solid fa-box-open fs-1 text-muted mb-3"></i>
-                            <p class="text-muted">Không tìm thấy sản phẩm nào phù hợp.</p>
+                            <p class="text-muted">Không tìm thấy sản phẩm nào phù hợp với bộ lọc.</p>
                         </div>`);
                     $('#pagination-container').empty();
                     return;
                 }
                 $('#product-grid').html(products.map(createProductCard).join(''));
+
+                // Cập nhật Pagination
                 if (response.totalPages > 1) createPagination(response);
                 else $('#pagination-container').empty();
             },
             error: function() {
                 $('#loading-overlay').hide();
-                $('#product-grid').html('<div class="col-12 text-center text-danger">Lỗi kết nối máy chủ.</div>');
+                isFetching = false;
+                $('#product-grid').html('<div class="col-12 text-center text-danger">Lỗi kết nối máy chủ khi tải sản phẩm.</div>');
             }
         });
     }
 
     // --- 5. PAGINATION LOGIC ---
-    function createPagination(pageObject) {
+    let pageObject = {};
+    function createPagination(response) {
+        pageObject = response;
         const totalPages = pageObject.totalPages;
         const current = pageObject.number;
         const $nav = $('<nav><ul class="pagination"></ul></nav>');
@@ -446,68 +491,96 @@
     $(document).ready(function() {
         // Init Load
         const initPromises = [loadAllImagesAndMap()];
-        populatePriceRanges();
+
+        // KHỞI TẠO SLIDER
+        setupPriceSlider();
+
+        // KHỞI TẠO CÁC BỘ LỌC CHECKBOX
         for (const key in FILTER_CONFIG) {
             initPromises.push(populateFilterOptions(key, FILTER_CONFIG[key].url, FILTER_CONFIG[key].nameKey, FILTER_CONFIG[key].type));
         }
 
+        // Tải sản phẩm sau khi tải ảnh và bộ lọc
         Promise.all(initPromises).then(() => loadProducts(0));
 
-        // Sort
+        // Sort Change
         $('#sort-select').on('change', function() {
             filterParams.sort = $(this).val();
             loadProducts(0);
         });
 
-        // Filter Change
-        $('.filter-sidebar').on('change', '.filter-trigger', function() {
-            // Price
-            const priceVal = $('input[name="priceRange"]:checked').val();
-            if (priceVal) {
-                const parts = priceVal.split(',');
-                filterParams.minPrice = parseFloat(parts[0]);
-                filterParams.maxPrice = parseFloat(parts[1]);
-            }
-            // Checkboxes
+        // Event tìm kiếm theo keyword (sử dụng debounce)
+        $('#keyword-search').on('input', debounce(function() {
+            const keyword = $(this).val().trim();
+            filterParams.keyword = keyword.length > 0 ? keyword : null;
+            loadProducts(0);
+        }, 300));
+
+        // Filter Checkbox Change (Chỉ xử lý Checkbox, không xử lý Slider hay Keyword)
+        $('.filter-sidebar').on('change', '.filter-checkbox-trigger', function() {
+            // Lấy giá trị Checkboxes
             $('.filter-list[data-filter-key]').each(function() {
                 const key = $(this).attr('data-filter-key');
+                // Lấy ID (Integer) của các checkbox đã chọn
                 const checked = $(this).find('input:checked').map((_, el) => parseInt($(el).val())).get();
                 filterParams[key] = checked.length ? checked : null;
             });
             loadProducts(0);
         });
 
-        // Reset
+
+        // Reset Filter
         $('#reset-filter-btn').on('click', function() {
+            // Reset Checkboxes
             $('input[type="checkbox"]').prop('checked', false);
-            $('input[name="priceRange"][value="0,999999999"]').prop('checked', true);
+
+            // Reset Keyword
+            $('#keyword-search').val('');
+
+            // Reset Slider (Max Price)
+            $('#max-price-slider').val(MAX_PRICE_VALUE).trigger('input'); // Trigger input để cập nhật display và filterParams
+
+            // Reset Sort
             $('#sort-select').val('id,desc');
+
+            // Reset filterParams (đảm bảo đồng bộ với UI)
             filterParams = {
                 xuatXuIds: null, theLoaiIds: null, phanLoaiIds: null, chatLieuIds: null,
-                minPrice: 0, maxPrice: 999999999, sort: "id,desc"
+                minPrice: 0,
+                maxPrice: MAX_PRICE_VALUE,
+                sort: "id,desc",
+                keyword: null
             };
             loadProducts(0);
         });
 
         // Pagination Click
         $(document).on('click', '.page-nav-link', function() {
+            if (!pageObject.totalPages) return;
+
             const page = $(this).data('page');
-            loadProducts(page);
-            $('html, body').animate({ scrollTop: 0 }, 400);
+            if (page !== undefined && page >= 0 && page < pageObject.totalPages) {
+                loadProducts(page);
+                $('html, body').animate({ scrollTop: 0 }, 400);
+            }
         });
 
-        // Add Cart Click
+        // Add Cart Click (Giả định sản phẩm có tồn kho > 0)
         $(document).on('click', '.btn-add-to-cart', function(e) {
             e.stopPropagation();
             const btn = $(this);
-            // Hiệu ứng simple
-            btn.html('<i class="fa-solid fa-check"></i>').css('background', '#10b981').css('color', '#fff');
+            const productId = btn.closest('.product-card').data('product-id');
 
-            // TODO: Gọi API thêm vào giỏ hàng ở đây
-            console.log("Add cart: " + btn.closest('.product-card').data('product-id'));
+            console.log("Thêm vào giỏ hàng sản phẩm: " + productId);
+
+            // Hiệu ứng thành công tạm thời
+            btn.html('<i class="fa-solid fa-check"></i>').css({'background': '#10b981', 'color': '#fff'});
+
+            // Note: Cần chuyển sang trang chi tiết để chọn biến thể, hoặc sử dụng modal
+            // Hiện tại chỉ là hiệu ứng
 
             setTimeout(() => {
-                btn.html('<i class="fa-solid fa-cart-plus"></i>').css('background', '').css('color', '');
+                btn.html('<i class="fa-solid fa-cart-plus"></i>').css({'background': '', 'color': ''});
             }, 1500);
         });
 
