@@ -20,4 +20,5 @@ public class HoSoController {
     public String getLoginPageAddress() {
         return "view/author/address";
     }
+    
 }
