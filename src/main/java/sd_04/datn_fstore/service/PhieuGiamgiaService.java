@@ -411,6 +411,32 @@ public class PhieuGiamgiaService {
         return pgg;
     }
 
+    public void incrementVoucher(PhieuGiamGia pgg) {
+
+        // 1. Kiểm tra để đảm bảo voucher không null (phòng trường hợp lỗi)
+        if (pgg == null) {
+            // Có thể log lỗi hoặc bỏ qua
+            return;
+        }
+
+        // 2. Tìm lại voucher từ DB để đảm bảo dữ liệu mới nhất (Optional nhưng nên dùng trong Transaction)
+        PhieuGiamGia existingPgg = phieuGiamGiaRepository.findById(pgg.getId())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy Phiếu giảm giá để hoàn lại lượt dùng!"));
+
+        Integer currentQuantity = existingPgg.getSoLuong();
+
+        // 3. Tăng số lượng lên 1
+        // Lưu ý: Nếu SoLuong là null (voucher không giới hạn), thì không cần tăng.
+        if (currentQuantity != null) {
+            existingPgg.setSoLuong(currentQuantity + 1);
+//            existingPgg.setNgayCapNhat(LocalDateTime.now());
+            phieuGiamGiaRepository.save(existingPgg);
+        }
+
+        // Cần đảm bảo rằng sau khi hoàn lại, trạng thái voucher có thể được kích hoạt lại nếu nó đã hết
+        // Ví dụ: Nếu trạng thái đang là "Hết lượt dùng" và số lượng > 0, thì cập nhật lại trạng thái nếu cần.
+    }
+
     // DTO Record để trả về kết quả
     public record VoucherCheckResult(boolean isValid, String message, Double discountAmount) {}
 }

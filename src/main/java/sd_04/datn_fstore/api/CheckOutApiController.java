@@ -4,11 +4,15 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import sd_04.datn_fstore.dto.*;
+import sd_04.datn_fstore.model.KhachHang;
 import sd_04.datn_fstore.model.SanPhamChiTiet;
 import sd_04.datn_fstore.repository.SanPhamCTRepository;
 import sd_04.datn_fstore.service.CheckoutService;
+import sd_04.datn_fstore.service.KhachhangService;
 import sd_04.datn_fstore.service.PhieuGiamgiaService;
 import sd_04.datn_fstore.service.VnPayService;
 
@@ -30,8 +34,30 @@ public class CheckOutApiController {
     private final SanPhamCTRepository sanPhamCTRepository;
     private final PhieuGiamgiaService phieuGiamgiaService;
 
+    // BỔ SUNG: Dịch vụ Khách hàng để lấy ID
+    private final KhachhangService khachhangService;
+
     // Định nghĩa phí ship cố định ở server
     private static final BigDecimal FIXED_SHIPPING_FEE = new BigDecimal("30000");
+
+    // --- HELPER: Lấy ID khách hàng đã đăng nhập ---
+    private Integer getLoggedInCustomerId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated() ||
+                "anonymousUser".equals(authentication.getPrincipal())) {
+            return null; // Trả về null nếu chưa đăng nhập hoặc là người dùng ẩn danh
+        }
+
+        // Giả định tên người dùng là Email
+        String username = authentication.getName();
+        // Giả định KhachhangService có hàm findByEmail(String)
+        KhachHang khachHang = khachhangService.findByEmail(username);
+
+        // Trả về ID nếu tìm thấy khách hàng
+        return khachHang != null ? khachHang.getId() : null;
+    }
+    // ----------------------------------------------------
 
     /**
      * API TÍNH TOÁN LẠI TOÀN BỘ GIÁ TRỊ ĐƠN HÀNG MỘT CÁCH AN TOÀN
@@ -121,8 +147,15 @@ public class CheckOutApiController {
     @PostMapping("/place-order")
     public ResponseEntity<?> placeOrder(@RequestBody CheckoutRequest request, HttpServletRequest httpReq) {
         try {
-            // Ghi đè phí ship để bảo mật
+            // 1. Ghi đè phí ship để bảo mật
             request.setShippingFee(FIXED_SHIPPING_FEE);
+
+            // 2. BỔ SUNG: Gắn ID khách hàng đã đăng nhập (nếu có)
+            Integer loggedInCustomerId = getLoggedInCustomerId();
+            if (loggedInCustomerId != null) {
+                // SỬA: Lỗi cannot find symbol được giải quyết khi DTO CheckoutRequest có setKhachHangId
+                request.setKhachHangId(loggedInCustomerId);
+            }
 
             String clientIp = getClientIp(httpReq);
             CheckoutResponse response = checkoutService.placeOrder(request, clientIp);

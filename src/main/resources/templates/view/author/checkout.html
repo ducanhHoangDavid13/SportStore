@@ -191,6 +191,11 @@
     // Định dạng tiền tệ
     function formatCurrency(amount) {
         if (amount === undefined || amount === null || isNaN(amount)) return "0 ₫";
+        // Chuyển đổi sang số nếu là chuỗi (để formatCurrency() hoạt động đúng)
+        if (typeof amount === 'string') {
+            amount = parseFloat(amount);
+        }
+        if (isNaN(amount)) return "0 ₫";
         return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
     }
 
@@ -620,19 +625,27 @@
         const distSel = document.getElementById('district');
         const wardSel = document.getElementById('ward');
 
-        // Lấy lại tên đầy đủ từ thuộc tính data-name (nếu cần cho Server)
-        const selectedCityName = citySel.value ? citySel.options[citySel.selectedIndex].getAttribute('data-name') : '';
-        const selectedDistrictName = distSel.value ? distSel.options[distSel.selectedIndex].getAttribute('data-name') : '';
-        const selectedWardName = wardSel.value ? wardSel.options[wardSel.selectedIndex].getAttribute('data-name') : '';
+        // LẤY TÊN NGẮN GỌN (ĐÃ SỬA ĐỂ LOẠI BỎ 'Tỉnh', 'Huyện', 'Xã')
+        const selectedCityName = citySel.value
+            ? citySel.options[citySel.selectedIndex].getAttribute('data-name').replace(/Tỉnh |Thành phố /g, '').trim()
+            : '';
+        const selectedDistrictName = distSel.value
+            ? distSel.options[distSel.selectedIndex].getAttribute('data-name').replace(/Quận |Huyện /g, '').trim()
+            : '';
+        const selectedWardName = wardSel.value
+            ? wardSel.options[wardSel.selectedIndex].getAttribute('data-name').replace(/Phường |Xã /g, '').trim()
+            : '';
 
         const payload = {
             fullName: document.getElementById('fullName').value,
             phone: document.getElementById('phone').value,
             email: document.getElementById('email').value,
-            // Sử dụng tên Tỉnh/Thành, Quận/Huyện, Phường/Xã
+
+            // GỬI TÊN ĐÃ LỌC
             city: selectedCityName,
             district: selectedDistrictName,
             ward: selectedWardName,
+
             addressDetail: document.getElementById('addressDetail').value,
             note: document.getElementById('note').value,
             paymentMethod: document.querySelector('input[name="paymentMethod"]:checked').value,

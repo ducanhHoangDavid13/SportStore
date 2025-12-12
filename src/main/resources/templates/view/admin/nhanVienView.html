@@ -11,6 +11,8 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css"/>
 
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+
     <link rel="stylesheet" th:href="@{/css/styles.css}" />
     <link rel="stylesheet" th:href="@{/css/navbar.css}" />
 
@@ -300,9 +302,12 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script th:src="@{/js/main.js}"></script>
 
-<script>
+<script >
+    // File: nhanVienView.html (Phần <script>)
+
     // Cấu hình Toastr
     toastr.options = { "closeButton": true, "progressBar": true, "positionClass": "toast-bottom-right", "timeOut": "3000" };
 
@@ -330,7 +335,7 @@
     function parseTrangThai(v){ return Number(v)===1?1:0; }
     function parseGioiTinh(v){ if(v==='true')return true; if(v==='false')return false; return null; }
 
-    // --- MAIN LOGIC ---
+    // --- MAIN LOGIC (LOAD, RENDER, SEARCH) ---
     async function loadNhanVien(){
         $('#tableBody').html('<tr><td colspan="9" class="text-center py-5"><div class="spinner-border text-primary" role="status"></div><div class="mt-2 text-muted">Đang tải dữ liệu...</div></td></tr>');
 
@@ -360,24 +365,24 @@
         const pageData = allNhanVien.slice(start,end);
 
         body.innerHTML = pageData.map(nv => `
-            <tr>
-                <td class="fw-bold text-primary">#${nv.maNhanVien??'N/A'}</td>
-                <td class="fw-semibold text-dark">${nv.tenNhanVien??'N/A'}</td>
-                <td>
-                    <div class="small">${nv.email || '-'}</div>
-                    <div class="small text-muted">${nv.soDienThoai || '-'}</div>
-                </td>
-                <td>${nv.cccd??'-'}</td>
-                <td class="text-center">${gioiTinhToBadge(nv.gioiTinh)}</td>
-                <td class="small text-muted text-truncate" style="max-width: 150px;" title="${nv.diaChi||''}">${nv.diaChi||'-'}</td>
-                <td><span class="badge bg-light text-dark border">${nv.vaiTro||'NV'}</span></td>
-                <td class="text-center">${trangThaiToBadge(nv.trangThai)}</td>
-                <td class="text-center">
-                    <button class="btn btn-action btn-light text-info border me-1" onclick="viewDetail(${nv.id})" title="Xem chi tiết"><i class="fas fa-eye"></i></button>
-                    <button class="btn btn-action btn-light text-warning border me-1" onclick="openEdit(${nv.id})" title="Sửa"><i class="fas fa-pen"></i></button>
-                    <button class="btn btn-action btn-light text-danger border" onclick="deleteNhanVien(${nv.id})" title="Xóa"><i class="fas fa-trash-alt"></i></button>
-                </td>
-            </tr>`).join('');
+        <tr>
+            <td class="fw-bold text-primary">#${nv.maNhanVien??'N/A'}</td>
+            <td class="fw-semibold text-dark">${nv.tenNhanVien??'N/A'}</td>
+            <td>
+                <div class="small">${nv.email || '-'}</div>
+                <div class="small text-muted">${nv.soDienThoai || '-'}</div>
+            </td>
+            <td>${nv.cccd??'-'}</td>
+            <td class="text-center">${gioiTinhToBadge(nv.gioiTinh)}</td>
+            <td class="small text-muted text-truncate" style="max-width: 150px;" title="${nv.diaChi||''}">${nv.diaChi||'-'}</td>
+            <td><span class="badge bg-light text-dark border">${nv.vaiTro||'NV'}</span></td>
+            <td class="text-center">${trangThaiToBadge(nv.trangThai)}</td>
+            <td class="text-center">
+                <button class="btn btn-action btn-light text-info border me-1" onclick="viewDetail(${nv.id})" title="Xem chi tiết"><i class="fas fa-eye"></i></button>
+                <button class="btn btn-action btn-light text-warning border me-1" onclick="openEdit(${nv.id})" title="Sửa"><i class="fas fa-pen"></i></button>
+                <button class="btn btn-action btn-light text-danger border" onclick="deleteNhanVien(${nv.id})" title="Xóa"><i class="fas fa-trash-alt"></i></button>
+            </td>
+        </tr>`).join('');
     }
 
     function renderPagination(){
@@ -439,9 +444,8 @@
         nvModal.show();
     }
 
-    // --- FUNCTION XEM CHI TIẾT (MỚI) ---
     async function viewDetail(id){
-        // Hiển thị loading trước
+        // [Giữ nguyên logic xem chi tiết]
         $('#detailName').text('Đang tải...');
 
         try {
@@ -452,12 +456,10 @@
             }
             const nv = await res.json();
 
-            // Đổ dữ liệu vào Modal Chi tiết
             $('#detailCode').text(nv.maNhanVien || 'Chưa cập nhật');
             $('#detailName').text(nv.tenNhanVien || 'Không có tên');
             $('#detailRole').text(nv.vaiTro || 'Nhân viên');
 
-            // Xử lý giới tính hiển thị chữ
             let genderText = 'Chưa xác định';
             if(nv.gioiTinh === true) genderText = 'Nam';
             else if(nv.gioiTinh === false) genderText = 'Nữ';
@@ -468,11 +470,9 @@
             $('#detailCCCD').text(nv.cccd || '---');
             $('#detailAddress').text(nv.diaChi || 'Chưa cập nhật địa chỉ');
 
-            // Avatar theo tên (Sử dụng API miễn phí ui-avatars)
             const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(nv.tenNhanVien)}&background=random&size=128`;
             $('#detailAvatar').attr('src', avatarUrl);
 
-            // Trạng thái (Tái sử dụng hàm badge nhưng lấy text)
             const statusHtml = nv.trangThai === 1
                 ? '<span class="badge bg-success">Đang làm việc</span>'
                 : '<span class="badge bg-danger">Đã nghỉ việc</span>';
@@ -516,53 +516,109 @@
         const id = document.getElementById('nvId').value;
         const ma = document.getElementById('maNhanVien').value.trim();
         const ten = document.getElementById('tenNhanVien').value.trim();
+        const action = id ? 'Cập nhật' : 'Thêm mới';
 
         if(!ma || !ten){ toastr.warning('Vui lòng nhập Mã và Tên nhân viên'); return; }
 
-        let payload = {
-            maNhanVien: ma, tenNhanVien: ten,
-            email: document.getElementById('email').value.trim()||null,
-            soDienThoai: document.getElementById('soDienThoai').value.trim()||null,
-            cccd: document.getElementById('cccd').value.trim()||null,
-            gioiTinh: parseGioiTinh(document.getElementById('gioiTinh').value),
-            diaChi: document.getElementById('diaChi').value.trim()||null,
-            vaiTro: document.getElementById('vaiTro').value.trim()||null,
-            trangThai: parseTrangThai(document.getElementById('trangThai').value)
-        };
+        // --- BỔ SUNG CONFIRM CHO LƯU/CẬP NHẬT (UX-001) ---
+        Swal.fire({
+            title: `Xác nhận ${action}?`,
+            text: `Bạn có muốn ${action} thông tin nhân viên này?`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#4f46e5',
+            confirmButtonText: action,
+            cancelButtonText: 'Hủy'
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                let payload = {
+                    maNhanVien: ma, tenNhanVien: ten,
+                    email: document.getElementById('email').value.trim()||null,
+                    soDienThoai: document.getElementById('soDienThoai').value.trim()||null,
+                    cccd: document.getElementById('cccd').value.trim()||null,
+                    gioiTinh: parseGioiTinh(document.getElementById('gioiTinh').value),
+                    diaChi: document.getElementById('diaChi').value.trim()||null,
+                    vaiTro: document.getElementById('vaiTro').value.trim()||null,
+                    trangThai: parseTrangThai(document.getElementById('trangThai').value)
+                };
 
-        // Chỉ gửi password nếu người dùng nhập (để đổi pass), hoặc nếu là thêm mới
-        const pass = document.getElementById('password').value.trim();
-        if(pass) {
-            payload.password = pass;
-        }
+                const pass = document.getElementById('password').value.trim();
+                if(pass) {
+                    payload.password = pass;
+                }
 
-        try{
-            const method = id ? 'PUT' : 'POST';
-            const url = id ? `${apiBase}/update/${id}` : `${apiBase}/add`;
-            const res = await fetch(url, {
-                method, headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload)
-            });
+                try{
+                    const method = id ? 'PUT' : 'POST';
+                    const url = id ? `${apiBase}/update/${id}` : `${apiBase}/add`;
+                    const res = await fetch(url, {
+                        method, headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload)
+                    });
 
-            if(!res.ok) { toastr.error('Lưu thất bại'); return; }
+                    if(!res.ok) {
+                        const errorData = await res.json().catch(() => ({ message: res.statusText }));
+                        toastr.error(`Lưu thất bại: ${errorData.message}`);
+                        return;
+                    }
 
-            nvModal.hide();
-            toastr.success(id ? 'Cập nhật thành công' : 'Thêm mới thành công');
-            loadNhanVien();
-        } catch(e){ toastr.error('Lỗi kết nối server'); }
+                    nvModal.hide();
+                    toastr.success(`${action} thành công`);
+                    loadNhanVien();
+                } catch(e){ toastr.error('Lỗi kết nối server'); }
+            }
+        });
+        // --- KẾT THÚC CONFIRM ---
     }
 
     async function deleteNhanVien(id){
-        if(!confirm('Bạn có chắc chắn muốn xóa nhân viên này?')) return;
-        try{
-            const res = await fetch(`${apiBase}/delete/${id}`, {method:'DELETE'});
-            if(!res.ok) { toastr.error('Xóa thất bại'); return; }
-            toastr.success('Đã xóa nhân viên');
-            loadNhanVien();
-        } catch(e){ toastr.error('Lỗi khi xóa'); }
+        // --- BỔ SUNG CONFIRM CHO XÓA (UX-001) ---
+        Swal.fire({
+            title: 'Xác nhận xóa?',
+            // Thêm cảnh báo về lỗi tham chiếu
+            text: "Bạn có chắc chắn muốn xóa nhân viên này? Lưu ý: Nếu nhân viên đã có hóa đơn, thao tác này có thể bị lỗi do ràng buộc dữ liệu!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            confirmButtonText: 'Xóa',
+            cancelButtonText: 'Hủy'
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try{
+                    const res = await fetch(`${apiBase}/delete/${id}`, {method:'DELETE'});
+
+                    if(!res.ok) {
+                        const errorText = await res.text();
+
+                        // Xử lý lỗi tham chiếu (Foreign Key Constraint) từ Backend
+                        if (errorText.includes("REFERENCE constraint")) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Xóa thất bại!',
+                                text: 'Không thể xóa nhân viên này vì họ đã tham gia vào các giao dịch (có Hóa đơn) trong hệ thống. Vui lòng chuyển trạng thái thành "Đã nghỉ việc" thay vì xóa cứng.',
+                                footer: 'Bạn có thể sửa lại trạng thái của nhân viên.'
+                            });
+                        } else {
+                            toastr.error(`Lỗi xóa: ${errorText}`);
+                        }
+                        return;
+                    }
+
+                    toastr.success('Đã xóa nhân viên');
+                    loadNhanVien();
+                } catch(e){
+                    toastr.error('Lỗi kết nối server khi xóa');
+                }
+            }
+        });
+        // --- KẾT THÚC CONFIRM ---
     }
 
     // Init
     $(document).ready(function() {
+        // Để Swal.fire hoạt động, cần đảm bảo SweetAlert2 JS được load trước
+        if (typeof Swal === 'undefined') {
+            console.error("SweetAlert2 (Swal) is not loaded. Please ensure the CDN link is correct.");
+        }
+
         nvModal = new bootstrap.Modal(document.getElementById('nvModal'));
         detailModal = new bootstrap.Modal(document.getElementById('detailModal')); // Init Detail Modal
         loadNhanVien();

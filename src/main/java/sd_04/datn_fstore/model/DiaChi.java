@@ -36,6 +36,8 @@ public class DiaChi {
     @NotBlank(message = "Xã/Phường không được để trống")
     private String xa;
 
+    @Column(name = "huyen") // <--- CẦN THÊM THUỘC TÍNH NÀY
+    private String huyen;
     @Column(name = "thanhPho")
     @NotBlank(message = "Tỉnh/Thành phố không được để trống") // Hoặc Quận/Huyện tùy logic
     private String thanhPho;

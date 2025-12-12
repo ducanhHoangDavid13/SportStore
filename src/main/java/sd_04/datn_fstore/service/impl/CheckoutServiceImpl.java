@@ -31,6 +31,9 @@ public class CheckoutServiceImpl implements CheckoutService {
     private final ThongBaoService thongBaoService;
     private final PhieuGiamgiaService phieuGiamgiaService;
 
+    // BỔ SUNG: KhachHangRepo để tìm khách hàng bằng ID
+    private final KhachHangRepo khachHangRepository;
+
     // =========================================================================
     // 1. TÍNH TOÁN TỔNG TIỀN (SỬA LOGIC VOUCHER)
     // =========================================================================
@@ -133,13 +136,23 @@ public class CheckoutServiceImpl implements CheckoutService {
         hoaDon.setHinhThucBanHang(0); // 0: Online
         hoaDon.setMoTa(req.getNote());
 
+        // --- BỔ SUNG: Gán Khách hàng nếu ID được truyền ---
+        if (req.getKhachHangId() != null) {
+            khachHangRepository.findById(req.getKhachHangId()).ifPresent(hoaDon::setKhachHang);
+        }
+        // ---------------------------------------------------
+
         // 1. LƯU ĐỊA CHỈ GIAO HÀNG
         DiaChi shippingInfo = new DiaChi();
         shippingInfo.setHoTen(req.getFullName());
         shippingInfo.setSoDienThoai(req.getPhone());
         shippingInfo.setDiaChiCuThe(req.getAddressDetail());
         shippingInfo.setXa(req.getWard());
-        shippingInfo.setThanhPho(req.getDistrict() + " - " + req.getCity()); // Lưu Tỉnh/TP và Quận/Huyện
+
+        // Cập nhật logic lưu địa chỉ: Tách Quận/Huyện ra khỏi Tỉnh/Thành phố
+        shippingInfo.setHuyen(req.getDistrict()); // Lưu Quận/Huyện vào trường Huyen
+        shippingInfo.setThanhPho(req.getCity()); // Chỉ lưu Tỉnh/Thành phố vào trường ThanhPho
+
         shippingInfo.setGhiChu("Email: " + req.getEmail());
         shippingInfo.setLoaiDiaChi("Giao hàng");
         shippingInfo.setTrangThai(1); // Mặc định là Active
@@ -231,7 +244,7 @@ public class CheckoutServiceImpl implements CheckoutService {
         // 5. XỬ LÝ THANH TOÁN
         if ("VNPAY".equals(req.getPaymentMethod())) {
             savedHoaDon.setTrangThai(1); // Chờ thanh toán
-            savedHoaDon.setHinhThucThanhToan(2); // VNPay
+            savedHoaDon.setHinhThucThanhToan(4); // Cập nhật: 4 cho VNPAY
             hoaDonRepository.save(savedHoaDon);
             try {
                 // Đảm bảo số tiền VNPay là Long và không có số thập phân
@@ -247,8 +260,8 @@ public class CheckoutServiceImpl implements CheckoutService {
 
         } else {
             // Thanh toán COD (Thành công ngay)
-            savedHoaDon.setTrangThai(1); // Chờ xác nhận
-            savedHoaDon.setHinhThucThanhToan(0); // COD
+            savedHoaDon.setTrangThai(0); // Chờ xác nhận
+            savedHoaDon.setHinhThucThanhToan(1); // Cập nhật: 1 cho COD (là Tiền mặt/COD)
             hoaDonRepository.save(savedHoaDon);
 
             // Trừ tồn kho và voucher
@@ -258,9 +271,12 @@ public class CheckoutServiceImpl implements CheckoutService {
             }
 
             // Gửi thông báo đến Admin
+            // Sử dụng tên khách hàng từ HoaDon.getKhachHang() nếu có, hoặc dùng req.getFullName()
+            String khachHangName = savedHoaDon.getKhachHang() != null ? savedHoaDon.getKhachHang().getTenKhachHang() : req.getFullName();
+
             thongBaoService.createNotification(
                     "Đơn hàng mới #" + maHoaDon,
-                    "Khách " + req.getFullName() + " đặt đơn " + String.format("%,.0f", finalTotal) + "đ",
+                    "Khách " + khachHangName + " đặt đơn " + String.format("%,.0f", finalTotal) + "đ",
                     "ORDER",
                     "/admin/hoa-don/detail/" + savedHoaDon.getId()
             );
@@ -324,6 +340,78 @@ public class CheckoutServiceImpl implements CheckoutService {
         // Giả định phieuGiamgiaService đã có method này để trừ số lượng sử dụng
         phieuGiamgiaService.decrementVoucher(pgg);
     }
+
+    // Đặt đoạn code này vào CheckoutServiceImpl.java
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void cancelOrder(String maHoaDon) {
+        // 1. Tìm Hóa Đơn bằng Mã
+        HoaDon hoaDon = hoaDonRepository.findByMaHoaDon(maHoaDon)
+                .orElseThrow(() -> new RuntimeException("Hóa đơn với mã " + maHoaDon + " không tồn tại!"));
+
+        // 2. Kiểm tra trạng thái hiện tại (Giả định: Chỉ được hủy nếu chưa hoàn thành hoặc đã hủy)
+        // Tùy theo nghiệp vụ: 0: Chờ xác nhận, 1: Chờ thanh toán, 2: Đã xác nhận/Chuẩn bị hàng
+        final int TRANG_THAI_HUY_THANH_CONG = 5; // Ví dụ: 5 là trạng thái "Đã Hủy"
+
+        if (hoaDon.getTrangThai() == TRANG_THAI_HUY_THANH_CONG) {
+            // Đơn đã bị hủy, không cần xử lý thêm
+            return;
+        }
+
+        // Nếu đơn đã thành công (ví dụ trạng thái 3: Đã giao/Hoàn thành), KHÔNG CHO HỦY
+        // if (hoaDon.getTrangThai() == 3) {
+        //     throw new RuntimeException("Không thể hủy đơn hàng đã hoàn thành!");
+        // }
+
+        // 3. Cập nhật trạng thái thành Đã Hủy
+        hoaDon.setTrangThai(TRANG_THAI_HUY_THANH_CONG);
+//        hoaDon.setNgayCapNhat(LocalDateTime.now());
+        HoaDon savedHoaDon = hoaDonRepository.save(hoaDon);
+
+        // 4. HOÀN LẠI TỒN KHO (INCREMENT INVENTORY)
+        List<HoaDonChiTiet> chiTietList = hoaDonChiTietRepository.findByHoaDon(savedHoaDon);
+        for (HoaDonChiTiet cthd : chiTietList) {
+            SanPhamChiTiet spct = cthd.getSanPhamChiTiet();
+
+            // CỘNG LẠI SỐ LƯỢNG đã trừ khi đặt hàng
+            int soLuongHoanLai = cthd.getSoLuong();
+            int newStock = spct.getSoLuong() + soLuongHoanLai;
+
+            spct.setSoLuong(newStock);
+            sanPhamCTRepository.save(spct);
+        }
+
+        // 5. HOÀN LẠI LƯỢT VOUCHER nếu có (INCREMENT VOUCHER USAGE COUNT)
+        PhieuGiamGia pgg = savedHoaDon.getPhieuGiamGia();
+        if (pgg != null) {
+            // Cần đảm bảo PhieuGiamgiaService có phương thức để tăng lại số lượng (hoàn lại lượt dùng)
+            incrementVoucher(pgg);
+        }
+
+        // 6. Gửi thông báo đến Admin
+        String khachHangName = savedHoaDon.getKhachHang() != null ? savedHoaDon.getKhachHang().getTenKhachHang() : savedHoaDon.getDiaChiGiaoHang().getHoTen();
+
+        thongBaoService.createNotification(
+                "Đơn hàng bị hủy #" + maHoaDon,
+                "Đơn hàng của khách " + khachHangName + " đã bị hủy thành công. Tồn kho đã được hoàn lại.",
+                "CANCEL",
+                "/admin/hoa-don/detail/" + savedHoaDon.getId()
+        );
+    }
+
+    // BỔ SUNG: Bạn cần thêm phương thức này để hoàn lại lượt voucher
+    @Transactional(rollbackFor = Exception.class)
+    public void incrementVoucher(PhieuGiamGia pgg) {
+        // Cần phải triển khai phương thức này trong PhieuGiamgiaService.
+        // Ví dụ: pgg.setSoLuong(pgg.getSoLuong() + 1); phieuGiamGiaRepository.save(pgg);
+        // Hoặc gọi service như dưới:
+        phieuGiamgiaService.incrementVoucher(pgg);
+    }
+
+// BỔ SUNG: Bạn cần phải thêm phương thức findByMaHoaDon vào HoaDonRepository
+// Optional<HoaDon> findByMaHoaDon(String maHoaDon);
+
 
     // Map từ CheckoutRequest.CartItem sang CreateOrderRequest.SanPhamItem (Dùng cho hàm decrementInventory)
     private List<CreateOrderRequest.SanPhamItem> mapToSanPhamItems(List<CheckoutRequest.CartItem> cartItems) {
