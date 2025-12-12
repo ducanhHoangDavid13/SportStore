@@ -74,4 +74,18 @@ public class DonHangCuaToiApi {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR); // 500
         }
     }
+
+    @PutMapping("/cap-nhat-trang-thai/{id}")
+    public ResponseEntity<HoaDon> updateStatus(
+            @PathVariable Integer id,
+            @RequestBody Integer trangThai) { // Nhận trực tiếp Integer
+
+        // Kiểm tra trangThai có null không
+        if (trangThai == null) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        HoaDon updatedHoaDon = donHangCuaToiService.updateOrderStatus(id, trangThai);
+        return ResponseEntity.ok(updatedHoaDon);
+    }
 }
