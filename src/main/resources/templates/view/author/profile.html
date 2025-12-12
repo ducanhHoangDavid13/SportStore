@@ -4,8 +4,11 @@
     <div th:fragment="head-links">
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css"/>
 
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -21,12 +24,11 @@
         .form-control:focus { border-color: #e5101d; box-shadow: 0 0 0 0.25rem rgba(229, 16, 29, 0.25); }
         .btn-submit { background-color: #e5101d; color: white; font-weight: 600; padding: 10px 25px; border: none; }
         .btn-submit:hover { background-color: #c40e18; }
-        .avatar-upload { position: relative; width: 120px; height: 120px; margin: 0 auto 20px; }
-        .avatar-upload .avatar-preview { width: 100%; height: 100%; border-radius: 50%; border: 4px solid #fff; box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.1); background-size: cover; background-repeat: no-repeat; background-position: center; }
-        .avatar-upload .avatar-edit { position: absolute; right: 0; bottom: 0; }
-        .avatar-upload .avatar-edit input { display: none; }
-        .avatar-upload .avatar-edit label { display: inline-block; width: 34px; height: 34px; margin-bottom: 0; border-radius: 50%; background: #FFFFFF; border: 1px solid #d2d6de; box-shadow: 0px 2px 4px 0px rgba(0, 0, 0, 0.1); cursor: pointer; font-weight: normal; transition: all .2s ease-in-out; display: flex; align-items: center; justify-content: center; }
-        .avatar-upload .avatar-edit label:hover { background: #f1f1f1; border-color: #d2d6de; }
+        /* Đảm bảo các trường chỉ đọc có màu nền khác để dễ phân biệt */
+        .form-control-plaintext, .form-control:disabled, .form-control[readonly] {
+            background-color: #e9ecef; /* Màu nền xám nhạt */
+            color: #495057;
+        }
     </style>
 </head>
 <body>
@@ -36,72 +38,82 @@
 <div class="account-page-wrapper">
     <div class="container" style="max-width: 1200px;">
         <div class="row">
-            <!-- Sidebar -->
             <div class="col-lg-3">
                 <div th:replace="~{/library/hosoUser :: account-sidebar(activePage='profile')}"></div>
             </div>
 
-            <!-- Main Content -->
             <div class="col-lg-9">
                 <div class="main-content-panel">
                     <h3 class="fw-bold mb-1">Hồ Sơ Của Tôi</h3>
                     <p class="text-muted mb-4">Quản lý thông tin hồ sơ để bảo mật tài khoản</p>
                     <hr>
                     <div class="row">
-                        <div class="col-md-8">
-                            <form th:action="@{/profile/update}" method="post">
-                                <div class="mb-3 row">
-                                    <label for="username" class="col-sm-3 col-form-label">Tên đăng nhập</label>
-                                    <div class="col-sm-9">
-                                        <input type="text" readonly class="form-control-plaintext" id="username" th:value="${user?.username ?: 'achien'}">
-                                    </div>
-                                </div>
-                                <div class="mb-3 row">
-                                    <label for="fullName" class="col-sm-3 col-form-label">Tên</label>
-                                    <div class="col-sm-9">
-                                        <input type="text" class="form-control" id="fullName" name="fullName" th:value="${user?.name ?: 'A Chiến'}">
-                                    </div>
-                                </div>
-                                <div class="mb-3 row">
-                                    <label for="email" class="col-sm-3 col-form-label">Email</label>
-                                    <div class="col-sm-9">
-                                        <input type="email" class="form-control" id="email" name="email" th:value="${user?.email ?: 'achien@example.com'}">
-                                    </div>
-                                </div>
-                                <div class="mb-3 row">
-                                    <label for="phone" class="col-sm-3 col-form-label">Số điện thoại</label>
-                                    <div class="col-sm-9">
-                                        <input type="text" class="form-control" id="phone" name="phone" th:value="${user?.phone ?: '0338783110'}">
-                                    </div>
-                                </div>
-                                <div class="mb-4 row">
-                                    <label class="col-sm-3 col-form-label">Giới tính</label>
-                                    <div class="col-sm-9 d-flex align-items-center">
-                                        <div class="form-check form-check-inline">
-                                            <input class="form-check-input" type="radio" name="gender" id="male" value="MALE" th:checked="${user?.gender == 'MALE'}">
-                                            <label class="form-check-label" for="male">Nam</label>
-                                        </div>
-                                        <div class="form-check form-check-inline">
-                                            <input class="form-check-input" type="radio" name="gender" id="female" value="FEMALE" th:checked="${user?.gender == 'FEMALE'}">
-                                            <label class="form-check-label" for="female">Nữ</label>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-sm-9 offset-sm-3">
-                                        <button type="submit" class="btn btn-submit">Lưu Thay Đổi</button>
-                                    </div>
-                                </div>
-                            </form>
-                        </div>
-                        <div class="col-md-4 d-flex justify-content-center align-items-center">
-                            <div class="avatar-upload">
-                                <div class="avatar-preview" style="background-image: url(/image/avatar-placeholder.png);"></div>
-                                <div class="avatar-edit">
-                                    <input type='file' id="imageUpload" accept=".png, .jpg, .jpeg" />
-                                    <label for="imageUpload"><i class="fas fa-pencil-alt"></i></label>
+                        <div class="col-md-12"> <form id="profileForm">
+                            <input type="hidden" id="khachHangId" name="id" value="">
+                            <input type="hidden" id="maKhachHang" name="maKhachHang" value="">
+
+                            <div class="mb-3 row">
+                                <label for="username" class="col-sm-3 col-form-label">Tên đăng nhập</label>
+                                <div class="col-sm-9">
+                                    <input type="text" readonly class="form-control" id="username" value="">
                                 </div>
                             </div>
+
+                            <div class="mb-3 row">
+                                <label for="fullName" class="col-sm-3 col-form-label">Họ Tên</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" id="fullName" name="tenKhachHang" value="">
+                                </div>
+                            </div>
+
+                            <div class="mb-3 row">
+                                <label for="email" class="col-sm-3 col-form-label">Email</label>
+                                <div class="col-sm-9">
+                                    <input type="email" readonly class="form-control" id="email" name="email" value="">
+                                </div>
+                            </div>
+
+                            <div class="mb-3 row">
+                                <label for="phone" class="col-sm-3 col-form-label">Số điện thoại</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" id="phone" name="soDienThoai" value="">
+                                </div>
+                            </div>
+
+                            <div class="mb-3 row">
+                                <label for="namSinh" class="col-sm-3 col-form-label">Năm sinh</label>
+                                <div class="col-sm-9">
+                                    <input type="number" class="form-control" id="namSinh" name="namSinh" value="">
+                                </div>
+                            </div>
+
+                            <div class="mb-3 row">
+                                <label for="age" class="col-sm-3 col-form-label">Tuổi</label>
+                                <div class="col-sm-9">
+                                    <input type="text" readonly class="form-control" id="age" value="">
+                                </div>
+                            </div>
+
+                            <div class="mb-4 row">
+                                <label class="col-sm-3 col-form-label">Giới tính</label>
+                                <div class="col-sm-9 d-flex align-items-center">
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="gioiTinh" id="male" value="true">
+                                        <label class="form-check-label" for="male">Nam</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="gioiTinh" id="female" value="false">
+                                        <label class="form-check-label" for="female">Nữ</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-sm-9 offset-sm-3">
+                                    <button type="submit" class="btn btn-submit">Lưu Thay Đổi</button>
+                                </div>
+                            </div>
+                        </form>
                         </div>
                     </div>
                 </div>
@@ -113,19 +125,177 @@
 <footer th:replace="~{/library/footer :: footer}"></footer>
 <div th:replace="~{/library/footer :: scripts}"></div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 <script>
-    // Simple script for avatar preview
-    function readURL(input) {
-        if (input.files && input.files[0]) {
-            var reader = new FileReader();
-            reader.onload = function(e) {
-                document.querySelector('.avatar-preview').style.backgroundImage = 'url(' + e.target.result + ')';
+    toastr.options = { "closeButton": true, "progressBar": true, "positionClass": "toast-bottom-right", "timeOut": "3000" };
+
+    // --- 1. VALIDATION FORM ---
+    function validateForm(data) {
+        let isValid = true;
+        const currentYear = new Date().getFullYear();
+
+        // Xóa các trạng thái lỗi cũ
+        $('.form-control').removeClass('is-invalid');
+        $('.invalid-feedback').remove();
+
+        const appendError = (id, msg) => {
+            // Đảm bảo id tồn tại trước khi thêm class/feedback
+            const $element = $(`#${id}`);
+            if($element.length) {
+                $element.addClass('is-invalid').after(`<div class="invalid-feedback">${msg}</div>`);
+                isValid = false;
             }
-            reader.readAsDataURL(input.files[0]);
+        };
+
+        // 1. Họ Tên
+        if (!data.tenKhachHang || data.tenKhachHang.trim() === '') {
+            appendError('fullName', 'Họ tên không được để trống.');
         }
+
+        // 2. Số Điện Thoại (SĐT)
+        const sdt = data.soDienThoai;
+        if (sdt && sdt.trim() !== '') {
+            // Cho phép 10 hoặc 11 số, bắt đầu bằng 0
+            if (!/^0\d{9,10}$/.test(sdt)) {
+                appendError('phone', 'SĐT phải bắt đầu bằng 0 và có 10 hoặc 11 chữ số.');
+            }
+        }
+
+        // 3. Năm Sinh
+        const namSinh = data.namSinh;
+        if (namSinh && namSinh.trim() !== '') {
+            const year = parseInt(namSinh);
+            if (isNaN(year) || year < 1900 || year > currentYear) {
+                appendError('namSinh', `Năm sinh phải là số hợp lệ (1900-${currentYear}).`);
+            }
+        }
+
+        return isValid;
     }
-    document.getElementById("imageUpload").addEventListener("change", function() {
-        readURL(this);
+
+    // 🟢 HÀM JQUERY ĐỂ LẤY VÀ ĐIỀN DỮ LIỆU TỪ API & CẬP NHẬT 🟢
+    $(document).ready(function() {
+        const LOAD_API = "/api/khach-hang/me";
+        let khachHangId = null;
+
+        // --- 2. HÀM TẢI DỮ LIỆU ---
+        function loadProfileData() {
+            $.ajax({
+                url: LOAD_API,
+                type: "GET",
+                dataType: "json",
+                contentType: "application/json",
+                success: function(data) {
+                    // Xóa lỗi validation khi tải thành công
+                    $('.form-control').removeClass('is-invalid');
+                    $('.invalid-feedback').remove();
+
+                    if (data) {
+                        khachHangId = data.id;
+                        const currentYear = new Date().getFullYear();
+
+                        // Điền dữ liệu
+                        $('#khachHangId').val(data.id);
+                        $('#maKhachHang').val(data.maKhachHang || '');
+                        $('#fullName').val(data.tenKhachHang || '');
+                        $('#phone').val(data.soDienThoai || '');
+                        $('#namSinh').val(data.namSinh || '');
+
+                        // Trường chỉ đọc
+                        $('#username').val(data.email || 'N/A');
+                        $('#email').val(data.email || '');
+
+                        // Tính và điền Tuổi
+                        if (data.namSinh && data.namSinh > 1900 && data.namSinh <= currentYear) {
+                            $('#age').val(currentYear - data.namSinh);
+                        } else {
+                            $('#age').val('Chưa cập nhật');
+                        }
+
+                        // Xử lý Giới tính (Boolean: true/false)
+                        if (data.gioiTinh === true) {
+                            $('#male').prop('checked', true);
+                        } else if (data.gioiTinh === false) {
+                            $('#female').prop('checked', true);
+                        } else {
+                            // Nếu null, không check radio nào
+                            $('input[name="gioiTinh"]').prop('checked', false);
+                        }
+                    }
+                },
+                error: function(xhr) {
+                    if (xhr.status === 401 || xhr.status === 403) {
+                        toastr.error("Vui lòng đăng nhập lại để xem hồ sơ.");
+                    } else {
+                        toastr.error("Đã xảy ra lỗi khi tải dữ liệu hồ sơ.");
+                    }
+                }
+            });
+        }
+
+        // Tải dữ liệu khi trang được load
+        loadProfileData();
+
+        // --- 3. CẬP NHẬT TUỔI KHI THAY ĐỔI NĂM SINH ---
+        $('#namSinh').on('input', function() {
+            const namSinhValue = $(this).val();
+            const currentYear = new Date().getFullYear();
+            const namSinh = parseInt(namSinhValue);
+
+            if (!isNaN(namSinh) && namSinh > 1900 && namSinh <= currentYear) {
+                $('#age').val(currentYear - namSinh);
+            } else {
+                $('#age').val('Chưa cập nhật');
+            }
+            // Logic validation đầy đủ sẽ được chạy trong hàm submit
+        });
+
+
+        // --- 4. HÀM XỬ LÝ CẬP NHẬT (PUT) ---
+        $('#profileForm').submit(function(e) {
+            e.preventDefault();
+
+            if (!khachHangId) {
+                toastr.warning("Không tìm thấy ID khách hàng. Vui lòng tải lại trang.");
+                return;
+            }
+
+            // 1. Thu thập dữ liệu từ Form
+            const updateData = {
+                id: khachHangId,
+                // Giữ nguyên MaKhachHang, Email
+                maKhachHang: $('#maKhachHang').val(),
+                tenKhachHang: $('#fullName').val().trim(),
+                soDienThoai: $('#phone').val().trim(),
+                email: $('#email').val(),
+                namSinh: $('#namSinh').val().trim(),
+                // Lấy giá trị boolean từ radio
+                gioiTinh: $('input[name="gioiTinh"]:checked').val() === 'true'
+            };
+
+            // 2. Validation
+            if (!validateForm(updateData)) {
+                toastr.error("Vui lòng kiểm tra lại các trường bị lỗi.");
+                return;
+            }
+
+            // 3. Gọi API PUT
+            $.ajax({
+                url: `/api/khach-hang/${khachHangId}`,
+                type: "PUT",
+                contentType: "application/json",
+                data: JSON.stringify(updateData),
+                success: function(response) {
+                    toastr.success("Cập nhật hồ sơ thành công!");
+                    // Tải lại dữ liệu để đảm bảo Tuổi được cập nhật chính xác và xóa trạng thái lỗi
+                    loadProfileData();
+                },
+                error: function(xhr) {
+                    const errorMsg = xhr.responseJSON?.message || "Lỗi cập nhật. Vui lòng kiểm tra dữ liệu.";
+                    toastr.error(errorMsg);
+                }
+            });
+        });
     });
 </script>
 

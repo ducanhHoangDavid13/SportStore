@@ -10,7 +10,7 @@ public class CheckoutRequest {
     private String fullName;
     private String phone;
     private String email;
-
+    private Integer khachHangId;
     // Địa chỉ
     private String city;
     private String district;

@@ -2,8 +2,6 @@ package sd_04.datn_fstore.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import sd_04.datn_fstore.model.HinhAnh;
 import sd_04.datn_fstore.model.SanPham;
@@ -14,14 +12,34 @@ import java.util.Optional;
 @Repository
 public interface HinhAnhRepository extends JpaRepository<HinhAnh, Integer>, JpaSpecificationExecutor<HinhAnh> {
 
-    // Lấy tất cả hình ảnh của MỘT sản phẩm
-    @Query("SELECT ha FROM HinhAnh ha WHERE ha.sanPham.id = :idSanPham")
-    List<HinhAnh> findAllBySanPhamId(@Param("idSanPham") Integer idSanPham);
+    /**
+     * 1. Lấy TẤT CẢ hình ảnh của MỘT sản phẩm dựa trên ID.
+     */
+    List<HinhAnh> findAllBySanPhamId(Integer sanPhamId);
 
-    // THAY THẾ: Dùng phương thức đặt tên để chỉ lấy KẾT QUẢ ĐẦU TIÊN (LIMIT 1)
-    // Giải quyết lỗi NonUniqueResultException. TrangThai=1 được giả định là ảnh đại diện.
+    /**
+     * 2. TÌM ẢNH ĐẠI DIỆN (AVATAR) của sản phẩm dựa trên thuộc tính 'trangThai'.
+     *
+     * Giả định: trangThai = 1 là Ảnh đại diện (Avatar/Ảnh chính).
+     * Phương thức này thay thế cho `findBySanPhamIdAndAvatarTrue` đã bị lỗi.
+     * Cần đảm bảo chỉ có 1 ảnh có trangThai = 1 cho mỗi sản phẩm.
+     */
+    Optional<HinhAnh> findBySanPhamIdAndTrangThai(Integer sanPhamId, Integer trangThai);
+
+    /**
+     * 3. Lấy hình ảnh đầu tiên có trangThai cụ thể (thường dùng để tìm Avatar).
+     * (Giữ lại nếu bạn muốn đảm bảo chỉ lấy một, nhưng phương thức trên là đủ)
+     */
     Optional<HinhAnh> findFirstBySanPhamIdAndTrangThai(Integer sanPhamId, Integer trangThai);
 
-    // Lấy tất cả hình ảnh theo đối tượng SanPham (dùng cho logic xóa cascading)
+    /**
+     * 4. Lấy tất cả hình ảnh liên quan đến một đối tượng SanPham (dùng cho logic xóa cascading).
+     */
     List<HinhAnh> findBySanPham(SanPham sanPham);
+
+    /**
+     * 5. Xóa tất cả hình ảnh liên quan đến một sản phẩm.
+     * Cần được đánh dấu @Transactional trong Service khi gọi phương thức này.
+     */
+    void deleteAllBySanPhamId(Integer sanPhamId);
 }

@@ -50,4 +50,8 @@ public class TheLoaiServiceImpl implements TheLoaiService {
             throw new RuntimeException("Không tìm thấy thể loại ID: " + id);
         }
     }
+    @Override
+    public List<TheLoai> getAllActive() {
+        return theLoaiRepository.findByTrangThai(1);
+    }
 }

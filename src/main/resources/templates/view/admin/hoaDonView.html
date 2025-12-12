@@ -186,6 +186,16 @@
         .nav-pills .nav-link { color: #6b7280; border-radius: 8px; padding: 8px 16px; white-space: nowrap; }
         .nav-pills .nav-link.active { background-color: #0d6efd; color: white; }
 
+        /* Pagination fix */
+        .pagination .page-item.active .page-link {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+            color: white;
+        }
+        .pagination .page-link {
+            color: #495057;
+        }
+
     </style>
 </head>
 
@@ -195,6 +205,58 @@
 
     <aside class="app-sidebar">
         <div th:replace="~{library/navbar :: admin-sidebar}"></div>
+        <ul class="navbar-nav ms-auto align-items-center">
+
+            <li class="nav-item dropdown me-3">
+                <a class="nav-link position-relative text-secondary" href="#" id="notificationDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="far fa-bell fs-5"></i>
+                    <span id="notif-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-light"
+                          style="display: none; font-size: 0.6rem;">
+                        0
+                    </span>
+                </a>
+
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-3 p-0 animated--fade-in" aria-labelledby="notificationDropdown" style="width: 320px; max-height: 400px; overflow-y: auto;">
+                    <li class="p-3 border-bottom bg-light d-flex justify-content-between align-items-center sticky-top">
+                        <h6 class="m-0 fw-bold text-primary">Thông báo</h6>
+                        <small class="text-muted" style="font-size: 0.75rem;">Mới nhất</small>
+                    </li>
+
+                    <div id="notif-list">
+                        <li class="text-center text-muted small py-4">Đang tải...</li>
+                    </div>
+                </ul>
+            </li>
+            <li class="nav-item dropdown">
+                <a class="nav-link d-flex align-items-center gap-2 dropdown-toggle hide-arrow" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                    <div class="text-end d-none d-sm-block line-height-1">
+                        <span class="d-block text-dark fw-bold" style="font-size: 0.9rem;">Admin User</span>
+                        <span class="d-block text-muted" style="font-size: 0.75rem;">Quản trị viên</span>
+                    </div>
+                    <div class="position-relative">
+                        <img src="https://ui-avatars.com/api/?name=Admin&background=6366f1&color=fff"
+                             class="rounded-circle border border-2 border-white shadow-sm" width="40" height="40" alt="Avatar">
+                        <span class="position-absolute bottom-0 end-0 p-1 bg-success border border-light rounded-circle"></span>
+                    </div>
+                </a>
+
+                <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg mt-3 animated--fade-in" style="min-width: 200px;">
+                    <div class="px-3 py-2">
+                        <span class="text-muted small text-uppercase fw-bold">Tài khoản</span>
+                    </div>
+                    <li><a class="dropdown-item py-2" th:href="@{/admin/profile}"><i class="far fa-user-circle me-2 text-primary"></i> Hồ sơ của tôi</a></li>
+                    <li><a class="dropdown-item py-2" th:href="@{/admin/settings}"><i class="fas fa-cog me-2 text-info"></i> Cài đặt</a></li>
+                    <li><hr class="dropdown-divider my-2"></li>
+                    <li>
+                        <form th:action="@{/logout}" method="post">
+                            <button type="submit" class="dropdown-item py-2 text-danger fw-bold">
+                                <i class="fas fa-sign-out-alt me-2"></i> Đăng xuất
+                            </button>
+                        </form>
+                    </li>
+                </ul>
+            </li>
+        </ul>
     </aside>
 
     <div class="app-main">
@@ -301,14 +363,13 @@
                         <tr>
                             <th>Khách hàng</th>
                             <th>Loại đơn</th>
-                            <th>Ngày tạo</th>
+                            <th>Thanh toán</th> <th>Ngày tạo</th>
                             <th class="text-end">Tổng tiền</th>
                             <th class="text-center">Trạng thái</th>
                             <th class="text-center">Thao tác</th>
                         </tr>
                         </thead>
-                        <tbody id="hoaDonTableBody">
-                        </tbody>
+                        <tbody id="hoaDonTableBody"></tbody>
                     </table>
                 </div>
 
@@ -340,19 +401,142 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
+<script th:src="@{/js/main.js}"></script>
 
 <script>
+    // Cấu hình URL khớp với @RequestMapping("/api/admin/hoadon") trong Java
     const API_BASE = "/api/admin/hoadon";
+
+    // Cấu hình Toastr
     toastr.options = { "positionClass": "toast-top-right", "timeOut": "3000" };
+
+    // State lưu trạng thái lọc
     let state = { page: 0, size: 10, status: 'all', keyword: '', startDate: '', endDate: '' };
 
-    // Toggle Sidebar Mobile
-    $("#menu-toggle").click(function(e) {
-        e.preventDefault();
-        $(".app-sidebar").toggle();
-    });
+    // --- HÀM HỖ TRỢ HIỂN THỊ DỮ LIỆU ---
 
-    // Render Badge
+    // 1. Định dạng tiền tệ
+    function formatMoney(amount) {
+        if (amount == null) return '0 ₫';
+        // Sử dụng toLocaleString() với locale 'vi-VN' cho định dạng tiền tệ Việt Nam
+        if (typeof amount === 'string') {
+            amount = parseFloat(amount);
+        }
+        // Thêm kiểm tra NaN sau khi parse (đảm bảo độ tin cậy)
+        if (isNaN(amount)) return '0 ₫';
+        return amount.toLocaleString('vi-VN') + ' ₫';
+    }
+
+    // 2. Ánh xạ Hình thức thanh toán (TỐI ƯU HÓA)
+    // Mã thanh toán phổ biến: 0=Chờ TT, 1=Tiền mặt/COD, 2=CK, 3=Ví, 4=VNPAY
+    function mapHinhThucThanhToan(code) {
+        if (code == null) return 'Chưa xác định';
+        switch (code) {
+            case 0: return "Chờ Thanh Toán";     // Thường là COD Online chờ xác nhận
+            case 1: return "Tiền mặt (COD/POS)"; // Tiền mặt tại quầy hoặc COD đã xác nhận
+            case 2: return "Chuyển khoản Ngân hàng"; // Áp dụng cho CK/QR tại quầy
+            case 3: return "Thanh toán qua Ví điện tử";
+            case 4: return "VNPAY/Thẻ ATM";      // Dùng cho VNPay Online
+            default: return "Khác";
+        }
+    }
+
+    // 3. Ánh xạ Hình thức bán hàng (Giữ nguyên)
+    function mapHinhThucBanHang(code) {
+        if (code === 1) return 'Tại quầy (POS)';
+        if (code === 0) return 'Online (Giao hàng)'; // Online được lưu là 0
+        return 'Chưa xác định';
+    }
+
+    // --- 1. HÀM LOAD HÓA ĐƠN (Khớp với API /search) ---
+    async function loadHoaDon() {
+        const params = new URLSearchParams();
+
+        // Mapping tham số khớp với Java: @RequestParam
+        params.append('page', state.page);
+        params.append('size', state.size);
+
+        // Xử lý List<Integer> trangThaiList
+        if (state.status !== 'all') {
+            params.append('trangThaiList', state.status);
+        }
+
+        // Xử lý Keyword
+        if (state.keyword) {
+            params.append('keyword', state.keyword);
+        }
+
+        // Xử lý LocalDateTime: Backend cần định dạng ISO (YYYY-MM-DDTHH:mm:ss)
+        if (state.startDate) {
+            params.append('ngayBatDau', state.startDate + "T00:00:00");
+        }
+        if (state.endDate) {
+            params.append('ngayKetThuc', state.endDate + "T23:59:59");
+        }
+
+        // Hiển thị loading
+        $('#hoaDonTableBody').html('<tr><td colspan="8" class="text-center py-5"><div class="spinner-border text-primary"></div></td></tr>');
+
+        try {
+            // Gọi API
+            const res = await fetch(`${API_BASE}/search?${params.toString()}`);
+
+            // Debug lỗi nếu có
+            if (!res.ok) {
+                const errText = await res.text();
+                console.error("Lỗi API:", errText);
+                throw new Error("Lỗi Server: " + res.status);
+            }
+
+            const data = await res.json();
+
+            // Java trả về Page<HoaDon>, nên dữ liệu nằm trong data.content
+            renderTable(data.content);
+            renderPagination(data.totalPages);
+            document.getElementById("recordCount").innerText = `${data.totalElements} đơn hàng`;
+
+        } catch (e) {
+            console.error(e);
+            $('#hoaDonTableBody').html(`<tr><td colspan="8" class="text-center text-danger py-5">Không tải được dữ liệu. Hãy kiểm tra Console (F12).</td></tr>`);
+        }
+    }
+
+    // --- 2. RENDER BẢNG (ĐÃ SỬA: Đồng bộ tên trường DTO và khôi phục cột Thanh toán) ---
+    function renderTable(data) {
+        const tbody = document.getElementById("hoaDonTableBody");
+        tbody.innerHTML = "";
+
+        if (!data || data.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="8" class="text-center py-5 text-muted">Không tìm thấy đơn hàng nào</td></tr>`;
+            return;
+        }
+
+        const html = data.map((hd, i) => {
+            // Lấy Tên và SĐT Khách hàng (CHỈ DÙNG tenKhachHang VÀ sdt TỪ DTO)
+            const tenKhach = (hd.khachHang && hd.khachHang.tenKhachHang) ? hd.khachHang.tenKhachHang : 'Khách lẻ';
+            const sdtKhach = (hd.khachHang && hd.khachHang.sdt) ? hd.khachHang.sdt : '';
+            const tongTienHienThi = hd.tongTienSauGiam || hd.tongTien;
+
+            return `
+            <tr>
+                <td>
+                    <div class="fw-bold text-dark">${tenKhach}</div>
+                    ${sdtKhach ? `<small class="text-info">${sdtKhach}</small><br>` : ''}
+                    <small class="text-muted fw-bold text-primary">#${hd.maHoaDon || hd.id}</small>
+                </td>
+                <td><span class="badge bg-light text-dark border">${mapHinhThucBanHang(hd.hinhThucBanHang)}</span></td>
+                <td>${mapHinhThucThanhToan(hd.hinhThucThanhToan)}</td> <td class="small text-muted">${new Date(hd.ngayTao).toLocaleString('vi-VN')}</td>
+                <td class="text-end fw-bold text-dark">${formatMoney(tongTienHienThi)}</td>
+                <td class="text-center">${getStatusBadge(hd.trangThai)}</td>
+                <td class="col-action">${renderActionButtons(hd)}</td>
+            </tr>
+            `;
+        }).join('');
+
+        tbody.innerHTML = html;
+    }
+
+    // --- 3. CÁC HÀM HỖ TRỢ GIAO DIỆN (ĐÃ BỔ SUNG LOGIC PHÂN TRANG) ---
     function getStatusBadge(status) {
         const map = {
             0: { text: 'Chờ Xác Nhận', cls: 'bg-status-0', icon: 'fa-clock' },
@@ -361,136 +545,315 @@
             3: { text: 'Đang Giao', cls: 'bg-status-3', icon: 'fa-truck' },
             4: { text: 'Hoàn Thành', cls: 'bg-status-4', icon: 'fa-check-circle' },
             5: { text: 'Đã Hủy', cls: 'bg-status-5', icon: 'fa-times-circle' },
-            6: { text: 'Chờ Thanh Toán', cls: 'bg-status-6', icon: 'fa-wallet' }
+            6: { text: 'Chờ Thanh Toán', cls: 'bg-status-6', icon: 'fa-wallet' },
+            7: { text: 'Giao Thất Bại', cls: 'bg-danger text-white border-danger', icon: 'fa-undo' }
         };
         const s = map[status] || { text: 'Khác', cls: 'bg-secondary text-white', icon: 'fa-question' };
         return `<span class="badge-status ${s.cls}"><i class="fas ${s.icon}"></i> ${s.text}</span>`;
     }
 
-    // Render Actions Buttons
     function renderActionButtons(hd) {
         let btns = `<div class="action-group">`;
         btns += `<button class="btn-custom btn-view btn-view-detail" data-id="${hd.id}"><i class="fas fa-eye"></i> Xem</button>`;
-        if (hd.trangThai === 0) {
+
+        // Logic hiển thị nút theo trạng thái (Đã bao gồm Hủy đơn trước giao và Từ chối nhận/Khách không nhận)
+        if (hd.trangThai === 0) { // Chờ xác nhận
             btns += `<button class="btn-custom btn-confirm btn-update-status" data-id="${hd.id}" data-status="1"><i class="fas fa-check"></i> Duyệt</button>
                      <button class="btn-custom btn-cancel btn-update-status" data-id="${hd.id}" data-status="5"><i class="fas fa-times"></i> Hủy</button>`;
-        } else if (hd.trangThai === 1) {
-            btns += `<button class="btn-custom btn-prepare btn-update-status" data-id="${hd.id}" data-status="2"><i class="fas fa-box-open"></i> Soạn</button>`;
-        } else if (hd.trangThai === 2) {
-            btns += `<button class="btn-custom btn-ship btn-update-status" data-id="${hd.id}" data-status="3"><i class="fas fa-truck"></i> Giao</button>`;
-        } else if (hd.trangThai === 3) {
-            btns += `<button class="btn-custom btn-complete btn-update-status" data-id="${hd.id}" data-status="4"><i class="fas fa-check-double"></i> Xong</button>`;
-        } else if (hd.trangThai === 6) {
+        } else if (hd.trangThai === 1) { // Đã xác nhận -> Soạn hàng
+            btns += `<button class="btn-custom btn-prepare btn-update-status" data-id="${hd.id}" data-status="2"><i class="fas fa-box-open"></i> Soạn</button>
+                     <button class="btn-custom btn-cancel btn-update-status" data-id="${hd.id}" data-status="5"><i class="fas fa-times"></i> Hủy</button>`;
+        } else if (hd.trangThai === 2) { // Đang soạn -> Giao hàng
+            btns += `<button class="btn-custom btn-ship btn-update-status" data-id="${hd.id}" data-status="3"><i class="fas fa-truck"></i> Giao</button>
+                     <button class="btn-custom btn-cancel btn-update-status" data-id="${hd.id}" data-status="5"><i class="fas fa-times"></i> Hủy</button>`;
+        } else if (hd.trangThai === 3) { // Đang giao -> Hoàn thành (hoặc hủy/từ chối nhận)
+            btns += `<button class="btn-custom btn-complete btn-update-status" data-id="${hd.id}" data-status="4"><i class="fas fa-check-double"></i> Thành công</button>
+                     <button class="btn-custom btn-cancel btn-update-status" data-id="${hd.id}" data-status="7"><i class="fas fa-undo"></i> Thất bại</button>`; // Khách không nhận đơn COD
+        } else if (hd.trangThai === 6) { // Chờ thanh toán
             btns += `<button class="btn-custom btn-confirm btn-update-status" data-id="${hd.id}" data-status="1"><i class="fas fa-check"></i> Đã TT</button>
-<button class="btn-custom btn-cancel btn-update-status" data-id="${hd.id}" data-status="5"><i class="fas fa-times"></i> Hủy</button>`;
+                     <button class="btn-custom btn-cancel btn-update-status" data-id="${hd.id}" data-status="5"><i class="fas fa-times"></i> Hủy</button>`;
         }
         btns += `</div>`;
         return btns;
     }
 
-    async function loadHoaDon() {
-        const params = new URLSearchParams({ page: state.page, size: state.size });
-        if (state.status !== 'all') params.append('trangThaiList', state.status);
-        if (state.keyword) params.append('keyword', state.keyword);
-        if (state.startDate) params.append('ngayBatDau', state.startDate + "T00:00:00");
-        if (state.endDate) params.append('ngayKetThuc', state.endDate + "T23:59:59");
-
-        $('#hoaDonTableBody').html('<tr><td colspan="8" class="text-center py-5"><div class="spinner-border text-primary"></div></td></tr>');
-
-        try {
-            const res = await fetch(`${API_BASE}/search?${params.toString()}`);
-            if(!res.ok) throw new Error();
-            const data = await res.json();
-            renderTable(data.content);
-            renderPagination(data.totalPages);
-            document.getElementById("recordCount").innerText = `${data.totalElements} đơn hàng`;
-        } catch { $('#hoaDonTableBody').html('<tr><td colspan="8" class="text-center text-danger py-5">Lỗi tải dữ liệu</td></tr>'); }
-    }
-
-    function renderTable(data) {
-        const tbody = document.getElementById("hoaDonTableBody");
-        tbody.innerHTML = "";
-        if (!data || data.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="8" class="text-center py-5 text-muted">Không tìm thấy đơn hàng nào</td></tr>`;
-            return;
-        }
-        const html = data.map((hd, i) => `
-            <tr>
-                <td><div class="fw-bold text-dark">${hd.khachHang ? hd.khachHang.tenKhachHang : 'Khách lẻ'}</div>
-                    <small class="text-muted fw-bold text-primary">#${hd.maHoaDon}</small></td>
-                <td><span class="badge bg-light text-dark border">${hd.hinhThucBanHang === 1 ? 'Tại quầy' : 'Online'}</span></td>
-                <td class="small text-muted">${new Date(hd.ngayTao).toLocaleDateString('vi-VN')}</td>
-                <td class="text-end fw-bold text-dark">${(hd.tongTienSauGiam || hd.tongTien).toLocaleString('vi-VN')} ₫</td>
-                <td class="text-center">${getStatusBadge(hd.trangThai)}</td>
-                <td class="col-action">${renderActionButtons(hd)}</td>
-            </tr>
-        `).join('');
-        tbody.innerHTML = html;
-    }
-
+    // --- CẬP NHẬT PHẦN PHÂN TRANG (ĐÃ HOÀN THIỆN) ---
     function renderPagination(totalPages) {
         const pagEl = document.getElementById("pagination");
         pagEl.innerHTML = "";
+
         if (totalPages <= 1) return;
-        let html = `<li class="page-item ${state.page===0?'disabled':''}"><button class="page-link" onclick="changePage(${state.page-1})">&laquo;</button></li>`;
-        for (let i = 0; i < totalPages; i++) html += `<li class="page-item ${i===state.page?'active':''}"><button class="page-link" onclick="changePage(${i})">${i+1}</button></li>`;
-        html += `<li class="page-item ${state.page===totalPages-1?'disabled':''}"><button class="page-link" onclick="changePage(${state.page+1})">&raquo;</button></li>`;
+
+        let current = state.page;
+        let html = '';
+        const maxPagesToShow = 5; // Số lượng nút trang tối đa hiển thị (ví dụ: 5 nút)
+
+        // Nút Previous
+        html += `<li class="page-item ${current === 0 ? 'disabled' : ''}">
+                    <a class="page-link" href="#" onclick="changePage(${current - 1})">Trước</a>
+                 </li>`;
+
+        // Logic hiển thị các nút trang
+        let startPage = Math.max(0, current - Math.floor(maxPagesToShow / 2));
+        let endPage = Math.min(totalPages - 1, startPage + maxPagesToShow - 1);
+
+        if (endPage - startPage + 1 < maxPagesToShow) {
+            startPage = Math.max(0, endPage - maxPagesToShow + 1);
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+            html += `<li class="page-item ${i === current ? 'active' : ''}">
+                        <a class="page-link" href="#" onclick="changePage(${i})">${i + 1}</a>
+                     </li>`;
+        }
+
+        // Nút Next
+        html += `<li class="page-item ${current === totalPages - 1 ? 'disabled' : ''}">
+                    <a class="page-link" href="#" onclick="changePage(${current + 1})">Sau</a>
+                 </li>`;
+
         pagEl.innerHTML = html;
     }
-    function changePage(p) { state.page = p; loadHoaDon(); }
 
-    async function updateStatus(id, st) {
-        if(!confirm("Xác nhận cập nhật trạng thái?")) return;
-        try {
-            const form = new FormData(); form.append('hoaDonId', id); form.append('newTrangThai', st);
-            const res = await fetch(`${API_BASE}/update-status`, {method:'POST', body:form});
-            if(res.ok) { toastr.success('Thành công!'); loadHoaDon(); } else toastr.error('Lỗi');
-        } catch { toastr.error('Lỗi server'); }
+    function changePage(p) {
+        if (p >= 0 && p !== state.page) {
+            state.page = p;
+            loadHoaDon();
+        }
     }
 
+    // --- 4. CẬP NHẬT TRẠNG THÁI (Giữ nguyên) ---
+    async function updateStatus(id, st) {
+        let confirmMsg = "Xác nhận cập nhật trạng thái?";
+        if (st == 5) {
+            confirmMsg = "Xác nhận HỦY đơn hàng? Tồn kho sẽ được HOÀN LẠI.";
+        }
+        if(!confirm(confirmMsg)) return;
+
+        try {
+            const form = new FormData();
+            form.append('hoaDonId', id);
+            form.append('newTrangThai', st);
+
+            const res = await fetch(`${API_BASE}/update-status`, {
+                method: 'POST',
+                body: form
+            });
+
+            if(res.ok) {
+                toastr.success('Cập nhật thành công!');
+                loadHoaDon();
+            } else {
+                const err = await res.json();
+                toastr.error(err.message || 'Lỗi cập nhật');
+            }
+        } catch {
+            toastr.error('Lỗi kết nối server');
+        }
+    }
+
+    // --- 5. XEM CHI TIẾT (ĐÃ SỬA: Tối ưu hóa hiển thị Chi tiết) ---
     async function viewDetail(id) {
         const modal = new bootstrap.Modal(document.getElementById('invoiceDetailModal'));
         const contentEl = document.getElementById('invoice-detail-content');
+
         document.getElementById('btnPrintPdf').dataset.id = id;
+
         modal.show();
         contentEl.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary"></div></div>';
+
         try {
-            const [resInfo, resDetail] = await Promise.all([fetch(`${API_BASE}/${id}`), fetch(`${API_BASE}/${id}/chi-tiet`)]);
-            const hd = await resInfo.json();
+            const [resInfo, resDetail] = await Promise.all([
+                fetch(`${API_BASE}/${id}`),
+                fetch(`${API_BASE}/${id}/chi-tiet`)
+            ]);
+
+            if(!resInfo.ok || !resDetail.ok) throw new Error("Lỗi tải chi tiết");
+
+            const hd = await resInfo.json(); // Đây là HoaDonResponse DTO
             const items = await resDetail.json();
-            document.getElementById('detail-maHoaDon').innerText = '#' + hd.maHoaDon;
-            let rows = items.map((t,i)=>`<tr><td class="text-center">${i+1}</td><td><b>${t.sanPhamChiTiet?.sanPham?.tenSanPham}</b><br><small>${t.sanPhamChiTiet?.mauSac?.tenMauSac} | ${t.sanPhamChiTiet?.kichThuoc?.tenKichThuoc}</small></td><td class="text-center">${t.soLuong}</td><td class="text-end">${t.donGia.toLocaleString()}</td><td class="text-end fw-bold">${(t.donGia*t.soLuong).toLocaleString()}</td></tr>`).join('');
-            contentEl.innerHTML = `<div class="row mb-3"><div class="col-6"><h6>Khách hàng</h6><p>${hd.khachHang?.tenKhachHang||'Khách lẻ'}<br>${hd.khachHang?.sdt||''}</p></div><div class="col-6 text-end"><h6>Thông tin</h6><p>${new Date(hd.ngayTao).toLocaleString('vi-VN')}<br>${getStatusBadge(hd.trangThai)}</p></div></div><table class="table table-sm table-bordered"><thead><tr class="table-light"><th>#</th><th>Sản phẩm</th><th>SL</th><th>Đơn giá</th><th>Thành tiền</th></tr></thead><tbody>${rows}</tbody></table><h5 class="text-end text-danger mt-3">Tổng: ${(hd.tongTienSauGiam||hd.tongTien).toLocaleString()} ₫</h5>`;
-        } catch { contentEl.innerHTML = '<p class="text-danger text-center">Lỗi tải</p>'; }
-    }
 
-    // --- POLLING NOTIFICATION (Check đơn chờ mỗi 10s) ---
-    function checkNotifications() {
-        $.ajax({
-            url: '/api/admin/hoadon/count-pending', // Đảm bảo bạn đã tạo API này
-            type: 'GET',
-            success: function(count) {
-                const badge = $('#notificationCount');
-                if (count > 0) { badge.text(count); badge.show(); }
-                else { badge.hide(); }
+            document.getElementById('detail-maHoaDon').innerText = '#' + (hd.maHoaDon || hd.id);
+
+            // Render danh sách sản phẩm
+            let rows = items.map((t, i) => {
+                const spName = t.sanPhamChiTiet?.sanPham?.tenSanPham || t.sanPhamChiTiet?.sanPham?.ten || 'Sản phẩm';
+                const mau = t.sanPhamChiTiet?.mauSac?.tenMauSac || t.sanPhamChiTiet?.mauSac?.ten || '-';
+                const size = t.sanPhamChiTiet?.kichThuoc?.tenKichThuoc || t.sanPhamChiTiet?.kichThuoc?.ten || '-';
+
+                const thanhTien = t.thanhTien || (t.donGia * t.soLuong);
+
+                return `
+                <tr>
+                    <td class="text-center">${i+1}</td>
+                    <td>
+                        <b>${spName}</b><br>
+                        <small>${mau} | ${size}</small>
+                    </td>
+                    <td class="text-center">${t.soLuong}</td>
+                    <td class="text-end">${formatMoney(t.donGia)}</td>
+                    <td class="text-end fw-bold">${formatMoney(thanhTien)}</td>
+                </tr>`;
+            }).join('');
+
+            // Lấy thông tin khách hàng và giao dịch
+            const tenKhach = (hd.khachHang && hd.khachHang.tenKhachHang) ? hd.khachHang.tenKhachHang : 'Khách lẻ';
+            const sdtKhach = (hd.khachHang && hd.khachHang.sdt) ? hd.khachHang.sdt : '';
+
+            const hinhThucBan = mapHinhThucBanHang(hd.hinhThucBanHang);
+            const hinhThucTT = mapHinhThucThanhToan(hd.hinhThucThanhToan);
+
+            // --- XỬ LÝ THÔNG TIN GIAO HÀNG & VOUCHER ---
+            let shippingInfo = '';
+            let displayShip = '0 ₫';
+            let voucherInfo = '';
+
+            // FIX VOUCHER: Đảm bảo tienGiamGia là một số (dùng parseFloat)
+            const tienGiamGia = parseFloat(hd.tienGiamGia) || 0;
+
+            // Xử lý Voucher (Hiển thị mã và số tiền giảm nếu > 0)
+            if (hd.phieuGiamGia && hd.phieuGiamGia.maPhieuGiamGia) {
+                // Sửa: Kiểm tra tienGiamGia > 0 một cách rõ ràng
+                const tienGiamText = (tienGiamGia > 0) ? ' (-' + formatMoney(tienGiamGia) + ')' : '';
+                voucherInfo = `<span class="badge bg-success bg-opacity-10 text-success border border-success">Voucher: ${hd.phieuGiamGia.maPhieuGiamGia}${tienGiamText}</span>`;
             }
-        });
+
+            // FIX HÌNH THỨC BÁN HÀNG: Sửa điều kiện từ '2' thành '0' cho đơn Online
+            if (hd.hinhThucBanHang === 0) { // <-- Đã sửa: 0 là Online
+                displayShip = formatMoney(hd.phiVanChuyen || 0);
+                const diaChi = hd.diaChiGiaoHang; // DTO DiaChiGiaoHang
+
+                if (diaChi) {
+                    const nguoiNhan = diaChi.hoTen || 'N/A';
+                    const sdtNhan = diaChi.soDienThoai || 'N/A';
+                    const diaChiCuThe = diaChi.diaChiCuThe || 'Chưa xác định';
+
+                    // Sử dụng huyen và thanhPho từ DTO (đã sửa ở Java)
+                    shippingInfo = `
+                        <h6 class="fw-bold text-primary mt-3">Địa Chỉ Giao Hàng</h6>
+                        <p class="mb-1 fw-bold">Người nhận: ${nguoiNhan}</p>
+                        <p class="small text-muted mb-0">SĐT: ${sdtNhan}</p>
+                        <p class="small text-muted mb-0">Địa chỉ: ${diaChiCuThe}, ${diaChi?.xa || ''}, ${diaChi?.huyen || ''}, ${diaChi?.thanhPho || ''}</p>
+                    `;
+                } else {
+                    shippingInfo = '<p class="text-danger mt-3">Đơn hàng Online nhưng không có thông tin địa chỉ giao hàng.</p>';
+                }
+
+            } else { // POS (1)
+                displayShip = 'Không áp dụng (Tại quầy)';
+                // shippingInfo = ''; // Giữ trống cho đơn POS
+            }
+
+
+            contentEl.innerHTML = `
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <h6 class="fw-bold text-primary">Khách hàng</h6>
+                        <p class="mb-1 fw-bold">${tenKhach}</p>
+                        <p class="small text-muted mb-0">SĐT: ${sdtKhach}</p>
+                        ${hd.khachHang?.email ? `<p class="small text-muted mb-0">Email: ${hd.khachHang.email}</p>` : ''}
+                    </div>
+                    <div class="col-md-4">
+                        <h6 class="fw-bold text-primary">Hình thức Giao Dịch</h6>
+                        <div class="mb-1">${hinhThucBan}</div>
+                        <p class="small text-muted mb-0">${hinhThucTT}</p>
+                        ${voucherInfo ? `<div class="mt-1">${voucherInfo}</div>` : ''}
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <h6 class="fw-bold text-primary">Thông tin đơn</h6>
+                        <p class="mb-1">${new Date(hd.ngayTao).toLocaleString('vi-VN')}</p>
+                        ${getStatusBadge(hd.trangThai)}
+                    </div>
+                    <div class="col-12">${shippingInfo}</div> </div>
+                <div class="table-responsive mb-3">
+                    <table class="table table-sm table-bordered">
+                        <thead class="table-light">
+                            <tr><th>#</th><th>Sản phẩm</th><th>SL</th><th class="text-end">Đơn giá</th><th class="text-end">Thành tiền</th></tr>
+                        </thead>
+                        <tbody>${rows}</tbody>
+                    </table>
+                </div>
+
+                <div class="row justify-content-end">
+                    <div class="col-md-5 col-lg-4">
+                        <table class="table table-sm table-borderless">
+                            <tr>
+                                <td class="fw-bold text-dark">Tổng tiền hàng:</td>
+                                <td class="text-end">${formatMoney(hd.tongTien)}</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold text-danger">Giảm giá Voucher/KM:</td>
+                                <td class="text-end text-danger">- ${formatMoney(tienGiamGia)}</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold text-info">Phí vận chuyển:</td>
+                                <td class="text-end">${displayShip}</td>
+                            </tr>
+                            <tr class="table-primary fw-bold">
+                                <td>TỔNG THANH TOÁN:</td>
+                                <td class="text-end h5 text-danger">${formatMoney(hd.tongTienSauGiam)}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            `;
+        } catch (e) {
+            console.error(e);
+            contentEl.innerHTML = '<p class="text-danger text-center">Không thể tải chi tiết hóa đơn</p>';
+        }
     }
-    setInterval(checkNotifications, 10000); // 10s check 1 lần
 
-    $('.tab-btn').click(function() { $('.tab-btn').removeClass('active'); $(this).addClass('active'); state.status = $(this).data('status'); state.page=0; loadHoaDon(); });
-    $('#btnSearch').click(() => { state.keyword = $('#keywordSearch').val(); state.startDate = $('#startDate').val(); state.endDate = $('#endDate').val(); state.page=0; loadHoaDon(); });
-    $('#btnReset').click(() => { $('#keywordSearch').val(''); $('#startDate').val(''); $('#endDate').val(''); state={page:0,size:10,status:'all'}; $('.tab-btn').removeClass('active').first().addClass('active'); loadHoaDon(); });
+    // --- SỰ KIỆN & KHỞI TẠO (Giữ nguyên) ---
 
+    // 1. Chuyển Tab trạng thái
+    $('.tab-btn').click(function() {
+        $('.tab-btn').removeClass('active');
+        $(this).addClass('active');
+        state.status = $(this).data('status');
+        state.page = 0;
+        loadHoaDon();
+    });
+
+    // 2. Nút Tìm kiếm
+    $('#btnSearch').click(() => {
+        state.keyword = $('#keywordSearch').val();
+        state.startDate = $('#startDate').val();
+        state.endDate = $('#endDate').val();
+        state.page = 0;
+        loadHoaDon();
+    });
+
+    // 3. Nút Reset
+    $('#btnReset').click(() => {
+        $('#keywordSearch').val('');
+        $('#startDate').val('');
+        $('#endDate').val('');
+        state = { page: 0, size: 10, status: 'all', keyword: '', startDate: '', endDate: '' };
+        $('.tab-btn').removeClass('active').first().addClass('active');
+        loadHoaDon();
+    });
+
+    // 4. Sự kiện click vào bảng (Ủy quyền sự kiện)
     $('#hoaDonTableBody').click(e => {
         const btnStatus = e.target.closest('.btn-update-status');
         const btnView = e.target.closest('.btn-view-detail');
+
         if(btnStatus) updateStatus(btnStatus.dataset.id, btnStatus.dataset.status);
         if(btnView) viewDetail(btnView.dataset.id);
     });
-    $('#btnPrintPdf').click(function() { if(this.dataset.id) window.location.href=`${API_BASE}/export/pdf/${this.dataset.id}`; });
 
-    $(document).ready(function() { loadHoaDon(); checkNotifications(); });
+    // 5. Sự kiện In PDF
+    $('#btnPrintPdf').click(function() {
+        const id = this.dataset.id;
+        if(id) {
+            window.location.href = `${API_BASE}/export/pdf/${id}`;
+        }
+    });
+
+    // Chạy khi trang tải xong
+    $(document).ready(function() {
+        loadHoaDon();
+    });
 </script>
 
 </body>

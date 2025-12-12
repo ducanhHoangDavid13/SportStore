@@ -4,13 +4,24 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import sd_04.datn_fstore.dto.*;
+import sd_04.datn_fstore.model.KhachHang;
+import sd_04.datn_fstore.model.SanPhamChiTiet;
+import sd_04.datn_fstore.repository.SanPhamCTRepository;
 import sd_04.datn_fstore.service.CheckoutService;
+import sd_04.datn_fstore.service.KhachhangService;
+import sd_04.datn_fstore.service.PhieuGiamgiaService;
 import sd_04.datn_fstore.service.VnPayService;
 
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
@@ -20,106 +31,173 @@ public class CheckOutApiController {
 
     private final CheckoutService checkoutService;
     private final VnPayService vnPayService;
+    private final SanPhamCTRepository sanPhamCTRepository;
+    private final PhieuGiamgiaService phieuGiamgiaService;
 
-    // =========================================================================
-    // 1. API TÍNH TOÁN TỔNG TIỀN (GỌI KHI CHỌN VOUCHER / ĐỔI SỐ LƯỢNG)
-    // =========================================================================
-    @PostMapping("/calculate")
-    public ResponseEntity<?> calculate(@RequestBody CalculateTotalRequest request) {
-        try {
-            CalculateTotalResponse response = checkoutService.calculateOrderTotal(request);
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            // Trả về lỗi 400 để JS hiển thị thông báo
-            return ResponseEntity.badRequest().body(Map.of("message", "Lỗi tính toán: " + e.getMessage()));
+    // BỔ SUNG: Dịch vụ Khách hàng để lấy ID
+    private final KhachhangService khachhangService;
+
+    // Định nghĩa phí ship cố định ở server
+    private static final BigDecimal FIXED_SHIPPING_FEE = new BigDecimal("30000");
+
+    // --- HELPER: Lấy ID khách hàng đã đăng nhập ---
+    private Integer getLoggedInCustomerId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated() ||
+                "anonymousUser".equals(authentication.getPrincipal())) {
+            return null; // Trả về null nếu chưa đăng nhập hoặc là người dùng ẩn danh
         }
+
+        // Giả định tên người dùng là Email
+        String username = authentication.getName();
+        // Giả định KhachhangService có hàm findByEmail(String)
+        KhachHang khachHang = khachhangService.findByEmail(username);
+
+        // Trả về ID nếu tìm thấy khách hàng
+        return khachHang != null ? khachHang.getId() : null;
     }
+    // ----------------------------------------------------
 
-    // =========================================================================
-    // 2. API ĐẶT HÀNG (CORE)
-    // =========================================================================
-    @PostMapping("/place-order")
-    public ResponseEntity<?> placeOrder(@RequestBody CheckoutRequest request, HttpServletRequest httpReq) {
-        try {
-            // 1. Lấy IP khách hàng (Bắt buộc cho giao dịch VNPAY để bảo mật)
-            String clientIp = getClientIp(httpReq);
+    /**
+     * API TÍNH TOÁN LẠI TOÀN BỘ GIÁ TRỊ ĐƠN HÀNG MỘT CÁCH AN TOÀN
+     * Endpoint: POST /api/checkout/calculate
+     */
+    @PostMapping("/calculate")
+    public ResponseEntity<?> calculateOrder(@RequestBody CheckoutRequest request) {
+        BigDecimal subTotal = BigDecimal.ZERO;
+        Map<String, Object> response = new HashMap<>();
 
-            // 2. Gọi Service xử lý logic (Tạo đơn, trừ kho, tạo link VNPAY...)
-            CheckoutResponse response = checkoutService.placeOrder(request, clientIp);
+        // 1. KIỂM TRA GIỎ HÀNG CÓ RỖNG KHÔNG
+        if (request.getItems() == null || request.getItems().isEmpty()) {
+            // Trả về OK với total = 0 nếu Frontend gọi calculate khi giỏ hàng trống
+            response.put("subTotal", BigDecimal.ZERO);
+            response.put("shippingFee", FIXED_SHIPPING_FEE);
+            response.put("discountAmount", BigDecimal.ZERO);
+            response.put("finalTotal", FIXED_SHIPPING_FEE);
+            response.put("voucherValid", false);
+            response.put("voucherMessage", "Giỏ hàng trống.");
+            return ResponseEntity.ok(response);
+        }
 
-            // 3. Trả kết quả về cho JS
-            if (response.isSuccess()) {
-                return ResponseEntity.ok(response);
-            } else {
+        // Dùng DTO mới cho calculate
+        CalculateTotalRequest calcRequest = new CalculateTotalRequest();
+        calcRequest.setVoucherCode(request.getVoucherCode());
+        calcRequest.setShippingFee(FIXED_SHIPPING_FEE);
+
+        List<CalculateTotalRequest.CartItem> calcItems = new java.util.ArrayList<>();
+
+        // 2. TÍNH TỔNG TIỀN HÀNG (SUB-TOTAL) TỪ DATABASE VÀ CHECK TỒN KHO
+        for (CheckoutRequest.CartItem item : request.getItems()) {
+            if (item.getSanPhamChiTietId() == null) {
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Dữ liệu giỏ hàng lỗi: thiếu ID sản phẩm."));
+            }
+
+            Optional<SanPhamChiTiet> spOpt = sanPhamCTRepository.findById(item.getSanPhamChiTietId());
+
+            if (spOpt.isEmpty()) {
+                response.put("error", "Sản phẩm không tồn tại (ID: " + item.getSanPhamChiTietId() + ")");
                 return ResponseEntity.badRequest().body(response);
             }
 
-        } catch (RuntimeException e) {
-            // Lỗi logic (Hết hàng, Voucher lỗi...) -> Trả về 400
-            e.printStackTrace();
-            return ResponseEntity.badRequest()
-                    .body(new CheckoutResponse(false, e.getMessage(), null));
-        } catch (Exception e) {
-            // Lỗi hệ thống (DB, Mạng...) -> Trả về 500
-            e.printStackTrace();
-            return ResponseEntity.internalServerError()
-                    .body(new CheckoutResponse(false, "Lỗi hệ thống: " + e.getMessage(), null));
+            SanPhamChiTiet sp = spOpt.get();
+
+            // Check tồn kho
+            if (sp.getSoLuong() < item.getSoLuong()) {
+                response.put("error", "Sản phẩm '" + sp.getSanPham().getTenSanPham() + "' không đủ hàng (Còn: " + sp.getSoLuong() + ")");
+                response.put("outOfStock", true);
+                response.put("productId", sp.getId());
+                return ResponseEntity.ok(response); // Trả về OK để Frontend xử lý thông báo và xóa khỏi giỏ
+            }
+
+            // Lấy giá chuẩn từ SPCT
+            BigDecimal donGia = sp.getGiaTien() != null ? sp.getGiaTien() : BigDecimal.ZERO;
+
+            subTotal = subTotal.add(donGia.multiply(BigDecimal.valueOf(item.getSoLuong())));
+
+            // Gán lại cho DTO CalculateTotalRequest (quan trọng để Service tính toán)
+            CalculateTotalRequest.CartItem calcItem = new CalculateTotalRequest.CartItem();
+            calcItem.setSanPhamChiTietId(item.getSanPhamChiTietId());
+            calcItem.setSoLuong(item.getSoLuong());
+            calcItem.setDonGia(donGia);
+            calcItems.add(calcItem);
         }
+        calcRequest.setItems(calcItems);
+
+        // 3. GỌI SERVICE TÍNH TOÁN TỔNG THỂ VÀ VOUCHER
+        CalculateTotalResponse calcRes = checkoutService.calculateOrderTotal(calcRequest);
+
+        // 4. TRẢ VỀ KẾT QUẢ
+        response.put("subTotal", calcRes.getSubTotal());
+        response.put("shippingFee", FIXED_SHIPPING_FEE);
+        response.put("discountAmount", calcRes.getDiscountAmount());
+        response.put("finalTotal", calcRes.getFinalTotal());
+        response.put("voucherValid", calcRes.isVoucherValid());
+        response.put("voucherMessage", calcRes.getVoucherMessage());
+        // Trả về mã đã áp dụng nếu hợp lệ
+        response.put("appliedVoucherCode", calcRes.isVoucherValid() ? request.getVoucherCode() : null);
+
+        return ResponseEntity.ok(response);
     }
 
     // =========================================================================
-    // 3. API XỬ LÝ HỒI ĐÁP TỪ VNPAY (CALLBACK / RETURN URL)
+    // CÁC HÀM XỬ LÝ ĐẶT HÀNG & THANH TOÁN
     // =========================================================================
-    @GetMapping("/vnpay-return")
-    public void handleVnPayReturn(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        // 1. Lấy toàn bộ tham số từ URL trả về của VNPAY
-        Map<String, String> vnpParams = request.getParameterMap().entrySet().stream()
-                .filter(entry -> entry.getKey().startsWith("vnp_"))
-                .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        entry -> entry.getValue()[0]
-                ));
 
-        // Lấy SecureHash riêng để verify
-        String secureHash = request.getParameter("vnp_SecureHash");
-        if (secureHash != null) {
-            vnpParams.put("vnp_SecureHash", secureHash);
-        }
-
+    @PostMapping("/place-order")
+    public ResponseEntity<?> placeOrder(@RequestBody CheckoutRequest request, HttpServletRequest httpReq) {
         try {
-            // 2. Gọi VnPayService để xử lý (Verify Hash, Update đơn hàng, Trừ kho...)
-            // Kết quả: 1 (Thành công), 0 (Thất bại/Hủy), -1 (Lỗi Hash)
-            int result = vnPayService.orderReturn(vnpParams);
+            // 1. Ghi đè phí ship để bảo mật
+            request.setShippingFee(FIXED_SHIPPING_FEE);
 
-            // Lấy Mã hóa đơn để hiển thị
-            String orderCode = vnpParams.get("vnp_TxnRef");
-
-            // 3. CHUYỂN HƯỚNG TRÌNH DUYỆT (REDIRECT)
-            if (result == 1) {
-                // THÀNH CÔNG -> Chuyển sang trang Cảm ơn
-                response.sendRedirect("/checkout/success?id=" + orderCode);
-            } else {
-                // THẤT BẠI -> Quay lại trang Checkout kèm mã lỗi
-                response.sendRedirect("/checkout?error=payment_failed&code=" + orderCode);
+            // 2. BỔ SUNG: Gắn ID khách hàng đã đăng nhập (nếu có)
+            Integer loggedInCustomerId = getLoggedInCustomerId();
+            if (loggedInCustomerId != null) {
+                // SỬA: Lỗi cannot find symbol được giải quyết khi DTO CheckoutRequest có setKhachHangId
+                request.setKhachHangId(loggedInCustomerId);
             }
 
+            String clientIp = getClientIp(httpReq);
+            CheckoutResponse response = checkoutService.placeOrder(request, clientIp);
+
+            // Map CheckoutResponse sang format Frontend mong muốn (success/message/redirectUrl)
+            return ResponseEntity.ok(Map.of(
+                    "success", response.isSuccess(),
+                    "message", response.getMessage(),
+                    "redirectUrl", response.getRedirectUrl(),
+                    "paymentMethod", request.getPaymentMethod() // Trả lại payment method cho FE
+            ));
+        } catch (RuntimeException e) { // Bắt các lỗi RuntimeException từ Service (như hết hàng)
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
         } catch (Exception e) {
             e.printStackTrace();
-            // Lỗi hệ thống -> Chuyển trang lỗi
+            return ResponseEntity.internalServerError().body(Map.of("success", false, "message", "Đã có lỗi hệ thống xảy ra."));
+        }
+    }
+
+    @GetMapping("/vnpay-return")
+    public void handleVnPayReturn(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        Map<String, String> vnpParams = request.getParameterMap().entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue()[0]));
+        try {
+            // Giả định orderReturn trả về 1 nếu thành công, 0 nếu thất bại
+            int result = vnPayService.orderReturn(vnpParams);
+            String orderCode = vnpParams.get("vnp_TxnRef");
+            String redirectUrl = (result == 1)
+                    ? "/checkout/success?orderCode=" + orderCode // Dùng orderCode để truy vấn đơn hàng
+                    : "/checkout?error=payment_failed&code=" + orderCode;
+            response.sendRedirect(redirectUrl);
+        } catch (Exception e) {
+            e.printStackTrace();
             response.sendRedirect("/checkout?error=system_error");
         }
     }
 
-    // --- HÀM TIỆN ÍCH LẤY IP ---
     private String getClientIp(HttpServletRequest request) {
-        String ipAddress = request.getHeader("X-Forwarded-For");
-        if (ipAddress == null || ipAddress.isEmpty() || "unknown".equalsIgnoreCase(ipAddress)) {
-            ipAddress = request.getRemoteAddr();
+        String ip = request.getHeader("X-Forwarded-For");
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getRemoteAddr();
         }
-        // Nếu IP có dạng "ip1, ip2", lấy cái đầu tiên
-        if (ipAddress != null && ipAddress.contains(",")) {
-            ipAddress = ipAddress.split(",")[0].trim();
-        }
-        return ipAddress;
+        return ip.split(",")[0].trim();
     }
 }

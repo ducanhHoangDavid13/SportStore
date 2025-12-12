@@ -14,7 +14,6 @@ import java.math.BigDecimal; // <-- Import
 @Entity
 @Table(name = "HoaDonChiTiet")
 public class HoaDonChiTiet {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;

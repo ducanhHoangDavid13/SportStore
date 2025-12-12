@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
@@ -8,13 +7,14 @@
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
 
     <link rel="stylesheet" th:href="@{/css/styles.css}">
     <link rel="stylesheet" th:href="@{/css/header.css}">
 
     <style>
-        /* (GIỮ NGUYÊN CSS CŨ) */
         :root {
             --font-main: 'Inter', sans-serif;
             --font-heading: 'Oswald', sans-serif;
@@ -55,15 +55,8 @@
         .btn-checkout { width: 100%; padding: 16px; background: var(--primary); color: #fff; border: none; border-radius: 50px; font-size: 1.1rem; font-weight: 700; text-transform: uppercase; margin-top: 25px; transition: 0.3s; box-shadow: 0 5px 15px rgba(11, 114, 255, 0.3); display: flex; justify-content: center; align-items: center; gap: 10px; }
         .btn-checkout:hover { background: var(--primary-dark); transform: translateY(-3px); color: #fff; }
         .btn-checkout:disabled { background: #ccc; cursor: not-allowed; transform: none; }
-
-        /* Nút xóa item */
-        .btn-remove-item {
-            border: none; background: #fff; color: #ef4444; width: 30px; height: 30px;
-            border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            cursor: pointer; transition: 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
+        .btn-remove-item { border: none; background: #fff; color: #ef4444; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .btn-remove-item:hover { background-color: #fee2e2; transform: scale(1.1); }
-
         @media (max-width: 991px) { .checkout-grid { grid-template-columns: 1fr; } .summary-card { position: static; } }
     </style>
 </head>
@@ -81,13 +74,11 @@
 
     <form id="checkoutForm">
         <div class="checkout-grid">
-
             <div class="checkout-card">
                 <div class="section-header">
                     <i class="fa-regular fa-address-card section-icon"></i>
                     <h2 class="section-title">THÔNG TIN GIAO HÀNG</h2>
                 </div>
-
                 <div class="row g-3">
                     <div class="col-md-6">
                         <label class="form-label">Họ và tên <span class="text-danger">*</span></label>
@@ -101,31 +92,22 @@
                         <label class="form-label">Email (Nhận thông báo đơn hàng)</label>
                         <input type="email" class="form-control" id="email" placeholder="email@example.com">
                     </div>
-
                     <div class="col-md-4">
                         <label class="form-label">Tỉnh / Thành phố <span class="text-danger">*</span></label>
-                        <select class="form-select" id="city" required>
-                            <option value="" selected>Chọn Tỉnh/Thành</option>
-                        </select>
+                        <select class="form-select" id="city" required><option value="" selected>Chọn Tỉnh/Thành</option></select>
                     </div>
                     <div class="col-md-4">
                         <label class="form-label">Quận / Huyện <span class="text-danger">*</span></label>
-                        <select class="form-select" id="district" required disabled>
-                            <option value="" selected>Chọn Quận/Huyện</option>
-                        </select>
+                        <select class="form-select" id="district" required disabled><option value="" selected>Chọn Quận/Huyện</option></select>
                     </div>
                     <div class="col-md-4">
                         <label class="form-label">Phường / Xã <span class="text-danger">*</span></label>
-                        <select class="form-select" id="ward" required disabled>
-                            <option value="" selected>Chọn Phường/Xã</option>
-                        </select>
+                        <select class="form-select" id="ward" required disabled><option value="" selected>Chọn Phường/Xã</option></select>
                     </div>
-
                     <div class="col-12">
                         <label class="form-label">Địa chỉ cụ thể <span class="text-danger">*</span></label>
                         <input type="text" class="form-control" id="addressDetail" placeholder="Số nhà, ngõ, tên đường..." required>
                     </div>
-
                     <div class="col-12">
                         <label class="form-label">Ghi chú đơn hàng (Tùy chọn)</label>
                         <textarea class="form-control" rows="3" id="note" placeholder="Ví dụ: Giao hàng giờ hành chính..."></textarea>
@@ -145,31 +127,18 @@
 
                 <div class="mb-3">
                     <label class="form-label small fw-bold text-muted">MÃ GIẢM GIÁ</label>
-                    <select class="form-select" id="voucherSelect" onchange="applyVoucher()">
+                    <select class="form-select" id="voucherSelect" >
                         <option value="" selected>-- Chọn mã giảm giá --</option>
                     </select>
                 </div>
 
-                <div class="total-row">
-                    <span>Tạm tính</span>
-                    <span id="subTotal" class="fw-bold">0₫</span>
-                </div>
-                <div class="total-row">
-                    <span>Phí vận chuyển</span>
-                    <span id="shippingFee" class="fw-bold">30.000₫</span>
-                </div>
-                <div class="total-row text-success">
-                    <span>Giảm giá</span>
-                    <span id="discountAmount" class="fw-bold">-0₫</span>
-                </div>
-                <div class="total-final">
-                    <span>TỔNG CỘNG</span>
-                    <span id="finalTotal">0₫</span>
-                </div>
+                <div class="total-row"><span>Tạm tính</span><span id="subTotal" class="fw-bold">0₫</span></div>
+                <div class="total-row"><span>Phí vận chuyển</span><span id="shippingFee" class="fw-bold">30.000₫</span></div>
+                <div class="total-row text-success"><span>Giảm giá</span><span id="discountAmount" class="fw-bold">-0₫</span></div>
+                <div class="total-final"><span>TỔNG CỘNG</span><span id="finalTotal">0₫</span></div>
 
                 <div class="payment-methods">
                     <h6 class="mb-3 text-uppercase fw-bold text-secondary" style="font-size: 0.85rem;">Phương thức thanh toán</h6>
-
                     <label class="payment-option">
                         <div class="payment-header">
                             <input type="radio" name="paymentMethod" value="COD" class="payment-radio" checked>
@@ -177,7 +146,6 @@
                             <i class="fa-solid fa-money-bill-wave ms-auto text-secondary"></i>
                         </div>
                     </label>
-
                     <label class="payment-option">
                         <div class="payment-header">
                             <input type="radio" name="paymentMethod" value="VNPAY" class="payment-radio">
@@ -190,7 +158,6 @@
                 <button type="button" class="btn-checkout" id="btnPlaceOrder">
                     ĐẶT HÀNG NGAY <i class="fa-solid fa-arrow-right"></i>
                 </button>
-
                 <p class="text-center mt-3 small text-muted"><i class="fa-solid fa-shield-halved"></i> Thông tin được bảo mật an toàn</p>
             </div>
         </div>
@@ -201,166 +168,353 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
 <script>
-    // --- 1. CẤU HÌNH ---
+    // =========================================================================
+    // 1. CẤU HÌNH & KHỞI TẠO
+    // =========================================================================
     const SHIPPING_FEE = 30000;
+
+    // API Hành chính Việt Nam
     const API_TINH = "https://esgoo.net/api-tinhthanh/1/0.htm";
     const API_HUYEN = "https://esgoo.net/api-tinhthanh/2/";
     const API_XA = "https://esgoo.net/api-tinhthanh/3/";
 
     let currentCart = [];
+    // Lưu trữ tồn kho thực tế từ Server sau khi sync
+    let productStock = {};
 
-    document.addEventListener("DOMContentLoaded", function () {
-        loadAddressData();
-        loadCartFromStorage();
-        loadActiveVouchers();
-    });
+    // Cấu hình thông báo
+    toastr.options = { "closeButton": true, "progressBar": true, "positionClass": "toast-top-right", "timeOut": "3000" };
 
+    // Định dạng tiền tệ
     function formatCurrency(amount) {
+        if (amount === undefined || amount === null || isNaN(amount)) return "0 ₫";
+        // Chuyển đổi sang số nếu là chuỗi (để formatCurrency() hoạt động đúng)
+        if (typeof amount === 'string') {
+            amount = parseFloat(amount);
+        }
+        if (isNaN(amount)) return "0 ₫";
         return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
     }
 
-    // --- 2. XỬ LÝ ĐỊA CHÍNH (GIỮ NGUYÊN) ---
+    document.addEventListener("DOMContentLoaded", function () {
+        loadAddressData();      // Tải Tỉnh/Thành
+        loadCartFromStorage();  // Tải giỏ hàng từ LocalStorage
+        loadActiveVouchers();   // Tải mã giảm giá
+
+        // Lắng nghe sự kiện thay đổi voucher để tính lại tiền ngay
+        document.getElementById('voucherSelect').addEventListener('change', applyVoucher);
+    });
+
+    // =========================================================================
+    // 2. XỬ LÝ ĐỊA CHỈ (GIỮ NGUYÊN)
+    // =========================================================================
     function loadAddressData() {
-        fetch(API_TINH).then(res => res.json()).then(data => {
+        fetch(API_TINH).then(r => r.json()).then(data => {
             if (data.error === 0) {
                 let html = '<option value="">Chọn Tỉnh/Thành</option>';
-                data.data.forEach(t => html += `<option value="${t.id}" data-name="${t.full_name}">${t.full_name}</option>`);
+                data.data.forEach(tinh => html += `<option value="${tinh.id}" data-name="${tinh.full_name}">${tinh.full_name}</option>`);
                 document.getElementById('city').innerHTML = html;
             }
         });
 
         document.getElementById('city').addEventListener('change', function () {
-            const id = this.value;
-            const dist = document.getElementById('district');
-            const ward = document.getElementById('ward');
-            dist.innerHTML = '<option value="">Đang tải...</option>'; ward.innerHTML = '<option value="">Chọn Phường/Xã</option>'; ward.disabled = true;
-            if(id) {
-                fetch(API_HUYEN + id + ".htm").then(res => res.json()).then(data => {
-                    let html = '<option value="">Chọn Quận/Huyện</option>';
-                    data.data.forEach(h => html += `<option value="${h.id}" data-name="${h.full_name}">${h.full_name}</option>`);
-                    dist.innerHTML = html; dist.disabled = false;
+            const idTinh = this.value;
+            const distSelect = document.getElementById('district');
+            const wardSelect = document.getElementById('ward');
+            distSelect.innerHTML = '<option value="">Đang tải...</option>';
+            wardSelect.innerHTML = '<option value="">Chọn Phường/Xã</option>'; distSelect.disabled = true; wardSelect.disabled = true;
+
+            if (idTinh) {
+                fetch(API_HUYEN + idTinh + ".htm").then(r => r.json()).then(data => {
+                    if (data.error === 0) {
+                        let html = '<option value="">Chọn Quận/Huyện</option>';
+                        data.data.forEach(h => html += `<option value="${h.id}" data-name="${h.full_name}">${h.full_name}</option>`);
+                        distSelect.innerHTML = html; distSelect.disabled = false;
+                    }
                 });
-            } else { dist.innerHTML = '<option value="">Chọn Quận/Huyện</option>'; dist.disabled = true; }
+            } else { distSelect.innerHTML = '<option value="">Chọn Quận/Huyện</option>'; }
         });
 
         document.getElementById('district').addEventListener('change', function () {
-            const id = this.value;
-            const ward = document.getElementById('ward');
-            ward.innerHTML = '<option value="">Đang tải...</option>';
-            if(id) {
-                fetch(API_XA + id + ".htm").then(res => res.json()).then(data => {
-                    let html = '<option value="">Chọn Phường/Xã</option>';
-                    data.data.forEach(x => html += `<option value="${x.id}" data-name="${x.full_name}">${x.full_name}</option>`);
-                    ward.innerHTML = html; ward.disabled = false;
+            const idHuyen = this.value;
+            const wardSelect = document.getElementById('ward');
+            wardSelect.innerHTML = '<option value="">Đang tải...</option>'; wardSelect.disabled = true;
+            if (idHuyen) {
+                fetch(API_XA + idHuyen + ".htm").then(r => r.json()).then(data => {
+                    if (data.error === 0) {
+                        let html = '<option value="">Chọn Phường/Xã</option>';
+                        data.data.forEach(x => html += `<option value="${x.id}" data-name="${x.full_name}">${x.full_name}</option>`);
+                        wardSelect.innerHTML = html; wardSelect.disabled = false;
+                    }
                 });
-            } else { ward.innerHTML = '<option value="">Chọn Phường/Xã</option>'; ward.disabled = true; }
+            } else { wardSelect.innerHTML = '<option value="">Chọn Phường/Xã</option>'; }
         });
     }
 
-    // --- 3. XỬ LÝ GIỎ HÀNG (CẬP NHẬT NÚT XÓA + SWEETALERT) ---
-    function loadCartFromStorage() {
+    // =========================================================================
+    // 3. QUẢN LÝ GIỎ HÀNG & ĐỒNG BỘ GIÁ/TỒN KHO
+    // =========================================================================
+
+    async function loadCartFromStorage() {
         const json = localStorage.getItem('cartItems');
         currentCart = json ? JSON.parse(json) : [];
-        const container = document.getElementById('cartItemsList');
 
+        // 1. Render trước dữ liệu cũ để khách không phải chờ
+        renderCartHTML();
+
+        // 2. Nếu giỏ hàng có đồ, tiến hành ĐỒNG BỘ và TÍNH TOÁN
+        if (currentCart.length > 0) {
+            await syncPricesAndStockWithServer(); // Đồng bộ giá/tồn kho
+            applyVoucher(); // Tính toán tổng tiền sau khi sync
+        } else {
+            updateTotals(0, 0, 0);
+        }
+        document.getElementById('btnPlaceOrder').disabled = (currentCart.length === 0);
+    }
+
+    // [MỚI] Hàm này gọi API lấy chi tiết từng sản phẩm để cập nhật giá và tồn kho
+    async function syncPricesAndStockWithServer() {
+        productStock = {}; // Reset tồn kho
+        const btn = document.getElementById('btnPlaceOrder');
+        btn.disabled = true;
+
+        // Tạo danh sách các Promise để gọi API song song
+        const promises = currentCart.map(item =>
+            fetch(`/api/san-pham-chi-tiet/${item.id}`).then(res => {
+                if(res.ok) return res.json();
+                return null;
+            }).catch(() => null)
+        );
+
+        try {
+            const products = await Promise.all(promises);
+            let hasChange = false;
+            let indicesToRemove = []; // Dùng để lưu index các sản phẩm cần xóa
+
+            products.forEach((product, index) => {
+                const item = currentCart[index];
+                if (product) {
+                    // Logic giá: Lấy giá SPCT
+                    const realPrice = product.giaTien;
+                    const stock = product.soLuong; // Lấy tồn kho (Chú ý: Dùng 'soLuong' thay vì 'soLuongTon' nếu entity dùng 'soLuong')
+
+                    // Lưu tồn kho thực tế
+                    productStock[item.id] = stock;
+
+                    // 1. Cập nhật giá nếu khác
+                    if (realPrice && item.price !== realPrice) {
+                        item.price = realPrice;
+                        hasChange = true;
+                    }
+
+                    // 2. Kiểm tra số lượng tồn
+                    if (item.quantity > stock) {
+                        if (stock === 0) {
+                            toastr.error(`Sản phẩm "${item.name}" (${item.size}/${item.color}) đã hết hàng và bị xóa khỏi giỏ.`);
+                            indicesToRemove.push(index); // Đánh dấu xóa
+                        } else {
+                            item.quantity = stock; // Giảm về tồn kho tối đa
+                            toastr.warning(`Sản phẩm "${item.name}" (${item.size}/${item.color}) chỉ còn ${stock} sản phẩm. Số lượng đã được điều chỉnh.`);
+                        }
+                        hasChange = true;
+                    } else if (stock === 0 && item.quantity > 0) {
+                        // Trường hợp ban đầu vẫn còn, nhưng sau sync thì hết
+                        toastr.error(`Sản phẩm "${item.name}" (${item.size}/${item.color}) đã hết hàng và bị xóa khỏi giỏ.`);
+                        indicesToRemove.push(index);
+                        hasChange = true;
+                    }
+
+                } else {
+                    // Sản phẩm bị xóa khỏi hệ thống
+                    toastr.error(`Sản phẩm "${item.name}" đã bị xóa khỏi hệ thống và được loại bỏ khỏi giỏ.`);
+                    indicesToRemove.push(index);
+                    hasChange = true;
+                }
+            });
+
+            // Thực hiện xóa các sản phẩm đã đánh dấu (phải xóa ngược để không ảnh hưởng index)
+            for(let i = indicesToRemove.length - 1; i >= 0; i--) {
+                currentCart.splice(indicesToRemove[i], 1);
+            }
+
+            // Nếu có thay đổi (giá, số lượng, xóa) thì lưu lại và render
+            if (hasChange) {
+                localStorage.setItem('cartItems', JSON.stringify(currentCart));
+            }
+
+            // Luôn gọi renderCartHTML sau khi kết thúc đồng bộ
+            renderCartHTML();
+
+            // Kích hoạt nút đặt hàng nếu giỏ hàng không trống
+            if (currentCart.length > 0) {
+                btn.disabled = false;
+            } else {
+                updateTotals(0, 0, 0); // Reset totals nếu giỏ hàng trống
+            }
+
+            // LƯU Ý: applyVoucher() sẽ được gọi ở cuối loadCartFromStorage()
+
+        } catch (err) {
+            console.error("Lỗi đồng bộ giá và tồn kho:", err);
+            toastr.error("Lỗi kết nối server khi đồng bộ giỏ hàng.");
+        }
+    }
+
+    function renderCartHTML() {
+        const container = document.getElementById('cartItemsList');
         if (currentCart.length === 0) {
-            container.innerHTML = `<div class="text-center py-5 text-muted"><i class="fa-solid fa-basket-shopping fs-1 mb-2"></i><p>Giỏ hàng trống</p><a href="/san-pham" class="btn btn-sm btn-outline-primary rounded-pill">Mua sắm ngay</a></div>`;
-            updateTotals(0, 0);
+            container.innerHTML = `<div class="text-center py-5 text-muted"><i class="fa-solid fa-basket-shopping fs-1 mb-2"></i><p>Giỏ hàng đang trống</p><a href="/san-pham" class="btn btn-sm btn-outline-primary rounded-pill">Mua sắm ngay</a></div>`;
+            document.getElementById('btnPlaceOrder').disabled = true;
             return;
         }
 
         let html = '';
         currentCart.forEach((item, index) => {
+            const stock = productStock[item.id] !== undefined ? productStock[item.id] : '...'; // Lấy tồn kho đã sync
+            const isOutOfStock = stock === 0;
+            const isMaxStock = item.quantity >= stock && stock > 0;
+
             html += `
                 <div class="order-item align-items-center">
-                    <img src="${item.image || 'https://via.placeholder.com/64'}" class="item-img">
-                    <div class="item-info flex-grow-1">
-                        <span class="item-name text-truncate" style="max-width: 180px;" title="${item.name}">${item.name}</span>
-                        <div class="item-meta">Size: <b>${item.size}</b> | Màu: <b>${item.color}</b></div>
-                        <div class="d-flex justify-content-between mt-1 align-items-center">
-                            <small class="text-muted bg-light px-2 rounded">x${item.quantity}</small>
+                    <img src="${item.image || 'https://placehold.co/64?text=Img'}" class="item-img" onerror="this.src='https://placehold.co/64?text=Img'">
+                    <div class="item-info flex-grow-1 ps-3">
+                        <span class="item-name text-truncate" style="max-width: 180px;">${item.name}</span>
+                        <div class="item-meta mb-1 small text-dark">
+                            Size: <b>${item.size}</b> | Màu: <b>${item.color}</b>
+                            <span class="text-${isOutOfStock ? 'danger' : 'success'} ms-2">(Tồn: ${stock})</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="input-group input-group-sm" style="width: 100px;">
+                                <button class="btn btn-outline-secondary px-2" type="button" onclick="changeQuantity(${index}, -1)" ${item.quantity <= 1 || isOutOfStock ? 'disabled' : ''}>-</button>
+                                <input type="text" class="form-control text-center px-1" value="${item.quantity}" readonly style="background: #fff;">
+                                <button class="btn btn-outline-secondary px-2" type="button" onclick="changeQuantity(${index}, 1)" ${isMaxStock || isOutOfStock ? 'disabled' : ''}>+</button>
+                            </div>
                             <span class="item-price fw-bold text-primary">${formatCurrency(item.price * item.quantity)}</span>
                         </div>
                     </div>
                     <div class="ms-2">
-                        <button type="button" class="btn-remove-item" onclick="removeCartItem(${index})" title="Xóa sản phẩm này">
-                            <i class="fa-regular fa-trash-can"></i>
-                        </button>
+                        <button type="button" class="btn-remove-item text-danger" onclick="removeCartItem(${index})"><i class="fa-regular fa-trash-can"></i></button>
                     </div>
                 </div>`;
         });
         container.innerHTML = html;
-        applyVoucher();
+        document.getElementById('btnPlaceOrder').disabled = (currentCart.length === 0);
+    }
+
+    function changeQuantity(index, delta) {
+        let item = currentCart[index];
+        let newQty = item.quantity + delta;
+        const stock = productStock[item.id];
+
+        if (newQty < 1) {
+            removeCartItem(index);
+            return;
+        }
+
+        if (stock === 0) {
+            toastr.error(`Sản phẩm đã hết hàng.`);
+            return;
+        }
+
+        if (newQty > stock) {
+            toastr.warning(`Tồn kho tối đa chỉ còn ${stock} sản phẩm.`);
+            newQty = stock; // Điều chỉnh về mức tồn kho tối đa
+        }
+
+        // Chỉ cập nhật nếu số lượng thay đổi
+        if (item.quantity !== newQty) {
+            item.quantity = newQty;
+            localStorage.setItem('cartItems', JSON.stringify(currentCart));
+            renderCartHTML();
+            applyVoucher(); // Tính lại tiền ngay
+        }
     }
 
     function removeCartItem(index) {
         Swal.fire({
-            title: 'Bạn chắc chắn?',
-            text: "Muốn xóa sản phẩm này khỏi giỏ hàng?",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#ef4444',
-            cancelButtonColor: '#6c757d',
-            confirmButtonText: 'Vâng, xóa nó!',
-            cancelButtonText: 'Hủy',
-            reverseButtons: true
+            title: 'Xóa sản phẩm?', text: "Bỏ sản phẩm này khỏi đơn hàng?", icon: 'warning', showCancelButton: true, confirmButtonColor: '#ef4444', confirmButtonText: 'Xóa', cancelButtonText: 'Hủy'
         }).then((result) => {
             if (result.isConfirmed) {
                 currentCart.splice(index, 1);
                 localStorage.setItem('cartItems', JSON.stringify(currentCart));
-                loadCartFromStorage();
-
-                const Toast = Swal.mixin({
-                    toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, timerProgressBar: true
-                });
-                Toast.fire({ icon: 'success', title: 'Đã xóa sản phẩm' });
+                // Không cần gọi loadCartFromStorage(), chỉ cần render và applyVoucher
+                renderCartHTML();
+                applyVoucher();
+                toastr.success('Đã cập nhật giỏ hàng');
             }
         });
     }
 
-    function updateTotals(subTotal, discount) {
+    // HÀM QUAN TRỌNG: Cập nhật UI dựa trên số liệu Server trả về
+    function updateTotals(subTotal, discount, finalTotal) {
         document.getElementById('subTotal').innerText = formatCurrency(subTotal);
         document.getElementById('shippingFee').innerText = formatCurrency(SHIPPING_FEE);
         document.getElementById('discountAmount').innerText = discount > 0 ? "-" + formatCurrency(discount) : "0₫";
-
-        let final = subTotal + SHIPPING_FEE - discount;
-        if(final < 0) final = 0;
-        document.getElementById('finalTotal').innerText = formatCurrency(final);
+        document.getElementById('finalTotal').innerText = formatCurrency(finalTotal);
     }
 
-    // --- 4. TẢI VOUCHER (LOGIC HIỂN THỊ CHUẨN) ---
+    // =========================================================================
+    // 4. XỬ LÝ VOUCHER & TÍNH TIỀN (GỌI SERVER)
+    // =========================================================================
     function loadActiveVouchers() {
         fetch('/api/phieu-giam-gia/active')
             .then(res => res.json())
             .then(data => {
-                let html = '<option value="" selected>-- Chọn mã giảm giá --</option>';
+                let html = '<option value="">-- Chọn mã giảm giá --</option>';
                 data.forEach(v => {
-                    let discountText = "";
-                    // LOGIC: 2 là %, 1 là Tiền (Theo DB của bạn)
-                    if (v.hinhThucGiam === 2) {
-                        discountText = `Giảm ${v.giaTriGiam}%`;
-                        if(v.soTienGiam) discountText += ` (Tối đa ${formatCurrency(v.soTienGiam)})`;
-                    } else {
-                        discountText = `Giảm ${formatCurrency(v.giaTriGiam)}`;
-                    }
-                    html += `<option value="${v.maPhieuGiamGia}">
-                                ${v.maPhieuGiamGia} - ${v.tenPhieuGiamGia} [${discountText}]
-                             </option>`;
+                    let discountText = v.hinhThucGiam === 2 ? `Giảm ${v.giaTriGiam}%` : `Giảm ${formatCurrency(v.giaTriGiam)}`;
+                    // Lấy điều kiện tối thiểu
+                    const minOrder = v.dieuKienGiamGia || 0;
+
+                    // LƯU Ý: Vẫn giữ value là mã và thêm data-min-order
+                    html += `<option value="${v.maPhieuGiamGia}" data-min-order="${minOrder}">
+                            ${v.maPhieuGiamGia} - ${v.tenPhieuGiamGia} [${discountText}] (Đơn từ ${formatCurrency(minOrder)})
+                         </option>`;
                 });
                 document.getElementById('voucherSelect').innerHTML = html;
             })
-            .catch(err => console.error("Lỗi voucher:", err));
+            .catch(() => console.log("Không tải được voucher"));
     }
 
-    // --- 5. TÍNH TOÁN VOUCHER (SWEETALERT) ---
+    /**
+     * Hàm chính tính toán tổng tiền và áp dụng voucher (gọi API Server)
+     */
     function applyVoucher() {
-        const code = document.getElementById('voucherSelect').value;
+        if (currentCart.length === 0) {
+            updateTotals(0, 0, 0);
+            return;
+        }
+
+        const btnPlaceOrder = document.getElementById('btnPlaceOrder');
+        btnPlaceOrder.disabled = true;
+
+        const selectElement = document.getElementById('voucherSelect');
+        let code = selectElement.value; // Mã voucher hiện tại
+
+        // --- KIỂM TRA ĐIỀU KIỆN TỐI THIỂU (FRONTEND CHECK) ---
+        if (code) {
+            const subTotal = currentCart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const selectedOption = selectElement.options[selectElement.selectedIndex];
+            // Chắc chắn là số
+            const minOrder = parseFloat(selectedOption.getAttribute('data-min-order')) || 0;
+
+            if (subTotal < minOrder) {
+                toastr.warning(`Đơn hàng chưa đạt tối thiểu ${formatCurrency(minOrder)} để áp dụng mã này!`);
+                selectElement.value = ""; // Reset voucher trên UI
+                code = ""; // Gửi request với mã rỗng
+                // KHÔNG cần return hay gọi lại applyVoucher() nữa, cứ tiếp tục fetch
+            }
+        }
+
         const itemsPayload = currentCart.map(i => ({
-            sanPhamChiTietId: i.id, soLuong: i.quantity, donGia: i.price
+            sanPhamChiTietId: i.id,
+            soLuong: i.quantity
         }));
 
+        // Bắt đầu Fetch
         fetch('/api/checkout/calculate', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
@@ -370,111 +524,171 @@
                 items: itemsPayload
             })
         })
-            .then(res => res.json())
+            .then(res => {
+                if (!res.ok) {
+                    // Cố gắng đọc thông báo lỗi từ Server (nếu có)
+                    return res.json().catch(() => {
+                        throw new Error("Lỗi Server: " + res.status);
+                    }).then(errData => {
+                        throw new Error(errData.message || "Lỗi Server: " + res.status);
+                    });
+                }
+                return res.json();
+            })
             .then(data => {
-                updateTotals(data.subTotal, data.discountAmount);
-                if (code) {
-                    if(data.voucherValid) {
-                        const Toast = Swal.mixin({
-                            toast: true, position: 'top-end', showConfirmButton: false, timer: 2000, timerProgressBar: true
-                        });
-                        Toast.fire({ icon: 'success', title: data.voucherMessage });
-                    } else {
-                        Swal.fire({
-                            icon: 'warning',
-                            title: 'Không thể áp dụng',
-                            text: data.voucherMessage || "Mã không đủ điều kiện",
-                            confirmButtonColor: '#f59e0b'
-                        });
-                        document.getElementById('voucherSelect').value = "";
+                let needsRecalculateDueToStock = false;
+
+                // 1. KIỂM TRA TỒN KHO/GIÁ (Nếu Server trả về lỗi)
+                if(data.outOfStock) {
+                    toastr.error(data.error);
+                    const productId = data.productId;
+
+                    const indexToRemove = currentCart.findIndex(item => item.id === productId);
+                    if (indexToRemove !== -1) {
+                        currentCart.splice(indexToRemove, 1);
+                        localStorage.setItem('cartItems', JSON.stringify(currentCart));
+                        needsRecalculateDueToStock = true;
                     }
                 }
+
+                if (needsRecalculateDueToStock) {
+                    renderCartHTML();
+                    // Gọi lại applyVoucher() để tính toán lại với giỏ hàng đã được sửa
+                    return applyVoucher();
+                }
+
+                // 2. XỬ LÝ VOUCHER (Backend trả về lỗi)
+                // Chỉ kiểm tra nếu trước đó đã có mã (code khác rỗng)
+                if (code && !data.voucherValid) {
+                    toastr.warning(data.voucherMessage || "Mã không hợp lệ hoặc không đủ điều kiện.");
+                    selectElement.value = ""; // Xóa mã voucher không hợp lệ trên UI
+                    code = ""; // Reset mã để gửi request tính toán lại
+
+                    // Gọi lại applyVoucher() ngay lập tức để Server tính lại tiền với voucher rỗng
+                    return applyVoucher();
+
+                } else if(code && data.voucherValid) {
+                    toastr.success(data.voucherMessage || "Áp dụng mã thành công!");
+                }
+
+                // 3. CẬP NHẬT UI TỔNG TIỀN
+                updateTotals(data.subTotal, data.discountAmount, data.finalTotal);
+
+                // 4. BẬT NÚT ĐẶT HÀNG
+                if (currentCart.length > 0) {
+                    btnPlaceOrder.disabled = false;
+                }
             })
-            .catch(() => {});
+            .catch(err => {
+                console.error("Lỗi tính tiền:", err);
+                // Hiển thị thông báo lỗi từ Server (nếu có)
+                toastr.error(err.message || "Không thể tính lại tổng tiền. Vui lòng thử lại.");
+                btnPlaceOrder.disabled = false;
+            });
     }
 
-    // --- 6. ĐẶT HÀNG (SWEETALERT) ---
+    // =========================================================================
+    // 5. XỬ LÝ ĐẶT HÀNG
+    // =========================================================================
     document.getElementById('btnPlaceOrder').addEventListener('click', function() {
-        const fullName = document.getElementById('fullName').value;
-        const phone = document.getElementById('phone').value;
-        const address = document.getElementById('addressDetail').value;
+        const fullName = document.getElementById('fullName').value.trim();
+        const phone = document.getElementById('phone').value.trim();
+        const address = document.getElementById('addressDetail').value.trim();
         const citySel = document.getElementById('city');
         const distSel = document.getElementById('district');
         const wardSel = document.getElementById('ward');
 
         if(!fullName || !phone || !address || !citySel.value || !distSel.value || !wardSel.value) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Thiếu thông tin',
-                text: 'Vui lòng điền đầy đủ thông tin giao hàng!',
-                confirmButtonColor: '#0b72ff'
-            });
+            toastr.error('Vui lòng điền đầy đủ thông tin giao hàng!'); return;
+        }
+        if (currentCart.length === 0) { toastr.error('Giỏ hàng trống!'); return; }
+
+        // Kiểm tra finalTotal để chắc chắn không phải là NaN
+        const finalTotalText = document.getElementById('finalTotal').innerText;
+        if(finalTotalText === '0 ₫' && currentCart.length > 0) {
+            // Có thể có lỗi tính toán, yêu cầu chạy lại applyVoucher
+            toastr.warning('Đang kiểm tra lại tổng tiền. Vui lòng chờ 1 chút.');
+            applyVoucher();
             return;
         }
 
-        const cityName = citySel.options[citySel.selectedIndex].getAttribute('data-name');
-        const distName = distSel.options[distSel.selectedIndex].getAttribute('data-name');
-        const wardName = wardSel.options[wardSel.selectedIndex].getAttribute('data-name');
+        Swal.fire({
+            title: 'Xác nhận đặt hàng?', text: "Đơn hàng sẽ được gửi đi.", icon: 'question',
+            showCancelButton: true, confirmButtonColor: '#0b72ff', confirmButtonText: 'Đồng ý, Đặt hàng!', cancelButtonText: 'Hủy'
+        }).then((result) => {
+            if (result.isConfirmed) submitOrderToServer();
+        });
+    });
+
+    function submitOrderToServer() {
+        const citySel = document.getElementById('city');
+        const distSel = document.getElementById('district');
+        const wardSel = document.getElementById('ward');
+
+        // LẤY TÊN NGẮN GỌN (ĐÃ SỬA ĐỂ LOẠI BỎ 'Tỉnh', 'Huyện', 'Xã')
+        const selectedCityName = citySel.value
+            ? citySel.options[citySel.selectedIndex].getAttribute('data-name').replace(/Tỉnh |Thành phố /g, '').trim()
+            : '';
+        const selectedDistrictName = distSel.value
+            ? distSel.options[distSel.selectedIndex].getAttribute('data-name').replace(/Quận |Huyện /g, '').trim()
+            : '';
+        const selectedWardName = wardSel.value
+            ? wardSel.options[wardSel.selectedIndex].getAttribute('data-name').replace(/Phường |Xã /g, '').trim()
+            : '';
 
         const payload = {
-            fullName: fullName,
-            phone: phone,
+            fullName: document.getElementById('fullName').value,
+            phone: document.getElementById('phone').value,
             email: document.getElementById('email').value,
-            city: cityName,
-            district: distName,
-            ward: wardName,
-            addressDetail: address,
+
+            // GỬI TÊN ĐÃ LỌC
+            city: selectedCityName,
+            district: selectedDistrictName,
+            ward: selectedWardName,
+
+            addressDetail: document.getElementById('addressDetail').value,
             note: document.getElementById('note').value,
             paymentMethod: document.querySelector('input[name="paymentMethod"]:checked').value,
             voucherCode: document.getElementById('voucherSelect').value,
             shippingFee: SHIPPING_FEE,
             items: currentCart.map(i => ({
                 sanPhamChiTietId: i.id,
-                soLuong: i.quantity,
-                donGia: i.price
+                soLuong: i.quantity
             }))
         };
 
-        const btn = this;
+        const btn = document.getElementById('btnPlaceOrder');
         const originalText = btn.innerHTML;
-        btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> ĐANG XỬ LÝ...';
-        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> ĐANG XỬ LÝ...'; btn.disabled = true;
 
         fetch('/api/checkout/place-order', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
+            method: 'POST', headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(payload)
-        })
-            .then(res => res.json())
-            .then(data => {
-                if(data.success) {
-                    if(data.redirectUrl) {
-                        if(!data.redirectUrl.includes('vnpay')) {
-                            localStorage.removeItem('cartItems');
-                        }
-                        window.location.href = data.redirectUrl;
-                    } else {
-                        Swal.fire({
-                            icon: 'success', title: 'Thành công!', text: 'Đặt hàng thành công!', confirmButtonColor: '#0b72ff'
-                        });
-                    }
-                } else {
-                    Swal.fire({
-                        icon: 'error', title: 'Rất tiếc...', text: data.message, confirmButtonColor: '#ef4444'
-                    });
-                    btn.innerHTML = originalText;
-                    btn.disabled = false;
+        }).then(res => res.json()).then(data => {
+            if(data.success) {
+                // Xóa giỏ hàng chỉ khi thanh toán COD thành công hoặc khi VNPAY chuyển hướng
+                if(data.paymentMethod === 'COD' || data.redirectUrl) {
+                    localStorage.removeItem('cartItems');
                 }
-            })
-            .catch(err => {
-                console.error(err);
-                Swal.fire({ icon: 'error', title: 'Lỗi hệ thống', text: 'Không thể kết nối đến server.' });
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            });
-    });
+
+                if(data.redirectUrl) {
+                    Swal.fire({ icon: 'success', title: 'Chuyển hướng thanh toán...', timer: 1500, showConfirmButton: false })
+                        .then(() => window.location.href = data.redirectUrl);
+                } else {
+                    Swal.fire({ icon: 'success', title: 'Đặt hàng thành công!', text: 'Đơn hàng của bạn đang được xử lý.', showConfirmButton: false, timer: 2000 })
+                        .then(() => window.location.href = '/order-success');
+                }
+            } else {
+                Swal.fire({ icon: 'error', title: 'Thất bại', text: data.message });
+                btn.innerHTML = originalText; btn.disabled = false;
+            }
+        }).catch(err => {
+            console.error(err);
+            Swal.fire({ icon: 'error', title: 'Lỗi', text: 'Không thể kết nối Server.' });
+            btn.innerHTML = originalText; btn.disabled = false;
+        });
+    }
 </script>
 
 </body>
 </html>
-```

@@ -1,5 +1,6 @@
 package sd_04.datn_fstore.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*; // Import
 import lombok.*;
@@ -10,6 +11,7 @@ import lombok.*;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @Table(name = "DiaChi")
 public class DiaChi {
     @Id
@@ -34,6 +36,8 @@ public class DiaChi {
     @NotBlank(message = "Xã/Phường không được để trống")
     private String xa;
 
+    @Column(name = "huyen") // <--- CẦN THÊM THUỘC TÍNH NÀY
+    private String huyen;
     @Column(name = "thanhPho")
     @NotBlank(message = "Tỉnh/Thành phố không được để trống") // Hoặc Quận/Huyện tùy logic
     private String thanhPho;
