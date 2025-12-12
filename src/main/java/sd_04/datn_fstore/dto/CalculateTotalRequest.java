@@ -8,7 +8,7 @@ public class CalculateTotalRequest {
     private String voucherCode;
     private BigDecimal shippingFee;
     private List<CartItem> items;
-
+    private Integer khachHangId;
     @Data
     public static class CartItem {
         private Integer sanPhamChiTietId;

@@ -123,9 +123,6 @@
 
                 <div class="order-list" id="cartItemsList">
                     <p class="text-center text-muted py-3 small">Đang tải giỏ hàng...</p>
-                    <div id="checkoutCart"></div>
-                    <h4 class="mt-3">Tổng: <span id="checkoutTotal">0</span>₫</h4>
-
                 </div>
 
                 <div class="mb-3">
@@ -174,466 +171,524 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
 <script>
-    ///dia chi
     // =========================================================================
-    // 2. XỬ LÝ ĐỊA CHỈ (SỬ DỤNG API CŨ VÀ THÊM BẮT LỖI ASYNC/AWAIT)
-    //    - Đảm bảo các thẻ <select> trong HTML của bạn có id là 'city', 'district', 'ward'.
-    //    - Cần có thư viện Toastr để hiển thị thông báo lỗi.
+    // 1. CẤU HÌNH & KHỞI TẠO
     // =========================================================================
+    const SHIPPING_FEE = 30000;
 
-    // Khai báo lại API đã chạy được (esgoo.net)
+    // API Hành chính Việt Nam
     const API_TINH = "https://esgoo.net/api-tinhthanh/1/0.htm";
-    const API_HUYEN = "https://esgoo.net/api-tinhthanh/2/"; // Cần thêm {id_tinh}.htm
-    const API_XA = "https://esgoo.net/api-tinhthanh/3/"; // Cần thêm {id_huyen}.htm
+    const API_HUYEN = "https://esgoo.net/api-tinhthanh/2/";
+    const API_XA = "https://esgoo.net/api-tinhthanh/3/";
 
-    /**
-     * Hàm fetch chung để tải dữ liệu từ API esgoo.net
-     * Có xử lý lỗi mạng/CORS và lỗi logic từ API (error !== 0).
-     * @param {string} endpoint - URL đầy đủ hoặc phần còn lại của URL.
-     * @returns {Promise<Array|null>} Mảng dữ liệu địa chỉ hoặc null nếu có lỗi.
-     */
-    async function fetchEsgooData(endpoint) {
-        const fullUrl = endpoint;
-        try {
-            const response = await fetch(fullUrl);
+    let currentCart = [];
+    // Lưu trữ tồn kho thực tế từ Server sau khi sync
+    let productStock = {};
 
-            // 1. Kiểm tra lỗi HTTP (404, 500, v.v.)
-            if (!response.ok) {
-                console.error(`Lỗi HTTP ${response.status} khi tải địa chỉ.`);
-                // Thông báo lỗi chung, có thể là lỗi mạng hoặc lỗi server
-                throw new Error("Lỗi Server: " + response.status);
-            }
+    // Cấu hình thông báo
+    toastr.options = { "closeButton": true, "progressBar": true, "positionClass": "toast-top-right", "timeOut": "3000" };
 
-            const data = await response.json();
-
-            // 2. Kiểm tra lỗi logic của API Esgoo (data.error === 0 là thành công)
-            if (data.error !== 0) {
-                console.error(`API Esgoo trả về lỗi: ${data.error} - ${data.message}`);
-                throw new Error(data.message || "Lỗi dữ liệu từ API.");
-            }
-
-            return data.data; // Trả về mảng dữ liệu (là trường 'data' trong response)
-        } catch (e) {
-            console.error("LỖI KẾT NỐI/CORS khi tải địa chỉ:", e);
-            // Hiển thị thông báo lỗi cho người dùng
-            if (typeof toastr !== 'undefined') {
-                toastr.error("Không thể tải dữ liệu địa chỉ. Vui lòng kiểm tra console log.");
-            }
-            return null; // Trả về null nếu có lỗi
+    // Định dạng tiền tệ
+    function formatCurrency(amount) {
+        if (amount === undefined || amount === null || isNaN(amount)) return "0 ₫";
+        // Chuyển đổi sang số nếu là chuỗi (để formatCurrency() hoạt động đúng)
+        if (typeof amount === 'string') {
+            amount = parseFloat(amount);
         }
+        if (isNaN(amount)) return "0 ₫";
+        return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
     }
 
-    /**
-     * Khởi tạo và xử lý logic Tỉnh/Thành, Quận/Huyện, Phường/Xã
-     */
-    function loadAddressData() {
-        const citySelect = document.getElementById('city');
-        const distSelect = document.getElementById('district');
-        const wardSelect = document.getElementById('ward');
-
-        if (!citySelect || !distSelect || !wardSelect) {
-            console.error("Không tìm thấy đủ các thẻ select (city, district, ward) trong DOM.");
-            return;
-        }
-
-        // Tải Tỉnh/Thành phố khi trang load
-        fetchEsgooData(API_TINH)
-            .then(data => {
-                if (!data) return; // Dừng nếu có lỗi và đã hiển thị toastr
-
-                let html = '<option value="" selected>Chọn Tỉnh/Thành</option>';
-                // API này trả về mảng các đối tượng {id, full_name}
-                data.forEach(tinh => html += `<option value="${tinh.id}" data-name="${tinh.full_name}">${tinh.full_name}</option>`);
-                citySelect.innerHTML = html;
-            });
-
-        // Lắng nghe sự kiện thay đổi Tỉnh/Thành
-        citySelect.addEventListener('change', function () {
-            const idTinh = this.value;
-
-            // 1. Reset các ô dưới và thiết lập trạng thái loading
-            distSelect.innerHTML = '<option value="" selected>Đang tải...</option>';
-            wardSelect.innerHTML = '<option value="" selected>Chọn Phường/Xã</option>';
-            distSelect.disabled = true;
-            wardSelect.disabled = true;
-
-            if (idTinh) {
-                // 2. Tải Quận/Huyện: /api-tinhthanh/2/{id}.htm
-                fetchEsgooData(API_HUYEN + idTinh + ".htm")
-                    .then(data => {
-                        if (!data) return;
-
-                        let html = '<option value="" selected>Chọn Quận/Huyện</option>';
-                        // API này trả về mảng các đối tượng {id, full_name}
-                        data.forEach(h => html += `<option value="${h.id}" data-name="${h.full_name}">${h.full_name}</option>`);
-                        distSelect.innerHTML = html;
-                        distSelect.disabled = false; // Mở khóa Quận/Huyện
-                    });
-            } else {
-                // Nếu không chọn tỉnh nào (chọn lại 'Chọn Tỉnh/Thành')
-                distSelect.innerHTML = '<option value="" selected>Chọn Quận/Huyện</option>';
-            }
-        });
-
-        // Lắng nghe sự kiện thay đổi Quận/Huyện
-        distSelect.addEventListener('change', function () {
-            const idHuyen = this.value;
-
-            // 1. Reset ô Phường/Xã và thiết lập trạng thái loading
-            wardSelect.innerHTML = '<option value="" selected>Đang tải...</option>';
-            wardSelect.disabled = true;
-
-            if (idHuyen) {
-                // 2. Tải Phường/Xã: /api-tinhthanh/3/{id}.htm
-                fetchEsgooData(API_XA + idHuyen + ".htm")
-                    .then(data => {
-                        if (!data) return;
-
-                        let html = '<option value="" selected>Chọn Phường/Xã</option>';
-                        // API này trả về mảng các đối tượng {id, full_name}
-                        data.forEach(x => html += `<option value="${x.id}" data-name="${x.full_name}">${x.full_name}</option>`);
-                        wardSelect.innerHTML = html;
-                        wardSelect.disabled = false; // Mở khóa Phường/Xã
-                    });
-            } else {
-                // Nếu không chọn huyện nào
-                wardSelect.innerHTML = '<option value="" selected>Chọn Phường/Xã</option>';
-            }
-        });
-    }
-
-    // Gọi hàm khởi tạo khi DOM đã sẵn sàng
-    document.addEventListener('DOMContentLoaded', loadAddressData);
-    // Đường dẫn hình ảnh tĩnh của bạn (ví dụ: resources/static/images)
-    const IMAGE_BASE_URL = "/image/";
-    const SHIPPING_FEE = 30000; // Phí vận chuyển cố định
-
-    // Hàm gọi API và load giỏ hàng
-    async function loadCart() {
-        let res;
-        try {
-            // Thử API JSON đã xác nhận hoạt động (đặt cái này lên đầu)
-            res = await fetch("/api/cart");
-        } catch (e) {
-            // Fallback nếu API /api/cart lỗi
-            try {
-                res = await fetch("/cart/api/view");
-            } catch (e2) {
-                console.error("Lỗi: Không thể kết nối đến bất kỳ API giỏ hàng nào.");
-                renderCart([]); // Hiển thị giỏ hàng trống
-                return;
-            }
-        }
-
-        if (!res.ok) {
-            console.error(`Lỗi API giỏ hàng: Status ${res.status}`);
-            renderCart([]);
-            return;
-        }
-
-        const cart = await res.json();
-        renderCart(cart);
-    }
-
-    // Hàm hiển thị giỏ hàng
-    function renderCart(cart) {
-        const div = document.getElementById("cartItemsList");
-        const subTotalElement = document.getElementById("subTotal");
-        const finalTotalElement = document.getElementById("finalTotal");
-
-        if (!cart || cart.length === 0) {
-            div.innerHTML = "<p class='text-center text-muted'>Giỏ hàng đang trống.</p>";
-            subTotalElement.innerText = "0₫";
-            finalTotalElement.innerText = SHIPPING_FEE.toLocaleString('vi-VN') + "₫"; // Vẫn hiển thị phí vận chuyển nếu có
-            document.getElementById("btnPlaceOrder").disabled = true;
-            return;
-        }
-
-        let subTotal = 0; // Tạm tính (trước phí ship)
-        let html = "";
-        let totalItems = 0;
-        let finalAmount;
-
-        cart.forEach(item => {
-            // ⭐ SỬ DỤNG TÊN TRƯỜNG ĐÚNG TỪ GioHangDTO ⭐
-            const quantity = Number(item.soLuong) || 0;
-            const price = Number(item.donGia) || 0;
-            const sum = price * quantity;
-
-            subTotal += sum;
-            totalItems += quantity;
-
-            // Lấy tên hình ảnh (đảm bảo không bị null)
-            const imageName = item.tenHinhAnh || "placeholder.png";
-
-            // Lấy tên/màu/size để hiển thị chi tiết
-            const itemMeta = `Màu: ${item.tenMau || 'N/A'}, Size: ${item.tenKichCo || 'N/A'}`;
-
-            html += `
-                <div class="order-item">
-                    <img src="${IMAGE_BASE_URL}${imageName}" alt="${item.tenSanPham}" class="item-img">
-                    <div class="item-info">
-                        <span class="item-name">${item.tenSanPham || 'Sản phẩm không tên'}</span>
-                        <span class="item-meta">SL: ${quantity} - ${itemMeta}</span>
-                    </div>
-                    <div class="item-price">${sum.toLocaleString('vi-VN')}₫</div>
-                </div>
-            `;
-        });
-
-        // Cập nhật DOM
-        div.innerHTML = html;
-
-        // Tính tổng cuối cùng (chưa tính mã giảm giá)
-        // Giả sử: Giảm giá mặc định là 0
-        const discount = Number(document.getElementById("discountAmount").innerText.replace(/[^0-9]/g, '')) || 0;
-        finalAmount = subTotal + SHIPPING_FEE - discount;
-
-        // Cập nhật các trường tổng
-        subTotalElement.innerText = subTotal.toLocaleString('vi-VN') + "₫";
-        document.getElementById("shippingFee").innerText = SHIPPING_FEE.toLocaleString('vi-VN') + "₫";
-        finalTotalElement.innerText = finalAmount.toLocaleString('vi-VN') + "₫";
-
-        // Cập nhật header "ĐƠN HÀNG (tổng số lượng sản phẩm)"
-        const orderHeader = document.querySelector('.section-header h2.section-title');
-        if (orderHeader) {
-            orderHeader.innerText = `ĐƠN HÀNG (${totalItems} SẢN PHẨM)`;
-        }
-
-        document.getElementById("btnPlaceOrder").disabled = false;
-    }
-
-    loadCart();
-//
-    // =========================================================================
-    // 4. CÁC HÀM TIỆN ÍCH & XỬ LÝ ĐẶT HÀNG (HANDLE CHECKOUT)
-    // =========================================================================
-
-    /**
-     * HÀM TIỆN ÍCH: Lấy dữ liệu giỏ hàng hiện tại (để gửi lên Server)
-     */
-    async function getCartData() {
-        try {
-            // Sử dụng API /api/cart đã được định nghĩa trong loadCart
-            const res = await fetch("/api/cart");
-            if (res.ok) {
-                return await res.json();
-            }
-            return [];
-        } catch (e) {
-            console.error("Không thể lấy dữ liệu giỏ hàng để đặt hàng:", e);
-            return [];
-        }
-    }
-
-    /**
-     * Hàm tính toán lại tổng tiền cuối cùng (Đơn giản hóa, không dùng Voucher)
-     */
-    function calculateFinalTotal() {
-        // Lấy tạm tính (subTotal) từ DOM
-        const subTotalText = document.getElementById("subTotal").innerText.replace(/[^0-9]/g, '');
-        const subTotal = Number(subTotalText) || 0;
-
-        // Discount mặc định là 0
-        const newDiscount = 0;
-
-        // Tính tổng cuối = Tạm tính + Phí ship
-        let finalAmount = subTotal + SHIPPING_FEE - newDiscount;
-        if (finalAmount < 0) finalAmount = 0;
-
-        // Cập nhật DOM
-        document.getElementById("discountAmount").innerText = `-0₫`;
-        document.getElementById("finalTotal").innerText = finalAmount.toLocaleString('vi-VN') + "₫";
-
-        // Bật/tắt nút Đặt hàng: chỉ bật khi SubTotal > 0
-        const btn = document.getElementById("btnPlaceOrder");
-        btn.disabled = (subTotal <= 0);
-    }
-
-    // Gọi hàm tính toán lại tổng tiền sau khi giỏ hàng được load
-    calculateFinalTotal();
-
-    /**
-     * Xử lý sự kiện khi nhấn nút Đặt hàng.
-     */
-    async function handleCheckout() {
-        // 1. Lấy & trim dữ liệu
-        const fullName = document.getElementById('fullName').value.trim();
-        const phone = document.getElementById('phone').value.trim();
-        const addressDetail = document.getElementById('addressDetail').value.trim();
-        const citySelect = document.getElementById('city');
-        const distSelect = document.getElementById('district');
-        const wardSelect = document.getElementById('ward');
-        const note = document.getElementById('note').value.trim();
-        const paymentMethod = (document.querySelector('input[name="paymentMethod"]:checked') || {}).value || 'COD';
-
-        const cityName = citySelect && citySelect.options[citySelect.selectedIndex]?.getAttribute('data-name') || '';
-        const districtName = distSelect && distSelect.options[distSelect.selectedIndex]?.getAttribute('data-name') || '';
-        const wardName = wardSelect && wardSelect.options[wardSelect.selectedIndex]?.getAttribute('data-name') || '';
-
-        // 2. Front-end validation (bảo đảm các field bắt buộc phù hợp entity DiaChi)
-        let missing = [];
-        if (!fullName) missing.push('Họ tên');
-        if (!phone) missing.push('Số điện thoại');
-        if (!addressDetail) missing.push('Địa chỉ cụ thể');
-        if (!wardSelect || !wardSelect.value) missing.push('Phường/Xã');
-        if (!citySelect || !citySelect.value) missing.push('Tỉnh/Thành');
-
-        if (missing.length) {
-            toastr.error('Thiếu thông tin: ' + missing.join(', '));
-            console.warn('Validation failed on client. Missing:', missing);
-            return;
-        }
-
-        // 3. Lấy giỏ hàng hiện tại (từ /api/cart)
-        let currentCart = [];
-        try {
-            const resCart = await fetch('/api/cart');
-            if (resCart.ok) currentCart = await resCart.json();
-            else {
-                toastr.error('Không thể lấy giỏ hàng từ server.');
-                console.error('GET /api/cart failed status=', resCart.status);
-                return;
-            }
-        } catch (e) {
-            toastr.error('Lỗi mạng khi lấy giỏ hàng.');
-            console.error('GET /api/cart error', e);
-            return;
-        }
-
-        if (!currentCart || currentCart.length === 0) {
-            toastr.error('Giỏ hàng trống!');
-            return;
-        }
-
-        // 4. Tính finalTotal chắc chắn
-        const subText = document.getElementById('subTotal')?.innerText || '0';
-        const numOnly = subText.replace(/[^0-9]/g, '');
-        const subTotal = Number(numOnly) || 0;
-        const finalText = document.getElementById('finalTotal')?.innerText || '0';
-        const finalNum = Number(finalText.replace(/[^0-9]/g, '')) || subTotal;
-        const finalTotal = finalNum;
-
-        if (finalTotal <= 0) {
-            toastr.error('Tổng tiền không hợp lệ.');
-            return;
-        }
-
-        // 5. Build orderData theo đúng Entity/DTO Server
-        const orderData = {
-            // ⭐ SỬ DỤNG TÊN TRƯỜNG CHỮ HOA ĐỂ KHẮC PHỤC LỖI VALIDATION ROOT ⭐
-            HoTen: fullName, // Khắc phục lỗi HoTen
-            soDienThoai: phone, // Giữ nguyên
-            email: document.getElementById('email')?.value.trim() || null,
-            ghiChu: note,
-            phuongThucThanhToan: paymentMethod,
-            maPhieuGiamGia: null,
-            tongTien: finalTotal,
-
-            // ⭐ SỬ DỤNG TÊN OBJECT LỒNG NHAU CHỮ HOA: DiaChi ⭐
-            DiaChi: {
-                // Thường là các trường tên là: tenTinh, tenHuyen, tenXa, diaChiChiTiet
-                // Tôi dùng tên trường phổ biến: tenTinh, tenHuyen, tenXa và diaChiCuThe/diaChiChiTiet
-
-                tenTinh: cityName,
-                tenHuyen: districtName,
-                tenXa: wardName,
-                diaChiChiTiet: addressDetail, // Sử dụng tên field phổ biến là diaChiChiTiet/diaChiCuThe
-
-                // Thêm ID để đảm bảo DTO DiaChi đầy đủ (Nếu server yêu cầu ID)
-                idTinh: citySelect.value,
-                idHuyen: distSelect.value,
-                idXa: wardSelect.value,
-
-                // Thêm các trường DTO DiaChi của bạn nếu có (vd: hoTen người nhận, SĐT)
-                // Nếu DTO DiaChi của bạn cần hoTen và soDienThoai bên trong:
-                // hoTen: fullName,
-                // soDienThoai: phone,
-                // loaiDiaChi: "Nhà riêng"
-            },
-
-            chiTietDonHangs: currentCart.map(item => ({
-                idChiTietSP: item.idChiTietSP,
-                soLuong: item.soLuong,
-                donGia: item.donGia
-            }))
-        };
-        // 6. Debug: show payload trước khi gửi (console + toast ngắn)
-        console.group('%c[DEBUG] Order payload', 'color: #0b72ff; font-weight:bold');
-        console.log(orderData);
-        console.groupEnd();
-        toastr.info('Đang gửi đơn — kiểm tra console (F12) để xem payload');
-
-        // 7. Gửi request, và in nguyên response nếu có lỗi (để biết exact violation)
-        const btn = document.getElementById('btnPlaceOrder');
-        const originalHtml = btn.innerHTML;
-        try {
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> ĐANG XỬ LÝ...';
-
-            const resp = await fetch('/api/checkout/place-order', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(orderData)
-            });
-
-            const text = await resp.text();
-            let json;
-            try { json = JSON.parse(text); } catch(e) { json = null; }
-
-            // Nếu server trả lỗi (400/500), show nguyên text để debug
-            if (!resp.ok) {
-                console.error('Server returned error status', resp.status, 'body:', text);
-                // Nếu JSON có danh sách violation, show cụ thể
-                if (json && json.constraintViolations) {
-                    console.error('Constraint violations:', json);
-                    toastr.error('Lỗi validate server: xem console (F12).');
-                } else {
-                    // Hiện popup chứa message server (truncate 300 ký tự)
-                    const msg = (json && (json.message || JSON.stringify(json))) || text;
-                    toastr.error('Server trả lỗi: ' + msg.substring(0, 200));
-                }
-                return;
-            }
-
-            // Success
-            console.log('Server success response:', json || text);
-            toastr.success('Đặt hàng thành công!');
-            // nếu server trả id hoặc paymentUrl
-            if (json && json.paymentUrl) {
-                window.location.href = json.paymentUrl;
-            } else if (json && json.id) {
-                window.location.href = '/checkout/success?id=' + json.id;
-            } else {
-                // fallback
-                window.location.href = '/checkout/success';
-            }
-
-        } catch (err) {
-            console.error('Network / unexpected error when placing order:', err);
-            toastr.error('Lỗi kết nối khi gửi đơn. Mở console để xem chi tiết.');
-        } finally {
-            btn.disabled = false;
-            btn.innerHTML = originalHtml;
-        }
-    }
-
-
-    // GẮN SỰ KIỆN CHO NÚT
-    document.getElementById('btnPlaceOrder').addEventListener('click', handleCheckout);
     document.addEventListener("DOMContentLoaded", function () {
-        const btn = document.getElementById("btnPlaceOrder");
-        if (btn) {
-            btn.addEventListener("click", handleCheckout);
-        } else {
-            console.error("btnPlaceOrder NOT FOUND");
-        }
+        loadAddressData();      // Tải Tỉnh/Thành
+        loadCartFromStorage();  // Tải giỏ hàng từ LocalStorage
+        loadActiveVouchers();   // Tải mã giảm giá
+
+        // Lắng nghe sự kiện thay đổi voucher để tính lại tiền ngay
+        document.getElementById('voucherSelect').addEventListener('change', applyVoucher);
     });
 
+    // =========================================================================
+    // 2. XỬ LÝ ĐỊA CHỈ (GIỮ NGUYÊN)
+    // =========================================================================
+    function loadAddressData() {
+        fetch(API_TINH).then(r => r.json()).then(data => {
+            if (data.error === 0) {
+                let html = '<option value="">Chọn Tỉnh/Thành</option>';
+                data.data.forEach(tinh => html += `<option value="${tinh.id}" data-name="${tinh.full_name}">${tinh.full_name}</option>`);
+                document.getElementById('city').innerHTML = html;
+            }
+        });
+
+        document.getElementById('city').addEventListener('change', function () {
+            const idTinh = this.value;
+            const distSelect = document.getElementById('district');
+            const wardSelect = document.getElementById('ward');
+            distSelect.innerHTML = '<option value="">Đang tải...</option>';
+            wardSelect.innerHTML = '<option value="">Chọn Phường/Xã</option>'; distSelect.disabled = true; wardSelect.disabled = true;
+
+            if (idTinh) {
+                fetch(API_HUYEN + idTinh + ".htm").then(r => r.json()).then(data => {
+                    if (data.error === 0) {
+                        let html = '<option value="">Chọn Quận/Huyện</option>';
+                        data.data.forEach(h => html += `<option value="${h.id}" data-name="${h.full_name}">${h.full_name}</option>`);
+                        distSelect.innerHTML = html; distSelect.disabled = false;
+                    }
+                });
+            } else { distSelect.innerHTML = '<option value="">Chọn Quận/Huyện</option>'; }
+        });
+
+        document.getElementById('district').addEventListener('change', function () {
+            const idHuyen = this.value;
+            const wardSelect = document.getElementById('ward');
+            wardSelect.innerHTML = '<option value="">Đang tải...</option>'; wardSelect.disabled = true;
+            if (idHuyen) {
+                fetch(API_XA + idHuyen + ".htm").then(r => r.json()).then(data => {
+                    if (data.error === 0) {
+                        let html = '<option value="">Chọn Phường/Xã</option>';
+                        data.data.forEach(x => html += `<option value="${x.id}" data-name="${x.full_name}">${x.full_name}</option>`);
+                        wardSelect.innerHTML = html; wardSelect.disabled = false;
+                    }
+                });
+            } else { wardSelect.innerHTML = '<option value="">Chọn Phường/Xã</option>'; }
+        });
+    }
+
+    // =========================================================================
+    // 3. QUẢN LÝ GIỎ HÀNG & ĐỒNG BỘ GIÁ/TỒN KHO
+    // =========================================================================
+
+    async function loadCartFromStorage() {
+        const json = localStorage.getItem('cartItems');
+        currentCart = json ? JSON.parse(json) : [];
+
+        // 1. Render trước dữ liệu cũ để khách không phải chờ
+        renderCartHTML();
+
+        // 2. Nếu giỏ hàng có đồ, tiến hành ĐỒNG BỘ và TÍNH TOÁN
+        if (currentCart.length > 0) {
+            await syncPricesAndStockWithServer(); // Đồng bộ giá/tồn kho
+            applyVoucher(); // Tính toán tổng tiền sau khi sync
+        } else {
+            updateTotals(0, 0, 0);
+        }
+        document.getElementById('btnPlaceOrder').disabled = (currentCart.length === 0);
+    }
+
+    // [MỚI] Hàm này gọi API lấy chi tiết từng sản phẩm để cập nhật giá và tồn kho
+    async function syncPricesAndStockWithServer() {
+        productStock = {}; // Reset tồn kho
+        const btn = document.getElementById('btnPlaceOrder');
+        btn.disabled = true;
+
+        // Tạo danh sách các Promise để gọi API song song
+        const promises = currentCart.map(item =>
+            fetch(`/api/san-pham-chi-tiet/${item.id}`).then(res => {
+                if(res.ok) return res.json();
+                return null;
+            }).catch(() => null)
+        );
+
+        try {
+            const products = await Promise.all(promises);
+            let hasChange = false;
+            let indicesToRemove = []; // Dùng để lưu index các sản phẩm cần xóa
+
+            products.forEach((product, index) => {
+                const item = currentCart[index];
+                if (product) {
+                    // Logic giá: Lấy giá SPCT
+                    const realPrice = product.giaTien;
+                    const stock = product.soLuong; // Lấy tồn kho (Chú ý: Dùng 'soLuong' thay vì 'soLuongTon' nếu entity dùng 'soLuong')
+
+                    // Lưu tồn kho thực tế
+                    productStock[item.id] = stock;
+
+                    // 1. Cập nhật giá nếu khác
+                    if (realPrice && item.price !== realPrice) {
+                        item.price = realPrice;
+                        hasChange = true;
+                    }
+
+                    // 2. Kiểm tra số lượng tồn
+                    if (item.quantity > stock) {
+                        if (stock === 0) {
+                            toastr.error(`Sản phẩm "${item.name}" (${item.size}/${item.color}) đã hết hàng và bị xóa khỏi giỏ.`);
+                            indicesToRemove.push(index); // Đánh dấu xóa
+                        } else {
+                            item.quantity = stock; // Giảm về tồn kho tối đa
+                            toastr.warning(`Sản phẩm "${item.name}" (${item.size}/${item.color}) chỉ còn ${stock} sản phẩm. Số lượng đã được điều chỉnh.`);
+                        }
+                        hasChange = true;
+                    } else if (stock === 0 && item.quantity > 0) {
+                        // Trường hợp ban đầu vẫn còn, nhưng sau sync thì hết
+                        toastr.error(`Sản phẩm "${item.name}" (${item.size}/${item.color}) đã hết hàng và bị xóa khỏi giỏ.`);
+                        indicesToRemove.push(index);
+                        hasChange = true;
+                    }
+
+                } else {
+                    // Sản phẩm bị xóa khỏi hệ thống
+                    toastr.error(`Sản phẩm "${item.name}" đã bị xóa khỏi hệ thống và được loại bỏ khỏi giỏ.`);
+                    indicesToRemove.push(index);
+                    hasChange = true;
+                }
+            });
+
+            // Thực hiện xóa các sản phẩm đã đánh dấu (phải xóa ngược để không ảnh hưởng index)
+            for(let i = indicesToRemove.length - 1; i >= 0; i--) {
+                currentCart.splice(indicesToRemove[i], 1);
+            }
+
+            // Nếu có thay đổi (giá, số lượng, xóa) thì lưu lại và render
+            if (hasChange) {
+                localStorage.setItem('cartItems', JSON.stringify(currentCart));
+            }
+
+            // Luôn gọi renderCartHTML sau khi kết thúc đồng bộ
+            renderCartHTML();
+
+            // Kích hoạt nút đặt hàng nếu giỏ hàng không trống
+            if (currentCart.length > 0) {
+                btn.disabled = false;
+            } else {
+                updateTotals(0, 0, 0); // Reset totals nếu giỏ hàng trống
+            }
+
+            // LƯU Ý: applyVoucher() sẽ được gọi ở cuối loadCartFromStorage()
+
+        } catch (err) {
+            console.error("Lỗi đồng bộ giá và tồn kho:", err);
+            toastr.error("Lỗi kết nối server khi đồng bộ giỏ hàng.");
+        }
+    }
+
+    function renderCartHTML() {
+        const container = document.getElementById('cartItemsList');
+        if (currentCart.length === 0) {
+            container.innerHTML = `<div class="text-center py-5 text-muted"><i class="fa-solid fa-basket-shopping fs-1 mb-2"></i><p>Giỏ hàng đang trống</p><a href="/san-pham" class="btn btn-sm btn-outline-primary rounded-pill">Mua sắm ngay</a></div>`;
+            document.getElementById('btnPlaceOrder').disabled = true;
+            return;
+        }
+
+        let html = '';
+        currentCart.forEach((item, index) => {
+            const stock = productStock[item.id] !== undefined ? productStock[item.id] : '...'; // Lấy tồn kho đã sync
+            const isOutOfStock = stock === 0;
+            const isMaxStock = item.quantity >= stock && stock > 0;
+
+            html += `
+                <div class="order-item align-items-center">
+                    <img src="${item.image || 'https://placehold.co/64?text=Img'}" class="item-img" onerror="this.src='https://placehold.co/64?text=Img'">
+                    <div class="item-info flex-grow-1 ps-3">
+                        <span class="item-name text-truncate" style="max-width: 180px;">${item.name}</span>
+                        <div class="item-meta mb-1 small text-dark">
+                            Size: <b>${item.size}</b> | Màu: <b>${item.color}</b>
+                            <span class="text-${isOutOfStock ? 'danger' : 'success'} ms-2">(Tồn: ${stock})</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="input-group input-group-sm" style="width: 100px;">
+                                <button class="btn btn-outline-secondary px-2" type="button" onclick="changeQuantity(${index}, -1)" ${item.quantity <= 1 || isOutOfStock ? 'disabled' : ''}>-</button>
+                                <input type="text" class="form-control text-center px-1" value="${item.quantity}" readonly style="background: #fff;">
+                                <button class="btn btn-outline-secondary px-2" type="button" onclick="changeQuantity(${index}, 1)" ${isMaxStock || isOutOfStock ? 'disabled' : ''}>+</button>
+                            </div>
+                            <span class="item-price fw-bold text-primary">${formatCurrency(item.price * item.quantity)}</span>
+                        </div>
+                    </div>
+                    <div class="ms-2">
+                        <button type="button" class="btn-remove-item text-danger" onclick="removeCartItem(${index})"><i class="fa-regular fa-trash-can"></i></button>
+                    </div>
+                </div>`;
+        });
+        container.innerHTML = html;
+        document.getElementById('btnPlaceOrder').disabled = (currentCart.length === 0);
+    }
+
+    function changeQuantity(index, delta) {
+        let item = currentCart[index];
+        let newQty = item.quantity + delta;
+        const stock = productStock[item.id];
+
+        if (newQty < 1) {
+            removeCartItem(index);
+            return;
+        }
+
+        if (stock === 0) {
+            toastr.error(`Sản phẩm đã hết hàng.`);
+            return;
+        }
+
+        if (newQty > stock) {
+            toastr.warning(`Tồn kho tối đa chỉ còn ${stock} sản phẩm.`);
+            newQty = stock; // Điều chỉnh về mức tồn kho tối đa
+        }
+
+        // Chỉ cập nhật nếu số lượng thay đổi
+        if (item.quantity !== newQty) {
+            item.quantity = newQty;
+            localStorage.setItem('cartItems', JSON.stringify(currentCart));
+            renderCartHTML();
+            applyVoucher(); // Tính lại tiền ngay
+        }
+    }
+
+    function removeCartItem(index) {
+        Swal.fire({
+            title: 'Xóa sản phẩm?', text: "Bỏ sản phẩm này khỏi đơn hàng?", icon: 'warning', showCancelButton: true, confirmButtonColor: '#ef4444', confirmButtonText: 'Xóa', cancelButtonText: 'Hủy'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                currentCart.splice(index, 1);
+                localStorage.setItem('cartItems', JSON.stringify(currentCart));
+                // Không cần gọi loadCartFromStorage(), chỉ cần render và applyVoucher
+                renderCartHTML();
+                applyVoucher();
+                toastr.success('Đã cập nhật giỏ hàng');
+            }
+        });
+    }
+
+    // HÀM QUAN TRỌNG: Cập nhật UI dựa trên số liệu Server trả về
+    function updateTotals(subTotal, discount, finalTotal) {
+        document.getElementById('subTotal').innerText = formatCurrency(subTotal);
+        document.getElementById('shippingFee').innerText = formatCurrency(SHIPPING_FEE);
+        document.getElementById('discountAmount').innerText = discount > 0 ? "-" + formatCurrency(discount) : "0₫";
+        document.getElementById('finalTotal').innerText = formatCurrency(finalTotal);
+    }
+
+    // =========================================================================
+    // 4. XỬ LÝ VOUCHER & TÍNH TIỀN (GỌI SERVER)
+    // =========================================================================
+    function loadActiveVouchers() {
+        fetch('/api/phieu-giam-gia/active')
+            .then(res => res.json())
+            .then(data => {
+                let html = '<option value="">-- Chọn mã giảm giá --</option>';
+                data.forEach(v => {
+                    let discountText = v.hinhThucGiam === 2 ? `Giảm ${v.giaTriGiam}%` : `Giảm ${formatCurrency(v.giaTriGiam)}`;
+                    // Lấy điều kiện tối thiểu
+                    const minOrder = v.dieuKienGiamGia || 0;
+
+                    // LƯU Ý: Vẫn giữ value là mã và thêm data-min-order
+                    html += `<option value="${v.maPhieuGiamGia}" data-min-order="${minOrder}">
+                            ${v.maPhieuGiamGia} - ${v.tenPhieuGiamGia} [${discountText}] (Đơn từ ${formatCurrency(minOrder)})
+                         </option>`;
+                });
+                document.getElementById('voucherSelect').innerHTML = html;
+            })
+            .catch(() => console.log("Không tải được voucher"));
+    }
+
+    /**
+     * Hàm chính tính toán tổng tiền và áp dụng voucher (gọi API Server)
+     */
+    function applyVoucher() {
+        if (currentCart.length === 0) {
+            updateTotals(0, 0, 0);
+            return;
+        }
+
+        const btnPlaceOrder = document.getElementById('btnPlaceOrder');
+        btnPlaceOrder.disabled = true;
+
+        const selectElement = document.getElementById('voucherSelect');
+        let code = selectElement.value; // Mã voucher hiện tại
+
+        // --- KIỂM TRA ĐIỀU KIỆN TỐI THIỂU (FRONTEND CHECK) ---
+        if (code) {
+            const subTotal = currentCart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const selectedOption = selectElement.options[selectElement.selectedIndex];
+            // Chắc chắn là số
+            const minOrder = parseFloat(selectedOption.getAttribute('data-min-order')) || 0;
+
+            if (subTotal < minOrder) {
+                toastr.warning(`Đơn hàng chưa đạt tối thiểu ${formatCurrency(minOrder)} để áp dụng mã này!`);
+                selectElement.value = ""; // Reset voucher trên UI
+                code = ""; // Gửi request với mã rỗng
+                // KHÔNG cần return hay gọi lại applyVoucher() nữa, cứ tiếp tục fetch
+            }
+        }
+
+        const itemsPayload = currentCart.map(i => ({
+            sanPhamChiTietId: i.id,
+            soLuong: i.quantity
+        }));
+
+        // Bắt đầu Fetch
+        fetch('/api/checkout/calculate', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                voucherCode: code,
+                shippingFee: SHIPPING_FEE,
+                items: itemsPayload
+            })
+        })
+            .then(res => {
+                if (!res.ok) {
+                    // Cố gắng đọc thông báo lỗi từ Server (nếu có)
+                    return res.json().catch(() => {
+                        throw new Error("Lỗi Server: " + res.status);
+                    }).then(errData => {
+                        throw new Error(errData.message || "Lỗi Server: " + res.status);
+                    });
+                }
+                return res.json();
+            })
+            .then(data => {
+                let needsRecalculateDueToStock = false;
+
+                // 1. KIỂM TRA TỒN KHO/GIÁ (Nếu Server trả về lỗi)
+                if(data.outOfStock) {
+                    toastr.error(data.error);
+                    const productId = data.productId;
+
+                    const indexToRemove = currentCart.findIndex(item => item.id === productId);
+                    if (indexToRemove !== -1) {
+                        currentCart.splice(indexToRemove, 1);
+                        localStorage.setItem('cartItems', JSON.stringify(currentCart));
+                        needsRecalculateDueToStock = true;
+                    }
+                }
+
+                if (needsRecalculateDueToStock) {
+                    renderCartHTML();
+                    // Gọi lại applyVoucher() để tính toán lại với giỏ hàng đã được sửa
+                    return applyVoucher();
+                }
+
+                // 2. XỬ LÝ VOUCHER (Backend trả về lỗi)
+                // Chỉ kiểm tra nếu trước đó đã có mã (code khác rỗng)
+                if (code && !data.voucherValid) {
+                    toastr.warning(data.voucherMessage || "Mã không hợp lệ hoặc không đủ điều kiện.");
+                    selectElement.value = ""; // Xóa mã voucher không hợp lệ trên UI
+                    code = ""; // Reset mã để gửi request tính toán lại
+
+                    // Gọi lại applyVoucher() ngay lập tức để Server tính lại tiền với voucher rỗng
+                    return applyVoucher();
+
+                } else if(code && data.voucherValid) {
+                    toastr.success(data.voucherMessage || "Áp dụng mã thành công!");
+                }
+
+                // 3. CẬP NHẬT UI TỔNG TIỀN
+                updateTotals(data.subTotal, data.discountAmount, data.finalTotal);
+
+                // 4. BẬT NÚT ĐẶT HÀNG
+                if (currentCart.length > 0) {
+                    btnPlaceOrder.disabled = false;
+                }
+            })
+            .catch(err => {
+                console.error("Lỗi tính tiền:", err);
+                // Hiển thị thông báo lỗi từ Server (nếu có)
+                toastr.error(err.message || "Không thể tính lại tổng tiền. Vui lòng thử lại.");
+                btnPlaceOrder.disabled = false;
+            });
+    }
+
+    // =========================================================================
+    // 5. XỬ LÝ ĐẶT HÀNG
+    // =========================================================================
+    document.getElementById('btnPlaceOrder').addEventListener('click', function() {
+        const fullName = document.getElementById('fullName').value.trim();
+        const phone = document.getElementById('phone').value.trim();
+        const address = document.getElementById('addressDetail').value.trim();
+        const citySel = document.getElementById('city');
+        const distSel = document.getElementById('district');
+        const wardSel = document.getElementById('ward');
+
+        if(!fullName || !phone || !address || !citySel.value || !distSel.value || !wardSel.value) {
+            toastr.error('Vui lòng điền đầy đủ thông tin giao hàng!'); return;
+        }
+        if (currentCart.length === 0) { toastr.error('Giỏ hàng trống!'); return; }
+
+        // Kiểm tra finalTotal để chắc chắn không phải là NaN
+        const finalTotalText = document.getElementById('finalTotal').innerText;
+        if(finalTotalText === '0 ₫' && currentCart.length > 0) {
+            // Có thể có lỗi tính toán, yêu cầu chạy lại applyVoucher
+            toastr.warning('Đang kiểm tra lại tổng tiền. Vui lòng chờ 1 chút.');
+            applyVoucher();
+            return;
+        }
+
+        Swal.fire({
+            title: 'Xác nhận đặt hàng?', text: "Đơn hàng sẽ được gửi đi.", icon: 'question',
+            showCancelButton: true, confirmButtonColor: '#0b72ff', confirmButtonText: 'Đồng ý, Đặt hàng!', cancelButtonText: 'Hủy'
+        }).then((result) => {
+            if (result.isConfirmed) submitOrderToServer();
+        });
+    });
+
+    function submitOrderToServer() {
+        const citySel = document.getElementById('city');
+        const distSel = document.getElementById('district');
+        const wardSel = document.getElementById('ward');
+
+        // LẤY TÊN NGẮN GỌN (ĐÃ SỬA ĐỂ LOẠI BỎ 'Tỉnh', 'Huyện', 'Xã')
+        const selectedCityName = citySel.value
+            ? citySel.options[citySel.selectedIndex].getAttribute('data-name').replace(/Tỉnh |Thành phố /g, '').trim()
+            : '';
+        const selectedDistrictName = distSel.value
+            ? distSel.options[distSel.selectedIndex].getAttribute('data-name').replace(/Quận |Huyện /g, '').trim()
+            : '';
+        const selectedWardName = wardSel.value
+            ? wardSel.options[wardSel.selectedIndex].getAttribute('data-name').replace(/Phường |Xã /g, '').trim()
+            : '';
+
+        const payload = {
+            fullName: document.getElementById('fullName').value,
+            phone: document.getElementById('phone').value,
+            email: document.getElementById('email').value,
+
+            // GỬI TÊN ĐÃ LỌC
+            city: selectedCityName,
+            district: selectedDistrictName,
+            ward: selectedWardName,
+
+            addressDetail: document.getElementById('addressDetail').value,
+            note: document.getElementById('note').value,
+            paymentMethod: document.querySelector('input[name="paymentMethod"]:checked').value,
+            voucherCode: document.getElementById('voucherSelect').value,
+            shippingFee: SHIPPING_FEE,
+            items: currentCart.map(i => ({
+                sanPhamChiTietId: i.id,
+                soLuong: i.quantity
+            }))
+        };
+
+        const btn = document.getElementById('btnPlaceOrder');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> ĐANG XỬ LÝ...'; btn.disabled = true;
+
+        fetch('/api/checkout/place-order', {
+            method: 'POST', headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+        }).then(res => res.json()).then(data => {
+            if(data.success) {
+                // Xóa giỏ hàng chỉ khi thanh toán COD thành công hoặc khi VNPAY chuyển hướng
+                if(data.paymentMethod === 'COD' || data.redirectUrl) {
+                    localStorage.removeItem('cartItems');
+                }
+
+                if(data.redirectUrl) {
+                    Swal.fire({ icon: 'success', title: 'Chuyển hướng thanh toán...', timer: 1500, showConfirmButton: false })
+                        .then(() => window.location.href = data.redirectUrl);
+                } else {
+                    Swal.fire({ icon: 'success', title: 'Đặt hàng thành công!', text: 'Đơn hàng của bạn đang được xử lý.', showConfirmButton: false, timer: 2000 })
+                        .then(() => window.location.href = '/order-success');
+                }
+            } else {
+                Swal.fire({ icon: 'error', title: 'Thất bại', text: data.message });
+                btn.innerHTML = originalText; btn.disabled = false;
+            }
+        }).catch(err => {
+            console.error(err);
+            Swal.fire({ icon: 'error', title: 'Lỗi', text: 'Không thể kết nối Server.' });
+            btn.innerHTML = originalText; btn.disabled = false;
+        });
+    }
 </script>
-
-
-
 
 </body>
 </html>

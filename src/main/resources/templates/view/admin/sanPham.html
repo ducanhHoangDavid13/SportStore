@@ -345,6 +345,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script th:src="@{/js/main.js}"></script>
 
 <script>
@@ -386,7 +387,9 @@
                 page: currentFilter.page - 1,
                 size: 5,
                 keyword: currentFilter.keyword,
-                trangThai: currentFilter.trangThai === '' ? null : parseInt(currentFilter.trangThai)
+                trangThai: currentFilter.trangThai === '' ? null : parseInt(currentFilter.trangThai),
+                // Bổ sung mặc định sắp xếp theo Ngày tạo giảm dần (Yêu cầu DISP-002)
+                sort: 'ngayTao,desc'
             };
 
             $('#sanPhamTableBody').html('<tr><td colspan="8" class="text-center py-4"><div class="spinner-border text-primary"></div></td></tr>');
@@ -416,7 +419,6 @@
             }
             let html = '';
             list.forEach(sp => {
-                // Fix ảnh: Dùng API download hoặc fallback (Sử dụng tên file đã có UUID)
                 let imgUrl = sp.tenHinhAnhChinh ? `/api/hinh-anh/download/${sp.tenHinhAnhChinh}` : 'https://via.placeholder.com/48?text=NoImg';
                 let dateStr = sp.ngayTao ? new Date(sp.ngayTao).toLocaleDateString('vi-VN') : '-';
 
@@ -499,6 +501,7 @@
         });
 
 
+        // --- ADD SẢN PHẨM (Sử dụng SweetAlert2 cho xác nhận) ---
         $('#addSanPhamForm').submit(function (e) {
             e.preventDefault();
 
@@ -513,19 +516,35 @@
                 return;
             }
 
+            // 2. Xác nhận trước khi gửi (SweetAlert2)
+            Swal.fire({
+                title: 'Xác nhận Thêm Sản phẩm?',
+                text: "Bạn có chắc muốn thêm sản phẩm mới này vào hệ thống?",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Đồng ý, Thêm ngay!',
+                cancelButtonText: 'Hủy'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    executeAddSanPham();
+                }
+            });
+        });
+
+        function executeAddSanPham() {
             const formData = new FormData();
             const spData = {
-                maSanPham: $('#newMaSanPham').val().trim(),
+                maSanPham: $('#newMaSanPham').val().trim() || null,
                 tenSanPham: $('#newTenSanPham').val().trim(),
-                giaTien: giaTienVal,
+                giaTien: parseFloat($('#newGiaTien').val()),
                 moTa: $('#newMoTa').val().trim(),
                 trangThai: parseInt($('#newTrangThaiSelect').val())
             };
 
-            // 2. Gửi JSON dưới dạng Blob (Cần thiết cho @RequestPart trong Spring Boot)
             formData.append('sanPhamData', new Blob([JSON.stringify(spData)], {type: 'application/json'}));
 
-            // 3. Append file
             const fileInput = $('#initialImageUpload')[0];
             if (fileInput.files && fileInput.files[0]) {
                 formData.append('file', fileInput.files[0]);
@@ -535,30 +554,41 @@
                 url: "/api/san-pham/create-with-image",
                 type: "POST",
                 data: formData,
-                contentType: false, // Bắt buộc
-                processData: false, // Bắt buộc
+                contentType: false,
+                processData: false,
                 beforeSend: function () {
-                    $('#addSanPhamForm button[type="submit"]').prop('disabled', true).text('Đang xử lý...');
+                    $('#addSanPhamModal').find('button').prop('disabled', true);
+                    Swal.fire({
+                        title: 'Đang xử lý...',
+                        text: 'Vui lòng chờ trong giây lát.',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading()
+                        }
+                    });
                 },
                 success: () => {
-                    toastr.success("Thêm thành công");
+                    Swal.fire('Thành công!', 'Sản phẩm mới đã được thêm.', 'success');
                     $('#addSanPhamModal').modal('hide');
                     $('#addSanPhamForm')[0].reset();
+                    currentFilter.page = 1;
                     loadSanPham();
                 },
                 error: function (xhr) {
                     let msg = xhr.responseJSON?.message || xhr.responseText || "Lỗi thêm mới. Kiểm tra lại Backend.";
+                    let title = "Lỗi Thêm Mới";
                     if (xhr.status === 409 || msg.toLowerCase().includes("trùng")) {
-                        toastr.warning("⚠️ Mã hoặc Tên sản phẩm đã tồn tại!");
-                    } else {
-                        toastr.error(`Lỗi: ${msg}`);
+                        title = "Trùng lặp dữ liệu";
+                        msg = "Mã hoặc Tên sản phẩm đã tồn tại!";
                     }
+                    Swal.fire(title, msg, 'error');
                 },
                 complete: function () {
-                    $('#addSanPhamForm button[type="submit"]').prop('disabled', false).text('Lưu lại');
+                    $('#addSanPhamModal').find('button').prop('disabled', false);
+                    Swal.close();
                 }
             });
-        });
+        }
 
         // --- EDIT (LOAD DATA & SHOW IMAGE) ---
         $(document).on('click', '.btn-edit', function () {
@@ -572,10 +602,8 @@
                 $('#editMoTa').val(sp.moTa);
                 $('#editTrangThaiSelect').val(sp.trangThai);
 
-                // Reset input file
                 $('#editImageUpload').val('');
 
-                // Hiển thị ảnh hiện tại
                 let imgUrl = 'https://via.placeholder.com/60?text=NoImg';
                 if (sp.tenHinhAnhChinh) imgUrl = `/api/hinh-anh/download/${sp.tenHinhAnhChinh}`;
                 $('#editImagePreview').attr('src', imgUrl);
@@ -584,28 +612,46 @@
             }).fail(() => toastr.error("Không tìm thấy thông tin sản phẩm."));
         });
 
-        // --- UPDATE SẢN PHẨM ---
+        // --- UPDATE SẢN PHẨM (Sử dụng SweetAlert2 cho xác nhận) ---
         $('#editSanPhamForm').submit(function (e) {
             e.preventDefault();
             const id = $('#editSanPhamId').val();
-            const formData = new FormData();
 
-            // Validation cho Giá tiền (Giá tiền phải > 0)
+            // Validation cho Giá tiền
             const giaTienVal = parseFloat($('#editGiaTien').val());
             if (isNaN(giaTienVal) || giaTienVal <= 0) {
                 toastr.warning("Giá tiền phải lớn hơn 0");
                 return;
             }
 
+            // Xác nhận trước khi gửi (SweetAlert2)
+            Swal.fire({
+                title: 'Xác nhận Cập nhật?',
+                text: "Bạn có chắc muốn lưu các thay đổi cho sản phẩm này?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ffc107',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Đồng ý, Cập nhật!',
+                cancelButtonText: 'Hủy'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    executeUpdateSanPham(id);
+                }
+            });
+        });
+
+        function executeUpdateSanPham(id) {
+            const formData = new FormData();
+
             const data = {
                 maSanPham: $('#editMaSanPham').val(),
                 tenSanPham: $('#editTenSanPham').val(),
-                giaTien: giaTienVal,
+                giaTien: parseFloat($('#editGiaTien').val()),
                 moTa: $('#editMoTa').val(),
                 trangThai: parseInt($('#editTrangThaiSelect').val())
             };
 
-            // Gửi JSON dưới dạng Blob để Backend nhận là @RequestPart("sanPhamData")
             formData.append('sanPhamData', new Blob([JSON.stringify(data)], {type: 'application/json'}));
 
             const file = $('#editImageUpload')[0].files[0];
@@ -618,45 +664,81 @@
                 contentType: false,
                 processData: false,
                 beforeSend: function () {
-                    $('#editSanPhamForm button[type="submit"]').prop('disabled', true).text('Đang xử lý...');
+                    $('#editSanPhamModal').find('button').prop('disabled', true);
+                    Swal.fire({
+                        title: 'Đang xử lý...',
+                        text: 'Vui lòng chờ trong giây lát.',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading()
+                        }
+                    });
                 },
                 success: () => {
-                    toastr.success("Cập nhật thành công");
+                    Swal.fire('Thành công!', 'Sản phẩm đã được cập nhật.', 'success');
                     $('#editSanPhamModal').modal('hide');
                     loadSanPham();
                 },
                 error: (xhr) => {
                     let msg = xhr.responseJSON?.message || xhr.responseText || "Lỗi cập nhật. Kiểm tra lại Backend.";
-                    toastr.error(`Lỗi: ${msg}`);
+                    Swal.fire('Lỗi Cập Nhật', msg, 'error');
                 },
                 complete: function () {
-                    $('#editSanPhamForm button[type="submit"]').prop('disabled', false).text('Cập nhật');
+                    $('#editSanPhamModal').find('button').prop('disabled', false);
+                    Swal.close();
                 }
             });
-        });
+        }
 
-        // --- ĐỔI TRẠNG THÁI ---
+        // --- ĐỔI TRẠNG THÁI (Sử dụng SweetAlert2 cho xác nhận) ---
         $(document).on('click', '.btn-toggle-status', function () {
             const id = $(this).data('id');
             const newStatus = $(this).data('status'); // 0 hoặc 1
             const actionText = newStatus === 1 ? "Kích hoạt lại" : "Ngừng kinh doanh";
+            const icon = newStatus === 1 ? 'info' : 'warning';
+            const confirmBtnColor = newStatus === 1 ? '#28a745' : '#dc3545';
+            const actionMessage = newStatus === 1
+                ? 'Bạn có chắc muốn KÍCH HOẠT lại sản phẩm này? Sản phẩm sẽ hiển thị trên trang bán hàng.'
+                : 'Bạn có chắc muốn NGỪNG KINH DOANH sản phẩm này? Sản phẩm sẽ không còn hiển thị.';
 
-            if (confirm(`Bạn có chắc muốn ${actionText} sản phẩm này?`)) {
-                // Sử dụng API cập nhật trạng thái riêng biệt (Nếu có)
-                $.ajax({
-                    url: `/api/san-pham/${id}/trang-thai?trangThai=${newStatus}`,
-                    type: 'PUT',
-                    success: () => {
-                        toastr.success(`Đã ${actionText} thành công!`);
-                        loadSanPham();
-                    },
-                    error: (err) => {
-                        console.error(err);
-                        toastr.error("Lỗi khi cập nhật trạng thái. Vui lòng kiểm tra lại API Backend.");
-                    }
-                });
-            }
+            // Xác nhận trước khi đổi trạng thái (SweetAlert2)
+            Swal.fire({
+                title: `${actionText} Sản phẩm?`,
+                text: actionMessage,
+                icon: icon,
+                showCancelButton: true,
+                confirmButtonColor: confirmBtnColor,
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Đồng ý',
+                cancelButtonText: 'Hủy'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    executeStatusUpdate(id, newStatus, actionText);
+                }
+            });
         });
+
+        function executeStatusUpdate(id, newStatus, actionText) {
+            Swal.fire({
+                title: 'Đang xử lý...',
+                text: 'Vui lòng chờ trong giây lát.',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading()
+                }
+            });
+            $.ajax({
+                url: `/api/san-pham/${id}/trang-thai?trangThai=${newStatus}`,
+                type: 'PUT',
+                success: () => {
+                    Swal.fire('Thành công!', `Đã ${actionText} sản phẩm thành công!`, 'success');
+                    loadSanPham();
+                },
+                error: (xhr) => {
+                    Swal.fire('Lỗi Cập Nhật', "Lỗi khi cập nhật trạng thái. Vui lòng kiểm tra lại API Backend.", 'error');
+                }
+            });
+        }
 
         // --- MANAGE IMAGES (ALBUM) ---
         function loadProductImagesForNewModal(id, name) {
@@ -688,13 +770,12 @@
         $('#btnUploadImagesNew').click(function () {
             const files = $('#newImageUploadNew')[0].files;
             if (!files.length) return toastr.warning("Chọn ảnh để tải lên");
-            const fd = new FormData();
 
-            // Append từng file vào trường 'file' (Nếu muốn upload nhiều file cùng lúc, Backend cần xử lý List<MultipartFile>)
+            // Xử lý upload ảnh (có thể thêm SweetAlert2 cho quá trình upload nếu cần)
+            const fd = new FormData();
             for (let f of files) {
                 fd.append('file', f);
             }
-            // Thêm idSanPham
             fd.append('idSanPham', currentEditingSanPhamId);
 
             $.ajax({
@@ -703,33 +784,67 @@
                 data: fd,
                 contentType: false,
                 processData: false,
+                beforeSend: function () {
+                    $('#btnUploadImagesNew').prop('disabled', true).text('Tải lên...');
+                },
                 success: () => {
                     toastr.success("Tải ảnh thành công");
                     $('#newImageUploadNew').val('');
                     loadProductImagesForNewModal(currentEditingSanPhamId, $('#currentProductName').text());
-                    loadSanPham(); // Cập nhật lại table để hiển thị ảnh chính mới nếu có
+                    loadSanPham();
                 },
                 error: (xhr) => {
                     let msg = xhr.responseJSON?.message || xhr.responseText || "Lỗi tải ảnh. Kiểm tra kích thước file.";
                     toastr.error(`Lỗi tải ảnh: ${msg}`);
+                },
+                complete: function() {
+                    $('#btnUploadImagesNew').prop('disabled', false).text('Tải lên');
                 }
             });
         });
 
+        // --- XÓA ẢNH (Sử dụng SweetAlert2 cho xác nhận) ---
         $(document).on('click', '.delete-image-btn-new', function () {
-            if (!confirm("Xóa ảnh này?")) return;
             const imageId = $(this).data('id');
+
+            Swal.fire({
+                title: 'Xóa Ảnh?',
+                text: "Bạn có chắc muốn XÓA ảnh này khỏi album? Thao tác này không thể hoàn tác!",
+                icon: 'error',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Đồng ý, Xóa!',
+                cancelButtonText: 'Hủy'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    executeDeleteImage(imageId);
+                }
+            });
+        });
+
+        function executeDeleteImage(imageId) {
+            Swal.fire({
+                title: 'Đang xóa...',
+                text: 'Vui lòng chờ trong giây lát.',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading()
+                }
+            });
             $.ajax({
                 url: `/api/hinh-anh/${imageId}`,
                 type: 'DELETE',
                 success: () => {
-                    toastr.success("Đã xóa ảnh");
+                    Swal.fire('Đã Xóa!', "Ảnh đã được xóa thành công.", 'success');
                     loadProductImagesForNewModal(currentEditingSanPhamId, $('#currentProductName').text());
-                    loadSanPham(); // Cập nhật lại table để đảm bảo ảnh chính mới được hiển thị nếu ảnh bị xóa là ảnh chính cũ
+                    loadSanPham();
                 },
-                error: () => toastr.error("Lỗi xóa ảnh")
+                error: () => {
+                    Swal.fire('Lỗi', "Lỗi xóa ảnh. Vui lòng thử lại.", 'error');
+                }
             });
-        });
+        }
 
         loadSanPham();
     });

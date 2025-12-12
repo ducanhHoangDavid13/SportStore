@@ -186,6 +186,16 @@
         .nav-pills .nav-link { color: #6b7280; border-radius: 8px; padding: 8px 16px; white-space: nowrap; }
         .nav-pills .nav-link.active { background-color: #0d6efd; color: white; }
 
+        /* Pagination fix */
+        .pagination .page-item.active .page-link {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+            color: white;
+        }
+        .pagination .page-link {
+            color: #495057;
+        }
+
     </style>
 </head>
 
@@ -526,7 +536,7 @@
         tbody.innerHTML = html;
     }
 
-    // --- 3. CÁC HÀM HỖ TRỢ GIAO DIỆN (Giữ nguyên) ---
+    // --- 3. CÁC HÀM HỖ TRỢ GIAO DIỆN (ĐÃ BỔ SUNG LOGIC PHÂN TRANG) ---
     function getStatusBadge(status) {
         const map = {
             0: { text: 'Chờ Xác Nhận', cls: 'bg-status-0', icon: 'fa-clock' },
@@ -567,16 +577,41 @@
         return btns;
     }
 
-    // --- CẬP NHẬT PHẦN PHÂN TRANG (Giữ nguyên) ---
+    // --- CẬP NHẬT PHẦN PHÂN TRANG (ĐÃ HOÀN THIỆN) ---
     function renderPagination(totalPages) {
         const pagEl = document.getElementById("pagination");
         pagEl.innerHTML = "";
-        // ... (logic phân trang) ...
+
         if (totalPages <= 1) return;
+
         let current = state.page;
         let html = '';
-        // Thêm logic render pagination nếu cần
-        // ... (Ví dụ: for loop để tạo nút trang)
+        const maxPagesToShow = 5; // Số lượng nút trang tối đa hiển thị (ví dụ: 5 nút)
+
+        // Nút Previous
+        html += `<li class="page-item ${current === 0 ? 'disabled' : ''}">
+                    <a class="page-link" href="#" onclick="changePage(${current - 1})">Trước</a>
+                 </li>`;
+
+        // Logic hiển thị các nút trang
+        let startPage = Math.max(0, current - Math.floor(maxPagesToShow / 2));
+        let endPage = Math.min(totalPages - 1, startPage + maxPagesToShow - 1);
+
+        if (endPage - startPage + 1 < maxPagesToShow) {
+            startPage = Math.max(0, endPage - maxPagesToShow + 1);
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+            html += `<li class="page-item ${i === current ? 'active' : ''}">
+                        <a class="page-link" href="#" onclick="changePage(${i})">${i + 1}</a>
+                     </li>`;
+        }
+
+        // Nút Next
+        html += `<li class="page-item ${current === totalPages - 1 ? 'disabled' : ''}">
+                    <a class="page-link" href="#" onclick="changePage(${current + 1})">Sau</a>
+                 </li>`;
+
         pagEl.innerHTML = html;
     }
 

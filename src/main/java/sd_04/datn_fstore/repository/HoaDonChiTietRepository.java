@@ -4,6 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import sd_04.datn_fstore.dto.TopProductDTO;
+import sd_04.datn_fstore.model.HoaDon;
 import sd_04.datn_fstore.model.HoaDonChiTiet;
 
 import java.util.List;
@@ -28,4 +29,6 @@ public interface HoaDonChiTietRepository extends JpaRepository<HoaDonChiTiet, In
             " GROUP BY ct.sanPhamChiTiet.sanPham.id, ct.sanPhamChiTiet.sanPham.tenSanPham " +
             " ORDER BY SUM(ct.soLuong) DESC LIMIT 5")
     List<TopProductDTO> findTop5BestSellers();
+
+    List<HoaDonChiTiet> findByHoaDon(HoaDon savedHoaDon);
 }

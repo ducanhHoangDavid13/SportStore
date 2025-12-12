@@ -19,4 +19,5 @@ public interface CheckoutService {
 
     @Transactional(rollbackFor = Exception.class)
     void decrementVoucher(PhieuGiamGia pgg);
+    void cancelOrder(String maHoaDon);
 }

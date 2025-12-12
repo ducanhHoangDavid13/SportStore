@@ -232,6 +232,11 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 <script th:src="@{/js/main.js}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script th:src="@{/js/main.js}"></script>
 <script>
     // --- CONFIG ---
     toastr.options = { "closeButton": true, "progressBar": true, "positionClass": "toast-bottom-right", "timeOut": "3000" };
@@ -275,6 +280,9 @@
                 $('#selectedProductText').html('<span class="text-warning">Đang tìm kiếm...</span>');
             }
         });
+
+        // Gắn sự kiện cho nút "Lưu thông tin"
+        $('.modal-footer .btn-primary').on('click', saveSPCT);
     });
 
     function clearSearchProduct() {
@@ -319,6 +327,7 @@
                 ? '<span class="badge-status badge-active"><i class="fas fa-check-circle me-1"></i>Đang bán</span>'
                 : '<span class="badge-status badge-inactive"><i class="fas fa-ban me-1"></i>Ngừng bán</span>';
 
+            // Đã đổi sang dùng onclick với hàm toggleStatus
             const toggleBtn = item.trangThai === 1
                 ? `<button class="btn btn-action btn-light text-danger border" onclick="toggleStatus(${item.id}, 0)" title="Ngừng bán"><i class="fas fa-ban"></i></button>`
                 : `<button class="btn btn-action btn-light text-success border" onclick="toggleStatus(${item.id}, 1)" title="Kích hoạt lại"><i class="fas fa-sync-alt"></i></button>`;
@@ -365,7 +374,7 @@
 
         $('#inputSearchProduct').prop('disabled', false);
         $('.btn-outline-secondary').show();
-        $('#modalTitle').html('<i class="fas fa-cube me-2"></i>THÊM MỚI BIẾN THỂ');
+        $('#modalTitle').html('<i class="fas fa-box-open me-2"></i>THÊM MỚI BIẾN THỂ');
         spctModal.show();
     }
 
@@ -399,12 +408,13 @@
             $('#modalTitle').html('<i class="fas fa-edit me-2"></i>CẬP NHẬT BIẾN THỂ');
             spctModal.show();
         } catch (e) {
-            toastr.error('Lỗi tải dữ liệu chi tiết');
+            Swal.fire('Lỗi', 'Lỗi tải dữ liệu chi tiết', 'error');
         }
     }
 
     async function saveSPCT() {
         let currentMa = $('#modalMaSPCT').val();
+        const isAdding = !$('#spctId').val();
         if(currentMa === 'Tự động tạo khi lưu') currentMa = null;
 
         const payload = {
@@ -417,18 +427,43 @@
             chatLieu: {id: $('#modalChatLieu').val()},
             xuatXu: {id: $('#modalXuatXu').val()},
             phanLoai: {id: $('#modalPhanLoai').val()},
+            // Lấy giá từ trường ẩn/readonly
             giaTien: parseFloat($('#modalGiaTien').val()),
             soLuong: parseInt($('#modalSoLuong').val()),
-            trangThai: 1
+            trangThai: 1 // Mặc định khi thêm/sửa là đang bán
         };
 
-        if (!payload.sanPham.id) return toastr.warning("Vui lòng chọn sản phẩm gốc!");
-        if (!payload.mauSac.id || !payload.kichThuoc.id) return toastr.warning("Vui lòng chọn Màu sắc và Kích thước!");
-        if (isNaN(payload.soLuong) || payload.soLuong < 0) return toastr.warning("Số lượng không hợp lệ!");
+        if (!payload.sanPham.id) return Swal.fire('Cảnh báo', "Vui lòng chọn sản phẩm gốc!", 'warning');
+        if (!payload.mauSac.id || !payload.kichThuoc.id) return Swal.fire('Cảnh báo', "Vui lòng chọn Màu sắc và Kích thước!", 'warning');
+        if (isNaN(payload.soLuong) || payload.soLuong < 0) return Swal.fire('Cảnh báo', "Số lượng không hợp lệ!", 'warning');
+        if (isNaN(payload.giaTien) || payload.giaTien <= 0) return Swal.fire('Cảnh báo', "Giá bán không hợp lệ!", 'warning');
+
+        // Xác nhận trước khi gửi (SweetAlert2)
+        const actionText = isAdding ? 'Thêm mới' : 'Cập nhật';
+        const result = await Swal.fire({
+            title: `Xác nhận ${actionText}?`,
+            text: `Bạn có chắc muốn ${actionText.toLowerCase()} biến thể này?`,
+            icon: isAdding ? 'question' : 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#0d6efd',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: `Đồng ý, ${actionText}!`
+        });
+
+        if (!result.isConfirmed) return;
 
         try {
             const method = payload.id ? 'PUT' : 'POST';
             const url = payload.id ? `${API_URL}/${payload.id}` : API_URL;
+
+            Swal.fire({
+                title: 'Đang xử lý...',
+                text: 'Vui lòng chờ trong giây lát.',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading()
+                }
+            });
 
             const res = await fetch(url, {
                 method: method,
@@ -437,26 +472,55 @@
             });
 
             if (res.ok) {
-                toastr.success(payload.id ? 'Cập nhật thành công' : 'Thêm mới thành công');
+                Swal.fire('Thành công!', `${actionText} biến thể thành công!`, 'success');
                 spctModal.hide();
                 loadData();
             } else {
                 const err = await res.text();
-                toastr.error("Lỗi: " + err);
+                // Hiển thị lỗi từ backend
+                Swal.fire('Lỗi', `Lỗi ${actionText.toLowerCase()}: ${err}`, 'error');
             }
         } catch (e) {
-            toastr.error('Lỗi kết nối server');
+            Swal.fire('Lỗi', 'Lỗi kết nối server', 'error');
         }
     }
 
     async function toggleStatus(id, newStatus) {
-        if (!confirm("Bạn có chắc chắn muốn thay đổi trạng thái?")) return;
+        const actionText = newStatus === 1 ? "Kích hoạt lại" : "Ngừng bán";
+        const icon = newStatus === 1 ? 'info' : 'warning';
+        const confirmBtnColor = newStatus === 1 ? '#28a745' : '#dc3545';
+        const actionMessage = newStatus === 1
+            ? 'Bạn có chắc muốn KÍCH HOẠT lại biến thể này?'
+            : 'Bạn có chắc muốn NGỪNG BÁN biến thể này?';
+
+        const result = await Swal.fire({
+            title: `${actionText} Biến thể?`,
+            text: actionMessage,
+            icon: icon,
+            showCancelButton: true,
+            confirmButtonColor: confirmBtnColor,
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Đồng ý',
+            cancelButtonText: 'Hủy'
+        });
+
+        if (!result.isConfirmed) return;
+
         try {
+            Swal.fire({
+                title: 'Đang xử lý...',
+                text: 'Vui lòng chờ trong giây lát.',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading()
+                }
+            });
+
             await fetch(`${API_URL}/${id}/trang-thai?trangThai=${newStatus}`, {method: 'PUT'});
-            toastr.success("Cập nhật trạng thái thành công");
+            Swal.fire('Thành công!', `Đã ${actionText} biến thể thành công!`, 'success');
             loadData();
         } catch (e) {
-            toastr.error("Lỗi hệ thống");
+            Swal.fire('Lỗi', "Lỗi hệ thống khi cập nhật trạng thái", 'error');
         }
     }
 

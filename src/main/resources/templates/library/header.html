@@ -1,57 +1,52 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <link rel="stylesheet" th:href="@{/css/header.css}">
+
 <link rel="stylesheet" th:href="@{/css/styles.css}">
 <body>
 
-<header class="main-header" th:fragment="header">
-    <div class="header-container">
 
-        <!-- LEFT -->
+<header class="main-header" th:fragment="header">
+    <!-- Toàn bộ CSS đã được làm lại và tích hợp vào đây -->
+
+    <div class="header-container">
+        <!-- HEADER LEFT: LOGO & MENU TOGGLE -->
         <div class="header-left">
             <button class="menu-toggle" aria-label="Toggle navigation">
                 <i class="fas fa-bars"></i>
             </button>
 
-            <a th:href="@{/home}" class="header-logo">
+            <a th:href="@{/home}" class="header-logo" title="Trang chủ SportGear">
                 <img th:src="@{/image/logo.png}" alt="SportGear Logo" style="max-height: 50px;">
             </a>
         </div>
 
-        <!-- CENTER: SEARCH -->
+        <!-- HEADER CENTER: SEARCH BAR -->
         <div class="header-center">
             <form th:action="@{/search}" method="get" class="search-form">
                 <input type="text" name="keyword" class="search-input" placeholder="Bạn tìm gì hôm nay?">
-                <button type="submit" class="search-button">
+                <button type="submit" class="search-button" aria-label="Search">
                     <i class="fas fa-search"></i>
                 </button>
             </form>
         </div>
 
-        <!-- RIGHT -->
+        <!-- HEADER RIGHT: NAV & ACTIONS -->
         <div class="header-right">
-
-            <!-- NAV -->
             <nav class="main-nav">
                 <ul>
-                    <li><a th:href="@{/home}" th:classappend="${currentPage == 'home'} ? 'active'">TRANG CHỦ</a></li>
-                    <li><a th:href="@{/san-pham}" th:classappend="${currentPage == 'san-pham'} ? 'active'">CỬA HÀNG</a></li>
-                    <li><a th:href="@{/blog}" th:classappend="${currentPage == 'blog'} ? 'active'">BLOG</a></li>
+                    <li><a th:href="@{/home}" th:classappend="${currentPage == 'home' ? 'active' : ''}">TRANG CHỦ</a></li>
+                    <li><a th:href="@{/san-pham}" th:classappend="${currentPage == 'san-pham' ? 'active' : ''}">CỬA HÀNG</a></li>
+                    <li><a th:href="@{/blog}" th:classappend="${currentPage == 'blog' ? 'active' : ''}">BLOG</a></li>
                 </ul>
             </nav>
 
-            <!-- ACTIONS -->
             <div class="header-actions">
-
-                <!-- Cart -->
-                <a href="/cart" class="action-btn" title="Giỏ hàng">
+                <!-- Cart Button -->
+                <a th:href="@{/cart}" class="action-btn" title="Giỏ hàng">
                     <i class="fas fa-shopping-bag"></i>
-                    <span id="cartCount" class="cart-badge">0</span>
+                    <span class="cart-badge" ></span> <!-- TODO: Thay bằng số lượng thực tế -->
                 </a>
-
-                <!-- ====================== -->
-                <!-- TÀI KHOẢN -->
-                <!-- ====================== -->
 
                 <!-- Khi CHƯA đăng nhập -->
                 <div sec:authorize="isAnonymous()">
@@ -61,9 +56,8 @@
                 </div>
 
                 <!-- Khi ĐÃ đăng nhập -->
-                <div sec:authorize="isAuthenticated()" class="dropdown">
-                    <a href="#" class="btn dropdown-toggle p-0 d-flex align-items-center"
-                       data-bs-toggle="dropdown">
+                <div class="dropdown" sec:authorize="isAuthenticated()">
+                    <a href="#" class="btn dropdown-toggle p-0 d-flex align-items-center" data-bs-toggle="dropdown">
                         <span class="ms-2 d-none d-lg-block">Tài khoản</span>
                     </a>
 
@@ -87,39 +81,9 @@
                         </a></li>
                     </ul>
                 </div>
-
             </div>
         </div>
     </div>
 </header>
 </body>
-
-<script>
-    async function updateCartCount() {
-        try {
-            const el = document.getElementById("cartCount");
-            if (!el) return;
-
-            const res = await fetch("/api/cart");
-
-            if (!res.ok) {
-                el.innerText = "?";
-                return;
-            }
-
-            const cart = await res.json();
-            let total = 0;
-
-            cart.forEach(item => total += Number(item.soLuong) || 0);
-
-            el.innerText = total;
-        } catch (e) {
-            console.error(e);
-            document.getElementById("cartCount").innerText = "!";
-        }
-    }
-
-    document.addEventListener("DOMContentLoaded", updateCartCount);
-</script>
-
 </html>
