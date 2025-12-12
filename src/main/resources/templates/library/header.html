@@ -1,59 +1,69 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <link rel="stylesheet" th:href="@{/css/header.css}">
-
 <link rel="stylesheet" th:href="@{/css/styles.css}">
 <body>
 
-
 <header class="main-header" th:fragment="header">
-    <!-- Toàn bộ CSS đã được làm lại và tích hợp vào đây -->
-
     <div class="header-container">
-        <!-- HEADER LEFT: LOGO & MENU TOGGLE -->
+
+        <!-- LEFT -->
         <div class="header-left">
             <button class="menu-toggle" aria-label="Toggle navigation">
                 <i class="fas fa-bars"></i>
             </button>
 
-            <a th:href="@{/home}" class="header-logo" title="Trang chủ SportGear">
+            <a th:href="@{/home}" class="header-logo">
                 <img th:src="@{/image/logo.png}" alt="SportGear Logo" style="max-height: 50px;">
             </a>
         </div>
 
-        <!-- HEADER CENTER: SEARCH BAR -->
+        <!-- CENTER: SEARCH -->
         <div class="header-center">
             <form th:action="@{/search}" method="get" class="search-form">
                 <input type="text" name="keyword" class="search-input" placeholder="Bạn tìm gì hôm nay?">
-                <button type="submit" class="search-button" aria-label="Search">
+                <button type="submit" class="search-button">
                     <i class="fas fa-search"></i>
                 </button>
             </form>
         </div>
 
-        <!-- HEADER RIGHT: NAV & ACTIONS -->
+        <!-- RIGHT -->
         <div class="header-right">
+
+            <!-- NAV -->
             <nav class="main-nav">
                 <ul>
-                    <li><a th:href="@{/home}" th:classappend="${currentPage == 'home' ? 'active' : ''}">TRANG CHỦ</a></li>
-                    <li><a th:href="@{/san-pham}" th:classappend="${currentPage == 'san-pham' ? 'active' : ''}">CỬA HÀNG</a></li>
-                    <li><a th:href="@{/blog}" th:classappend="${currentPage == 'blog' ? 'active' : ''}">BLOG</a></li>
+                    <li><a th:href="@{/home}" th:classappend="${currentPage == 'home'} ? 'active'">TRANG CHỦ</a></li>
+                    <li><a th:href="@{/san-pham}" th:classappend="${currentPage == 'san-pham'} ? 'active'">CỬA HÀNG</a></li>
+                    <li><a th:href="@{/blog}" th:classappend="${currentPage == 'blog'} ? 'active'">BLOG</a></li>
                 </ul>
             </nav>
 
+            <!-- ACTIONS -->
             <div class="header-actions">
-                <!-- Cart Button -->
+
+                <!-- Cart -->
                 <a href="/cart" class="action-btn" title="Giỏ hàng">
                     <i class="fas fa-shopping-bag"></i>
                     <span id="cartCount" class="cart-badge">0</span>
                 </a>
 
+                <!-- ====================== -->
+                <!-- TÀI KHOẢN -->
+                <!-- ====================== -->
 
+                <!-- Khi CHƯA đăng nhập -->
+                <div sec:authorize="isAnonymous()">
+                    <button type="button" class="btn btn-primary" onclick="window.location.href='/login'">
+                        Đăng nhập
+                    </button>
+                </div>
 
-
-                <!-- Account Dropdown -->
-                <div class="dropdown">
-                    <a href="#" class="btn dropdown-toggle p-0 d-flex align-items-center" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <!-- Khi ĐÃ đăng nhập -->
+                <div sec:authorize="isAuthenticated()" class="dropdown">
+                    <a href="#" class="btn dropdown-toggle p-0 d-flex align-items-center"
+                       data-bs-toggle="dropdown">
                         <span class="ms-2 d-none d-lg-block">Tài khoản</span>
                     </a>
 
@@ -61,62 +71,55 @@
                         <li><a class="dropdown-item" th:href="@{/profile}">
                             <i class="fas fa-user-circle"></i> Thông tin cá nhân
                         </a></li>
+
                         <li><a class="dropdown-item" th:href="@{/orders-user}">
                             <i class="fas fa-box-open"></i> Đơn hàng của tôi
                         </a></li>
+
                         <li><a class="dropdown-item" th:href="@{/address}">
                             <i class="fas fa-map-marker-alt"></i> Sổ địa chỉ
                         </a></li>
+
                         <li><hr class="dropdown-divider"></li>
+
                         <li><a class="dropdown-item" th:href="@{/logout}">
                             <i class="fas fa-sign-out-alt"></i> Đăng xuất
                         </a></li>
                     </ul>
                 </div>
+
             </div>
         </div>
     </div>
 </header>
 </body>
+
 <script>
     async function updateCartCount() {
         try {
-            const cartCountElement = document.getElementById("cartCount");
-            if (!cartCountElement) {
-                console.warn("Element #cartCount not found. Cart count feature disabled.");
-                return;
-            }
+            const el = document.getElementById("cartCount");
+            if (!el) return;
 
-            // Gửi request tới API JSON
             const res = await fetch("/api/cart");
 
             if (!res.ok) {
-                console.error(`Lỗi tải giỏ hàng từ API: Status ${res.status}`);
-                cartCountElement.innerText = "?"; // Dùng ký tự khác 0 để báo lỗi
+                el.innerText = "?";
                 return;
             }
 
             const cart = await res.json();
             let total = 0;
 
-            // TÍNH TỔNG SỐ LƯỢNG (Logic đơn giản này đã đúng)
-            cart.forEach(item => {
-                total += Number(item.soLuong) || 0;
-            });
+            cart.forEach(item => total += Number(item.soLuong) || 0);
 
-            // Cập nhật HTML
-            cartCountElement.innerText = total;
-            console.log("DEBUG: Giỏ hàng được cập nhật thành:", total);
-
-        } catch (err) {
-            console.error("Lỗi: Mạng hoặc JSON parsing", err);
+            el.innerText = total;
+        } catch (e) {
+            console.error(e);
             document.getElementById("cartCount").innerText = "!";
         }
     }
 
-    // Chạy ngay khi DOM đã tải (để xử lý timing)
-    document.addEventListener('DOMContentLoaded', updateCartCount);
+    document.addEventListener("DOMContentLoaded", updateCartCount);
 </script>
-
 
 </html>

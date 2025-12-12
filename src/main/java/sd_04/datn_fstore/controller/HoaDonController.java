@@ -12,7 +12,7 @@ import sd_04.datn_fstore.service.HoaDonService;
 
 @Controller
 @RequestMapping("/admin/hoa-don")
-@PreAuthorize("hasRole('ROLE_ADMIN')")
+//@PreAuthorize("hasRole('ROLE_ADMIN')")
 @RequiredArgsConstructor
 public class HoaDonController {
 

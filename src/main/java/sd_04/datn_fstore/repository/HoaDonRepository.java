@@ -18,14 +18,19 @@ import java.util.Optional;
 public interface HoaDonRepository extends JpaRepository<HoaDon, Integer> {
 
     // =========================================================================
-    // 1. CÁC HÀM SEARCH & FILTER (ADMIN)
+    // 1. HÀM TÌM KIẾM (SEARCH) - ĐÃ CẬP NHẬT QUERY
     // =========================================================================
-
-    @Query(value = "SELECT hd FROM HoaDon hd WHERE " +
+    // Giữ nguyên tên hàm: searchByTrangThaiAndNgayTao
+    // Thay đổi: Thêm LEFT JOIN FETCH để lấy Khách hàng, Voucher, Địa chỉ
+    @Query(value = "SELECT hd FROM HoaDon hd " +
+            "LEFT JOIN FETCH hd.khachHang " +        // [MỚI] Lấy thông tin khách
+            "LEFT JOIN FETCH hd.phieuGiamGia " +     // [MỚI] Lấy thông tin voucher
+            "LEFT JOIN FETCH hd.diaChiGiaoHang " +   // [MỚI] Lấy địa chỉ giao hàng
+            "WHERE " +
             "(:trangThaiList IS NULL OR hd.trangThai IN :trangThaiList) AND " +
             "(:ngayBatDau IS NULL OR hd.ngayTao >= :ngayBatDau) AND " +
             "(:ngayKetThuc IS NULL OR hd.ngayTao <= :ngayKetThuc) AND " +
-            "(:keyword IS NULL OR hd.maHoaDon LIKE %:keyword%) AND " +
+            "(:keyword IS NULL OR hd.maHoaDon LIKE %:keyword% OR hd.khachHang.tenKhachHang LIKE %:keyword%) AND " +
             "(:minPrice IS NULL OR hd.tongTien >= :minPrice) AND " +
             "(:maxPrice IS NULL OR hd.tongTien <= :maxPrice)",
 
@@ -33,7 +38,7 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Integer> {
                     "(:trangThaiList IS NULL OR hd.trangThai IN :trangThaiList) AND " +
                     "(:ngayBatDau IS NULL OR hd.ngayTao >= :ngayBatDau) AND " +
                     "(:ngayKetThuc IS NULL OR hd.ngayTao <= :ngayKetThuc) AND " +
-                    "(:keyword IS NULL OR hd.maHoaDon LIKE %:keyword%) AND " +
+                    "(:keyword IS NULL OR hd.maHoaDon LIKE %:keyword% OR hd.khachHang.tenKhachHang LIKE %:keyword%) AND " +
                     "(:minPrice IS NULL OR hd.tongTien >= :minPrice) AND " +
                     "(:maxPrice IS NULL OR hd.tongTien <= :maxPrice)")
     Page<HoaDon> searchByTrangThaiAndNgayTao(
@@ -47,8 +52,24 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Integer> {
     );
 
     // =========================================================================
-    // 2. CÁC HÀM CHO API (CLIENT / MOBILE)
+    // 2. HÀM CHI TIẾT (DETAIL) - ĐÃ CẬP NHẬT QUERY
     // =========================================================================
+    // Giữ nguyên tên hàm: findByIdWithDetails
+    // Thay đổi: Thêm LEFT JOIN FETCH diaChiGiaoHang
+    @Query("SELECT hd FROM HoaDon hd " +
+            "LEFT JOIN FETCH hd.hoaDonChiTiets " +   // Lấy list sản phẩm con
+            "LEFT JOIN FETCH hd.khachHang " +        // Lấy khách hàng
+            "LEFT JOIN FETCH hd.nhanVien " +         // Lấy nhân viên
+            "LEFT JOIN FETCH hd.phieuGiamGia " +     // Lấy voucher
+            "LEFT JOIN FETCH hd.diaChiGiaoHang " +   // [MỚI] Lấy địa chỉ giao hàng
+            "WHERE hd.id = :id")
+    Optional<HoaDon> findByIdWithDetails(@Param("id") Integer id);
+
+    // =========================================================================
+    // 3. CÁC HÀM KHÁC (GIỮ NGUYÊN NHƯ CŨ)
+    // =========================================================================
+
+    Page<HoaDon> findByKhachHangId(Integer khachHangId, Pageable pageable);
 
     List<HoaDon> findByTrangThaiOrderByNgayTaoDesc(Integer trangThai);
 
@@ -56,91 +77,45 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Integer> {
 
     Optional<HoaDon> findByMaHoaDon(String maHoaDon);
 
-    // =========================================================================
-    // 3. CÁC HÀM CHO BÁN HÀNG TẠI QUẦY (POS)
-    // =========================================================================
-
-    /**
-     * Tải danh sách HĐ Tạm
-     */
     List<HoaDon> findByTrangThaiInOrderByNgayTaoDesc(List<Integer> trangThais);
 
-    /**
-     * Lấy HĐ Tạm cho Modal (Đơn giản)
-     */
-
-    // Hoặc xóa trực tiếp (cần @Transactional ở Service)
     void deleteByMaHoaDon(String maHoaDon);
 
-    /**
-     * Tải chi tiết một HĐ (Fetch Join để tránh lỗi Lazy)
-     */
-    @Query("SELECT hd FROM HoaDon hd " +
-            "LEFT JOIN FETCH hd.hoaDonChiTiets " +
-            "LEFT JOIN FETCH hd.khachHang " +
-            "LEFT JOIN FETCH hd.nhanVien " +
-            "LEFT JOIN FETCH hd.phieuGiamGia " +
-            "WHERE hd.id = :id")
-    Optional<HoaDon> findByIdWithDetails(@Param("id") Integer id);
+    List<HoaDon> findByNhanVienIdAndTrangThaiInOrderByNgayTaoDesc(Integer nhanVienId, List<Integer> trangThais);
 
-    // =========================================================================
-    // 4. CÁC HÀM THỐNG KÊ DASHBOARD (QUAN TRỌNG)
-    // =========================================================================
-
-    /**
-     * Đếm số đơn hàng trong khoảng thời gian (Dùng cho Card "Đơn hàng hôm nay")
-     */
     Integer countByNgayTaoBetween(LocalDateTime start, LocalDateTime end);
 
-    /**
-     * Tính tổng doanh thu (Dùng cho Card "Doanh thu" & Biểu đồ Line)
-     * - Chỉ tính đơn đã hoàn thành (trangThai = 1)
-     * - Dùng COALESCE để trả về 0 nếu không có đơn nào (tránh lỗi Null)
-     */
     @Query("SELECT COALESCE(SUM(h.tongTien), 0) FROM HoaDon h " +
-            "WHERE h.ngayTao BETWEEN :start AND :end AND h.trangThai = 1")
+            "WHERE h.ngayTao BETWEEN :start AND :end AND h.trangThai = 4")
     BigDecimal sumTotalAmountByDateRange(@Param("start") LocalDateTime start,
                                          @Param("end") LocalDateTime end);
 
-    /**
-     * Đếm số lượng đơn theo trạng thái (Dùng cho Biểu đồ Tròn)
-     */
     @Query("SELECT COUNT(h) FROM HoaDon h " +
             "WHERE h.trangThai = :status AND h.ngayTao BETWEEN :start AND :end")
     Integer countByStatusAndDateRange(@Param("status") Integer status,
                                       @Param("start") LocalDateTime start,
                                       @Param("end") LocalDateTime end);
 
-    /**
-     * Lấy danh sách 5 đơn hàng gần đây (Dùng cho Bảng Table)
-     * - Map trực tiếp vào DTO
-     * - CHECK LẠI: 'h.khachHang.tenKhachHang' hay 'h.khachHang.hoTen' trong code của bạn
-     */
     @Query("SELECT new sd_04.datn_fstore.dto.RecentOrderDTO(" +
             "h.maHoaDon, " +
-            "h.khachHang.tenKhachHang, " + // <-- Kiểm tra lại trường này trong Entity KhachHang
+            "h.khachHang.tenKhachHang, " +
             "h.ngayTao, " +
             "h.tongTien, " +
             "h.trangThai) " +
             "FROM HoaDon h ORDER BY h.ngayTao DESC")
     List<RecentOrderDTO> findRecentOrders(Pageable pageable);
 
-    // =========================================================================
-    // 5. CÁC HÀM TIỆN ÍCH KHÁC (CÓ THỂ GIỮ LẠI NẾU CẦN)
-    // =========================================================================
-
-    int countByTrangThai(Integer trangThai);
-    // Trong HoaDonRepository.java
     @Query("SELECT " +
-            "SUM(CASE WHEN h.trangThai = 0 THEN 1 ELSE 0 END), " + // Chờ xác nhận
-            "SUM(CASE WHEN h.trangThai = 1 THEN 1 ELSE 0 END), " + // Đã xác nhận
-            "SUM(CASE WHEN h.trangThai = 2 THEN 1 ELSE 0 END), " + // Chuẩn bị
-            "SUM(CASE WHEN h.trangThai = 3 THEN 1 ELSE 0 END), " + // Đang giao
-            "SUM(CASE WHEN h.trangThai = 4 THEN 1 ELSE 0 END), " + // Hoàn thành
-            "SUM(CASE WHEN h.trangThai = 5 THEN 1 ELSE 0 END), " + // Đã hủy
-            "SUM(CASE WHEN h.trangThai = 6 THEN 1 ELSE 0 END) " +  // Chờ thanh toán
+            "SUM(CASE WHEN h.trangThai = 0 THEN 1 ELSE 0 END), " +
+            "SUM(CASE WHEN h.trangThai = 1 THEN 1 ELSE 0 END), " +
+            "SUM(CASE WHEN h.trangThai = 2 THEN 1 ELSE 0 END), " +
+            "SUM(CASE WHEN h.trangThai = 3 THEN 1 ELSE 0 END), " +
+            "SUM(CASE WHEN h.trangThai = 4 THEN 1 ELSE 0 END), " +
+            "SUM(CASE WHEN h.trangThai = 5 THEN 1 ELSE 0 END), " +
+            "SUM(CASE WHEN h.trangThai = 6 THEN 1 ELSE 0 END) " +
             "FROM HoaDon h WHERE h.ngayTao BETWEEN :start AND :end")
     List<Object[]> countOrdersByStatusBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+
     @Query("SELECT COALESCE(SUM(CASE WHEN h.tongTienSauGiam > 0 THEN h.tongTienSauGiam ELSE h.tongTien END), 0) " +
             "FROM HoaDon h " +
             "WHERE h.ngayTao BETWEEN :start AND :end AND h.trangThai = :status")
@@ -148,10 +123,11 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Integer> {
                                              @Param("end") LocalDateTime end,
                                              @Param("status") Integer status);
 
-    // 2. Lấy 5 hóa đơn mới nhất (Trả về Entity để Service tự Map an toàn)
+    int countByTrangThai(Integer trangThai);
     List<HoaDon> findTop5ByOrderByNgayTaoDesc();
-
     List<HoaDon> findAllByMaHoaDon(String maHoaDon);
-
     Optional<HoaDon> findTopByMaHoaDonOrderByNgayTaoDesc(String maHoaDon);
+
+    Page<HoaDon> findByKhachHang_IdAndTrangThai(Integer idKhachHang, Integer trangThai, Pageable pageable);
+    Page<HoaDon> findByKhachHang_Id(Integer idKhachHang, Pageable pageable);
 }
