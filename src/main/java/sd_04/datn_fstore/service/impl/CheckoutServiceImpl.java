@@ -129,6 +129,16 @@ public class CheckoutServiceImpl implements CheckoutService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public CheckoutResponse placeOrder(CheckoutRequest req, String clientIp) {
+
+        // --- BƯỚC SỬA 1: TÌM ĐỊA CHỈ TỪ ID VÀ XÁC THỰC ---
+        if (req.getAddressId() == null) {
+            throw new RuntimeException("Thiếu ID địa chỉ giao hàng.");
+        }
+
+        DiaChi selectedDiaChi = diaChiRepo.findById(req.getAddressId())
+                .orElseThrow(() -> new RuntimeException("Địa chỉ giao hàng không tồn tại hoặc không hợp lệ. Vui lòng chọn lại."));
+
+        // --- BẮT ĐẦU TẠO HÓA ĐƠN ---
         HoaDon hoaDon = new HoaDon();
         String maHoaDon = "HD" + System.currentTimeMillis();
         hoaDon.setMaHoaDon(maHoaDon);
@@ -136,29 +146,41 @@ public class CheckoutServiceImpl implements CheckoutService {
         hoaDon.setHinhThucBanHang(0); // 0: Online
         hoaDon.setMoTa(req.getNote());
 
-        // --- BỔ SUNG: Gán Khách hàng nếu ID được truyền ---
+        // Gán Khách hàng
         if (req.getKhachHangId() != null) {
             khachHangRepository.findById(req.getKhachHangId()).ifPresent(hoaDon::setKhachHang);
         }
-        // ---------------------------------------------------
 
-        // 1. LƯU ĐỊA CHỈ GIAO HÀNG
-        DiaChi shippingInfo = new DiaChi();
-        shippingInfo.setHoTen(req.getFullName());
-        shippingInfo.setSoDienThoai(req.getPhone());
-        shippingInfo.setDiaChiCuThe(req.getAddressDetail());
-        shippingInfo.setXa(req.getWard());
+        // 🔥 BƯỚC SỬA 2: LƯU ĐỊA CHỈ GIAO HÀNG (Tạo bản sao từ Entity đã chọn)
+        // Mục đích: Đảm bảo thông tin giao hàng không bị thay đổi nếu khách hàng sửa địa chỉ sau này
+        // và đảm bảo đủ các trường Validation của Hóa Đơn.
+        DiaChi diaChiGiaoHangMoi = new DiaChi();
 
-        // Cập nhật logic lưu địa chỉ: Tách Quận/Huyện ra khỏi Tỉnh/Thành phố
-        shippingInfo.setHuyen(req.getDistrict()); // Lưu Quận/Huyện vào trường Huyen
-        shippingInfo.setThanhPho(req.getCity()); // Chỉ lưu Tỉnh/Thành phố vào trường ThanhPho
+        // LẤY DỮ LIỆU TỪ ENTITY ĐÃ CHỌN (selectedDiaChi)
+        diaChiGiaoHangMoi.setHoTen(selectedDiaChi.getHoTen());
+        diaChiGiaoHangMoi.setSoDienThoai(selectedDiaChi.getSoDienThoai());
+        diaChiGiaoHangMoi.setDiaChiCuThe(selectedDiaChi.getDiaChiCuThe());
 
-        shippingInfo.setGhiChu("Email: " + req.getEmail());
-        shippingInfo.setLoaiDiaChi("Giao hàng");
-        shippingInfo.setTrangThai(1); // Mặc định là Active
-        DiaChi savedDiaChi = diaChiRepo.save(shippingInfo);
-        hoaDon.setDiaChiGiaoHang(savedDiaChi);
+        // Gán các trường hành chính (Giả định Entity DiaChi có Xa, Huyen, ThanhPho)
+        diaChiGiaoHangMoi.setXa(selectedDiaChi.getXa());
+        diaChiGiaoHangMoi.setHuyen(selectedDiaChi.getHuyen());
+        diaChiGiaoHangMoi.setThanhPho(selectedDiaChi.getThanhPho());
 
+        // Gán các thông tin phụ
+        // Nếu CheckoutRequest có email (chưa bị xóa) thì dùng, nếu không dùng note/mặc định
+        String emailNote = (req.getEmail() != null && !req.getEmail().isEmpty())
+                ? "Email: " + req.getEmail()
+                : "N/A";
+
+        diaChiGiaoHangMoi.setGhiChu(emailNote);
+        diaChiGiaoHangMoi.setLoaiDiaChi(selectedDiaChi.getLoaiDiaChi() != null ? selectedDiaChi.getLoaiDiaChi() : "Giao hàng");
+        diaChiGiaoHangMoi.setTrangThai(1);
+
+        // LƯU BẢN SAO VÀ GÁN VÀO HÓA ĐƠN
+        DiaChi savedDiaChiGiaoHang = diaChiRepo.save(diaChiGiaoHangMoi);
+        hoaDon.setDiaChiGiaoHang(savedDiaChiGiaoHang);
+
+        // --- BẮT ĐẦU XỬ LÝ SẢN PHẨM ---
         if (req.getItems() == null || req.getItems().isEmpty()) throw new RuntimeException("Giỏ hàng trống!");
 
         BigDecimal subTotal = BigDecimal.ZERO;
@@ -171,7 +193,7 @@ public class CheckoutServiceImpl implements CheckoutService {
 
             // Sử dụng getSoLuong() của SanPhamChiTiet
             if (spct.getSoLuong() < itemDTO.getSoLuong()) {
-                throw new RuntimeException("Sản phẩm " + spct.getSanPham().getTenSanPham() + " không đủ hàng!");
+                throw new RuntimeException("Sản phẩm " + spct.getSanPham().getTenSanPham() + " không đủ hàng! Tồn kho hiện tại: " + spct.getSoLuong());
             }
 
             HoaDonChiTiet cthd = new HoaDonChiTiet();
@@ -194,10 +216,10 @@ public class CheckoutServiceImpl implements CheckoutService {
             if (pggOpt.isPresent()) {
                 PhieuGiamGia pgg = pggOpt.get();
 
-                // Dùng logic tính toán đã có
                 CalculateTotalRequest calcReq = new CalculateTotalRequest();
                 calcReq.setVoucherCode(req.getVoucherCode());
                 calcReq.setShippingFee(req.getShippingFee());
+
                 // Map items từ CheckoutRequest sang CalculateTotalRequest.CartItem
                 List<CalculateTotalRequest.CartItem> calcItems = req.getItems().stream()
                         .map(item -> {
@@ -211,7 +233,6 @@ public class CheckoutServiceImpl implements CheckoutService {
                         }).collect(java.util.stream.Collectors.toList());
                 calcReq.setItems(calcItems);
 
-                // Gọi lại hàm tính toán chính (đã được sửa logic voucher)
                 CalculateTotalResponse calcRes = calculateOrderTotal(calcReq);
 
                 if (calcRes.isVoucherValid()) {
@@ -244,24 +265,20 @@ public class CheckoutServiceImpl implements CheckoutService {
         // 5. XỬ LÝ THANH TOÁN
         if ("VNPAY".equals(req.getPaymentMethod())) {
             savedHoaDon.setTrangThai(1); // Chờ thanh toán
-            savedHoaDon.setHinhThucThanhToan(4); // Cập nhật: 4 cho VNPAY
+            savedHoaDon.setHinhThucThanhToan(4); // 4 cho VNPAY
             hoaDonRepository.save(savedHoaDon);
             try {
-                // Đảm bảo số tiền VNPay là Long và không có số thập phân
                 long amountInCents = finalTotal.multiply(new BigDecimal(100)).longValue();
-                // Sử dụng mã hóa đơn làm mã giao dịch (TxnRef)
                 redirectUrl = vnPayService.createOrder(amountInCents, "Thanh toan " + maHoaDon, maHoaDon, clientIp);
             } catch (Exception e) {
-                // Rollback giao dịch nếu tạo link VNPay thất bại
                 throw new RuntimeException("Lỗi tạo link VNPay: " + e.getMessage());
             }
-            // Trả về redirect URL của VNPay
             return new CheckoutResponse(true, "Chuyển hướng VNPay", redirectUrl);
 
         } else {
             // Thanh toán COD (Thành công ngay)
             savedHoaDon.setTrangThai(0); // Chờ xác nhận
-            savedHoaDon.setHinhThucThanhToan(1); // Cập nhật: 1 cho COD (là Tiền mặt/COD)
+            savedHoaDon.setHinhThucThanhToan(1); // 1 cho COD
             hoaDonRepository.save(savedHoaDon);
 
             // Trừ tồn kho và voucher
@@ -270,9 +287,10 @@ public class CheckoutServiceImpl implements CheckoutService {
                 decrementVoucher(voucherToUse);
             }
 
-            // Gửi thông báo đến Admin
-            // Sử dụng tên khách hàng từ HoaDon.getKhachHang() nếu có, hoặc dùng req.getFullName()
-            String khachHangName = savedHoaDon.getKhachHang() != null ? savedHoaDon.getKhachHang().getTenKhachHang() : req.getFullName();
+            // 🔥 BƯỚC SỬA 4: Lấy tên khách hàng từ DiaChi đã được lưu
+            String khachHangName = savedHoaDon.getKhachHang() != null
+                    ? savedHoaDon.getKhachHang().getTenKhachHang()
+                    : savedDiaChiGiaoHang.getHoTen(); // Lấy tên từ bản sao Địa Chỉ đã lưu
 
             thongBaoService.createNotification(
                     "Đơn hàng mới #" + maHoaDon,
