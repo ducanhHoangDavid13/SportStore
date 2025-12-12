@@ -7,7 +7,7 @@ import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.ToString; // ⬅️ Thêm import Lombok ToString
+import lombok.ToString;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -48,30 +48,30 @@ public class SanPham {
     private BigDecimal giaTien;
 
     @Column(name = "soLuong")
-    private Integer soLuong;
+    private Integer soLuong; // Số lượng tổng (hoặc không dùng nếu quản lý chi tiết)
 
     // ================= MỐI QUAN HỆ =================
 
     // 1. Hình ảnh
     @OneToMany(mappedBy = "sanPham", fetch = FetchType.LAZY)
     @JsonIgnore
-    @ToString.Exclude // ⬅️ NGẮT VÒNG LẶP cho toString()
+    @ToString.Exclude
     private List<HinhAnh> hinhAnh;
 
-    // Field phụ để xử lý hiển thị ảnh chính (không lưu DB)
     @Transient
     private String tenHinhAnhChinh;
 
     // 2. Biến thể (Sản phẩm chi tiết)
     @OneToMany(mappedBy = "sanPham", fetch = FetchType.LAZY)
     @JsonIgnore
-    @ToString.Exclude // ⬅️ NGẮT VÒNG LẶP cho toString()
+    @ToString.Exclude
     private List<SanPhamChiTiet> sanPhamChiTiets;
 
     // 3. Giỏ hàng
+    // ⭐️ mappedBy phải là "sanPham" để khớp với trường sanPham trong GioHang.java
     @OneToMany(mappedBy = "sanPham", fetch = FetchType.LAZY)
     @JsonIgnore
-    @ToString.Exclude // ⬅️ NGẮT VÒNG LẶP cho toString()
+    @ToString.Exclude
     private List<GioHang> gioHangs;
 
     // ... (Các mối quan hệ tùy chọn khác)

@@ -79,6 +79,7 @@ public class SecurityConfig {
                                 res.sendRedirect("/error/403");
                             }
                         })
+
                 );
 
         return http.build();

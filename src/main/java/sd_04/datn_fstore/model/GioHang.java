@@ -39,18 +39,29 @@ public class GioHang {
     @Column(name = "maGioHang", length = 50)
     private String maGioHang;
 
+    // --- Mối quan hệ Many-to-One ---
+
+    // ⭐️ KHẮC PHỤC LỖI HIBERNATE: Thêm trường sanPham để khớp với mappedBy="sanPham" trong SanPham.java
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "idSanPham")
+    @JoinColumn(name = "idSanPham", insertable = false, updatable = false)
     private SanPham sanPham;
 
+    // ⭐️ Thêm mối quan hệ với SanPhamChiTiet để truy cập MauSac, KichThuoc
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "idKhachHang")
-    private KhachHang khachHang;
+    @JoinColumn(name = "idSanPhamChiTiet", insertable = false, updatable = false)
+    private SanPhamChiTiet sanPhamChiTiet;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "idHoaDon")
-    private HoaDon hoaDon;
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "idSanPhamChiTiet")
-    private SanPhamChiTiet SanphamChiTiet;
+    // --- Khóa Ngoại (Foreign Key) - Giữ lại theo DDL SQL ---
+
+    @Column(name = "idSanPham")
+    private Integer idSanPham;
+
+    @Column(name = "idKhachHang")
+    private Integer idKhachHang;
+
+    @Column(name = "idHoaDon")
+    private Integer idHoaDon;
+
+    @Column(name = "idSanPhamChiTiet")
+    private Integer idSanPhamChiTiet;
 }

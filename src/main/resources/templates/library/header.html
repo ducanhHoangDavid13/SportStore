@@ -43,10 +43,13 @@
 
             <div class="header-actions">
                 <!-- Cart Button -->
-                <a th:href="@{/cart}" class="action-btn" title="Giỏ hàng">
+                <a href="/cart" class="action-btn" title="Giỏ hàng">
                     <i class="fas fa-shopping-bag"></i>
-                    <span class="cart-badge" th:text="2">2</span> <!-- TODO: Thay bằng số lượng thực tế -->
+                    <span id="cartCount" class="cart-badge">0</span>
                 </a>
+
+
+
 
                 <!-- Account Dropdown -->
                 <div class="dropdown">
@@ -75,4 +78,45 @@
     </div>
 </header>
 </body>
+<script>
+    async function updateCartCount() {
+        try {
+            const cartCountElement = document.getElementById("cartCount");
+            if (!cartCountElement) {
+                console.warn("Element #cartCount not found. Cart count feature disabled.");
+                return;
+            }
+
+            // Gửi request tới API JSON
+            const res = await fetch("/api/cart");
+
+            if (!res.ok) {
+                console.error(`Lỗi tải giỏ hàng từ API: Status ${res.status}`);
+                cartCountElement.innerText = "?"; // Dùng ký tự khác 0 để báo lỗi
+                return;
+            }
+
+            const cart = await res.json();
+            let total = 0;
+
+            // TÍNH TỔNG SỐ LƯỢNG (Logic đơn giản này đã đúng)
+            cart.forEach(item => {
+                total += Number(item.soLuong) || 0;
+            });
+
+            // Cập nhật HTML
+            cartCountElement.innerText = total;
+            console.log("DEBUG: Giỏ hàng được cập nhật thành:", total);
+
+        } catch (err) {
+            console.error("Lỗi: Mạng hoặc JSON parsing", err);
+            document.getElementById("cartCount").innerText = "!";
+        }
+    }
+
+    // Chạy ngay khi DOM đã tải (để xử lý timing)
+    document.addEventListener('DOMContentLoaded', updateCartCount);
+</script>
+
+
 </html>
