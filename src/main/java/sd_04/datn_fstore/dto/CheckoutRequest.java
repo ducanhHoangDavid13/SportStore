@@ -11,6 +11,7 @@ public class CheckoutRequest {
     private String phone;
     private String email;
     private Integer khachHangId;
+    private Integer addressId;
     // Địa chỉ
     private String city;
     private String district;
@@ -24,6 +25,7 @@ public class CheckoutRequest {
     private BigDecimal shippingFee;
 
     private List<CartItem> items;
+
 
     @Data
     public static class CartItem {
