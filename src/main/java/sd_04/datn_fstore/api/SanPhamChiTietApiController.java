@@ -26,7 +26,6 @@ public class SanPhamChiTietApiController {
 
     /**
      * GET: API tìm kiếm / lọc các Biến thể (SanPhamChiTiet)
-     * Thường dùng cho trang quản lý/admin
      */
     @GetMapping
     public ResponseEntity<Page<SanPhamChiTiet>> search(
@@ -62,6 +61,7 @@ public class SanPhamChiTietApiController {
             return new ResponseEntity<>(savedSpct, HttpStatus.CREATED);
         } catch (Exception e) {
             e.printStackTrace();
+            // Trả về message chi tiết từ Service (Lỗi tham chiếu bắt buộc)
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("Thêm mới thất bại: " + e.getMessage());
         }
@@ -103,19 +103,44 @@ public class SanPhamChiTietApiController {
 
         SanPhamChiTiet spctTrongDB = optSpct.get();
 
-        // 2. Cập nhật các trường từ dữ liệu nhận được
-        spctTrongDB.setGiaTien(dataTuJavaScript.getGiaTien());
-        spctTrongDB.setSoLuong(dataTuJavaScript.getSoLuong());
-        spctTrongDB.setMoTa(dataTuJavaScript.getMoTa());
-        spctTrongDB.setTrangThai(dataTuJavaScript.getTrangThai());
+        // 2. Cập nhật các trường từ dữ liệu nhận được (Chỉ cập nhật nếu giá trị không phải là null)
 
-        // Cập nhật các mối quan hệ (tránh thay đổi ID của SanPham/MauSac/KichThuoc/...)
-        spctTrongDB.setSanPham(dataTuJavaScript.getSanPham());
-        spctTrongDB.setMauSac(dataTuJavaScript.getMauSac());
-        spctTrongDB.setKichThuoc(dataTuJavaScript.getKichThuoc());
-        spctTrongDB.setChatLieu(dataTuJavaScript.getChatLieu());
-        spctTrongDB.setXuatXu(dataTuJavaScript.getXuatXu());
-        spctTrongDB.setTheLoai(dataTuJavaScript.getTheLoai());
+        // Cập nhật trường giá trị đơn thuần
+        if (dataTuJavaScript.getGiaTien() != null) {
+            spctTrongDB.setGiaTien(dataTuJavaScript.getGiaTien());
+        }
+        if (dataTuJavaScript.getSoLuong() != null) {
+            spctTrongDB.setSoLuong(dataTuJavaScript.getSoLuong());
+        }
+        if (dataTuJavaScript.getMoTa() != null) {
+            spctTrongDB.setMoTa(dataTuJavaScript.getMoTa());
+        }
+        if (dataTuJavaScript.getTrangThai() != null) {
+            spctTrongDB.setTrangThai(dataTuJavaScript.getTrangThai());
+        }
+
+        // Cập nhật các mối quan hệ (Chỉ gán nếu tồn tại trong payload)
+        if (dataTuJavaScript.getSanPham() != null) {
+            spctTrongDB.setSanPham(dataTuJavaScript.getSanPham());
+        }
+        if (dataTuJavaScript.getMauSac() != null) {
+            spctTrongDB.setMauSac(dataTuJavaScript.getMauSac());
+        }
+        if (dataTuJavaScript.getKichThuoc() != null) {
+            spctTrongDB.setKichThuoc(dataTuJavaScript.getKichThuoc());
+        }
+        if (dataTuJavaScript.getChatLieu() != null) {
+            spctTrongDB.setChatLieu(dataTuJavaScript.getChatLieu());
+        }
+        if (dataTuJavaScript.getXuatXu() != null) {
+            spctTrongDB.setXuatXu(dataTuJavaScript.getXuatXu());
+        }
+        if (dataTuJavaScript.getTheLoai() != null) {
+            spctTrongDB.setTheLoai(dataTuJavaScript.getTheLoai());
+        }
+        if (dataTuJavaScript.getPhanLoai() != null) {
+            spctTrongDB.setPhanLoai(dataTuJavaScript.getPhanLoai());
+        }
 
         try {
             // 3. Lưu vào DB

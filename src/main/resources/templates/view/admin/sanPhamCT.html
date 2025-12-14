@@ -9,25 +9,101 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+
     <link rel="stylesheet" th:href="@{/css/styles.css}"/>
     <link rel="stylesheet" th:href="@{/css/navbar.css}"/>
 
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; color: #374151; }
-        .card-box { background: #ffffff; border-radius: 12px; border: none; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); margin-bottom: 1.5rem; }
-        .table-custom thead th { background-color: #f9fafb; color: #6b7280; font-weight: 600; text-transform: uppercase; font-size: 0.75rem; border-bottom: 2px solid #e5e7eb; padding: 1rem; vertical-align: middle; white-space: nowrap; }
-        .table-custom tbody td { vertical-align: middle; padding: 0.75rem 1rem; border-bottom: 1px solid #f3f4f6; font-size: 0.875rem; }
-        .table-custom tbody tr:hover { background-color: #f9fafb; }
-        .badge-status { padding: 0.35em 0.8em; font-size: 0.75rem; font-weight: 600; border-radius: 99px; }
-        .badge-active { background: #d1fae5; color: #065f46; }
-        .badge-inactive { background: #fee2e2; color: #991b1b; }
-        .btn-action { width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 6px; transition: .2s; }
-        .btn-action:hover { transform: translateY(-2px); }
-        .modal-content { border-radius: 16px; border: none; }
-        .modal-header { padding: 1.5rem; border-bottom: 1px solid #f3f4f6; }
-        .modal-body { padding: 1.5rem; }
-        .form-control:read-only { background-color: #f3f4f6; color: #6b7280; cursor: not-allowed; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            color: #374151;
+        }
+
+        .card-box {
+            background: #ffffff;
+            border-radius: 12px;
+            border: none;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1.5rem;
+        }
+
+        .table-custom thead th {
+            background-color: #f9fafb;
+            color: #6b7280;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            border-bottom: 2px solid #e5e7eb;
+            padding: 1rem;
+            vertical-align: middle;
+            white-space: nowrap;
+        }
+
+        .table-custom tbody td {
+            vertical-align: middle;
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #f3f4f6;
+            font-size: 0.875rem;
+        }
+
+        .table-custom tbody tr:hover {
+            background-color: #f9fafb;
+        }
+
+        .badge-status {
+            padding: 0.35em 0.8em;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border-radius: 99px;
+        }
+
+        .badge-active {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge-inactive {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .btn-action {
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            transition: .2s;
+        }
+
+        .btn-action:hover {
+            transform: translateY(-2px);
+        }
+
+        .modal-content {
+            border-radius: 16px;
+            border: none;
+        }
+
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .form-control:read-only {
+            background-color: #f3f4f6;
+            color: #6b7280;
+            cursor: not-allowed;
+        }
 
         /* 🖼️ STYLE CHO HÌNH ẢNH */
         .product-image {
@@ -54,35 +130,60 @@
 
             <div class="card-box p-4">
                 <div class="d-flex align-items-center mb-3 border-bottom pb-2">
-                    <i class="fas fa-filter text-primary me-2"></i> <span class="fw-bold text-secondary">Bộ lọc tìm kiếm</span>
+                    <i class="fas fa-filter text-primary me-2"></i> <span
+                        class="fw-bold text-secondary">Bộ lọc tìm kiếm</span>
                 </div>
                 <form id="filterForm">
                     <div class="row g-3 align-items-end">
+
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold text-muted">SẢN PHẨM</label>
+                            <label class="form-label small fw-bold text-muted">TỪ KHÓA TÌM KIẾM (Mã SPCT, Mã SP, Tên SP)</label>
+                            <input type="text" class="form-control" id="filterKeyword" placeholder="Nhập mã hoặc tên sản phẩm...">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-muted">SẢN PHẨM GỐC</label>
                             <select class="form-select" id="filterSanPham">
                                 <option value="">-- Tất cả --</option>
-                                <option th:each="sp : ${listSanPham}" th:value="${sp.id}" th:text="${sp.tenSanPham}"></option>
+                                <option th:each="sp : ${listSanPham}" th:value="${sp.id}"
+                                        th:text="${sp.tenSanPham}"></option>
                             </select>
                         </div>
-                        <div class="col-md-3">
+
+                        <div class="col-md-4">
                             <label class="form-label small fw-bold text-muted">MÀU SẮC</label>
                             <select class="form-select" id="filterMauSac">
                                 <option value="">-- Tất cả --</option>
-                                <option th:each="ms : ${listMauSac}" th:value="${ms.id}" th:text="${ms.tenMauSac}"></option>
+                                <option th:each="ms : ${listMauSac}" th:value="${ms.id}"
+                                        th:text="${ms.tenMauSac}"></option>
                             </select>
                         </div>
-                        <div class="col-md-3">
+
+                        <div class="col-md-4">
                             <label class="form-label small fw-bold text-muted">KÍCH THƯỚC</label>
                             <select class="form-select" id="filterKichThuoc">
                                 <option value="">-- Tất cả --</option>
-                                <option th:each="kt : ${listKichThuoc}" th:value="${kt.id}" th:text="${kt.tenKichThuoc}"></option>
+                                <option th:each="kt : ${listKichThuoc}" th:value="${kt.id}"
+                                        th:text="${kt.tenKichThuoc}"></option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold text-muted">TRẠNG THÁI</label>
+                            <select class="form-select" id="filterTrangThai">
+                                <option value="">-- Tất cả --</option>
+                                <option value="1">Đang bán</option>
+                                <option value="0">Ngừng bán</option>
                             </select>
                         </div>
 
                         <div class="col-12 text-end mt-3">
-                            <button type="button" class="btn btn-light border me-2" id="btnReset"><i class="fas fa-sync-alt me-1"></i> Reset</button>
-                            <button type="submit" class="btn btn-primary px-4"><i class="fas fa-search me-1"></i> Tìm kiếm</button>
+                            <button type="button" class="btn btn-light border me-2" id="btnReset"><i
+                                    class="fas fa-sync-alt me-1"></i> Reset
+                            </button>
+                            <button type="submit" class="btn btn-primary px-4"><i class="fas fa-search me-1"></i> Tìm
+                                kiếm
+                            </button>
                         </div>
                     </div>
                 </form>
@@ -101,7 +202,8 @@
                         <thead>
                         <tr>
                             <th style="width: 20px;">#</th>
-                            <th style="width: 60px;">Ảnh</th> <th>Mã Biến thể</th>
+                            <th style="width: 60px;">Ảnh</th>
+                            <th>Mã Biến thể</th>
                             <th style="min-width: 150px;">Sản phẩm</th>
                             <th class="text-center">Màu & Size</th>
                             <th>Chất liệu</th>
@@ -126,102 +228,126 @@
         </div>
 
         <div class="modal fade" id="spctModal" tabindex="-1" data-bs-backdrop="static">
-            <div class="modal-dialog modal-xl modal-dialog-centered"> <div class="modal-content">
-                <div class="modal-header bg-primary text-white border-0">
-                    <h5 class="modal-title fw-bold" id="modalTitle"><i class="fas fa-box-open me-2"></i>THÊM MỚI BIẾN THỂ</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="spctForm">
-                        <input type="hidden" id="spctId">
+            <div class="modal-dialog modal-xl modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary text-white border-0">
+                        <h5 class="modal-title fw-bold" id="modalTitle"><i class="fas fa-box-open me-2"></i>THÊM MỚI
+                            BIẾN THỂ</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="spctForm">
+                            <input type="hidden" id="spctId">
 
-                        <div class="row g-3 mb-3">
-                            <div class="col-md-4">
-                                <label class="form-label fw-bold small text-muted">MÃ BIẾN THỂ</label>
-                                <input type="text" class="form-control fw-bold text-secondary" id="modalMaSPCT"
-                                       placeholder="Hệ thống tự động tạo mã" readonly style="background-color: #f8f9fa;">
-                            </div>
-                            <div class="col-md-8">
-                                <label class="form-label fw-bold small text-primary">CHỌN SẢN PHẨM GỐC <span class="text-danger">*</span></label>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-white"><i class="fas fa-search text-muted"></i></span>
-                                    <input class="form-control" list="datalistSanPham" id="inputSearchProduct"
-                                           placeholder="Gõ tên sản phẩm để tìm kiếm..." autocomplete="off">
-                                    <datalist id="datalistSanPham">
-                                        <option th:each="sp : ${listSanPham}"
-                                                th:value="${sp.tenSanPham}"
-                                                th:data-id="${sp.id}"
-                                                th:data-price="${sp.giaTien}"
-                                                th:text="'(Mã: ' + ${sp.maSanPham} + ')'"></option>
-                                    </datalist>
-                                    <input type="hidden" id="hiddenSanPhamId" name="sanPhamId">
-                                    <button class="btn btn-outline-secondary" type="button" onclick="clearSearchProduct()"><i class="fas fa-times"></i></button>
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold small text-muted">MÃ BIẾN THỂ</label>
+                                    <input type="text" class="form-control fw-bold text-secondary" id="modalMaSPCT"
+                                           placeholder="Hệ thống tự động tạo mã" readonly
+                                           style="background-color: #f8f9fa;">
                                 </div>
-                                <div class="form-text ms-1" id="selectedProductText"><i class="fas fa-info-circle me-1"></i>Vui lòng chọn sản phẩm trước</div>
+                                <div class="col-md-8">
+                                    <label class="form-label fw-bold small text-primary">CHỌN SẢN PHẨM GỐC <span
+                                            class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-white"><i class="fas fa-search text-muted"></i></span>
+                                        <input class="form-control" list="datalistSanPham" id="inputSearchProduct"
+                                               placeholder="Gõ tên sản phẩm để tìm kiếm..." autocomplete="off">
+                                        <datalist id="datalistSanPham">
+                                            <option th:each="sp : ${listSanPham}"
+                                                    th:value="${sp.tenSanPham}"
+                                                    th:data-id="${sp.id}"
+                                                    th:data-price="${sp.giaTien}"
+                                                    th:text="'(Mã: ' + ${sp.maSanPham} + ')'"></option>
+                                        </datalist>
+                                        <input type="hidden" id="hiddenSanPhamId" name="sanPhamId">
+                                        <button class="btn btn-outline-secondary" type="button"
+                                                onclick="clearSearchProduct()"><i class="fas fa-times"></i></button>
+                                    </div>
+                                    <div class="form-text ms-1" id="selectedProductText"><i
+                                            class="fas fa-info-circle me-1"></i>Vui lòng chọn sản phẩm trước
+                                    </div>
+                                </div>
                             </div>
-                        </div>
 
-                        <hr class="border-secondary opacity-10">
+                            <hr class="border-secondary opacity-10">
 
-                        <div class="row g-3 mb-3">
-                            <div class="col-md-3">
-                                <label class="form-label fw-bold small">MÀU SẮC <span class="text-danger">*</span></label>
-                                <select class="form-select" id="modalMauSac">
-                                    <option value="">-- Chọn màu --</option>
-                                    <option th:each="ms : ${listMauSac}" th:value="${ms.id}" th:text="${ms.tenMauSac}"></option>
-                                </select>
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold small">MÀU SẮC <span
+                                            class="text-danger">*</span></label>
+                                    <select class="form-select" id="modalMauSac">
+                                        <option value="">-- Chọn màu --</option>
+                                        <option th:each="ms : ${listMauSac}" th:value="${ms.id}"
+                                                th:text="${ms.tenMauSac}"></option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold small">KÍCH THƯỚC <span
+                                            class="text-danger">*</span></label>
+                                    <select class="form-select" id="modalKichThuoc">
+                                        <option value="">-- Chọn size --</option>
+                                        <option th:each="kt : ${listKichThuoc}" th:value="${kt.id}"
+                                                th:text="${kt.tenKichThuoc}"></option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold small">CHẤT LIỆU <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="modalChatLieu">
+                                        <option value="">-- Chọn chất liệu --</option>
+                                        <option th:each="cl : ${listChatLieu}" th:value="${cl.id}"
+                                                th:text="${cl.loaiChatLieu}"></option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold small">XUẤT XỨ <span
+                                            class="text-danger">*</span></label>
+                                    <select class="form-select" id="modalXuatXu">
+                                        <option value="">-- Chọn xuất xứ --</option>
+                                        <option th:each="xx : ${listXuatXu}" th:value="${xx.id}"
+                                                th:text="${xx.tenXuatXu}"></option>
+                                    </select>
+                                </div>
                             </div>
-                            <div class="col-md-3">
-                                <label class="form-label fw-bold small">KÍCH THƯỚC <span class="text-danger">*</span></label>
-                                <select class="form-select" id="modalKichThuoc">
-                                    <option value="">-- Chọn size --</option>
-                                    <option th:each="kt : ${listKichThuoc}" th:value="${kt.id}" th:text="${kt.tenKichThuoc}"></option>
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label fw-bold small">CHẤT LIỆU</label>
-                                <select class="form-select" id="modalChatLieu">
-                                    <option th:each="cl : ${listChatLieu}" th:value="${cl.id}" th:text="${cl.loaiChatLieu}"></option>
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label fw-bold small">XUẤT XỨ</label>
-                                <select class="form-select" id="modalXuatXu">
-                                    <option th:each="xx : ${listXuatXu}" th:value="${xx.id}" th:text="${xx.tenXuatXu}"></option>
-                                </select>
-                            </div>
-                        </div>
 
-                        <div class="row g-3">
-                            <div class="col-md-3">
-                                <label class="form-label fw-bold small">THỂ LOẠI</label>
-                                <select class="form-select" id="modalTheLoai">
-                                    <option th:each="tl : ${listTheLoai}" th:value="${tl.id}" th:text="${tl.tenTheLoai}"></option>
-                                </select>
+                            <div class="row g-3">
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold small">THỂ LOẠI <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="modalTheLoai">
+                                        <option value="">-- Chọn thể loại --</option>
+                                        <option th:each="tl : ${listTheLoai}" th:value="${tl.id}"
+                                                th:text="${tl.tenTheLoai}"></option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold small">PHÂN LOẠI <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="modalPhanLoai">
+                                        <option value="">-- Chọn phân loại --</option>
+                                        <option th:each="pl : ${listPhanLoai}" th:value="${pl.id}"
+                                                th:text="${pl.phanLoai}"></option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold small">GIÁ BÁN (VNĐ)</label>
+                                    <input type="text" class="form-control fw-bold text-success" id="modalGiaTien"
+                                           readonly style="background-color: #e9ecef;"
+                                           placeholder="Tự động theo SP gốc">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold small">SỐ LƯỢNG TỒN <span
+                                            class="text-danger">*</span></label>
+                                    <input type="number" class="form-control" id="modalSoLuong"
+                                           placeholder="Nhập số lượng" min="0">
+                                </div>
                             </div>
-                            <div class="col-md-3">
-                                <label class="form-label fw-bold small">PHÂN LOẠI</label>
-                                <select class="form-select" id="modalPhanLoai">
-                                    <option th:each="pl : ${listPhanLoai}" th:value="${pl.id}" th:text="${pl.phanLoai}"></option>
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label fw-bold small">GIÁ BÁN (VNĐ)</label>
-                                <input type="text" class="form-control fw-bold text-success" id="modalGiaTien"
-                                       readonly style="background-color: #e9ecef;" placeholder="Tự động theo SP gốc">
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label fw-bold small">SỐ LƯỢNG TỒN <span class="text-danger">*</span></label>
-                                <input type="number" class="form-control" id="modalSoLuong" placeholder="Nhập số lượng" min="0">
-                            </div>
-                        </div>
-                    </form>
+                        </form>
+                    </div>
+                    <div class="modal-footer border-0 pt-0">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Hủy bỏ</button>
+                        <button type="button" class="btn btn-primary px-4 fw-bold" onclick="saveSPCT()">Lưu thông tin
+                        </button>
+                    </div>
                 </div>
-                <div class="modal-footer border-0 pt-0">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Hủy bỏ</button>
-                    <button type="button" class="btn btn-primary px-4 fw-bold" onclick="saveSPCT()">Lưu thông tin</button>
-                </div>
-            </div>
             </div>
         </div>
 
@@ -230,16 +356,20 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-<script th:src="@{/js/main.js}"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script th:src="@{/js/main.js}"></script>
+
 <script>
     // --- CONFIG ---
-    toastr.options = { "closeButton": true, "progressBar": true, "positionClass": "toast-bottom-right", "timeOut": "3000" };
+    toastr.options = {
+        "closeButton": true,
+        "progressBar": true,
+        "positionClass": "toast-bottom-right",
+        "timeOut": "3000"
+    };
     const API_URL = '/api/san-pham-chi-tiet';
     let spctModal;
     let currentFilter = {page: 0, size: 10};
@@ -247,6 +377,12 @@
     function formatCurrency(amount) {
         if (!amount) return '0 ₫';
         return new Intl.NumberFormat('vi-VN', {style: 'currency', currency: 'VND'}).format(amount);
+    }
+
+    function renderStatusBadge(status) {
+        return status === 1 ?
+            '<span class="badge-status badge-active"><i class="fas fa-check-circle me-1"></i>Đang bán</span>' :
+            '<span class="badge-status badge-inactive"><i class="fas fa-ban me-1"></i>Ngừng bán</span>';
     }
 
     $(document).ready(function () {
@@ -280,9 +416,6 @@
                 $('#selectedProductText').html('<span class="text-warning">Đang tìm kiếm...</span>');
             }
         });
-
-        // Gắn sự kiện cho nút "Lưu thông tin"
-        $('.modal-footer .btn-primary').on('click', saveSPCT);
     });
 
     function clearSearchProduct() {
@@ -292,11 +425,25 @@
         $('#selectedProductText').text('Vui lòng chọn sản phẩm trước');
     }
 
-    // --- LOAD DATA (ĐÃ BỎ LỌC GIÁ) ---
+    // --- LOAD DATA (ĐÃ SỬA LOGIC LỌC) ---
     function loadData() {
-        currentFilter.idSanPham = $('#filterSanPham').val() || null;
+        // Lấy giá trị từ các trường lọc
+        const idSanPhamFilter = $('#filterSanPham').val();
+        const keywordFilter = $('#filterKeyword').val();
+
+        // Gán tham số lọc
+        currentFilter.idSanPham = idSanPhamFilter || null; // Lọc theo ID Sản phẩm (CBO)
+        currentFilter.keyword = keywordFilter || null; // Lọc theo Từ khóa (Input Text)
+
+        // Các bộ lọc CBO khác
         currentFilter.idMauSac = $('#filterMauSac').val() || null;
         currentFilter.idKichThuoc = $('#filterKichThuoc').val() || null;
+        currentFilter.trangThai = $('#filterTrangThai').val() || null;
+
+        // Reset về trang đầu tiên khi thực hiện tìm kiếm/lọc mới
+        if (!currentFilter.idSanPham && !currentFilter.keyword) {
+            currentFilter.page = 0;
+        }
 
         // Cập nhật colspan lên 13
         $('#spctTableBody').html('<tr><td colspan="13" class="text-center py-4"><div class="spinner-border text-primary"></div></td></tr>');
@@ -317,31 +464,28 @@
 
     function renderTable(list) {
         if (!list || list.length === 0) {
-            // Cập nhật colspan lên 13
             $('#spctTableBody').html('<tr><td colspan="13" class="text-center py-4 text-muted">Không có dữ liệu</td></tr>');
             return;
         }
         let html = '';
         list.forEach((item, index) => {
-            const statusBadge = item.trangThai === 1
-                ? '<span class="badge-status badge-active"><i class="fas fa-check-circle me-1"></i>Đang bán</span>'
-                : '<span class="badge-status badge-inactive"><i class="fas fa-ban me-1"></i>Ngừng bán</span>';
-
-            // Đã đổi sang dùng onclick với hàm toggleStatus
             const toggleBtn = item.trangThai === 1
                 ? `<button class="btn btn-action btn-light text-danger border" onclick="toggleStatus(${item.id}, 0)" title="Ngừng bán"><i class="fas fa-ban"></i></button>`
                 : `<button class="btn btn-action btn-light text-success border" onclick="toggleStatus(${item.id}, 1)" title="Kích hoạt lại"><i class="fas fa-sync-alt"></i></button>`;
 
-            // 🖼️ LOGIC HIỂN THỊ HÌNH ẢNH
+            // LOGIC HIỂN THỊ HÌNH ẢNH
             const tenHinhAnhChinh = item.sanPham?.tenHinhAnhChinh;
             let imgUrl = tenHinhAnhChinh ? `/api/hinh-anh/download/${tenHinhAnhChinh}` : 'https://via.placeholder.com/50?text=NoImg';
 
             const imageHtml = `<td class="text-center"><img src="${imgUrl}" class="product-image" onerror="this.src='https://via.placeholder.com/50?text=Error'"></td>`;
 
+            // Tính số thứ tự chính xác trên trang hiện tại
+            const displayIndex = index + 1 + (currentFilter.page * currentFilter.size);
+
 
             html += `
         <tr>
-            <td class="text-center text-muted">${index + 1}</td>
+            <td class="text-center text-muted">${displayIndex}</td>
             ${imageHtml}
             <td class="fw-bold text-secondary">${item.maSanPhamChiTiet || 'N/A'}</td>
             <td class="fw-bold text-primary">${item.sanPham?.tenSanPham || '-'}</td>
@@ -355,7 +499,7 @@
             <td>${item.theLoai?.tenTheLoai || '-'}</td>
             <td class="text-end fw-bold text-dark">${formatCurrency(item.giaTien)}</td>
             <td class="text-center fw-bold">${item.soLuong}</td>
-            <td class="text-center">${statusBadge}</td>
+            <td class="text-center">${renderStatusBadge(item.trangThai)}</td>
             <td class="text-center">
                 <button class="btn btn-action btn-light text-warning border me-1" onclick="openEdit(${item.id})" title="Sửa"><i class="fas fa-edit"></i></button>
                 ${toggleBtn}
@@ -365,7 +509,8 @@
         $('#spctTableBody').html(html);
     }
 
-    // --- CRUD ---
+    // --- CRUD FUNCTIONS ---
+
     function showAddModal() {
         $('#spctForm')[0].reset();
         $('#spctId').val('');
@@ -379,9 +524,20 @@
     }
 
     async function openEdit(id) {
+        // Hiển thị loading trước khi fetch data
+        Swal.fire({
+            title: 'Đang tải...',
+            text: 'Vui lòng chờ trong giây lát.',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading()
+            }
+        });
+
         try {
             const res = await fetch(`${API_URL}/${id}`);
             const data = await res.json();
+            Swal.close();
 
             $('#spctId').val(data.id);
             $('#modalMaSPCT').val(data.maSanPhamChiTiet);
@@ -395,6 +551,7 @@
                 $('.btn-outline-secondary').hide();
             }
 
+            // Gán giá trị Khóa ngoại (đã được Hydrate ở Backend)
             $('#modalMauSac').val(data.mauSac?.id || '');
             $('#modalKichThuoc').val(data.kichThuoc?.id || '');
             $('#modalTheLoai').val(data.theLoai?.id || '');
@@ -415,30 +572,40 @@
     async function saveSPCT() {
         let currentMa = $('#modalMaSPCT').val();
         const isAdding = !$('#spctId').val();
-        if(currentMa === 'Tự động tạo khi lưu') currentMa = null;
+        if (currentMa === 'Tự động tạo khi lưu') currentMa = null;
 
         const payload = {
             id: $('#spctId').val() || null,
             maSanPhamChiTiet: currentMa,
+            // ⚠️ CHÚ Ý QUAN TRỌNG: GỬI ID CỦA TẤT CẢ CÁC THUỘC TÍNH BẮT BUỘC
             sanPham: {id: $('#hiddenSanPhamId').val()},
             mauSac: {id: $('#modalMauSac').val()},
             kichThuoc: {id: $('#modalKichThuoc').val()},
-            theLoai: {id: $('#modalTheLoai').val()},
             chatLieu: {id: $('#modalChatLieu').val()},
             xuatXu: {id: $('#modalXuatXu').val()},
+            theLoai: {id: $('#modalTheLoai').val()},
             phanLoai: {id: $('#modalPhanLoai').val()},
-            // Lấy giá từ trường ẩn/readonly
+
+            // Giá và Số lượng
             giaTien: parseFloat($('#modalGiaTien').val()),
             soLuong: parseInt($('#modalSoLuong').val()),
-            trangThai: 1 // Mặc định khi thêm/sửa là đang bán
+            trangThai: 1
         };
 
-        if (!payload.sanPham.id) return Swal.fire('Cảnh báo', "Vui lòng chọn sản phẩm gốc!", 'warning');
-        if (!payload.mauSac.id || !payload.kichThuoc.id) return Swal.fire('Cảnh báo', "Vui lòng chọn Màu sắc và Kích thước!", 'warning');
-        if (isNaN(payload.soLuong) || payload.soLuong < 0) return Swal.fire('Cảnh báo', "Số lượng không hợp lệ!", 'warning');
-        if (isNaN(payload.giaTien) || payload.giaTien <= 0) return Swal.fire('Cảnh báo', "Giá bán không hợp lệ!", 'warning');
+        // --- VALIDATION SỬ DỤNG SWEETALERT2 ---
+        // Backend yêu cầu 7 khóa ngoại là bắt buộc (vì chúng được hydrate), nên Frontend phải kiểm tra
+        if (!payload.sanPham.id) return Swal.fire('Cảnh báo', "Vui lòng chọn Sản phẩm gốc!", 'warning');
+        if (!payload.mauSac.id) return Swal.fire('Cảnh báo', "Vui lòng chọn Màu sắc!", 'warning');
+        if (!payload.kichThuoc.id) return Swal.fire('Cảnh báo', "Vui lòng chọn Kích thước!", 'warning');
+        if (!payload.chatLieu.id) return Swal.fire('Cảnh báo', "Vui lòng chọn Chất liệu!", 'warning');
+        if (!payload.xuatXu.id) return Swal.fire('Cảnh báo', "Vui lòng chọn Xuất xứ!", 'warning');
+        if (!payload.theLoai.id) return Swal.fire('Cảnh báo', "Vui lòng chọn Thể loại!", 'warning');
+        if (!payload.phanLoai.id) return Swal.fire('Cảnh báo', "Vui lòng chọn Phân loại!", 'warning');
 
-        // Xác nhận trước khi gửi (SweetAlert2)
+        // Kiểm tra số lượng
+        if (isNaN(payload.soLuong) || payload.soLuong < 0) return Swal.fire('Cảnh báo', "Số lượng tồn kho không hợp lệ!", 'warning');
+
+        // --- CONFIRM SỬ DỤNG SWEETALERT2 ---
         const actionText = isAdding ? 'Thêm mới' : 'Cập nhật';
         const result = await Swal.fire({
             title: `Xác nhận ${actionText}?`,
@@ -456,6 +623,7 @@
             const method = payload.id ? 'PUT' : 'POST';
             const url = payload.id ? `${API_URL}/${payload.id}` : API_URL;
 
+            // Hiển thị loading (SweetAlert2)
             Swal.fire({
                 title: 'Đang xử lý...',
                 text: 'Vui lòng chờ trong giây lát.',
@@ -471,16 +639,20 @@
                 body: JSON.stringify(payload)
             });
 
+            // Đóng loading trước khi hiển thị kết quả
+            Swal.close();
+
             if (res.ok) {
                 Swal.fire('Thành công!', `${actionText} biến thể thành công!`, 'success');
                 spctModal.hide();
                 loadData();
             } else {
                 const err = await res.text();
-                // Hiển thị lỗi từ backend
+                // Hiển thị lỗi từ backend (Lỗi tham chiếu, Lỗi Bắt buộc,...)
                 Swal.fire('Lỗi', `Lỗi ${actionText.toLowerCase()}: ${err}`, 'error');
             }
         } catch (e) {
+            Swal.close();
             Swal.fire('Lỗi', 'Lỗi kết nối server', 'error');
         }
     }
@@ -493,6 +665,7 @@
             ? 'Bạn có chắc muốn KÍCH HOẠT lại biến thể này?'
             : 'Bạn có chắc muốn NGỪNG BÁN biến thể này?';
 
+        // CONFIRM SỬ DỤNG SWEETALERT2
         const result = await Swal.fire({
             title: `${actionText} Biến thể?`,
             text: actionMessage,
@@ -507,6 +680,7 @@
         if (!result.isConfirmed) return;
 
         try {
+            // Hiển thị loading
             Swal.fire({
                 title: 'Đang xử lý...',
                 text: 'Vui lòng chờ trong giây lát.',
@@ -517,9 +691,12 @@
             });
 
             await fetch(`${API_URL}/${id}/trang-thai?trangThai=${newStatus}`, {method: 'PUT'});
+
+            Swal.close();
             Swal.fire('Thành công!', `Đã ${actionText} biến thể thành công!`, 'success');
             loadData();
         } catch (e) {
+            Swal.close();
             Swal.fire('Lỗi', "Lỗi hệ thống khi cập nhật trạng thái", 'error');
         }
     }

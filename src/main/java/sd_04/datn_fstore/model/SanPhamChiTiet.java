@@ -45,15 +45,35 @@ public class SanPhamChiTiet {
     @NotNull(message = "Trạng thái không được để trống")
     private Integer trangThai;
 
-    // ⭐️ ĐÃ THÊM: Ánh xạ cột idSanPham thô để Controller gọi .getIdSanPham()
+    // =========================================================
+    // KHAI BÁO CÁC CỘT ID THÔ (ĐÃ BỔ SUNG 6 TRƯỜNG CÒN THIẾU)
+    // Service sẽ ghi giá trị vào các trường này để khắc phục lỗi NULL.
+    // =========================================================
+    @Column(name = "idKichThuoc")
+    private Integer idKichThuoc;
+
+    @Column(name = "idPhanLoai")
+    private Integer idPhanLoai;
+
+    @Column(name = "idXuatXu")
+    private Integer idXuatXu;
+
+    @Column(name = "idChatLieu")
+    private Integer idChatLieu;
+
+    @Column(name = "idMauSac")
+    private Integer idMauSac;
+
+    @Column(name = "idTheLoai")
+    private Integer idTheLoai;
+
     @Column(name = "idSanPham")
-    private Integer idSanPham;
+    private Integer idSanPham; // Đã có sẵn
 
     // =========================================================
     // Mối quan hệ Many-to-One
+    // GIỮ NGUYÊN CÁC LỖI insertable/updatable = false (theo yêu cầu)
     // =========================================================
-
-    // Thêm insertable/updatable = false cho các mối quan hệ (vì chúng ta đang dùng ID thô để ghi)
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "idKichThuoc", insertable = false, updatable = false)
@@ -79,7 +99,6 @@ public class SanPhamChiTiet {
     @JoinColumn(name = "idTheLoai", insertable = false, updatable = false)
     private TheLoai theLoai;
 
-    // Giữ nguyên mối quan hệ nhưng thêm insertable/updatable=false
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "idSanPham", insertable = false, updatable = false)
     private SanPham sanPham;

@@ -18,15 +18,15 @@ import java.util.Optional;
 @Repository
 public interface SanPhamCTRepository extends JpaRepository<SanPhamChiTiet, Integer> {
 
-    // --- 1. TÌM KIẾM NÂNG CAO (ĐÃ BỎ MIN/MAX PRICE) ---
+    // --- 1. TÌM KIẾM NÂNG CAO (ĐÃ THÊM JOIN FETCH CHO TẤT CẢ CÁC TRƯỜNG CẦN THIẾT) ---
     @Query(value = "SELECT spct FROM SanPhamChiTiet spct " +
-            "LEFT JOIN spct.sanPham sp " +
-            "LEFT JOIN spct.mauSac ms " +
-            "LEFT JOIN spct.kichThuoc kt " +
-            "LEFT JOIN spct.chatLieu cl " +
-            "LEFT JOIN spct.theLoai tl " +
-            "LEFT JOIN spct.xuatXu xx " +
-            "LEFT JOIN spct.phanLoai pl " +
+            "LEFT JOIN FETCH spct.sanPham sp " +   // THÊM FETCH
+            "LEFT JOIN FETCH spct.mauSac ms " +    // THÊM FETCH
+            "LEFT JOIN FETCH spct.kichThuoc kt " + // THÊM FETCH
+            "LEFT JOIN FETCH spct.chatLieu cl " +  // THÊM FETCH
+            "LEFT JOIN FETCH spct.theLoai tl " +   // THÊM FETCH
+            "LEFT JOIN FETCH spct.xuatXu xx " +    // THÊM FETCH
+            "LEFT JOIN FETCH spct.phanLoai pl " +  // THÊM FETCH
             "WHERE " +
             "(:idSanPham IS NULL OR sp.id = :idSanPham) AND " +
             "(:idMauSac IS NULL OR ms.id = :idMauSac) AND " +
@@ -42,6 +42,7 @@ public interface SanPhamCTRepository extends JpaRepository<SanPhamChiTiet, Integ
             "sp.maSanPham LIKE CONCAT('%', :keyword, '%') OR " +
             "CONCAT(spct.id, '') LIKE CONCAT('%', :keyword, '%')" +
             ")",
+            // Giữ nguyên countQuery vì không được phép có FETCH
             countQuery = "SELECT COUNT(spct) FROM SanPhamChiTiet spct " +
                     "LEFT JOIN spct.sanPham sp " +
                     "LEFT JOIN spct.mauSac ms " +
@@ -80,15 +81,25 @@ public interface SanPhamCTRepository extends JpaRepository<SanPhamChiTiet, Integ
 
     // --- 2. CÁC HÀM BỔ SUNG ĐỂ KHỚP SERVICE ---
 
+    // Hàm tải tất cả với JOIN FETCH (Dùng cho getAll() trong Service)
+    @Query("SELECT spct FROM SanPhamChiTiet spct " +
+            "LEFT JOIN FETCH spct.sanPham sp " +
+            "LEFT JOIN FETCH spct.mauSac ms " +
+            "LEFT JOIN FETCH spct.kichThuoc kt ")
+    List<SanPhamChiTiet> findAllWithRequiredFields();
+
     // Lấy tất cả biến thể của 1 sản phẩm (Dùng cho Admin xem chi tiết SP)
-    List<SanPhamChiTiet> findBySanPhamId(Integer idSanPham);
+    // Cần thêm FETCH để tránh lỗi khi cập nhật tổng số lượng
+    @Query("SELECT spct FROM SanPhamChiTiet spct LEFT JOIN FETCH spct.sanPham sp WHERE sp.id = :idSanPham")
+    List<SanPhamChiTiet> findBySanPhamId(@Param("idSanPham") Integer idSanPham);
 
     // Lấy các biến thể ĐANG BÁN của 1 sản phẩm (Dùng cho Client chọn mua)
-    @Query("SELECT spct FROM SanPhamChiTiet spct WHERE spct.sanPham.id = :idSanPham AND spct.trangThai = 1 AND spct.soLuong > 0")
+    // Thêm FETCH cho hiển thị ngoài client
+    @Query("SELECT spct FROM SanPhamChiTiet spct LEFT JOIN FETCH spct.mauSac ms LEFT JOIN FETCH spct.kichThuoc kt WHERE spct.sanPham.id = :idSanPham AND spct.trangThai = 1 AND spct.soLuong > 0")
     List<SanPhamChiTiet> findAvailableVariants(@Param("idSanPham") Integer idSanPham);
 
     // Tìm theo tên sản phẩm
-    @Query("SELECT spct FROM SanPhamChiTiet spct JOIN spct.sanPham sp WHERE sp.tenSanPham LIKE CONCAT('%', :tenSp, '%')")
+    @Query("SELECT spct FROM SanPhamChiTiet spct JOIN FETCH spct.sanPham sp WHERE sp.tenSanPham LIKE CONCAT('%', :tenSp, '%')")
     List<SanPhamChiTiet> findBySanPhamTenSanPham(@Param("tenSp") String tenSp);
 
     // --- 3. API BÁN HÀNG & KHÁC (GIỮ NGUYÊN) ---
