@@ -201,7 +201,33 @@
 
     document.addEventListener("DOMContentLoaded", function () {
         loadAddressData();      // Tải Tỉnh/Thành
-        loadCartFromStorage();  // Tải giỏ hàng từ LocalStorage
+        // loadCartFromStorage();  // Tải giỏ hàng từ LocalStorage
+        fetch('/api/cart', {
+            credentials: 'same-origin'
+        })
+            .then(res => res.json())
+            .then(data => {
+                console.log('CART FROM SERVER:', data);
+                currentCart = data.map(item => ({
+                    id: item.idSanPhamChiTiet,          // dùng cho checkout + tồn kho
+                    cartId: item.id,                    // id dòng giỏ
+                    name: item.tenSanPham,
+                    color: item.tenMau,
+                    size: item.tenKichCo,
+                    price: item.donGia,
+                    quantity: item.soLuong,
+                    image: item.tenHinhAnh
+                        ? `/images/${item.tenHinhAnh}`
+                        : 'https://placehold.co/64?text=Img',
+                    stock: item.soLuongTon
+                }));
+
+                renderCartHTML();
+                applyVoucher();
+
+            });
+
+
         loadActiveVouchers();   // Tải mã giảm giá
 
         // Lắng nghe sự kiện thay đổi voucher để tính lại tiền ngay
@@ -373,7 +399,8 @@
 
         let html = '';
         currentCart.forEach((item, index) => {
-            const stock = productStock[item.id] !== undefined ? productStock[item.id] : '...'; // Lấy tồn kho đã sync
+           // const stock = productStock[item.id] !== undefined ? productStock[item.id] : '...'; // Lấy tồn kho đã sync
+            const stock = item.stock ?? '...';
             const isOutOfStock = stock === 0;
             const isMaxStock = item.quantity >= stock && stock > 0;
 
