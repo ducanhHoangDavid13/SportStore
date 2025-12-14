@@ -3,11 +3,13 @@ package sd_04.datn_fstore.api;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException; // Bổ sung
 import org.springframework.web.bind.annotation.*;
-import sd_04.datn_fstore.dto.*;
+import sd_04.datn_fstore.dto.*; // Giả định chứa các DTO CalculateTotalRequest, CheckoutRequest, v.v.
 import sd_04.datn_fstore.model.KhachHang;
 import sd_04.datn_fstore.model.SanPhamChiTiet;
 import sd_04.datn_fstore.repository.SanPhamCTRepository;
@@ -33,8 +35,6 @@ public class CheckOutApiController {
     private final VnPayService vnPayService;
     private final SanPhamCTRepository sanPhamCTRepository;
     private final PhieuGiamgiaService phieuGiamgiaService;
-
-    // BỔ SUNG: Dịch vụ Khách hàng để lấy ID
     private final KhachhangService khachhangService;
 
     // Định nghĩa phí ship cố định ở server
@@ -46,16 +46,18 @@ public class CheckOutApiController {
 
         if (authentication == null || !authentication.isAuthenticated() ||
                 "anonymousUser".equals(authentication.getPrincipal())) {
-            return null; // Trả về null nếu chưa đăng nhập hoặc là người dùng ẩn danh
+            return null;
         }
 
-        // Giả định tên người dùng là Email
         String username = authentication.getName();
-        // Giả định KhachhangService có hàm findByEmail(String)
-        KhachHang khachHang = khachhangService.findByEmail(username);
+        KhachHang khachHang = khachhangService.findByEmail(username); // Giả định KhachhangService có findByEmail
 
-        // Trả về ID nếu tìm thấy khách hàng
-        return khachHang != null ? khachHang.getId() : null;
+        if (khachHang == null) {
+            // Có thể ném ngoại lệ nếu cần, nhưng trả về null cũng là một lựa chọn nếu bạn cho phép checkout ẩn danh
+            throw new UsernameNotFoundException("Không tìm thấy khách hàng cho tài khoản đã đăng nhập: " + username);
+        }
+
+        return khachHang.getId();
     }
     // ----------------------------------------------------
 
@@ -70,7 +72,6 @@ public class CheckOutApiController {
 
         // 1. KIỂM TRA GIỎ HÀNG CÓ RỖNG KHÔNG
         if (request.getItems() == null || request.getItems().isEmpty()) {
-            // Trả về OK với total = 0 nếu Frontend gọi calculate khi giỏ hàng trống
             response.put("subTotal", BigDecimal.ZERO);
             response.put("shippingFee", FIXED_SHIPPING_FEE);
             response.put("discountAmount", BigDecimal.ZERO);
@@ -80,7 +81,7 @@ public class CheckOutApiController {
             return ResponseEntity.ok(response);
         }
 
-        // Dùng DTO mới cho calculate
+        // Tạo DTO cho service tính toán
         CalculateTotalRequest calcRequest = new CalculateTotalRequest();
         calcRequest.setVoucherCode(request.getVoucherCode());
         calcRequest.setShippingFee(FIXED_SHIPPING_FEE);
@@ -96,8 +97,12 @@ public class CheckOutApiController {
             Optional<SanPhamChiTiet> spOpt = sanPhamCTRepository.findById(item.getSanPhamChiTietId());
 
             if (spOpt.isEmpty()) {
-                response.put("error", "Sản phẩm không tồn tại (ID: " + item.getSanPhamChiTietId() + ")");
-                return ResponseEntity.badRequest().body(response);
+                // Trả về OK để frontend loại bỏ sản phẩm không tồn tại khỏi giỏ hàng
+                response.put("error", "Sản phẩm không tồn tại (ID: " + item.getSanPhamChiTietId() + ") và đã được loại bỏ.");
+                response.put("outOfStock", true);
+                response.put("productId", item.getSanPhamChiTietId());
+                response.put("recheck", true);
+                return ResponseEntity.ok(response);
             }
 
             SanPhamChiTiet sp = spOpt.get();
@@ -107,19 +112,19 @@ public class CheckOutApiController {
                 response.put("error", "Sản phẩm '" + sp.getSanPham().getTenSanPham() + "' không đủ hàng (Còn: " + sp.getSoLuong() + ")");
                 response.put("outOfStock", true);
                 response.put("productId", sp.getId());
-                return ResponseEntity.ok(response); // Trả về OK để Frontend xử lý thông báo và xóa khỏi giỏ
+                response.put("recheck", true);
+                return ResponseEntity.ok(response); // Trả về OK để Frontend xử lý thông báo và điều chỉnh số lượng/xóa
             }
 
             // Lấy giá chuẩn từ SPCT
             BigDecimal donGia = sp.getGiaTien() != null ? sp.getGiaTien() : BigDecimal.ZERO;
-
             subTotal = subTotal.add(donGia.multiply(BigDecimal.valueOf(item.getSoLuong())));
 
-            // Gán lại cho DTO CalculateTotalRequest (quan trọng để Service tính toán)
+            // Gán lại cho DTO CalculateTotalRequest
             CalculateTotalRequest.CartItem calcItem = new CalculateTotalRequest.CartItem();
             calcItem.setSanPhamChiTietId(item.getSanPhamChiTietId());
             calcItem.setSoLuong(item.getSoLuong());
-            calcItem.setDonGia(donGia);
+            calcItem.setDonGia(donGia); // Gán đơn giá lấy từ DB
             calcItems.add(calcItem);
         }
         calcRequest.setItems(calcItems);
@@ -134,7 +139,6 @@ public class CheckOutApiController {
         response.put("finalTotal", calcRes.getFinalTotal());
         response.put("voucherValid", calcRes.isVoucherValid());
         response.put("voucherMessage", calcRes.getVoucherMessage());
-        // Trả về mã đã áp dụng nếu hợp lệ
         response.put("appliedVoucherCode", calcRes.isVoucherValid() ? request.getVoucherCode() : null);
 
         return ResponseEntity.ok(response);
@@ -150,11 +154,19 @@ public class CheckOutApiController {
             // 1. Ghi đè phí ship để bảo mật
             request.setShippingFee(FIXED_SHIPPING_FEE);
 
-            // 2. BỔ SUNG: Gắn ID khách hàng đã đăng nhập (nếu có)
+            // 2. Gắn ID khách hàng đã đăng nhập (Không cần kiểm tra null ở đây, vì nếu null sẽ là đơn hàng khách vãng lai)
             Integer loggedInCustomerId = getLoggedInCustomerId();
-            if (loggedInCustomerId != null) {
-                // SỬA: Lỗi cannot find symbol được giải quyết khi DTO CheckoutRequest có setKhachHangId
-                request.setKhachHangId(loggedInCustomerId);
+
+            // Nếu loggedInCustomerId là null, service cần xử lý đây là đơn hàng khách vãng lai (guest)
+            // Nếu bạn bắt buộc phải đăng nhập, hãy ném lỗi tại đây:
+            // if (loggedInCustomerId == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("success", false, "message", "Vui lòng đăng nhập để đặt hàng."));
+
+            request.setKhachHangId(loggedInCustomerId);
+
+            // ⚠️ Quan trọng: AddressId phải được gửi từ Frontend và được Service sử dụng
+            // Đảm bảo CheckoutRequest có getAddressId() và setAddressId()
+            if (request.getAddressId() == null) {
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Vui lòng chọn địa chỉ giao hàng."));
             }
 
             String clientIp = getClientIp(httpReq);
@@ -167,7 +179,10 @@ public class CheckOutApiController {
                     "redirectUrl", response.getRedirectUrl(),
                     "paymentMethod", request.getPaymentMethod() // Trả lại payment method cho FE
             ));
-        } catch (RuntimeException e) { // Bắt các lỗi RuntimeException từ Service (như hết hàng)
+        } catch (UsernameNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("success", false, "message", "Tài khoản đăng nhập không hợp lệ."));
+        } catch (RuntimeException e) {
+            // Bắt các lỗi RuntimeException từ Service (như hết hàng, voucher lỗi, địa chỉ lỗi)
             return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
         } catch (Exception e) {
             e.printStackTrace();
@@ -180,7 +195,6 @@ public class CheckOutApiController {
         Map<String, String> vnpParams = request.getParameterMap().entrySet().stream()
                 .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue()[0]));
         try {
-            // Giả định orderReturn trả về 1 nếu thành công, 0 nếu thất bại
             int result = vnPayService.orderReturn(vnpParams);
             String orderCode = vnpParams.get("vnp_TxnRef");
             String redirectUrl = (result == 1)
