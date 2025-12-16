@@ -817,65 +817,6 @@
         updateVariant();
     }
 
-
-    // // --- LOGIC GIỎ HÀNG (Sử dụng LocalStorage) ---
-    // function addToCart(isBuyNow) {
-    //     if (!selectedVariant.spctId || selectedVariant.stock <= 0) {
-    //         toastr.error("Vui lòng chọn tùy chọn hợp lệ và còn hàng.");
-    //         return;
-    //     }
-    //
-    //     const qty = parseInt(document.getElementById('qtyInput').value);
-    //     if (qty <= 0) {
-    //         toastr.error("Số lượng phải lớn hơn 0.");
-    //         return;
-    //     }
-    //     if (qty > selectedVariant.stock) {
-    //         toastr.error(`Số lượng không hợp lệ. Tồn kho tối đa: ${selectedVariant.stock}`);
-    //         return;
-    //     }
-    //
-    //     // 1. Lấy giỏ hàng từ LocalStorage
-    //     let cart = JSON.parse(localStorage.getItem('cartItems')) || [];
-    //
-    //     // 2. Tạo item mới
-    //     const newItem = {
-    //         id: selectedVariant.spctId,
-    //         productId: productData.id,
-    //         productName: productData.name,
-    //         maSanPham: productData.maSanPham,
-    //         price: selectedVariant.price,
-    //         image: productData.image,
-    //         color: selectedVariant.color,
-    //         size: selectedVariant.size,
-    //         quantity: qty
-    //     };
-    //
-    //     // 3. Kiểm tra trùng
-    //     const existingItemIndex = cart.findIndex(i => i.id === newItem.id);
-    //
-    //     if (existingItemIndex > -1) {
-    //         const newTotalQty = cart[existingItemIndex].quantity + qty;
-    //
-    //         if (newTotalQty > selectedVariant.stock) {
-    //             toastr.error(`Tổng số lượng đã vượt quá tồn kho hiện có (${selectedVariant.stock} sản phẩm)!`);
-    //             return;
-    //         }
-    //         cart[existingItemIndex].quantity = newTotalQty;
-    //     } else {
-    //         cart.push(newItem);
-    //     }
-    //
-    //     // 4. Lưu lại vào LocalStorage
-    //     localStorage.setItem('cartItems', JSON.stringify(cart));
-    //
-    //     // 5. Điều hướng
-    //     if (isBuyNow) {
-    //         window.location.href = "/checkout";
-    //     } else {
-    //         toastr.success(`Đã thêm ${qty} sản phẩm (${selectedVariant.color} / ${selectedVariant.size}) vào giỏ!`);
-    //     }
-    // }
     window.onload = initializeProductDetail;
     function addToCart(isBuyNow) {
         if (!selectedVariant.spctId) {
@@ -893,18 +834,17 @@
                 soLuong: quantity
             },
             success: function () {
-                toastr.success("Đã thêm vào giỏ!");
-
                 if (isBuyNow) {
-                    window.location.href = "/cart";
+                    // 🔥 MUA NGAY → SANG CHECKOUT
+                    window.location.href = "/checkout";
+                } else {
+                    toastr.success("Đã thêm vào giỏ!");
                 }
-            },
-            error: function (xhr) {
-                toastr.error("Không thể thêm vào giỏ!");
-                console.error(xhr);
             }
         });
     }
+
+
 
 </script>
 
