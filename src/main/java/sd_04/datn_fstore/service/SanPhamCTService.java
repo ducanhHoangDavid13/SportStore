@@ -31,7 +31,20 @@ public interface SanPhamCTService {
             Integer trangThai,
             String keyword
     );
+// Trong SanPhamCTService.java (Interface)
 
+    // Thêm phương thức này:
+    List<SanPhamChiTiet> searchAll(
+            Integer idSanPham,
+            Integer idKichThuoc,
+            Integer idChatLieu,
+            Integer idTheLoai,
+            Integer idXuatXu,
+            Integer idMauSac,
+            Integer idPhanLoai,
+            Integer trangThai,
+            String keyword
+    );
     // Lấy biến thể active của 1 sản phẩm (Cho khách hàng chọn size/màu)
     List<SanPhamChiTiet> getAvailableProducts(Integer idSanPham);
 

@@ -192,9 +192,14 @@
             <div class="card-box">
                 <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
                     <h5 class="mb-0 fw-bold">Danh sách Biến thể</h5>
-                    <button class="btn btn-success btn-sm shadow-sm fw-bold" onclick="showAddModal()">
-                        <i class="fas fa-plus me-1"></i> Thêm biến thể
-                    </button>
+                    <div>
+                        <button class="btn btn-info btn-sm shadow-sm fw-bold me-2" id="btnExportExcel" onclick="exportToExcel()">
+                            <i class="fas fa-file-excel me-1"></i> Xuất Excel
+                        </button>
+                        <button class="btn btn-success btn-sm shadow-sm fw-bold" onclick="showAddModal()">
+                            <i class="fas fa-plus me-1"></i> Thêm biến thể
+                        </button>
+                    </div>
                 </div>
 
                 <div class="table-responsive" style="min-height: 350px;">
@@ -372,7 +377,7 @@
     };
     const API_URL = '/api/san-pham-chi-tiet';
     let spctModal;
-    let currentFilter = {page: 0, size: 10};
+    let currentFilter = {page: 0, size: 10}; // page=0, size=10 là mặc định
 
     function formatCurrency(amount) {
         if (!amount) return '0 ₫';
@@ -416,6 +421,18 @@
                 $('#selectedProductText').html('<span class="text-warning">Đang tìm kiếm...</span>');
             }
         });
+
+        // --- XỬ LÝ SỰ KIỆN LỌC VÀ RESET (ĐẢM BẢO RESET PAGE VỀ 0) ---
+        $('#filterForm').submit(e => {
+            e.preventDefault();
+            currentFilter.page = 0; // RESET PAGE VỀ 0
+            loadData();
+        });
+        $('#btnReset').click(() => {
+            $('#filterForm')[0].reset();
+            currentFilter.page = 0; // RESET PAGE VỀ 0
+            loadData();
+        });
     });
 
     function clearSearchProduct() {
@@ -425,27 +442,17 @@
         $('#selectedProductText').text('Vui lòng chọn sản phẩm trước');
     }
 
-    // --- LOAD DATA (ĐÃ SỬA LOGIC LỌC) ---
+    // --- LOAD DATA ---
     function loadData() {
         // Lấy giá trị từ các trường lọc
-        const idSanPhamFilter = $('#filterSanPham').val();
-        const keywordFilter = $('#filterKeyword').val();
-
-        // Gán tham số lọc
-        currentFilter.idSanPham = idSanPhamFilter || null; // Lọc theo ID Sản phẩm (CBO)
-        currentFilter.keyword = keywordFilter || null; // Lọc theo Từ khóa (Input Text)
-
-        // Các bộ lọc CBO khác
+        currentFilter.idSanPham = $('#filterSanPham').val() || null;
+        currentFilter.keyword = $('#filterKeyword').val() || null;
         currentFilter.idMauSac = $('#filterMauSac').val() || null;
         currentFilter.idKichThuoc = $('#filterKichThuoc').val() || null;
         currentFilter.trangThai = $('#filterTrangThai').val() || null;
 
-        // Reset về trang đầu tiên khi thực hiện tìm kiếm/lọc mới
-        if (!currentFilter.idSanPham && !currentFilter.keyword) {
-            currentFilter.page = 0;
-        }
+        // Xóa logic reset page khỏi đây! Page chỉ được reset ở sự kiện submit/reset form.
 
-        // Cập nhật colspan lên 13
         $('#spctTableBody').html('<tr><td colspan="13" class="text-center py-4"><div class="spinner-border text-primary"></div></td></tr>');
 
         $.ajax({
@@ -455,8 +462,8 @@
                 renderPagination(res);
                 updatePageInfo(res);
             },
-            error: function () {
-                // Cập nhật colspan lên 13
+            error: function (xhr, status, error) {
+                console.error("Lỗi tải dữ liệu:", xhr.responseText || error);
                 $('#spctTableBody').html('<tr><td colspan="13" class="text-center text-danger py-4">Lỗi tải dữ liệu</td></tr>');
             }
         });
@@ -509,7 +516,95 @@
         $('#spctTableBody').html(html);
     }
 
-    // --- CRUD FUNCTIONS ---
+    // --- PAGINATION FUNCTION (Đã sửa logic hiển thị ...) ---
+    function renderPagination(data) {
+        if (data.totalPages <= 1) {
+            $('#paginationNav').empty();
+            return;
+        }
+
+        let html = '<ul class="pagination pagination-sm mb-0">';
+        const currentPage = data.number; // Trang hiện tại (dựa trên 0)
+        const totalPages = data.totalPages;
+        const maxPagesToShow = 5;
+
+        // Nút Lùi <<
+        html += `<li class="page-item ${data.first ? 'disabled' : ''}">
+                <button class="page-link" onclick="changePage(${currentPage - 1})">&laquo;</button>
+             </li>`;
+
+        // Logic hiển thị các nút trang
+        let startPage = 0;
+        let endPage = totalPages - 1;
+
+        if (totalPages > maxPagesToShow) {
+            // Tính toán phạm vi hiển thị tối ưu xung quanh trang hiện tại
+            let pageRange = 1; // Số trang hiển thị xung quanh trang hiện tại (n-1, n, n+1)
+            startPage = Math.max(1, currentPage - pageRange);
+            endPage = Math.min(totalPages - 2, currentPage + pageRange);
+
+            // Xử lý khi ở gần trang đầu
+            if (currentPage < 3) endPage = Math.min(totalPages - 2, 3);
+
+            // Xử lý khi ở gần trang cuối
+            if (currentPage > totalPages - 4) startPage = Math.max(1, totalPages - 4);
+        }
+
+        // Trang 1
+        html += `<li class="page-item ${0 === currentPage ? 'active' : ''}">
+                <button class="page-link" onclick="changePage(0)">1</button>
+             </li>`;
+
+        // Dấu ... đầu
+        if (startPage > 1) {
+            html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+        }
+
+        // Các trang trung tâm
+        for (let i = startPage; i <= endPage; i++) {
+            if (i > 0 && i < totalPages - 1) { // Bỏ qua trang 1 và trang cuối
+                html += `<li class="page-item ${i === currentPage ? 'active' : ''}">
+                        <button class="page-link" onclick="changePage(${i})">${i + 1}</button>
+                     </li>`;
+            }
+        }
+
+        // Dấu ... cuối
+        if (endPage < totalPages - 2) {
+            html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+        }
+
+        // Trang cuối (Chỉ hiển thị nếu có nhiều hơn 1 trang, và trang cuối không phải là trang 1)
+        if (totalPages > 1) {
+            html += `<li class="page-item ${totalPages - 1 === currentPage ? 'active' : ''}">
+                    <button class="page-link" onclick="changePage(${totalPages - 1})">${totalPages}</button>
+                 </li>`;
+        }
+
+        // Nút Tiến >>
+        html += `<li class="page-item ${data.last ? 'disabled' : ''}">
+                <button class="page-link" onclick="changePage(${currentPage + 1})">&raquo;</button>
+             </li>`;
+
+        html += '</ul>';
+        $('#paginationNav').html(html);
+    }
+
+    // --- HÀM THIẾU CẦN BỔ SUNG ---
+    function changePage(p) {
+        if (p >= 0) {
+            currentFilter.page = p;
+            loadData();
+        }
+    }
+
+    function updatePageInfo(data) {
+        if (data.totalElements > 0) $('#pageInfo').html(`Hiển thị <strong>${data.numberOfElements}</strong> / <strong>${data.totalElements}</strong> biến thể`);
+        else $('#pageInfo').empty();
+    }
+    // --- END HÀM THIẾU CẦN BỔ SUNG ---
+
+    // --- CRUD FUNCTIONS (Không thay đổi) ---
 
     function showAddModal() {
         $('#spctForm')[0].reset();
@@ -700,47 +795,46 @@
             Swal.fire('Lỗi', "Lỗi hệ thống khi cập nhật trạng thái", 'error');
         }
     }
+    /**
+     * Chức năng Xuất Excel
+     * Hàm này lấy các tham số lọc hiện tại và tạo URL tải xuống.
+     */
+    function exportToExcel() {
+        // 1. Lấy các giá trị lọc hiện tại (KHÔNG BAO GỒM page/size)
+        const idSanPhamFilter = $('#filterSanPham').val() || '';
+        const keywordFilter = $('#filterKeyword').val() || '';
+        const idMauSacFilter = $('#filterMauSac').val() || '';
+        const idKichThuocFilter = $('#filterKichThuoc').val() || '';
+        const trangThaiFilter = $('#filterTrangThai').val() || '';
 
-    // --- PAGINATION ---
-    function renderPagination(data) {
-        if (data.totalPages <= 1) {
-            $('#paginationNav').empty();
-            return;
+        // 2. Tạo đối tượng chứa các tham số (không cần page/size)
+        const exportParams = {
+            idSanPham: idSanPhamFilter,
+            keyword: keywordFilter,
+            idMauSac: idMauSacFilter,
+            idKichThuoc: idKichThuocFilter,
+            trangThai: trangThaiFilter
+            // Thêm các bộ lọc khác nếu cần
+        };
+
+        // 3. Xây dựng Query String
+        // Lọc bỏ các tham số null/empty
+        const searchParams = new URLSearchParams();
+        for (const key in exportParams) {
+            if (exportParams[key] !== '' && exportParams[key] !== null) {
+                searchParams.append(key, exportParams[key]);
+            }
         }
-        let html = '<ul class="pagination pagination-sm mb-0">';
-        html += `<li class="page-item ${data.first ? 'disabled' : ''}"><button class="page-link" onclick="changePage(${data.number - 1})">&laquo;</button></li>`;
-        for (let i = 0; i < data.totalPages; i++) {
-            if (i === 0 || i === data.totalPages - 1 || (i >= data.number - 1 && i <= data.number + 1))
-                html += `<li class="page-item ${i === data.number ? 'active' : ''}"><button class="page-link" onclick="changePage(${i})">${i + 1}</button></li>`;
-            else if (i === data.number - 2 || i === data.number + 2)
-                html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
-        }
-        html += `<li class="page-item ${data.last ? 'disabled' : ''}"><button class="page-link" onclick="changePage(${data.number + 1})">&raquo;</button></li></ul>`;
-        $('#paginationNav').html(html);
-    }
 
-    function changePage(p) {
-        if (p >= 0) {
-            currentFilter.page = p;
-            loadData();
-        }
-    }
+        // 4. Tạo URL đầy đủ và chuyển hướng trình duyệt để bắt đầu tải xuống
+        const exportUrl = `${API_URL}/export/excel?${searchParams.toString()}`;
 
-    function updatePageInfo(data) {
-        if (data.totalElements > 0) $('#pageInfo').html(`Hiển thị <strong>${data.numberOfElements}</strong> / <strong>${data.totalElements}</strong> biến thể`);
-        else $('#pageInfo').empty();
-    }
+        // Tải xuống file Excel
+        window.location.href = exportUrl;
 
-    $('#filterForm').submit(e => {
-        e.preventDefault();
-        currentFilter.page = 0;
-        loadData();
-    });
-    $('#btnReset').click(() => {
-        $('#filterForm')[0].reset();
-        currentFilter.page = 0;
-        loadData();
-    });
+        // Tùy chọn: Thông báo cho người dùng
+        toastr.info('Đang chuẩn bị và tải xuống file Excel...', 'Xuất dữ liệu');
+    }
 </script>
 </body>
 </html>

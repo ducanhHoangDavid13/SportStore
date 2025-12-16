@@ -3,14 +3,18 @@ package sd_04.datn_fstore.api;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import sd_04.datn_fstore.model.SanPhamChiTiet;
+import sd_04.datn_fstore.service.ExcelService;
 import sd_04.datn_fstore.service.SanPhamCTService;
 
+import java.io.ByteArrayInputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +27,7 @@ import java.util.Optional;
 public class SanPhamChiTietApiController {
 
     private final SanPhamCTService sanPhamCTService;
+    private final ExcelService excelService; // Giả định bạn đã inject ExcelService
 
     /**
      * GET: API tìm kiếm / lọc các Biến thể (SanPhamChiTiet)
@@ -48,6 +53,46 @@ public class SanPhamChiTietApiController {
         return ResponseEntity.ok(spctPage);
     }
 
+
+
+
+    @GetMapping("/export/excel")
+    @Transactional(readOnly = true)
+    public ResponseEntity<byte[]> exportToExcel(
+            @RequestParam(required = false) Integer idSanPham,
+            @RequestParam(required = false) Integer idKichThuoc,
+            @RequestParam(required = false) Integer idChatLieu,
+            @RequestParam(required = false) Integer idTheLoai,
+            @RequestParam(required = false) Integer idXuatXu,
+            @RequestParam(required = false) Integer idMauSac,
+            @RequestParam(required = false) Integer idPhanLoai,
+            @RequestParam(required = false) Integer trangThai,
+            @RequestParam(required = false) String keyword
+    ) {
+        // 1. Lấy TẤT CẢ dữ liệu khớp với bộ lọc (Dùng hàm mới)
+        List<SanPhamChiTiet> listToExport = sanPhamCTService.searchAll(
+                idSanPham, idKichThuoc, idChatLieu, idTheLoai,
+                idXuatXu, idMauSac, idPhanLoai, trangThai, keyword
+        );
+
+        try {
+            // 2. Tạo file Excel (Sử dụng hàm exportSanPhamChiTietToExcel mới)
+            ByteArrayInputStream bais = excelService.exportSanPhamChiTietToExcel(listToExport);
+            byte[] excelBytes = bais.readAllBytes();
+
+            // 3. Cấu hình Response Header để tải xuống
+            String filename = "danh_sach_bien_the_" + System.currentTimeMillis() + ".xlsx";
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                    .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                    .body(excelBytes);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
     /**
      * POST: Thêm mới một Biến thể (SanPhamChiTiet)
      */

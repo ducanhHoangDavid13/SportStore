@@ -245,6 +245,35 @@ public class SanPhamCTServiceImpl implements SanPhamCTService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public List<SanPhamChiTiet> searchAll(
+            Integer idSanPham,
+            Integer idKichThuoc,
+            Integer idChatLieu,
+            Integer idTheLoai,
+            Integer idXuatXu,
+            Integer idMauSac,
+            Integer idPhanLoai,
+            Integer trangThai,
+            String keyword) {
+
+        // Chuẩn bị keyword (chuyển rỗng thành null)
+        String finalKeyword = (keyword != null && keyword.trim().isEmpty()) ? null : keyword;
+
+        // Gọi phương thức Repository đã định nghĩa JPQL (Đảm bảo có JOIN FETCH)
+        return sanPhamChiTietRepository.findAllForExport(
+                idSanPham,
+                idKichThuoc,
+                idChatLieu,
+                idTheLoai,
+                idXuatXu,
+                idMauSac,
+                idPhanLoai,
+                trangThai,
+                finalKeyword
+        );
+    }
+    @Override
     public List<SanPhamChiTiet> getAvailableProducts(Integer idSanPham) {
         List<SanPhamChiTiet> list = sanPhamChiTietRepository.findAvailableVariants(idSanPham);
         list.forEach(this::loadTenHinhAnhChinh);

@@ -103,7 +103,27 @@ public class SanPhamApiController {
                     .body("Lỗi khi tìm kiếm sản phẩm.");
         }
     }
+// Trong SanPhamApiController.java
 
+    @GetMapping("/export/excel")
+    public ResponseEntity<InputStreamResource> exportExcel() {
+        // 1. Lấy TẤT CẢ sản phẩm (sanPhamService.getAll())
+        List<SanPham> list = sanPhamService.getAll();
+
+        // 2. Gọi ExcelService tạo file
+        ByteArrayInputStream in = excelService.exportSanPhamToExcel(list);
+
+        // 3. Cấu hình Headers và trả về file
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-Disposition", "attachment; filename=san_pham.xlsx");
+
+        return ResponseEntity
+                .ok()
+                .headers(headers)
+                // Đảm bảo kiểu dữ liệu đúng cho file Excel
+                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .body(new InputStreamResource(in));
+    }
 
     // =========================================================
     // 👁️ HÀM LẤY CHI TIẾT THEO ID
@@ -359,19 +379,5 @@ public class SanPhamApiController {
     // =========================================================
     // 📊 HÀM EXPORT EXCEL
     // =========================================================
-    @GetMapping("/export/excel")
-    public ResponseEntity<InputStreamResource> exportExcel() {
-        // Service cần đảm bảo rằng các đối tượng SanPham được trả về có trường soLuong là tổng của các SPCT
-        List<SanPham> list = sanPhamService.getAll();
-        ByteArrayInputStream in = excelService.exportSanPhamToExcel(list);
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Content-Disposition", "attachment; filename=san_pham.xlsx");
-
-        return ResponseEntity
-                .ok()
-                .headers(headers)
-                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
-                .body(new InputStreamResource(in));
-    }
 }

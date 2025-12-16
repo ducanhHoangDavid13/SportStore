@@ -135,4 +135,38 @@ public interface SanPhamCTRepository extends JpaRepository<SanPhamChiTiet, Integ
     // 2. Đếm số lượng SPCT sắp hết hàng (Lưu ý: count trả về long)
     int countBySoLuongLessThanEqual(Integer threshold);
     List<SanPhamChiTiet> findBySanPham_GiaTienLessThanEqual(BigDecimal price);
+
+    @Query("""
+        SELECT spct FROM SanPhamChiTiet spct
+        LEFT JOIN FETCH spct.sanPham sp 
+        LEFT JOIN FETCH spct.mauSac ms
+        LEFT JOIN FETCH spct.kichThuoc kt
+        LEFT JOIN FETCH spct.chatLieu cl
+        LEFT JOIN FETCH spct.xuatXu xx
+        LEFT JOIN FETCH spct.theLoai tl
+        LEFT JOIN FETCH spct.phanLoai pl
+        WHERE 
+            (:idSanPham IS NULL OR sp.id = :idSanPham) AND
+            (:idKichThuoc IS NULL OR kt.id = :idKichThuoc) AND
+            (:idChatLieu IS NULL OR cl.id = :idChatLieu) AND
+            (:idTheLoai IS NULL OR tl.id = :idTheLoai) AND
+            (:idXuatXu IS NULL OR xx.id = :idXuatXu) AND
+            (:idMauSac IS NULL OR ms.id = :idMauSac) AND
+            (:idPhanLoai IS NULL OR pl.id = :idPhanLoai) AND
+            (:trangThai IS NULL OR spct.trangThai = :trangThai) AND
+            (:keyword IS NULL OR :keyword = '' OR 
+                LOWER(spct.maSanPhamChiTiet) LIKE LOWER(CONCAT('%', :keyword, '%')) OR
+                LOWER(sp.tenSanPham) LIKE LOWER(CONCAT('%', :keyword, '%')))
+        """)
+    List<SanPhamChiTiet> findAllForExport(
+            @Param("idSanPham") Integer idSanPham,
+            @Param("idKichThuoc") Integer idKichThuoc,
+            @Param("idChatLieu") Integer idChatLieu,
+            @Param("idTheLoai") Integer idTheLoai,
+            @Param("idXuatXu") Integer idXuatXu,
+            @Param("idMauSac") Integer idMauSac,
+            @Param("idPhanLoai") Integer idPhanLoai,
+            @Param("trangThai") Integer trangThai,
+            @Param("keyword") String keyword
+    );
 }
