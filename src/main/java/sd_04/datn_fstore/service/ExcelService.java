@@ -11,6 +11,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ExcelService {
@@ -41,7 +42,7 @@ public class ExcelService {
                 row.createCell(1).setCellValue(sp.getMaSanPham());
                 row.createCell(2).setCellValue(sp.getTenSanPham());
                 row.createCell(3).setCellValue(sp.getGiaTien().doubleValue());
-                row.createCell(4).setCellValue(sp.getSoLuong());
+                row.createCell(4).setCellValue(Optional.ofNullable(sp.getSoLuong()).orElse(0).doubleValue());
                 row.createCell(5).setCellValue(sp.getTrangThai() == 1 ? "Đang bán" : "Ngừng bán");
             }
 
