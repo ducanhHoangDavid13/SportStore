@@ -263,36 +263,4 @@ public class CartController {
         return mapToDto(gioHangs);
     }
 
-    /// //API HIEN THI CHECK OUT(THANH TOAN)
-//    @GetMapping("/checkout")
-//    public String checkout(Model model, HttpSession session) {
-//        Integer idKhachHang = getCurrentCustomerId(session);
-//
-//        if (idKhachHang == null) {
-//            return "redirect:/login";
-//        }
-//
-//        // Lấy giỏ hàng theo khách hàng
-//        List<GioHang> gioHangs = gioHangRepository.findByIdKhachHang(idKhachHang);
-//        List<GioHangDTO> cartItems = mapToDto(gioHangs);
-//
-//        if (cartItems.isEmpty()) {
-//            // Nếu giỏ rỗng -> quay về giỏ
-//            model.addAttribute("error", "Giỏ hàng của bạn đang trống!");
-//            return "redirect:/cart";
-//        }
-//
-//        // Tính tổng
-//        BigDecimal totalPrice = BigDecimal.ZERO;
-//        for (GioHangDTO item : cartItems) {
-//            totalPrice = totalPrice.add(item.getThanhTien());
-//        }
-//
-//        model.addAttribute("cartItems", cartItems);
-//        model.addAttribute("totalPrice", totalPrice);
-//
-//        // Gọi tới checkout.html
-//        return "view/author/checkout";
-//    }
-
 }

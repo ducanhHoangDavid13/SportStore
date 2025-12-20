@@ -30,50 +30,76 @@ public class CheckOutController {
     }
 
     @GetMapping
-    public String viewCheckoutPage(Model model, HttpSession session) {
-
+    public String viewCheckoutPage(
+            @RequestParam(required = false) String type,
+            @RequestParam(required = false) Integer spctId,
+            @RequestParam(required = false) Integer quantity,
+            @RequestParam(required = false) List<Integer> cartIds, // Thêm dòng này để nhận danh sách ID
+            Model model,
+            HttpSession session
+    ) {
         Integer idKhachHang = getCurrentCustomerId(session);
-        if(idKhachHang == null){
-            return "redirect:/login";
-        }
+        if (idKhachHang == null) return "redirect:/login";
 
-        // Lấy giỏ hàng
-        List<GioHang> gioHangs = gioHangRepository.findByIdKhachHang(idKhachHang);
-
-        // Map sang DTO
         List<GioHangDTO> items = new ArrayList<>();
-
         BigDecimal total = BigDecimal.ZERO;
 
-        for(GioHang gh : gioHangs){
-            var spct = sanPhamCTRepository.findById(gh.getIdSanPhamChiTiet()).orElse(null);
-            if(spct == null) continue;
-
-            GioHangDTO dto = GioHangDTO.builder()
-                    .id(gh.getId())
-                    .idSanPhamChiTiet(spct.getId())
-                    .tenSanPham(spct.getSanPham().getTenSanPham())
-                    .tenMau(spct.getMauSac().getTenMauSac())
-                    .tenKichCo(spct.getKichThuoc().getTenKichThuoc())
-                    .donGia(spct.getGiaTien())
-                    .soLuong(gh.getSoLuong())
-                    .tenHinhAnh(
-                            spct.getSanPham().getHinhAnh().isEmpty() ?
-                                    "no-image.png" :
-                                    spct.getSanPham().getHinhAnh().get(0).getTenHinhAnh()
-                    )
-                    .build();
-
-            total = total.add(dto.getThanhTien());
-            items.add(dto);
+        // 🔥 CASE 1: MUA NGAY (Buy Now)
+        if ("buy-now".equals(type) && spctId != null && quantity != null) {
+            var spct = sanPhamCTRepository.findById(spctId).orElse(null);
+            if (spct != null) {
+                GioHangDTO dto = mapToDTO(null, spct, quantity);
+                items.add(dto);
+                total = total.add(dto.getThanhTien());
+            }
+        }
+        // 🛒 CASE 2: THANH TOÁN CÁC MỤC ĐƯỢC CHỌN (cartIds=40,41)
+        else if (cartIds != null && !cartIds.isEmpty()) {
+            List<GioHang> selectedItems = gioHangRepository.findAllById(cartIds);
+            for (GioHang gh : selectedItems) {
+                var spct = sanPhamCTRepository.findById(gh.getIdSanPhamChiTiet()).orElse(null);
+                if (spct != null) {
+                    GioHangDTO dto = mapToDTO(gh.getId(), spct, gh.getSoLuong());
+                    items.add(dto);
+                    total = total.add(dto.getThanhTien());
+                }
+            }
+        }
+        // 🛍️ CASE 3: THANH TOÁN TOÀN BỘ GIỎ HÀNG (Nếu không chọn gì cụ thể)
+        else {
+            List<GioHang> gioHangs = gioHangRepository.findByIdKhachHang(idKhachHang);
+            for (GioHang gh : gioHangs) {
+                var spct = sanPhamCTRepository.findById(gh.getIdSanPhamChiTiet()).orElse(null);
+                if (spct != null) {
+                    GioHangDTO dto = mapToDTO(gh.getId(), spct, gh.getSoLuong());
+                    items.add(dto);
+                    total = total.add(dto.getThanhTien());
+                }
+            }
         }
 
-        // Gửi sang HTML
         model.addAttribute("cartItems", items);
         model.addAttribute("totalPrice", total);
 
         return "view/author/checkout";
     }
+
+    // Hàm bổ trợ để tránh lặp code (Helper method)
+    private GioHangDTO mapToDTO(Integer cartId, sd_04.datn_fstore.model.SanPhamChiTiet spct, Integer qty) {
+        return GioHangDTO.builder()
+                .id(cartId)
+                .idSanPhamChiTiet(spct.getId())
+                .tenSanPham(spct.getSanPham().getTenSanPham())
+                .tenMau(spct.getMauSac().getTenMauSac())
+                .tenKichCo(spct.getKichThuoc().getTenKichThuoc())
+                .donGia(spct.getGiaTien())
+                .soLuong(qty)
+                .tenHinhAnh(spct.getSanPham().getHinhAnh().isEmpty()
+                        ? "no-image.png"
+                        : spct.getSanPham().getHinhAnh().get(0).getTenHinhAnh())
+                .build();
+    }
+
 
     @GetMapping("/success")
     public String viewSuccessPage(@RequestParam(value = "id", required = false) Integer orderId,
@@ -81,5 +107,6 @@ public class CheckOutController {
         model.addAttribute("orderId", orderId);
         return "view/author/orders";
     }
+
 }
 
