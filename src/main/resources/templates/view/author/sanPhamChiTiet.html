@@ -826,25 +826,27 @@
 
         const quantity = parseInt(document.getElementById("qtyInput").value);
 
-        $.ajax({
-            url: "/cart/add",
-            method: "POST",
-            data: {
-                idSanPhamChiTiet: selectedVariant.spctId,
-                soLuong: quantity
-            },
-            success: function () {
-                if (isBuyNow) {
-                    // 🔥 MUA NGAY → SANG CHECKOUT
-                    window.location.href = "/checkout";
-                } else {
+        if (isBuyNow) {
+            // LUỒNG MUA NGAY: Chuyển hướng thẳng, không lưu vào giỏ hàng DB
+            window.location.href = "/checkout?productId=" + selectedVariant.spctId + "&quantity=" + quantity;
+        } else {
+            // LUỒNG GIỎ HÀNG: Lưu vào DB như bình thường
+            $.ajax({
+                url: "/cart/add",
+                method: "POST",
+                data: {
+                    idSanPhamChiTiet: selectedVariant.spctId,
+                    soLuong: quantity
+                },
+                success: function () {
                     toastr.success("Đã thêm vào giỏ!");
+                },
+                error: function() {
+                    toastr.error("Có lỗi xảy ra khi thêm vào giỏ hàng!");
                 }
-            }
-        });
+            });
+        }
     }
-
-
 
 </script>
 

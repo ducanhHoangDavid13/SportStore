@@ -1,6 +1,8 @@
 package sd_04.datn_fstore.repository;
 
+import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -29,4 +31,9 @@ public interface GioHangRepository extends JpaRepository<GioHang, Integer> {
 
     // 3. Tìm tất cả các giỏ hàng liên quan đến MỘT sản phẩm CHI TIẾT
     List<GioHang> findByIdSanPhamChiTiet(Integer idSanPhamChiTiet);
+
+    @Modifying
+    @Transactional
+    @Query("DELETE FROM GioHang gh WHERE gh.idKhachHang = :idKhachHang AND gh.idSanPhamChiTiet = :idSanPhamChiTiet AND gh.trangThai = 1")
+    void deleteFromCart(@Param("idKhachHang") Integer idKhachHang, @Param("idSanPhamChiTiet") Integer idSanPhamChiTiet);
 }

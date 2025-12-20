@@ -60,7 +60,42 @@ public class CheckOutApiController {
         return khachHang.getId();
     }
     // ----------------------------------------------------
+    /**
+     * API LẤY CHI TIẾT SẢN PHẨM PHỤC VỤ TÍNH NĂNG "MUA NGAY"
+     * Giúp cô lập sản phẩm mua ngay với giỏ hàng cũ
+     */
+    @GetMapping("/product-detail/{id}")
+    public ResponseEntity<?> getSanPhamChiTiet(@PathVariable Integer id) {
+        try {
+            Optional<SanPhamChiTiet> spctOpt = sanPhamCTRepository.findById(id);
+            if (spctOpt.isPresent()) {
+                SanPhamChiTiet spct = spctOpt.get();
+                Map<String, Object> res = new HashMap<>();
+                res.put("id", spct.getId());
+                res.put("tenSanPham", spct.getSanPham().getTenSanPham());
+                res.put("giaTien", spct.getGiaTien());
+                res.put("soLuong", spct.getSoLuong());
+                res.put("tenKichCo", spct.getKichThuoc() != null ? spct.getKichThuoc().getTenKichThuoc() : "N/A");
+                res.put("tenMau", spct.getMauSac() != null ? spct.getMauSac().getTenMauSac() : "N/A");
 
+                // --- SỬA TẠI ĐÂY ---
+                // Lấy danh sách hình ảnh từ sản phẩm
+                List<sd_04.datn_fstore.model.HinhAnh> listHinhAnh = spct.getSanPham().getHinhAnh();
+                if (listHinhAnh != null && !listHinhAnh.isEmpty()) {
+                    // Lấy tên ảnh đầu tiên gửi về cho FE
+                    res.put("tenHinhAnh", listHinhAnh.get(0).getTenHinhAnh());
+                } else {
+                    res.put("tenHinhAnh", "default.png");
+                }
+                // -------------------
+
+                return ResponseEntity.ok(res);
+            }
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Không tìm thấy sản phẩm.");
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Lỗi: " + e.getMessage());
+        }
+    }
     /**
      * API TÍNH TOÁN LẠI TOÀN BỘ GIÁ TRỊ ĐƠN HÀNG MỘT CÁCH AN TOÀN
      * Endpoint: POST /api/checkout/calculate
