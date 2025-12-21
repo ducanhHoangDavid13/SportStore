@@ -262,5 +262,18 @@ public class CartController {
         List<GioHang> gioHangs = gioHangRepository.findByIdKhachHang(idKhachHang);
         return mapToDto(gioHangs);
     }
-
+    // --- 5. XÓA DANH SÁCH SẢN PHẨM SAU KHI THANH TOÁN (POST /cart/clear-after-checkout) ---
+    @PostMapping("/cart/clear-after-checkout")
+    @ResponseBody
+    public String clearCartAfterCheckout(@RequestBody List<Integer> cartItemIds) {
+        try {
+            if (cartItemIds != null && !cartItemIds.isEmpty()) {
+                gioHangRepository.deleteAllById(cartItemIds);
+                return "success";
+            }
+            return "error: Danh sách trống";
+        } catch (Exception e) {
+            return "error: " + e.getMessage();
+        }
+    }
 }
