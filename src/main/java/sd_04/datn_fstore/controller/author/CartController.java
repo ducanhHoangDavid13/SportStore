@@ -2,6 +2,8 @@ package sd_04.datn_fstore.controller.author;
 
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -9,8 +11,10 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import sd_04.datn_fstore.dto.GioHangDTO;
 import sd_04.datn_fstore.model.GioHang;
+import sd_04.datn_fstore.model.KhachHang;
 import sd_04.datn_fstore.model.SanPhamChiTiet;
 import sd_04.datn_fstore.repository.GioHangRepository;
+import sd_04.datn_fstore.repository.KhachHangRepo; // Thêm Repository này
 import sd_04.datn_fstore.repository.SanPhamCTRepository;
 
 import java.math.BigDecimal;
@@ -25,82 +29,72 @@ public class CartController {
 
     private final GioHangRepository gioHangRepository;
     private final SanPhamCTRepository sanPhamCTRepository;
-
-    // Gán cứng ID khách hàng để TEST
-    private Integer getCurrentCustomerId(HttpSession session) {
-        return 1;
-    }
+    private final KhachHangRepo khachHangRepository; // Thêm mới để tìm khách hàng
 
     /**
-     * Ánh xạ từ GioHang Entity sang GioHangDTO (Phiên bản An toàn)
+     * LẤY ID KHÁCH HÀNG ĐANG ĐĂNG NHẬP TỪ SPRING SECURITY
      */
+    private Integer getCurrentCustomerId() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        // Kiểm tra nếu chưa đăng nhập hoặc là tài khoản ẩn danh
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getName())) {
+            return null;
+        }
+
+        String username = auth.getName(); // Lấy email hoặc username đăng nhập
+
+        // Tìm khách hàng trong DB dựa trên username
+        Optional<KhachHang> kh = khachHangRepository.findByEmail(username); // Giả sử dùng Email đăng nhập
+        if (kh.isPresent()) {
+            return kh.get().getId();
+        }
+
+        return null;
+    }
+
     private List<GioHangDTO> mapToDto(List<GioHang> gioHangs) {
         List<GioHangDTO> dtoList = new ArrayList<>();
-
         for (GioHang gh : gioHangs) {
-
-            if (gh.getIdSanPhamChiTiet() == null) {
-                System.err.println("LOG_ERROR: GioHang ID " + gh.getId() + " thiếu idSanPhamChiTiet.");
-                continue;
-            }
-
+            if (gh.getIdSanPhamChiTiet() == null) continue;
             Optional<SanPhamChiTiet> optSpct = sanPhamCTRepository.findById(gh.getIdSanPhamChiTiet());
-
             if (optSpct.isPresent()) {
                 SanPhamChiTiet spct = optSpct.get();
-
-                if (spct.getMauSac() == null || spct.getKichThuoc() == null || spct.getSanPham() == null) {
-                    System.err.println("LOG_ERROR: SPCT ID " + spct.getId() + " thiếu MauSac/KichThuoc/SanPham (Kiểm tra dữ liệu DB).");
-                    continue;
-                }
-
-                // --- Lấy dữ liệu an toàn ---
-                BigDecimal donGia = spct.getGiaTien();
-                String tenMau = spct.getMauSac().getTenMauSac();
-                String tenKichCo = spct.getKichThuoc().getTenKichThuoc();
-                Integer soLuongTon = spct.getSoLuong();
 
                 String tenHinhAnh = "no-image.png";
                 if (spct.getSanPham().getHinhAnh() != null && !spct.getSanPham().getHinhAnh().isEmpty()) {
                     tenHinhAnh = spct.getSanPham().getHinhAnh().get(0).getTenHinhAnh();
                 }
 
-                // Xây dựng DTO
                 GioHangDTO dto = GioHangDTO.builder()
                         .id(gh.getId())
                         .soLuong(gh.getSoLuong() != null ? gh.getSoLuong() : 1)
                         .idSanPhamChiTiet(spct.getId())
-                        .donGia(donGia)
+                        .donGia(spct.getGiaTien())
                         .idSanPham(spct.getSanPham().getId())
                         .tenSanPham(spct.getSanPham().getTenSanPham())
-                        .tenMau(tenMau)
-                        .tenKichCo(tenKichCo)
+                        .tenMau(spct.getMauSac().getTenMauSac())
+                        .tenKichCo(spct.getKichThuoc().getTenKichThuoc())
                         .tenHinhAnh(tenHinhAnh)
-                        .soLuongTon(soLuongTon)
+                        .soLuongTon(spct.getSoLuong())
                         .build();
-
                 dtoList.add(dto);
-            } else {
-                System.err.println("LOG_ERROR: Không tìm thấy SanPhamChiTiet cho ID: " + gh.getIdSanPhamChiTiet());
             }
         }
         return dtoList;
     }
 
-
-    // --- 1. HIỂN THỊ GIỎ HÀNG (GET /cart) ---
     @GetMapping("cart")
-    public String index(Model model, HttpSession session) {
-        Integer idKhachHang = getCurrentCustomerId(session);
+    public String index(Model model) {
+        Integer idKhachHang = getCurrentCustomerId();
 
         if (idKhachHang == null) {
-            return "redirect:/login";
+            return "redirect:/login"; // Bắt buộc đăng nhập để xem giỏ hàng
         }
 
         List<GioHang> gioHangs = gioHangRepository.findByIdKhachHang(idKhachHang);
         List<GioHangDTO> cartItems = mapToDto(gioHangs);
 
-        // Tính toán tổng
         BigDecimal totalPrice = BigDecimal.ZERO;
         int totalItems = 0;
         for (GioHangDTO item : cartItems) {
@@ -115,31 +109,26 @@ public class CartController {
         return "view/author/cart";
     }
 
-    // --- 2. THÊM SẢN PHẨM VÀO GIỎ HÀNG (POST /cart/add) ---
     @PostMapping("/cart/add")
     public String addToCart(@RequestParam("idSanPhamChiTiet") Integer idSanPhamChiTiet,
                             @RequestParam("soLuong") Integer soLuong,
-                            HttpSession session,
                             RedirectAttributes ra) {
 
-        Integer idKhachHang = getCurrentCustomerId(session);
+        Integer idKhachHang = getCurrentCustomerId();
         if (idKhachHang == null) {
-            System.err.println("LOG_ERROR: Khách hàng chưa đăng nhập.");
+            ra.addFlashAttribute("error", "Bạn cần đăng nhập để thêm vào giỏ hàng!");
             return "redirect:/login";
         }
 
         Optional<SanPhamChiTiet> optSpct = sanPhamCTRepository.findById(idSanPhamChiTiet);
         if (optSpct.isEmpty()) {
-            System.err.println("LOG_ERROR: Không tìm thấy SPCT ID: " + idSanPhamChiTiet);
             ra.addFlashAttribute("error", "Sản phẩm không tồn tại.");
             return "redirect:/";
         }
         SanPhamChiTiet spct = optSpct.get();
 
-        // Kiểm tra tồn kho
         if (spct.getSoLuong() == null || spct.getSoLuong() < soLuong) {
-            System.err.println("LOG_ERROR: Vượt tồn kho ban đầu. SPCT ID: " + idSanPhamChiTiet + ", Tồn: " + spct.getSoLuong());
-            ra.addFlashAttribute("error", "Số lượng yêu cầu vượt quá tồn kho hiện tại.");
+            ra.addFlashAttribute("error", "Số lượng yêu cầu vượt quá tồn kho.");
             return "redirect:/sanpham/chi/tiet/" + idSanPhamChiTiet;
         }
 
@@ -149,131 +138,96 @@ public class CartController {
 
         try {
             if (existingCartItem.isPresent()) {
-                // --- CẬP NHẬT SỐ LƯỢNG ---
                 GioHang gh = existingCartItem.get();
                 int newQuantity = gh.getSoLuong() + soLuong;
-
                 if (spct.getSoLuong() < newQuantity) {
                     ra.addFlashAttribute("error", "Tổng số lượng vượt quá tồn kho.");
                     return "redirect:/sanpham/chi/tiet/" + idSanPhamChiTiet;
                 }
-
                 gh.setSoLuong(newQuantity);
                 gh.setNgaySua(LocalDateTime.now());
                 gioHangRepository.save(gh);
-                System.out.println("LOG_SUCCESS: Đã cập nhật GioHang ID: " + gh.getId());
-
             } else {
-                // --- THÊM MỚI ---
                 GioHang newCartItem = new GioHang();
-
                 newCartItem.setIdKhachHang(idKhachHang);
                 newCartItem.setIdSanPhamChiTiet(idSanPhamChiTiet);
-
-                // ⭐️ FIX LỖI: Sử dụng ID thô trực tiếp (spct.getIdSanPham())
-                if (spct.getIdSanPham() == null) {
-                    System.err.println("LOG_FATAL: SPCT ID " + idSanPhamChiTiet + " thiếu idSanPham trong DB.");
-                    ra.addFlashAttribute("error", "Lỗi dữ liệu sản phẩm.");
-                    return "redirect:/sanpham/chi/tiet/" + idSanPhamChiTiet;
-                }
-
-                // Gán ID thô vào cột Foreign Key
-                newCartItem.setIdSanPham(spct.getIdSanPham());
-
+                newCartItem.setIdSanPham(spct.getSanPham().getId());
                 newCartItem.setSoLuong(soLuong);
                 newCartItem.setNgayTao(LocalDateTime.now());
                 newCartItem.setNgaySua(LocalDateTime.now());
                 newCartItem.setTrangThai(1);
-
-                GioHang savedItem = gioHangRepository.save(newCartItem);
-                System.out.println("LOG_SUCCESS: Đã THÊM MỚI GioHang ID: " + savedItem.getId());
+                gioHangRepository.save(newCartItem);
             }
-
         } catch (Exception e) {
-            e.printStackTrace(System.err);
-            ra.addFlashAttribute("error", "Lỗi hệ thống khi lưu giỏ hàng: " + e.getMessage());
+            ra.addFlashAttribute("error", "Lỗi: " + e.getMessage());
             return "redirect:/sanpham/chi/tiet/" + idSanPhamChiTiet;
         }
 
-        // Chuyển hướng về trang Giỏ hàng
-        ra.addFlashAttribute("success", "Sản phẩm đã được thêm vào giỏ hàng thành công!");
+        ra.addFlashAttribute("success", "Đã thêm vào giỏ hàng!");
         return "redirect:/cart";
     }
 
-    // --- 3. CẬP NHẬT SỐ LƯỢNG (POST /cart/update) ---
-    // (Chức năng AJAX trên trang cart.html)
     @PostMapping("/cart/update")
     @ResponseBody
     public String updateCartItem(@RequestParam("id") Integer cartItemId,
                                  @RequestParam("quantityChange") Integer change) {
-
         Optional<GioHang> optGh = gioHangRepository.findById(cartItemId);
-        if (optGh.isEmpty()) {
-            return "error: Mục giỏ hàng không tồn tại.";
-        }
+        if (optGh.isEmpty()) return "error: Mục không tồn tại.";
 
         GioHang gh = optGh.get();
-        int newQuantity = gh.getSoLuong() + change;
+        // Bảo mật: Kiểm tra xem mục giỏ hàng này có đúng của người đang đăng nhập không
+        if (!gh.getIdKhachHang().equals(getCurrentCustomerId())) {
+            return "error: Bạn không có quyền sửa giỏ hàng này.";
+        }
 
+        int newQuantity = gh.getSoLuong() + change;
         if (newQuantity < 1) {
             gioHangRepository.delete(gh);
-            return "success: Đã xóa sản phẩm khỏi giỏ hàng.";
+            return "success: Đã xóa.";
         }
 
         Optional<SanPhamChiTiet> optSpct = sanPhamCTRepository.findById(gh.getIdSanPhamChiTiet());
         if (optSpct.isPresent() && optSpct.get().getSoLuong() < newQuantity) {
-            return "error: Số lượng yêu cầu vượt quá tồn kho.";
+            return "error: Vượt quá tồn kho.";
         }
 
-        try {
-            gh.setSoLuong(newQuantity);
-            gh.setNgaySua(LocalDateTime.now());
-            gioHangRepository.save(gh);
-            return "success: Cập nhật số lượng thành công.";
-        } catch (Exception e) {
-            System.err.println("LOG_ERROR: Lỗi cập nhật giỏ hàng AJAX: " + e.getMessage());
-            return "error: Lỗi DB khi cập nhật.";
-        }
+        gh.setSoLuong(newQuantity);
+        gh.setNgaySua(LocalDateTime.now());
+        gioHangRepository.save(gh);
+        return "success";
     }
 
-    // --- 4. XÓA SẢN PHẨM (DELETE /cart/remove/{id}) ---
-    // (Chức năng AJAX trên trang cart.html)
     @DeleteMapping("/cart/remove/{id}")
     @ResponseBody
     public String removeCartItem(@PathVariable("id") Integer cartItemId) {
-        try {
+        Optional<GioHang> gh = gioHangRepository.findById(cartItemId);
+        if (gh.isPresent() && gh.get().getIdKhachHang().equals(getCurrentCustomerId())) {
             gioHangRepository.deleteById(cartItemId);
-            return "success: Xóa sản phẩm khỏi giỏ hàng thành công.";
-        } catch (Exception e) {
-            System.err.println("LOG_ERROR: Lỗi xóa giỏ hàng AJAX: " + e.getMessage());
-            return "error: Không thể xóa sản phẩm.";
+            return "success";
         }
+        return "error";
     }
-    // ==== API JSON CHO CHECKOUT ====
+
     @GetMapping("/api/cart")
     @ResponseBody
-    public List<GioHangDTO> getCartJson(HttpSession session) {
-        Integer idKhachHang = getCurrentCustomerId(session);
-
-        if (idKhachHang == null) {
-            return new ArrayList<>();
-        }
-
-        List<GioHang> gioHangs = gioHangRepository.findByIdKhachHang(idKhachHang);
-        return mapToDto(gioHangs);
+    public List<GioHangDTO> getCartJson() {
+        Integer idKhachHang = getCurrentCustomerId();
+        if (idKhachHang == null) return new ArrayList<>();
+        return mapToDto(gioHangRepository.findByIdKhachHang(idKhachHang));
     }
-    // --- 5. XÓA DANH SÁCH SẢN PHẨM SAU KHI THANH TOÁN (POST /cart/clear-after-checkout) ---
+
     @PostMapping("/cart/clear-after-checkout")
     @ResponseBody
     public String clearCartAfterCheckout(@RequestBody List<Integer> cartItemIds) {
         try {
             if (cartItemIds != null && !cartItemIds.isEmpty()) {
+                // Chỉ xóa nếu các ID này thuộc về khách hàng hiện tại (có thể bổ sung check ở đây)
                 gioHangRepository.deleteAllById(cartItemIds);
                 return "success";
             }
-            return "error: Danh sách trống";
+            return "error";
         } catch (Exception e) {
-            return "error: " + e.getMessage();
+            return "error";
         }
     }
 }

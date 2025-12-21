@@ -3,13 +3,17 @@ package sd_04.datn_fstore.controller.author;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import sd_04.datn_fstore.dto.GioHangDTO;
 import sd_04.datn_fstore.model.GioHang;
+import sd_04.datn_fstore.model.KhachHang;
 import sd_04.datn_fstore.repository.GioHangRepository;
+import sd_04.datn_fstore.repository.KhachHangRepo;
 import sd_04.datn_fstore.repository.SanPhamCTRepository;
 
 import java.math.BigDecimal;
@@ -22,25 +26,40 @@ public class CheckOutController {
 
     private final GioHangRepository gioHangRepository;
     private final SanPhamCTRepository sanPhamCTRepository;
+    private final KhachHangRepo khachHangRepository; // Thêm để tìm khách hàng
 
-    private Integer getCurrentCustomerId(HttpSession session) {
-        return 1; // TEST: Thay bằng logic lấy user thực tế của bạn
+    /**
+     * LẤY ID KHÁCH HÀNG THỰC TẾ TỪ SPRING SECURITY
+     * (Giống hệt bên CartController để đảm bảo đồng bộ)
+     */
+    private Integer getCurrentCustomerId() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getName())) {
+            return null;
+        }
+        String username = auth.getName();
+        Optional<KhachHang> kh = khachHangRepository.findByEmail(username);
+        return kh.map(KhachHang::getId).orElse(null);
     }
 
     // 1. Hiển thị trang HTML Checkout
     @GetMapping
-    public String viewCheckoutPage(Model model, HttpSession session) {
+    public String viewCheckoutPage(Model model) {
+        if (getCurrentCustomerId() == null) {
+            return "redirect:/login";
+        }
         return "view/author/checkout";
     }
 
-    // 2. API lấy danh sách sản phẩm đã chọn (để trang checkout gọi lúc load trang)
+    // 2. API lấy danh sách sản phẩm đã chọn
     @GetMapping("/api/items")
     @ResponseBody
     public ResponseEntity<?> getSelectedCartItems(
-            @RequestParam(value = "cartIds", required = false) List<Integer> cartIds,
-            HttpSession session
+            @RequestParam(value = "cartIds", required = false) List<Integer> cartIds
     ) {
-        Integer idKhachHang = getCurrentCustomerId(session);
+        // Thay đổi: Lấy ID từ Security, không dùng gán cứng
+        Integer idKhachHang = getCurrentCustomerId();
+
         if (idKhachHang == null) return ResponseEntity.status(401).build();
 
         if (cartIds == null || cartIds.isEmpty()) return ResponseEntity.badRequest().body("No items selected");
@@ -48,8 +67,11 @@ public class CheckOutController {
         List<GioHangDTO> items = new ArrayList<>();
         BigDecimal total = BigDecimal.ZERO;
 
+        // Bảo mật: Chỉ lấy những sản phẩm thuộc về idKhachHang này
         List<GioHang> selectedItems = gioHangRepository.findAllById(cartIds);
+
         for (GioHang gh : selectedItems) {
+            // Kiểm tra: Nếu món đồ trong giỏ không thuộc về người đang đăng nhập thì bỏ qua
             if (gh.getIdKhachHang().equals(idKhachHang)) {
                 var spct = sanPhamCTRepository.findById(gh.getIdSanPhamChiTiet()).orElse(null);
                 if (spct != null) {
@@ -66,7 +88,7 @@ public class CheckOutController {
         return ResponseEntity.ok(response);
     }
 
-    // 3. API XÓA GIỎ HÀNG (Dùng sau khi bấm nút thanh toán)
+    // 3. API XÓA GIỎ HÀNG (Giữ nguyên logic xóa nhưng có thể thêm check bảo mật nếu cần)
     @PostMapping("/api/clear-cart")
     @ResponseBody
     @Transactional
@@ -89,7 +111,7 @@ public class CheckOutController {
 
     private GioHangDTO mapToDTO(Integer cartId, sd_04.datn_fstore.model.SanPhamChiTiet spct, Integer qty) {
         return GioHangDTO.builder()
-                .id(cartId) // Đây là ID của bảng GioHang (Rất quan trọng để xóa)
+                .id(cartId)
                 .idSanPhamChiTiet(spct.getId())
                 .tenSanPham(spct.getSanPham().getTenSanPham())
                 .tenMau(spct.getMauSac().getTenMauSac())
