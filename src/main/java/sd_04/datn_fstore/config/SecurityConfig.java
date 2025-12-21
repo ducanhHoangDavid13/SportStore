@@ -31,6 +31,7 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(request -> request
+                        .requestMatchers(router()).permitAll()
                         .requestMatchers(
                                 "/",
                                 // Bổ sung đầy đủ các đường dẫn tài nguyên tĩnh:
@@ -86,8 +87,6 @@ public class SecurityConfig {
         return http.build();
     }
 
-
-
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -99,4 +98,20 @@ public class SecurityConfig {
         authenticationManagerBuilder.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder());
         return authenticationManagerBuilder.build();
     }
+
+    private String[] router() {
+        return new String[] {
+                "/home",
+                "/san-pham",
+                "/san-pham/**",
+                "/checkout",
+                "/cart",
+                "/blog",
+                "/profile",
+                "/orders-user",
+                "/address",
+                "/image/**"
+        };
+    }
+
 }
