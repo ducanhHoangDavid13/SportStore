@@ -369,7 +369,7 @@
             .then(data => {
                 $('#subTotal').text(formatCurrency(data.subTotal));
                 $('#discountAmount').text("-" + formatCurrency(data.discountAmount));
-                $('#finalTotal').text(formatCurrency(data.finalTotal + 30000)); // +30k ship cố định
+                $('#finalTotal').text(formatCurrency(data.finalTotal)); // +30k ship cố định
             });
     }
 
