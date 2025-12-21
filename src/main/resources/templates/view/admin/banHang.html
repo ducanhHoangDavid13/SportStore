@@ -357,10 +357,9 @@
             <table class="cart-table">
                 <thead>
                 <tr>
-                    <th style="width:45%">Sản phẩm</th>
-                    <th style="width:25%">SL</th>
-                    <th style="width:20%;text-align:right">Tiền</th>
-                    <th style="width:10%"></th>
+                    <th style="width:35%">Sản phẩm</th>
+                    <th style="width:20%">Đơn giá</th> <th style="width:20%">SL</th>
+                    <th style="width:20%;text-align:right">Thành tiền</th> <th style="width:5%"></th>
                 </tr>
                 </thead>
                 <tbody id="cart-list"></tbody>
@@ -391,11 +390,13 @@
                         <input type="hidden" id="pay-method-val" value="CASH">
                     </div>
                     <div id="cash-section">
-                        <input type="text" class="form-control form-control-sm fw-bold text-end" id="customer-paid"
-                               placeholder="Nhập tiền khách đưa...">
-                        <div class="d-flex justify-content-between mt-1 px-1 small">
-                            <span>Tiền thừa:</span> <span class="fw-bold text-success"
-                                                          id="change-amount-text">0 ₫</span>
+                        <div class="mb-2">
+                            <label class="small fw-bold text-muted">Tiền khách đưa (F8)</label>
+                            <input type="text" class="form-control form-control-lg fw-bold text-end text-primary" id="customer-paid" placeholder="0">
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center bg-light p-2 rounded">
+                            <span class="fw-bold small">TIỀN THỪA:</span>
+                            <span class="fs-5 fw-bold text-success" id="change-amount-text">0 ₫</span>
                         </div>
                     </div>
                     <div id="qr-hint" class="alert alert-info py-1 small mb-0 d-none text-center">
@@ -760,7 +761,7 @@
     function renderCart() {
         let subtotal = 0, html = '';
         if (cart.length === 0) {
-            html = '<tr><td colspan="4" class="text-center py-5 text-muted small">Giỏ hàng trống</td></tr>';
+            html = '<tr><td colspan="5" class="text-center py-5 text-muted small">Giỏ hàng trống</td></tr>';
         } else {
             cart.forEach(i => {
                 const totalItem = i.price * i.qty;
@@ -769,9 +770,9 @@
                 <tr>
                     <td>
                         <div class="fw-bold small text-truncate" style="max-width:140px">${i.name}</div>
-                        <span class="text-muted small">${i.size} - ${i.color}</span>
+                        <span class="text-muted small" style="font-size:0.75rem">${i.size} - ${i.color}</span>
                     </td>
-                    <td>
+                    <td class="small text-secondary">${formatter.format(i.price)}</td> <td>
                         <div class="qty-control">
                             <button class="qty-btn" data-id="${i.id}" data-delta="-1">-</button>
                             <input type="number" class="qty-input" value="${i.qty}" data-id="${i.id}" min="1">
@@ -816,6 +817,9 @@
 
             const list = await res.json();
 
+            // Debug: In ra console để xem chính xác API trả về tên trường là gì
+            console.log("Dữ liệu Voucher từ API:", list);
+
             if (!Array.isArray(list)) {
                 console.error("Dữ liệu voucher không phải là mảng:", list);
                 toastr.error("Lỗi dữ liệu voucher từ server.");
@@ -824,15 +828,29 @@
 
             let html = '<option value="">-- Chọn mã giảm giá --</option>';
             list.forEach(c => {
+                // 1. Tính nhãn hiển thị (Label)
                 let label = c.hinhThucGiam == 2 ? Math.round(c.giaTriGiam) + '%' : formatter.format(c.giaTriGiam);
+
+                // 2. TÌM GIÁ TRỊ GIẢM TỐI ĐA (QUAN TRỌNG NHẤT)
+                // Backend có thể trả về một trong các tên sau, ta bắt tất cả:
+                let maxDiscount = 0;
+                if (c.soTienGiamToiDa !== undefined && c.soTienGiamToiDa !== null) {
+                    maxDiscount = c.soTienGiamToiDa;
+                } else if (c.giamToiDa !== undefined && c.giamToiDa !== null) {
+                    maxDiscount = c.giamToiDa;
+                } else if (c.maxGiam !== undefined && c.maxGiam !== null) {
+                    maxDiscount = c.maxGiam;
+                }
+                // --------------------------------------------------------
+
                 html += `<option value="${c.id}"
-                            data-code="${c.maPhieuGiamGia}"
-                            data-type="${c.hinhThucGiam}"
-                            data-val="${c.giaTriGiam}"
-                            data-min="${c.dieuKienGiamGia || 0}"
-                            data-max="${c.soTienGiamToiDa || 0}">
-                            ${c.maPhieuGiamGia} (${c.tenPhieuGiamGia}) - ${label}
-                         </option>`;
+                        data-code="${c.maPhieuGiamGia}"
+                        data-type="${c.hinhThucGiam}"
+                        data-val="${c.giaTriGiam}"
+                        data-min="${c.dieuKienGiamGia || 0}"
+                        data-max="${maxDiscount}">
+                        ${c.maPhieuGiamGia} (${c.tenPhieuGiamGia}) - ${label}
+                     </option>`;
             });
             $('#coupon-select').html(html);
         } catch (e) {
@@ -857,38 +875,41 @@
             const type = parseInt($option.data('type'));
             const value = parseFloat($option.data('val')) || 0;
             const minBill = parseFloat($option.data('min')) || 0;
-            const maxDisc = parseFloat($option.data('max'));
+            const maxDisc = parseFloat($option.data('max')); // Lấy giá trị giảm tối đa
 
             if (subtotal < minBill) {
                 $msg.text(`Cần tối thiểu ${formatter.format(minBill)} để dùng mã`).addClass('text-danger').show();
                 discountAmount = 0;
             } else {
-                if (type === 2) {
+                // Logic tính toán voucher
+                if (type === 2) { // Loại %
                     let calculated = subtotal * (value / 100);
+
+                    // --- ĐOẠN ĐÃ SỬA: KIỂM TRA GIẢM TỐI ĐA ---
                     if (!isNaN(maxDisc) && maxDisc > 0 && calculated > maxDisc) {
-                        calculated = maxDisc;
+                        calculated = maxDisc; // Nếu vượt quá trần thì gán bằng trần
                     }
+                    // ------------------------------------------
+
                     discountAmount = calculated;
-                    let maxInfo = (maxDisc > 0) ? `(Max: ${formatter.format(maxDisc)})` : '';
+                    let maxInfo = (maxDisc > 0) ? `(Tối đa: ${formatter.format(maxDisc)})` : '';
                     $msg.text(`Giảm ${value}% ${maxInfo}`).addClass('text-success').show();
-                } else {
+                } else { // Loại tiền mặt trực tiếp
                     discountAmount = value;
                     $msg.text(`Giảm trực tiếp ${formatter.format(value)}`).addClass('text-success').show();
                 }
             }
         }
 
+        // Đảm bảo không giảm quá tổng tiền
         if (discountAmount > subtotal) discountAmount = subtotal;
-
         discountAmount = Math.round(discountAmount);
         finalTotal = subtotal - discountAmount;
-
+        // Cập nhật giao diện
         $('#discount').text(formatter.format(discountAmount)).data('val', discountAmount);
         $('#total').text(formatter.format(finalTotal)).data('val', finalTotal);
-
         calculateChange();
     }
-
     async function findBestCoupon() {
         if (!cart.length) return toastr.warning("Giỏ hàng trống!");
         const subtotal = parseFloat($('#subtotal').data('val'));
@@ -977,7 +998,8 @@
                 tienGiamGia: parseFloat($('#discount').data('val')) || 0,
                 phieuGiamGiaId: $('#coupon-select').val() || null,
                 phuongThucThanhToan: method,
-                tienKhachDua: paidAmount,
+                // Lấy giá trị tiền khách đưa đã lọc dấu phân cách
+                tienKhachDua: parseCurrency($('#customer-paid').val()) || paidAmount,
                 danhSachSanPham: cart.map(i => ({
                     sanPhamChiTietId: i.id,
                     soLuong: i.qty,
@@ -1237,8 +1259,10 @@
         }
     }
 
+    // Cập nhật hàm parse để xóa sạch dấu phân cách khi tính toán
     function parseCurrency(str) {
-        return parseFloat(str?.toString().replace(/[^0-9]/g, '')) || 0;
+        if (!str) return 0;
+        return parseFloat(str.toString().replace(/[^0-9]/g, '')) || 0;
     }
 
     function removeTone(str) {
@@ -1260,6 +1284,15 @@
         // Init Plugins
         $('.select2-basic').select2({theme: 'bootstrap-5'});
         $('.select2-modal').select2({theme: 'bootstrap-5', dropdownParent: $('#modal-filter')});
+
+        // Tự động định dạng 1.000.000 khi nhập tiền khách đưa
+        $('#customer-paid').on('input', function() {
+            let val = $(this).val().replace(/[^0-9]/g, "");
+            if (val) {
+                $(this).val(Number(val).toLocaleString('vi-VN'));
+            }
+            calculateChange();
+        });
 
         // Khởi chạy dữ liệu ban đầu
         startClock();
@@ -1316,7 +1349,9 @@
         $('#btn-checkout').click(handleCheckoutClick);
         $('#btn-save-draft').click(saveDraft);
         $('#btn-confirm-qr-paid').click(confirmQRPayment);
+
         $('#customer-paid').on('input', calculateChange);
+
         $('#coupon-select').on('change', function () {
             let currentTotal = parseFloat($('#subtotal').data('val')) || 0;
             updateSummary(currentTotal);

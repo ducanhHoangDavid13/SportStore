@@ -158,6 +158,7 @@ public class HoaDonApiController {
                 // Đảm bảo lấy tienGiamGia từ Entity
                 hd.getTienGiamGia(), // <<<< BỔ SUNG TRƯỜNG NÀY
                 hd.getTongTienSauGiam() != null ? hd.getTongTienSauGiam() : hd.getTongTien(),
+                hd.getTienKhachDua(),
                 hd.getPhiVanChuyen(),
                 phieuGiamGiaDTO,
                 diaChiDTO
@@ -178,7 +179,7 @@ public class HoaDonApiController {
         private BigDecimal tongTien;
         private BigDecimal tienGiamGia; // <<<< BỔ SUNG TRƯỜNG NÀY
         private BigDecimal tongTienSauGiam;
-
+        private BigDecimal tienKhachDua;
         private BigDecimal phiVanChuyen;
         private PhieuGiamGiaDTO phieuGiamGia;
         private DiaChiGiaoHangDTO diaChiGiaoHang;

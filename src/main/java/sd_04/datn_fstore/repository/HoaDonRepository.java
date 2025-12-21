@@ -18,14 +18,12 @@ import java.util.Optional;
 public interface HoaDonRepository extends JpaRepository<HoaDon, Integer> {
 
     // =========================================================================
-    // 1. HÀM TÌM KIẾM (SEARCH) - ĐÃ CẬP NHẬT QUERY
+    // 1. HÀM TÌM KIẾM (SEARCH) - LẤY DANH SÁCH (CÓ PHÂN TRANG)
     // =========================================================================
-    // Giữ nguyên tên hàm: searchByTrangThaiAndNgayTao
-    // Thay đổi: Thêm LEFT JOIN FETCH để lấy Khách hàng, Voucher, Địa chỉ
     @Query(value = "SELECT hd FROM HoaDon hd " +
-            "LEFT JOIN FETCH hd.khachHang " +        // [MỚI] Lấy thông tin khách
-            "LEFT JOIN FETCH hd.phieuGiamGia " +     // [MỚI] Lấy thông tin voucher
-            "LEFT JOIN FETCH hd.diaChiGiaoHang " +   // [MỚI] Lấy địa chỉ giao hàng
+            "LEFT JOIN FETCH hd.khachHang " +        // Lấy thông tin khách
+            "LEFT JOIN FETCH hd.phieuGiamGia " +     // Lấy thông tin voucher
+            "LEFT JOIN FETCH hd.diaChiGiaoHang " +   // Lấy địa chỉ giao hàng
             "WHERE " +
             "(:trangThaiList IS NULL OR hd.trangThai IN :trangThaiList) AND " +
             "(:ngayBatDau IS NULL OR hd.ngayTao >= :ngayBatDau) AND " +
@@ -52,16 +50,15 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Integer> {
     );
 
     // =========================================================================
-    // 2. HÀM CHI TIẾT (DETAIL) - ĐÃ CẬP NHẬT QUERY
+    // 2. HÀM CHI TIẾT (DETAIL) - LẤY 1 HÓA ĐƠN ĐẦY ĐỦ THÔNG TIN
     // =========================================================================
-    // Giữ nguyên tên hàm: findByIdWithDetails
-    // Thay đổi: Thêm LEFT JOIN FETCH diaChiGiaoHang
+    // Hàm này dùng SELECT hd => Nó sẽ tự động lấy cột tienKhachDua NẾU trong Entity HoaDon đã khai báo
     @Query("SELECT hd FROM HoaDon hd " +
             "LEFT JOIN FETCH hd.hoaDonChiTiets " +   // Lấy list sản phẩm con
             "LEFT JOIN FETCH hd.khachHang " +        // Lấy khách hàng
             "LEFT JOIN FETCH hd.nhanVien " +         // Lấy nhân viên
             "LEFT JOIN FETCH hd.phieuGiamGia " +     // Lấy voucher
-            "LEFT JOIN FETCH hd.diaChiGiaoHang " +   // [MỚI] Lấy địa chỉ giao hàng
+            "LEFT JOIN FETCH hd.diaChiGiaoHang " +   // Lấy địa chỉ giao hàng
             "WHERE hd.id = :id")
     Optional<HoaDon> findByIdWithDetails(@Param("id") Integer id);
 

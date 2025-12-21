@@ -276,6 +276,30 @@ public class BanHangServiceImpl implements BanHangService {
             khachHangRepository.findById(request.getKhachHangId()).ifPresent(hoaDon::setKhachHang);
 
         hoaDon.setHinhThucBanHang(1); // Tại quầy
+
+        // --- 1. LƯU TIỀN KHÁCH ĐƯA (Bạn đã có) ---
+        // Trong file BanHangServiceImpl.java
+        if (request.getTienKhachDua() != null) {
+            hoaDon.setTienKhachDua(request.getTienKhachDua());
+        } else {
+            hoaDon.setTienKhachDua(request.getTongTien()); // Mặc định khách đưa đủ nếu null
+        }
+
+        // --- 2. THÊM ĐOẠN NÀY ĐỂ LƯU HÌNH THỨC THANH TOÁN ---
+        // Ưu tiên lấy số (1 hoặc 2) từ DTO
+        if (request.getHinhThucThanhToan() != null) {
+            hoaDon.setHinhThucThanhToan(request.getHinhThucThanhToan());
+        } else {
+            // Nếu không có số, kiểm tra chuỗi (CASH/QR)
+            String pttt = request.getPhuongThucThanhToan();
+            if ("QR".equalsIgnoreCase(pttt) || "TRANSFER".equalsIgnoreCase(pttt)) {
+                hoaDon.setHinhThucThanhToan(2); // Chuyển khoản
+            } else {
+                hoaDon.setHinhThucThanhToan(1); // Mặc định Tiền mặt
+            }
+        }
+        // -----------------------------------------------------
+
         return hoaDon;
     }
 
