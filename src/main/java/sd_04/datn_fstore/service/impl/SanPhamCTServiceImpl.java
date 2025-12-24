@@ -321,17 +321,37 @@ public class SanPhamCTServiceImpl implements SanPhamCTService {
         }
     }
 
+    // Thay thế hàm private void updateTotalQuantitySanPham(Integer sanPhamId) cũ bằng hàm này:
+
     private void updateTotalQuantitySanPham(Integer sanPhamId) {
         SanPham sanPham = sanPhamRepository.findById(sanPhamId).orElse(null);
         if (sanPham != null) {
-            int total = 0;
+            // 1. Dùng Repository để tính tổng (Chính xác hơn vòng lặp Java)
+            // Lưu ý: Cần đảm bảo SanPhamRepository có hàm sumQuantityBySanPhamId
+            // Hoặc dùng cách tính thủ công nhưng cẩn thận hơn:
+
             List<SanPhamChiTiet> variants = sanPhamChiTietRepository.findBySanPhamId(sanPhamId);
+            int total = 0;
+
             for (SanPhamChiTiet ct : variants) {
-                if (ct.getTrangThai() == 1 && ct.getSoLuong() != null) {
+                if (ct.getTrangThai() != null && ct.getTrangThai() == 1 && ct.getSoLuong() != null) {
                     total += ct.getSoLuong();
                 }
             }
+
+            // 2. Cập nhật số lượng mới cho cha
             sanPham.setSoLuong(total);
+
+            // 3. --- QUAN TRỌNG: CẬP NHẬT TRẠNG THÁI CHA ---
+            if (total <= 0) {
+                // Nếu hết hàng sạch -> Tự động NGỪNG BÁN sản phẩm cha
+                sanPham.setTrangThai(0);
+            } else {
+                // Nếu có hàng lại -> Tự động MỞ BÁN (nếu muốn, hoặc có thể bỏ dòng này)
+                sanPham.setTrangThai(1);
+            }
+
+            // 4. Lưu lại
             sanPhamRepository.save(sanPham);
         }
     }

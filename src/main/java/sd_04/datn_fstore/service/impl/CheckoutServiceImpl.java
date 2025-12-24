@@ -140,7 +140,9 @@ public class CheckoutServiceImpl implements CheckoutService {
 
         // 2. TẠO THỰC THỂ HÓA ĐƠN
         HoaDon hoaDon = new HoaDon();
-        String maHoaDon = "HD" + System.currentTimeMillis();
+        String timePart = String.valueOf(System.currentTimeMillis());
+        String randomPart = String.valueOf((int)(Math.random() * 900) + 100); // Tạo 3 số ngẫu nhiên (100-999)
+        String maHoaDon = "OL" + timePart.substring(timePart.length() - 8) + randomPart;
         hoaDon.setMaHoaDon(maHoaDon);
         hoaDon.setNgayTao(LocalDateTime.now());
         hoaDon.setHinhThucBanHang(0); // 0: Online

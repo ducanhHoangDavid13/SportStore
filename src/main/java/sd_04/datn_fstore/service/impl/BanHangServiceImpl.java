@@ -8,6 +8,7 @@ import sd_04.datn_fstore.model.*;
 import sd_04.datn_fstore.repository.*;
 import sd_04.datn_fstore.service.BanHangService;
 import sd_04.datn_fstore.service.PhieuGiamgiaService;
+import sd_04.datn_fstore.service.SanPhamService;
 import sd_04.datn_fstore.service.ThongBaoService;
 
 import java.math.BigDecimal;
@@ -27,7 +28,7 @@ public class BanHangServiceImpl implements BanHangService {
     private final NhanVienRepository nhanVienRepository;
     private final KhachHangRepo khachHangRepository;
     private final PhieuGiamGiaRepo phieuGiamGiaRepository;
-
+    private final SanPhamService sanPhamService;
     private final PhieuGiamgiaService phieuGiamgiaService;
     private final ThongBaoService thongBaoService;
     private final ZoneId VN_ZONE = ZoneId.of("Asia/Ho_Chi_Minh");
@@ -95,23 +96,25 @@ public class BanHangServiceImpl implements BanHangService {
         Optional<HoaDon> existingOpt = hoaDonRepository.findTopByMaHoaDonOrderByNgayTaoDesc(request.getMaHoaDon());
 
         if (existingOpt.isPresent()) {
-            // --- TRƯỜNG HỢP UPDATE ---
+            // === TRƯỜNG HỢP 1: THANH TOÁN ĐƠN TREO ===
+            // Lấy đúng hóa đơn cũ để update
             hoaDon = existingOpt.get();
 
-            // Xóa sạch chi tiết cũ
+            // Xóa chi tiết cũ...
             List<HoaDonChiTiet> oldDetails = hoaDonChiTietRepository.findByHoaDonId(hoaDon.getId());
-            if(oldDetails != null && !oldDetails.isEmpty()){
+            if (oldDetails != null && !oldDetails.isEmpty()) {
                 hoaDonChiTietRepository.deleteAll(oldDetails);
             }
-
-            // Cập nhật ngày sửa (để lần sau nó vẫn hiện lên đầu)
-            hoaDon.setNgayTao(LocalDateTime.now(VN_ZONE));
         } else {
-            // --- TRƯỜNG HỢP TẠO MỚI ---
+            // === TRƯỜNG HỢP 2: TẠO MỚI HOÀN TOÀN ===
             hoaDon = new HoaDon();
-            hoaDon.setMaHoaDon(request.getMaHoaDon());
+
+            // 🔴 SỬA Ở ĐÂY: KHÔNG DÙNG MÃ FRONTEND GỬI NỮA
+            // Thay vì: hoaDon.setMaHoaDon(request.getMaHoaDon());
+            // Hãy dùng hàm sinh mã của Java:
+            hoaDon.setMaHoaDon(generateUniqueOrderCode());
+
             hoaDon.setNgayTao(LocalDateTime.now(VN_ZONE));
-            hoaDon.setHinhThucBanHang(1);
         }
 
         // --- CÁC ĐOẠN DƯỚI GIỮ NGUYÊN ---
@@ -227,8 +230,13 @@ public class BanHangServiceImpl implements BanHangService {
                 throw new RuntimeException("Sản phẩm " + spct.getSanPham().getTenSanPham() + " không đủ hàng (Còn: " + spct.getSoLuong() + ")");
             }
 
+            // 1. Trừ kho biến thể
             spct.setSoLuong(spct.getSoLuong() - item.getSoLuong());
             sanPhamCTRepository.save(spct);
+
+            // 2. 🔥 QUAN TRỌNG: CẬP NHẬT NGƯỢC LẠI SẢN PHẨM CHA 🔥
+            // Dòng này sẽ kích hoạt logic: Tính lại tổng -> Nếu = 0 thì tắt trạng thái cha
+            sanPhamService.updateTotalQuantity(spct.getSanPham().getId());
         }
     }
 
@@ -343,5 +351,14 @@ public class BanHangServiceImpl implements BanHangService {
             // 4. Xóa hóa đơn (Table cha)
             hoaDonRepository.delete(hoaDon);
         }
+    }
+    // Hàm sinh mã ngẫu nhiên: HD + NămThángNgày + 4 số ngẫu nhiên
+// Ví dụ: HD2312250912
+    private String generateUniqueOrderCode() {
+        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyMMdd");
+        String datePart = sdf.format(new java.util.Date());
+        // Random 4 số để tránh trùng nếu tạo cùng 1 giây
+        int randomPart = new java.util.Random().nextInt(9000) + 1000;
+        return "HD" + datePart + randomPart;
     }
 }

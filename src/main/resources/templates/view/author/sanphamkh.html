@@ -300,6 +300,7 @@
     }
 
     // --- 2. RENDER CARD ---
+    // --- 2. RENDER CARD (ĐÃ CẬP NHẬT) ---
     function createProductCard(product) {
         const formattedPrice = formatCurrency(product.giaTien);
 
@@ -309,48 +310,72 @@
             imageUrl = '/image/' + productImagesMap[product.id];
         }
 
-        /*
-         * ĐÃ SỬA LOGIC TỒN KHO:
-         * soLuong là trường tổng tồn kho.
-         * TrangThai: 1=Đang bán, 0=Ngừng bán/Ẩn.
-         */
-        const soLuongTon = product.soLuong || 0;
-        const trangThai = product.trangThai;
+        // --- 1. LOGIC TÍNH TỒN KHO (ĐÃ SỬA) ---
+        let totalStock = 0;
 
-        const isOutOfStock = (trangThai === 0) || (soLuongTon <= 0);
+        // QUAN TRỌNG: Phải kiểm tra danh sách biến thể (SPCT) TRƯỚC
+        // Vì số lượng ở bảng cha (product.soLuong) đang bị sai (chưa cập nhật kịp).
+        if (Array.isArray(product.sanPhamChiTiets) && product.sanPhamChiTiets.length > 0) {
+            totalStock = product.sanPhamChiTiets.reduce((sum, spct) => sum + (spct.soLuong || 0), 0);
+        }
+        // Chỉ khi nào không có danh sách biến thể thì mới dùng số lượng của bảng cha
+        else {
+            totalStock = product.soLuong || 0;
+        }
 
-        // Hiệu ứng hết hàng (làm mờ và vô hiệu hóa)
-        const stockStatusStyle = isOutOfStock ? 'opacity: 0.5; pointer-events: none;' : '';
-        const stockStatusText = isOutOfStock ? '<span class="text-danger fw-bold mt-1 d-block">HẾT HÀNG</span>' : '';
+        // Kiểm tra trạng thái: 0 là ngừng kinh doanh HOẶC tổng tồn kho <= 0
+        const isOutOfStock = (product.trangThai === 0) || (totalStock <= 0);
 
+        // --- 2. LOGIC GIAO DIỆN (ĐÃ SỬA) ---
+
+        // CSS cho trạng thái hết hàng:
+        // BỎ 'pointer-events: none' đi để khách vẫn click vào ảnh xem chi tiết được.
+        // Chỉ làm mờ và xám ảnh thôi.
+        const stockStatusStyle = isOutOfStock ? 'opacity: 0.6; filter: grayscale(100%);' : '';
+
+        // Nút bấm hành động
+        // Nếu hết hàng -> Nút bị vô hiệu hóa (disabled)
         const actionButton = isOutOfStock
-            ? '<button class="action-btn" title="Hết hàng" style="background: #dc3545; color: #fff;"><i class="fa-solid fa-ban"></i></button>'
+            ? `<button class="action-btn" disabled style="background: #6c757d; cursor: not-allowed;" title="Hết hàng"><i class="fa-solid fa-ban"></i></button>`
             : `<button class="action-btn btn-add-to-cart" title="Thêm vào giỏ" data-product-id="${product.id}">
-                    <i class="fa-solid fa-cart-plus"></i>
-                </button>`;
+                <i class="fa-solid fa-cart-plus"></i>
+           </button>`;
+
+        // Nhãn báo hết hàng (Overlay)
+        const stockLabel = isOutOfStock
+            ? `<div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.7); color: white; padding: 5px 10px; font-weight: bold; border-radius: 4px; z-index: 10; pointer-events: none;">HẾT HÀNG</div>`
+            : '';
 
         return `
-        <div class="col">
-            <div class="product-card" data-product-id="${product.id}" style="${stockStatusStyle}">
-                <div class="product-img-wrap">
-                    <img src="${imageUrl}" alt="${product.tenSanPham}" loading="lazy" onerror="this.onerror=null;this.src='https://placehold.co/400x400?text=No+Image';">
-                    <div class="product-actions">
-                        ${actionButton}
-                        <button class="action-btn btn-detail" title="Xem chi tiết">
-                            <i class="fa-regular fa-eye"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="product-info">
-                    <span class="product-tag">${product.xuatXu?.tenXuatXu || 'SPORTX'}</span>
-                    <h3 class="product-name" title="${product.tenSanPham}">
-                        <a href="/san-pham/chi-tiet/${product.id}" class="text-dark">${product.tenSanPham}</a>
-                    </h3>
-                    <div class="product-price">${formattedPrice}</div>
-                    ${stockStatusText}
+    <div class="col">
+        <div class="product-card" data-product-id="${product.id}">
+            <div class="product-img-wrap" style="position: relative; ${stockStatusStyle}">
+                <img src="${imageUrl}" alt="${product.tenSanPham}" loading="lazy" onerror="this.onerror=null;this.src='https://placehold.co/400x400?text=No+Image';">
+
+                ${stockLabel}
+
+                <div class="product-actions">
+                    ${actionButton}
+                    <button class="action-btn btn-detail" title="Xem chi tiết">
+                        <i class="fa-regular fa-eye"></i>
+                    </button>
                 </div>
             </div>
-        </div>`;
+
+            <div class="product-info">
+                <span class="product-tag">${product.xuatXu?.tenXuatXu || 'SPORTX'}</span>
+                <h3 class="product-name">
+                    <a href="/san-pham/chi-tiet/${product.id}" class="text-dark">${product.tenSanPham}</a>
+                </h3>
+                <div class="product-price">${formattedPrice}</div>
+
+                ${isOutOfStock
+            ? '<small class="text-danger fw-bold">Tạm hết hàng</small>'
+            : `<small class="text-muted">Sẵn hàng: ${totalStock}</small>`
+        }
+            </div>
+        </div>
+    </div>`;
     }
 
     // --- 3. TẠO FILTER UI & SLIDER ---
@@ -386,19 +411,23 @@
         const $maxSlider = $('#max-price-slider');
         const $maxDisplay = $('#max-price-display');
 
-        // Khởi tạo giá trị ban đầu
+        // Set giá trị ban đầu
         $maxDisplay.text(formatCurrency(parseInt($maxSlider.val())));
 
-        // Hàm xử lý khi slider thay đổi (có debounce)
-        const handleSliderChange = debounce(function() {
-            let maxVal = parseInt($maxSlider.val());
-            $maxDisplay.text(formatCurrency(maxVal));
-            filterParams.maxPrice = maxVal;
-            loadProducts(0);
-        }, 300);
+        // 1. Sự kiện 'input': Chỉ cập nhật số tiền hiển thị (để UI mượt)
+        $maxSlider.on('input', function() {
+            const val = parseInt($(this).val());
+            $maxDisplay.text(formatCurrency(val));
+        });
 
-        // Bắt sự kiện Input
-        $maxSlider.on('input', handleSliderChange);
+        // 2. Sự kiện 'change': Chỉ gọi API khi người dùng THẢ tay khỏi chuột
+        // (Thay thế cho debounce ở đây để tránh gọi API liên tục khi đang kéo)
+        $maxSlider.on('change', function() {
+            const val = parseInt($(this).val());
+            filterParams.maxPrice = val;
+            console.log("Lọc giá dưới: " + val); // Debug
+            loadProducts(0);
+        });
     }
 
 

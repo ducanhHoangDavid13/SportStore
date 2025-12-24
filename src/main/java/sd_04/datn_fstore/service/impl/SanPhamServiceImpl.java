@@ -109,14 +109,37 @@ public class SanPhamServiceImpl implements SanPhamService {
             throw new RuntimeException("Không tìm thấy sản phẩm có ID: " + id);
         }
     }
-    public void updateTotalQuantity(Integer sanPhamId) {
-        // 1. Tính tổng số lượng từ tất cả SanPhamChiTiet
-        Integer totalQuantity = sanPhamRepository.sumQuantityBySanPhamId(sanPhamId);
+    // Tìm đến cuối file SanPhamServiceImpl.java và thay thế hàm updateTotalQuantity cũ bằng hàm này:
 
-        // 2. Cập nhật vào SanPham cha
-        sanPhamRepository.findById(sanPhamId).ifPresent(sanPham -> {
-            sanPham.setSoLuong(totalQuantity);
-            sanPhamRepository.save(sanPham);
-        });
+    @Override // Nhớ đảm bảo Interface SanPhamService có định nghĩa hàm này
+    public void updateTotalQuantity(Integer sanPhamId) {
+        // 1. Lấy sản phẩm cha
+        SanPham sanPham = sanPhamRepository.findById(sanPhamId).orElse(null);
+        if (sanPham == null) return;
+
+        // 2. Lấy danh sách biến thể con
+        List<SanPhamChiTiet> variants = sanPhamCTRepository.findBySanPhamId(sanPhamId);
+
+        int total = 0;
+        // 3. Tính tổng (Chỉ cộng các biến thể ĐANG HOẠT ĐỘNG)
+        for (SanPhamChiTiet ct : variants) {
+            if (ct.getTrangThai() != null && ct.getTrangThai() == 1 && ct.getSoLuong() != null) {
+                total += ct.getSoLuong();
+            }
+        }
+
+        // 4. Cập nhật số lượng
+        sanPham.setSoLuong(total);
+
+        // 5. 🔥 LOGIC TỰ ĐỘNG TẮT/MỞ TRẠNG THÁI 🔥
+        if (total <= 0) {
+            sanPham.setTrangThai(0); // Hết hàng -> Ngừng bán
+        } else {
+            // Nếu muốn tự động mở bán lại khi có hàng thì dùng dòng dưới, không thì comment lại
+            sanPham.setTrangThai(1);
+        }
+
+        // 6. Lưu lại
+        sanPhamRepository.save(sanPham);
     }
 }
