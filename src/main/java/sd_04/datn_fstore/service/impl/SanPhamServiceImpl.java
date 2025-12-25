@@ -138,7 +138,6 @@ public class SanPhamServiceImpl implements SanPhamService {
             // Nếu muốn tự động mở bán lại khi có hàng thì dùng dòng dưới, không thì comment lại
             sanPham.setTrangThai(1);
         }
-
         // 6. Lưu lại
         sanPhamRepository.save(sanPham);
     }
