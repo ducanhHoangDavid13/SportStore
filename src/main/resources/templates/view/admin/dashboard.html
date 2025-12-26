@@ -195,22 +195,22 @@
                 </div>
             </div>
 
-            <div class="col-12 col-xl-4">
-                <div class="custom-card">
-                    <h5 class="fw-bold mb-4">Top sản phẩm bán chạy</h5>
-                    <div class="d-flex flex-column">
-                        <div th:each="prod : ${topProducts}" class="product-item">
-                            <img th:src="${prod.productImage != null ? prod.productImage : 'https://placehold.co/100?text=SP'}" class="product-img" alt="Product">
-                            <div class="flex-grow-1">
-                                <h6 class="mb-1 fw-bold fs-6 text-truncate" style="max-width: 150px;" th:text="${prod.productName}">SP A</h6>
-                                <small class="text-muted" th:text="'Đã bán: ' + ${prod.totalSold}">Sold: 0</small>
-                            </div>
-                            <div class="fw-bold text-primary" th:text="${#numbers.formatDecimal(prod.price, 0, 'COMMA', 0, 'POINT') + ' ₫'}">0 ₫</div>
-                        </div>
-                        <div th:if="${#lists.isEmpty(topProducts)}" class="text-center text-muted py-3"><i class="bi bi-box2 display-6"></i><p class="mt-2 small">Chưa có dữ liệu</p></div>
-                    </div>
-                </div>
-            </div>
+<!--            <div class="col-12 col-xl-4">-->
+<!--                <div class="custom-card">-->
+<!--                    <h5 class="fw-bold mb-4">Top sản phẩm bán chạy</h5>-->
+<!--                    <div class="d-flex flex-column">-->
+<!--                        <div th:each="prod : ${topProducts}" class="product-item">-->
+<!--                            <img th:src="${prod.productImage != null ? prod.productImage : 'https://placehold.co/100?text=SP'}" class="product-img" alt="Product">-->
+<!--                            <div class="flex-grow-1">-->
+<!--                                <h6 class="mb-1 fw-bold fs-6 text-truncate" style="max-width: 150px;" th:text="${prod.productName}">SP A</h6>-->
+<!--                                <small class="text-muted" th:text="'Đã bán: ' + ${prod.totalSold}">Sold: 0</small>-->
+<!--                            </div>-->
+<!--                            <div class="fw-bold text-primary" th:text="${#numbers.formatDecimal(prod.price, 0, 'COMMA', 0, 'POINT') + ' ₫'}">0 ₫</div>-->
+<!--                        </div>-->
+<!--                        <div th:if="${#lists.isEmpty(topProducts)}" class="text-center text-muted py-3"><i class="bi bi-box2 display-6"></i><p class="mt-2 small">Chưa có dữ liệu</p></div>-->
+<!--                    </div>-->
+<!--                </div>-->
+<!--            </div>-->
         </div>
     </main>
 </div>

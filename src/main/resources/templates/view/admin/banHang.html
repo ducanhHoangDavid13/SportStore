@@ -315,10 +315,8 @@
         <a href="#" class="fw-bold text-decoration-none text-primary fs-5 me-4"><i class="bi bi-shop me-2"></i>POS
             F-STORE</a>
         <div class="d-none d-md-flex">
-            <a th:href="@{/admin/hoa-don}" class="nav-link-custom" target="_blank"><i class="bi bi-receipt"></i> QL Hóa
-                Đơn</a>
-            <a th:href="@{/admin/san-pham-chi-tiet}" class="nav-link-custom" target="_blank"><i
-                    class="bi bi-box-seam"></i> QL SPCT</a>
+            <a th:href="@{/admin/hoa-don}" class="nav-link-custom" target="_blank"><i class="bi bi-receipt"></i> QL Hóa Đơn</a>
+            <a th:href="@{/admin/san-pham-chi-tiet}" class="nav-link-custom" target="_blank"><i class="bi bi-box-seam"></i> QL SPCT</a>
         </div>
     </div>
     <div class="d-flex gap-3 align-items-center">
@@ -991,14 +989,13 @@
 
         try {
             const payload = {
-                maHoaDon: currentOrderCode,
+                maHoaDon: currentOrderCode, // Mã này trùng với mã đơn chờ nếu đang thanh toán đơn chờ
                 nhanVienId: $('#current-employee-id').val() || 1,
                 khachHangId: currentCustomer?.id || null,
                 tongTien: parseFloat($('#total').data('val')),
                 tienGiamGia: parseFloat($('#discount').data('val')) || 0,
                 phieuGiamGiaId: $('#coupon-select').val() || null,
                 phuongThucThanhToan: method,
-                // Lấy giá trị tiền khách đưa đã lọc dấu phân cách
                 tienKhachDua: parseCurrency($('#customer-paid').val()) || paidAmount,
                 danhSachSanPham: cart.map(i => ({
                     sanPhamChiTietId: i.id,
@@ -1023,9 +1020,14 @@
                     timer: 2000,
                     showConfirmButton: false
                 }).then(() => {
-                    initNewOrder();
-                    loadProducts();
+                    initNewOrder(); // Reset màn hình bán hàng
+                    loadProducts(); // Cập nhật lại tồn kho sản phẩm
+
+                    // --- 2. TỰ ĐỘNG XÓA ĐƠN CHỜ (Cập nhật lại danh sách) ---
+                    // Khi backend xử lý thanh toán, nó sẽ đổi trạng thái đơn chờ thành "Đã thanh toán"
+                    // Ta chỉ cần load lại danh sách đơn chờ là nó sẽ tự biến mất
                     updateDraftCount();
+                    // -------------------------------------------------------
                 });
             } else {
                 Swal.fire('Lỗi', data.message || 'Thanh toán thất bại', 'error');
@@ -1071,6 +1073,15 @@
     async function saveDraft() {
         if (!cart.length) return toastr.warning("Giỏ hàng trống!");
 
+        // --- 1. KIỂM TRA GIỚI HẠN 10 ĐƠN ---
+        // Lấy số lượng từ biến toàn cục hoặc DOM (đã được cập nhật từ hàm updateDraftCount)
+        const currentDrafts = parseInt($('#draft-count').text()) || 0;
+        if (currentDrafts >= 10) {
+            Swal.fire('Đạt giới hạn', 'Chỉ được lưu tối đa 10 hóa đơn chờ. Vui lòng xử lý các đơn cũ trước.', 'warning');
+            return;
+        }
+        // ------------------------------------
+
         Swal.fire({title: 'Treo đơn này?', showCancelButton: true, confirmButtonText: 'Đồng ý'}).then(async (r) => {
             if (r.isConfirmed) {
                 try {
@@ -1085,11 +1096,15 @@
                     const res = await fetch(API_SAVE_DRAFT, {
                         method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload)
                     });
+
                     if (res.ok) {
                         toastr.success("Đã treo đơn thành công");
-                        initNewOrder();
-                        updateDraftCount();
-                    } else toastr.error("Lỗi treo đơn");
+                        initNewOrder(); // Reset form
+                        updateDraftCount(); // Cập nhật lại số lượng
+                    } else {
+                        const err = await res.json();
+                        toastr.error(err.message || "Lỗi treo đơn");
+                    }
                 } catch { toastr.error("Lỗi kết nối"); }
             }
         });
@@ -1380,6 +1395,24 @@
             $('#filter-category, #filter-brand, #filter-material, #filter-size, #filter-color').val('');
             applyFilter();
         }
+    });
+    // --- 3. XỬ LÝ LINK KHÔNG MỞ TAB MỚI (SPA) ---
+    // Đoạn này chặn sự kiện click vào thẻ a trong sidebar
+    // --- 3. XỬ LÝ LINK KHÔNG MỞ TAB MỚI (SPA) ---
+    // Thêm class '.nav-link-custom' vào danh sách selector
+    $(document).on('click', '.app-sidebar a, .navbar-nav a, .nav-link-custom', function(e) {
+        const href = $(this).attr('href');
+
+        // Nếu link không hợp lệ hoặc là logout thì bỏ qua để nó chạy bình thường
+        if (!href || href === '#' || href.startsWith('javascript') || href.includes('logout')) return;
+
+        e.preventDefault(); // Ngăn chặn mở tab mới hoặc reload mặc định
+
+        // Đổi URL trên thanh địa chỉ
+        history.pushState(null, '', href);
+
+        // Chuyển trang ngay tại tab hiện tại
+        window.location.href = href;
     });
 </script>
 </body>

@@ -88,22 +88,71 @@
         .custom-check input:checked ~ .check-indicator::after { content: '\f00c'; font-family: 'Font Awesome 6 Free'; font-weight: 900; color: #fff; font-size: 12px; }
 
         /* ======================= 4. PRODUCT CARD (COPY FROM HOMEPAGE) ======================= */
+        /* ======================= 4. PRODUCT CARD (ĐÃ SỬA) ======================= */
         .product-card {
-            background: #fff; border-radius: 16px; overflow: hidden; border: 1px solid #f1f5f9;
-            transition: 0.3s; position: relative; height: 100%;
+            background: #fff;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid #f1f5f9;
+            transition: 0.3s;
+            position: relative;
+            height: 100%;
+            cursor: pointer; /* Biến con trỏ chuột thành hình bàn tay */
         }
-        .product-card:hover { box-shadow: var(--shadow-hover); border-color: transparent; transform: translateY(-5px); }
 
-        .product-img-wrap { position: relative; overflow: hidden; padding-top: 100%; background: #f8fafc; }
-        .product-img-wrap img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; transition: 0.5s; }
-        .product-card:hover .product-img-wrap img { transform: scale(1.08); }
-
-        /* Action Buttons */
-        .product-actions {
-            position: absolute; bottom: 15px; left: 0; right: 0; display: flex; justify-content: center; gap: 10px;
-            opacity: 0; transform: translateY(20px); transition: 0.3s; z-index: 3;
+        /* Hiệu ứng đẩy lên khi di chuột (Levitate) */
+        .product-card:hover {
+            box-shadow: var(--shadow-hover);
+            border-color: transparent;
+            transform: translateY(-10px); /* Đẩy lên cao hơn chút cho mượt */
         }
-        .product-card:hover .product-actions { opacity: 1; transform: translateY(0); }
+
+        .product-img-wrap {
+            position: relative;
+            overflow: hidden;
+            padding-top: 100%;
+            background: #f8fafc;
+        }
+
+        .product-img-wrap img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: 0.5s;
+        }
+
+        /* Zoom ảnh nhẹ khi hover */
+        .product-card:hover .product-img-wrap img {
+            transform: scale(1.08);
+        }
+
+        /* XÓA BỎ CSS LIÊN QUAN ĐẾN .product-actions và .action-btn VÌ KHÔNG DÙNG NỮA */
+
+        .product-info { padding: 20px; text-align: center; }
+        .product-tag { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--primary); letter-spacing: 1px; margin-bottom: 5px; display: block; }
+
+        /* Tên sản phẩm */
+        .product-name {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--dark);
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            height: 48px;
+            transition: 0.3s; /* Hiệu ứng đổi màu */
+        }
+        /* Khi hover vào card thì tên sản phẩm đổi màu xanh luôn */
+        .product-card:hover .product-name {
+            color: var(--primary);
+        }
+
+        .product-price { font-size: 1.1rem; font-weight: 700; color: var(--dark); }
 
         .action-btn {
             width: 40px; height: 40px; background: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center;
@@ -301,71 +350,48 @@
 
     // --- 2. RENDER CARD ---
     // --- 2. RENDER CARD (ĐÃ CẬP NHẬT) ---
+    // --- 2. RENDER CARD (PHIÊN BẢN CLICK TOÀN CARD) ---
     function createProductCard(product) {
         const formattedPrice = formatCurrency(product.giaTien);
 
-        // Lấy ảnh từ Map
+        // Lấy ảnh
         let imageUrl = 'https://placehold.co/400x400?text=No+Image';
         if (productImagesMap[product.id]) {
             imageUrl = '/image/' + productImagesMap[product.id];
         }
 
-        // --- 1. LOGIC TÍNH TỒN KHO (ĐÃ SỬA) ---
+        // Logic tồn kho
         let totalStock = 0;
-
-        // QUAN TRỌNG: Phải kiểm tra danh sách biến thể (SPCT) TRƯỚC
-        // Vì số lượng ở bảng cha (product.soLuong) đang bị sai (chưa cập nhật kịp).
         if (Array.isArray(product.sanPhamChiTiets) && product.sanPhamChiTiets.length > 0) {
             totalStock = product.sanPhamChiTiets.reduce((sum, spct) => sum + (spct.soLuong || 0), 0);
-        }
-        // Chỉ khi nào không có danh sách biến thể thì mới dùng số lượng của bảng cha
-        else {
+        } else {
             totalStock = product.soLuong || 0;
         }
 
-        // Kiểm tra trạng thái: 0 là ngừng kinh doanh HOẶC tổng tồn kho <= 0
         const isOutOfStock = (product.trangThai === 0) || (totalStock <= 0);
 
-        // --- 2. LOGIC GIAO DIỆN (ĐÃ SỬA) ---
-
-        // CSS cho trạng thái hết hàng:
-        // BỎ 'pointer-events: none' đi để khách vẫn click vào ảnh xem chi tiết được.
-        // Chỉ làm mờ và xám ảnh thôi.
+        // CSS cho trạng thái hết hàng (chỉ làm xám ảnh)
         const stockStatusStyle = isOutOfStock ? 'opacity: 0.6; filter: grayscale(100%);' : '';
 
-        // Nút bấm hành động
-        // Nếu hết hàng -> Nút bị vô hiệu hóa (disabled)
-        const actionButton = isOutOfStock
-            ? `<button class="action-btn" disabled style="background: #6c757d; cursor: not-allowed;" title="Hết hàng"><i class="fa-solid fa-ban"></i></button>`
-            : `<button class="action-btn btn-add-to-cart" title="Thêm vào giỏ" data-product-id="${product.id}">
-                <i class="fa-solid fa-cart-plus"></i>
-           </button>`;
-
-        // Nhãn báo hết hàng (Overlay)
+        // Nhãn báo hết hàng
         const stockLabel = isOutOfStock
-            ? `<div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.7); color: white; padding: 5px 10px; font-weight: bold; border-radius: 4px; z-index: 10; pointer-events: none;">HẾT HÀNG</div>`
+            ? `<div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.7); color: white; padding: 5px 10px; font-weight: bold; border-radius: 4px; z-index: 10;">HẾT HÀNG</div>`
             : '';
+
+        // KHÔNG CÒN PHẦN action-btn NỮA
 
         return `
     <div class="col">
         <div class="product-card" data-product-id="${product.id}">
-            <div class="product-img-wrap" style="position: relative; ${stockStatusStyle}">
+            <div class="product-img-wrap" style="${stockStatusStyle}">
                 <img src="${imageUrl}" alt="${product.tenSanPham}" loading="lazy" onerror="this.onerror=null;this.src='https://placehold.co/400x400?text=No+Image';">
-
                 ${stockLabel}
-
-                <div class="product-actions">
-                    ${actionButton}
-                    <button class="action-btn btn-detail" title="Xem chi tiết">
-                        <i class="fa-regular fa-eye"></i>
-                    </button>
                 </div>
-            </div>
 
             <div class="product-info">
                 <span class="product-tag">${product.xuatXu?.tenXuatXu || 'SPORTX'}</span>
                 <h3 class="product-name">
-                    <a href="/san-pham/chi-tiet/${product.id}" class="text-dark">${product.tenSanPham}</a>
+                    ${product.tenSanPham}
                 </h3>
                 <div class="product-price">${formattedPrice}</div>
 
@@ -533,22 +559,22 @@
         Promise.all(initPromises).then(() => loadProducts(0));
 
         // Sort Change
-        $('#sort-select').on('change', function() {
+        $('#sort-select').on('change', function () {
             filterParams.sort = $(this).val();
             loadProducts(0);
         });
 
         // Event tìm kiếm theo keyword (sử dụng debounce)
-        $('#keyword-search').on('input', debounce(function() {
+        $('#keyword-search').on('input', debounce(function () {
             const keyword = $(this).val().trim();
             filterParams.keyword = keyword.length > 0 ? keyword : null;
             loadProducts(0);
         }, 300));
 
         // Filter Checkbox Change (Chỉ xử lý Checkbox, không xử lý Slider hay Keyword)
-        $('.filter-sidebar').on('change', '.filter-checkbox-trigger', function() {
+        $('.filter-sidebar').on('change', '.filter-checkbox-trigger', function () {
             // Lấy giá trị Checkboxes
-            $('.filter-list[data-filter-key]').each(function() {
+            $('.filter-list[data-filter-key]').each(function () {
                 const key = $(this).attr('data-filter-key');
                 // Lấy ID (Integer) của các checkbox đã chọn
                 const checked = $(this).find('input:checked').map((_, el) => parseInt($(el).val())).get();
@@ -559,7 +585,7 @@
 
 
         // Reset Filter
-        $('#reset-filter-btn').on('click', function() {
+        $('#reset-filter-btn').on('click', function () {
             // Reset Checkboxes
             $('input[type="checkbox"]').prop('checked', false);
 
@@ -584,40 +610,24 @@
         });
 
         // Pagination Click
-        $(document).on('click', '.page-nav-link', function() {
+        $(document).on('click', '.page-nav-link', function () {
             if (!pageObject.totalPages) return;
 
             const page = $(this).data('page');
             if (page !== undefined && page >= 0 && page < pageObject.totalPages) {
                 loadProducts(page);
-                $('html, body').animate({ scrollTop: 0 }, 400);
+                $('html, body').animate({scrollTop: 0}, 400);
             }
         });
 
-        // Add Cart Click (Giả định sản phẩm có tồn kho > 0)
-        $(document).on('click', '.btn-add-to-cart', function(e) {
-            e.stopPropagation();
-            const btn = $(this);
-            const productId = btn.closest('.product-card').data('product-id');
+        $(document).on('click', '.product-card', function (e) {
+            // Ngăn chặn hành vi mặc định nếu lỡ bấm vào thẻ a bên trong (dù code trên đã bỏ thẻ a ở tên sp)
+            e.preventDefault();
 
-            console.log("Thêm vào giỏ hàng sản phẩm: " + productId);
+            const productId = $(this).data('product-id');
 
-            // Hiệu ứng thành công tạm thời
-            btn.html('<i class="fa-solid fa-check"></i>').css({'background': '#10b981', 'color': '#fff'});
-
-            // Note: Cần chuyển sang trang chi tiết để chọn biến thể, hoặc sử dụng modal
-            // Hiện tại chỉ là hiệu ứng
-
-            setTimeout(() => {
-                btn.html('<i class="fa-solid fa-cart-plus"></i>').css({'background': '', 'color': ''});
-            }, 1500);
-        });
-
-        // View Detail Click
-        $(document).on('click', '.btn-detail', function(e) {
-            e.stopPropagation();
-            const id = $(this).closest('.product-card').data('product-id');
-            window.location.href = `/san-pham/chi-tiet/${id}`;
+            // Chuyển hướng sang trang chi tiết
+            window.location.href = `/san-pham/chi-tiet/${productId}`;
         });
     });
 </script>
