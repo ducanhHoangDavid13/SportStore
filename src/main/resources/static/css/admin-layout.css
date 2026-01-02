@@ -1,0 +1,223 @@
+/* ======================================= */
+/* ===   ADMIN LAYOUT STYLES           === */
+/* ======================================= */
+
+/* --- 1. BIẾN MÀU & CÀI ĐẶT CHUNG --- */
+:root {
+    --admin-primary: #4f46e5; /* Màu tím Indigo */
+    --admin-primary-hover: #4338ca;
+    --admin-bg-dark: #1f2937; /* Nền sidebar tối */
+    --admin-bg-light: #f9fafb; /* Nền nội dung chính */
+    --admin-text-light: #d1d5db; /* Chữ sáng trên nền tối */
+    --admin-text-dark: #374151;
+    --admin-border-color: #e5e7eb;
+    --sidebar-width: 260px;
+}
+
+body {
+    background-color: var(--admin-bg-light);
+    font-family: 'Roboto', sans-serif; /* Giả sử dùng font này */
+}
+
+/* --- 2. SIDEBAR --- */
+.sidebar-wrapper {
+    width: var(--sidebar-width);
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: var(--admin-bg-dark);
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    transition: margin-left 0.3s ease;
+    z-index: 1001;
+}
+
+.sidebar-header {
+    margin-bottom: 2rem;
+}
+.sidebar-header .app-logo {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: white;
+    letter-spacing: 1px;
+}
+
+.sidebar-nav {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding-right: 10px; /* Cho thanh cuộn */
+}
+.sidebar-heading {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #9ca3af;
+    text-transform: uppercase;
+    padding: 1.5rem 0 0.5rem;
+}
+.sidebar-nav .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    color: var(--admin-text-light);
+    font-weight: 500;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+}
+.sidebar-nav .nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: white;
+}
+.sidebar-nav .nav-link.active {
+    background-color: var(--admin-primary);
+    color: white;
+    box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4);
+}
+.sidebar-nav .nav-link i.fas,
+.sidebar-nav .nav-link i.far {
+    width: 20px;
+    text-align: center;
+    font-size: 1rem;
+}
+
+/* Submenu */
+.sidebar-nav .collapse .nav-link {
+    padding-left: 3rem; /* Thụt vào trong */
+    font-size: 0.9rem;
+    position: relative;
+    color: #9ca3af;
+}
+.sidebar-nav .collapse .nav-link::before {
+    content: '';
+    position: absolute;
+    left: 1.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background-color: #6b7280;
+}
+.sidebar-nav .collapse .nav-link:hover,
+.sidebar-nav .collapse .nav-link.active {
+    color: white;
+    background-color: transparent;
+}
+.sidebar-nav .collapse .nav-link:hover::before,
+.sidebar-nav .collapse .nav-link.active::before {
+    background-color: white;
+}
+
+/* --- 3. NAVBAR --- */
+.navbar-admin {
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: var(--sidebar-width);
+    height: 70px;
+    background-color: white;
+    border-bottom: 1px solid var(--admin-border-color);
+    padding: 0 1.5rem;
+    transition: left 0.3s ease;
+    z-index: 1000;
+}
+.search-box .form-control {
+    border-radius: 20px;
+    padding-left: 2.5rem;
+    border: 1px solid var(--admin-border-color);
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.search-box .form-control:focus {
+    border-color: var(--admin-primary);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+}
+.search-box .search-icon {
+    position: absolute;
+    top: 50%;
+    left: 1rem;
+    transform: translateY(-50%);
+    color: #9ca3af;
+}
+
+/* Dropdowns in Navbar */
+.navbar-admin .dropdown-menu {
+    border: 1px solid var(--admin-border-color);
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    margin-top: 10px !important;
+}
+.navbar-admin .dropdown-item {
+    display: flex; align-items: center; gap: 0.75rem;
+    padding: 0.6rem 1rem; font-size: 0.9rem;
+}
+.navbar-admin .dropdown-item:active {
+    background-color: var(--admin-primary);
+    color: white;
+}
+.navbar-admin .dropdown-item:active i { color: white; }
+
+/* Notification Dropdown */
+#notificationDropdown .fa-bell {
+    animation: none;
+}
+#notificationDropdown.has-new-notif .fa-bell {
+    animation: ring 1.5s ease-in-out infinite;
+}
+@keyframes ring {
+    0%, 100% { transform: rotate(0); }
+    10%, 30%, 50%, 70%, 90% { transform: rotate(-10deg); }
+    20%, 40%, 60%, 80% { transform: rotate(10deg); }
+}
+
+/* --- 4. MAIN CONTENT & PAGE HEADER --- */
+.main-content {
+    margin-left: var(--sidebar-width);
+    padding: 2rem;
+    padding-top: calc(70px + 2rem); /* 70px navbar height */
+    transition: margin-left 0.3s ease;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+.page-header .page-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--dark-color);
+}
+.page-header .header-actions .btn {
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+.page-header .header-actions .btn i {
+    margin-right: 0.5rem;
+}
+
+/* --- 5. RESPONSIVE --- */
+body.sidebar-toggled .sidebar-wrapper {
+    margin-left: calc(-1 * var(--sidebar-width));
+}
+body.sidebar-toggled .navbar-admin,
+body.sidebar-toggled .main-content {
+    left: 0;
+    margin-left: 0;
+}
+
+@media (max-width: 992px) {
+    .sidebar-wrapper {
+        margin-left: calc(-1 * var(--sidebar-width));
+    }
+    .navbar-admin, .main-content {
+        left: 0;
+        margin-left: 0;
+    }
+    body.sidebar-toggled .sidebar-wrapper {
+        margin-left: 0;
+    }
+}

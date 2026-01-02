@@ -8,6 +8,8 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import sd_04.datn_fstore.model.PhanLoai;
 
+import java.util.List;
+
 @Repository
 public interface PhanLoaiRepository extends JpaRepository<PhanLoai, Integer> {
 
@@ -26,4 +28,6 @@ public interface PhanLoaiRepository extends JpaRepository<PhanLoai, Integer> {
     Page<PhanLoai> findPaginated(Pageable pageable,
                                  @Param("keyword") String keyword,
                                  @Param("trangThai") Integer trangThai);
+
+    List<PhanLoai> findByTrangThai(Integer trangThai);
 }

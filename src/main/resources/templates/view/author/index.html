@@ -280,14 +280,13 @@
             <div class="product-img-wrap">
               <img src="https://vinsport.vn/my_uploads/2023/12/Bo-quan-ao-khoac-ni-thu-dong-xuan-Suvec-Wika-chinh-hang-nhieu-mau-kieu-dang-the-thao-moi-2024-1.jpg" alt="SP">
               <div class="product-actions">
-                <a href="#" class="action-btn" title="Thêm vào giỏ"><i class="fa-solid fa-cart-plus"></i></a>
-                <a href="#" class="action-btn" title="Yêu thích"><i class="fa-regular fa-heart"></i></a>
-                <a href="#" class="action-btn" title="Xem nhanh"><i class="fa-regular fa-eye"></i></a>
+                <a th:href="@{/san-pham(category='phu-kien')}" class="action-btn" title="Thêm vào giỏ"><i class="fa-solid fa-cart-plus"></i></a>
+                <a th:href="@{/san-pham(category='phu-kien')}" class="action-btn" title="Xem nhanh"><i class="fa-regular fa-eye"></i></a>
               </div>
             </div>
             <div class="product-info">
               <span class="product-tag">WIKA</span>
-              <h3 class="product-name"><a href="#">Bộ gió thể thao Wika phối màu</a></h3>
+              <h3 class="product-name"><a th:href="@{/san-pham(category='phu-kien')}">Bộ gió thể thao Wika phối màu</a></h3>
               <div class="product-price">499.000đ</div>
             </div>
           </div>
@@ -298,14 +297,14 @@
             <div class="product-img-wrap">
               <img src="https://bizweb.dktcdn.net/100/481/348/products/z4147260213030-0bc9a3e8796f400a2e44729000478a01-1677660244570.jpg?v=1680768222003" alt="SP">
               <div class="product-actions">
-                <a href="#" class="action-btn"><i class="fa-solid fa-cart-plus"></i></a>
-                <a href="#" class="action-btn"><i class="fa-regular fa-heart"></i></a>
-                <a href="#" class="action-btn"><i class="fa-regular fa-eye"></i></a>
+                <a th:href="@{/san-pham(category='phu-kien')}" class="action-btn"><i class="fa-solid fa-cart-plus"></i></a>
+
+                <a th:href="@{/san-pham(category='phu-kien')}" class="action-btn"><i class="fa-regular fa-eye"></i></a>
               </div>
             </div>
             <div class="product-info">
               <span class="product-tag">EXR</span>
-              <h3 class="product-name"><a href="#">Quần Jogger Thể Thao Nỉ</a></h3>
+              <h3 class="product-name"><a th:href="@{/san-pham(category='phu-kien')}">Quần Jogger Thể Thao Nỉ</a></h3>
               <div class="product-price">250.000đ</div>
             </div>
           </div>
@@ -316,14 +315,14 @@
             <div class="product-img-wrap">
               <img src="https://namfashion.com/home/wp-content/uploads/2024/07/Bo-quan-ao-the-thao-exr-cao-cap-xuat-khau-ha-noi-12.jpg" alt="SP">
               <div class="product-actions">
-                <a href="#" class="action-btn"><i class="fa-solid fa-cart-plus"></i></a>
-                <a href="#" class="action-btn"><i class="fa-regular fa-heart"></i></a>
-                <a href="#" class="action-btn"><i class="fa-regular fa-eye"></i></a>
+                <a th:href="@{/san-pham(category='phu-kien')}" class="action-btn"><i class="fa-solid fa-cart-plus"></i></a>
+
+                <a th:href="@{/san-pham(category='phu-kien')}" class="action-btn"><i class="fa-regular fa-eye"></i></a>
               </div>
             </div>
             <div class="product-info">
               <span class="product-tag">PREMIUM</span>
-              <h3 class="product-name"><a href="#">Bộ nỉ nam cao cấp EXR</a></h3>
+              <h3 class="product-name"><a th:href="@{/san-pham(category='phu-kien')}">Bộ nỉ nam cao cấp EXR</a></h3>
               <div class="product-price">650.000đ</div>
             </div>
           </div>
@@ -335,13 +334,12 @@
               <img src="https://product.hstatic.net/1000312752/product/dsc05677_8e359d557e824b608c69ee5717fe76fc_master.jpg" alt="SP">
               <div class="product-actions">
                 <a href="#" class="action-btn"><i class="fa-solid fa-cart-plus"></i></a>
-                <a href="#" class="action-btn"><i class="fa-regular fa-heart"></i></a>
-                <a href="#" class="action-btn"><i class="fa-regular fa-eye"></i></a>
+                <a th:href="@{/san-pham(category='phu-kien')}" class="action-btn"><i class="fa-regular fa-eye"></i></a>
               </div>
             </div>
             <div class="product-info">
               <span class="product-tag">WOMEN</span>
-              <h3 class="product-name"><a href="#">Set thể thao nữ phối màu</a></h3>
+              <h3 class="product-name"><a th:href="@{/san-pham(category='phu-kien')}">Set thể thao nữ phối màu</a></h3>
               <div class="product-price">320.000đ</div>
             </div>
           </div>
@@ -392,7 +390,7 @@
 <footer th:replace="~{/library/footer :: footer}"></footer>
 
 <!-- Nút Messenger -->
-<a href="#" class="floating-chat-btn position-fixed bottom-0 end-0 m-4 p-3 rounded-circle shadow-lg text-white" style="background: #0084FF; width: 60px; height: 60px; display:flex; align-items:center; justify-content:center; z-index:9999;">
+<a href="https://m.me/CSKH.sportstore?hash=AbYyzpOFlKgriRyz&source_id=8585216" class="floating-chat-btn position-fixed bottom-0 end-0 m-4 p-3 rounded-circle shadow-lg text-white" style="background: #0084FF; width: 60px; height: 60px; display:flex; align-items:center; justify-content:center; z-index:9999;">
   <i class="fa-brands fa-facebook-messenger fs-2"></i>
 </a>
 
