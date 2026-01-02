@@ -92,11 +92,15 @@
             color: var(--secondary); cursor: pointer; border-radius: 4px;
         }
         .qty-btn:hover { background: #f1f5f9; color: var(--primary); }
+
+        /* CSS Input số lượng (Đã cập nhật) */
         .qty-input {
-            width: 30px; border: none; text-align: center;
+            width: 40px; border: none; text-align: center;
             font-weight: 600; font-size: 0.9rem; outline: none;
+            -moz-appearance: textfield; /* Firefox */
         }
-        .qty-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+        .qty-input::-webkit-outer-spin-button,
+        .qty-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 
         .btn-remove-item {
             position: absolute; right: 0; top: 20px;
@@ -255,6 +259,9 @@
     let selectedAddressId = null;
     const urlParams = new URLSearchParams(window.location.search);
 
+    // Cấu hình Toastr
+    toastr.options = {"positionClass": "toast-bottom-right", "timeOut": "3000"};
+
     function formatCurrency(amount) {
         return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount || 0);
     }
@@ -265,7 +272,6 @@
         loadVouchers();
         setupAddressApi();
 
-        // Xử lý UI radio thanh toán
         $(document).on('click', '.payment-methods .address-option', function() {
             $('.payment-methods .address-option').removeClass('selected border-primary');
             $(this).addClass('selected border-primary');
@@ -273,7 +279,7 @@
         });
     });
 
-    // 1. LẤY DỮ LIỆU SẢN PHẨM
+    // 1. LẤY DỮ LIỆU SẢN PHẨM & TỒN KHO
     async function initData() {
         const productId = urlParams.get('productId');
         const cartIds = urlParams.getAll('cartIds');
@@ -297,13 +303,15 @@
                 currentCart = [{
                     id: data.id, name: data.tenSanPham, price: data.giaTien,
                     quantity: parseInt(urlParams.get('quantity')),
-                    image: data.tenHinhAnh, size: data.tenKichCo, color: data.tenMau
+                    image: data.tenHinhAnh, size: data.tenKichCo, color: data.tenMau,
+                    stock: data.soLuongTon // Tồn kho từ API
                 }];
             } else {
                 currentCart = data.cartItems.map(item => ({
                     id: item.idSanPhamChiTiet, name: item.tenSanPham,
                     price: item.donGia, quantity: item.soLuong,
-                    image: item.tenHinhAnh, size: item.tenKichCo, color: item.tenMau
+                    image: item.tenHinhAnh, size: item.tenKichCo, color: item.tenMau,
+                    stock: item.soLuongTon // Tồn kho từ API
                 }));
             }
 
@@ -314,7 +322,7 @@
         }
     }
 
-    // 2. HIỂN THỊ GIỎ HÀNG VỚI NÚT TĂNG GIẢM
+    // 2. HIỂN THỊ GIỎ HÀNG (CÓ INPUT NHẬP TAY)
     function renderCart() {
         let html = currentCart.map((item, index) => `
             <div class="order-item">
@@ -325,7 +333,11 @@
                     <div class="d-flex justify-content-between align-items-center mt-1">
                         <div class="qty-controls">
                             <button class="qty-btn" onclick="updateQty(${index}, -1)"><i class="fa fa-minus"></i></button>
-                            <input type="number" class="qty-input" value="${item.quantity}" readonly>
+                            <input type="number" class="qty-input"
+                                   id="qtyInput_${index}"
+                                   value="${item.quantity}"
+                                   onchange="checkManualQty(${index})"
+                                   onkeypress="return event.charCode >= 48 && event.charCode <= 57">
                             <button class="qty-btn" onclick="updateQty(${index}, 1)"><i class="fa fa-plus"></i></button>
                         </div>
                         <span class="fw-bold text-primary">${formatCurrency(item.price * item.quantity)}</span>
@@ -338,14 +350,43 @@
         $('#btnPlaceOrder').prop('disabled', currentCart.length === 0);
     }
 
-    // 3. LOGIC TĂNG GIẢM / XÓA
+    // 3. LOGIC TĂNG GIẢM / XÓA (CÓ CHECK STOCK)
     function updateQty(index, delta) {
-        let newQty = currentCart[index].quantity + delta;
+        let item = currentCart[index];
+        let newQty = item.quantity + delta;
+        let maxStock = item.stock || 9999;
+
+        if (delta > 0 && newQty > maxStock) {
+            toastr.warning(`Chỉ còn ${maxStock} sản phẩm trong kho!`);
+            return;
+        }
+
         if (newQty > 0) {
             currentCart[index].quantity = newQty;
             renderCart();
             calculateTotal();
         }
+    }
+
+    function checkManualQty(index) {
+        const input = document.getElementById(`qtyInput_${index}`);
+        let val = parseInt(input.value);
+        let item = currentCart[index];
+        let maxStock = item.stock || 9999;
+
+        if (isNaN(val) || val < 1) {
+            val = 1;
+            toastr.warning("Số lượng tối thiểu là 1");
+        }
+
+        if (val > maxStock) {
+            val = maxStock;
+            toastr.warning(`Kho chỉ còn ${maxStock} sản phẩm!`);
+        }
+
+        input.value = val;
+        currentCart[index].quantity = val;
+        calculateTotal();
     }
 
     function removeItem(index) {
@@ -354,9 +395,10 @@
         calculateTotal();
     }
 
-    // 4. TÍNH TOÁN TIỀN (GỌI API)
+    // 4. TÍNH TOÁN TIỀN & CHECK VOUCHER (ĐÃ SỬA: THÊM CẢNH BÁO)
     function calculateTotal() {
         const voucherCode = $('#voucherSelect').val();
+
         fetch('/api/checkout/calculate', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
@@ -369,7 +411,23 @@
             .then(data => {
                 $('#subTotal').text(formatCurrency(data.subTotal));
                 $('#discountAmount').text("-" + formatCurrency(data.discountAmount));
-                $('#finalTotal').text(formatCurrency(data.finalTotal)); // +30k ship cố định
+                $('#finalTotal').text(formatCurrency(data.finalTotal));
+
+                // --- [ĐOẠN CODE MỚI THÊM] ---
+                // Kiểm tra: Có chọn mã NHƯNG số tiền giảm = 0 -> Không đủ điều kiện
+                if (voucherCode && data.discountAmount === 0) {
+                    // Ưu tiên hiển thị message từ API nếu có (data.message), nếu không thì hiện câu chung chung
+                    const msg = data.message || "Đơn hàng chưa đủ điều kiện (giá trị tối thiểu, hạn dùng...) để áp dụng mã này!";
+
+                    toastr.warning(msg, "Không thể áp dụng!");
+
+                    // Reset ô chọn voucher về mặc định
+                    $('#voucherSelect').val("");
+
+                    // Reset lại hiển thị giảm giá về 0
+                    $('#discountAmount').text("-" + formatCurrency(0));
+                }
+                // -----------------------------
             });
     }
 
@@ -402,19 +460,20 @@
     // 6. ĐẶT HÀNG
     async function handlePlaceOrderClick() {
         if (!selectedAddressId) { toastr.warning("Vui lòng chọn địa chỉ nhận hàng"); return; }
+        if (currentCart.length === 0) { toastr.warning("Giỏ hàng trống!"); return; }
 
         Swal.fire({ title: 'Đang xử lý...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
-        // 1. Dữ liệu đặt hàng
         const payload = {
             addressId: selectedAddressId,
             note: $('#note').val(),
             paymentMethod: $('input[name="paymentMethod"]:checked').val(),
-            items: currentCart.map(i => ({ sanPhamChiTietId: i.id, soLuong: i.quantity }))
+            items: currentCart.map(i => ({ sanPhamChiTietId: i.id, soLuong: i.quantity })),
+            // Gửi thêm voucher code khi đặt hàng (nếu có)
+            voucherCode: $('#voucherSelect').val()
         };
 
         try {
-            // 2. GỌI API ĐẶT HÀNG (Logic cũ của bạn)
             const res = await fetch('/api/checkout/place-order', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
@@ -423,10 +482,7 @@
             const result = await res.json();
 
             if (result.success) {
-                // 3. NẾU ĐẶT HÀNG THÀNH CÔNG -> GỌI TIẾP API XÓA GIỎ HÀNG
-                // Lấy các ID mục giỏ hàng từ URL (vì trang này load từ cartIds)
                 const cartIdsToDelete = new URLSearchParams(window.location.search).getAll('cartIds');
-
                 if (cartIdsToDelete.length > 0) {
                     await fetch('/checkout/api/clear-cart', {
                         method: 'POST',
@@ -434,9 +490,7 @@
                         body: JSON.stringify(cartIdsToDelete)
                     });
                 }
-
-                // 4. HIỆN THÔNG BÁO VÀ CHUYỂN TRANG
-                Swal.fire("Thành công", "Đơn hàng đã được đặt thành công!", "success").then(() => {
+                Swal.fire("Thành công", "Đơn hàng đang chuyến hướng tới VNPAY!", "success").then(() => {
                     window.location.href = result.redirectUrl;
                 });
             } else {

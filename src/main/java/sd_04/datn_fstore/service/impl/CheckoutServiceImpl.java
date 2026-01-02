@@ -232,7 +232,7 @@ public class CheckoutServiceImpl implements CheckoutService {
         String redirectUrl = "";
         if ("VNPAY".equals(req.getPaymentMethod())) {
             // --- LUỒNG VNPAY ---
-            hoaDon.setTrangThai(6); // 1: Chờ thanh toán
+            hoaDon.setTrangThai(2); // 1: Chờ thanh toán
             hoaDon.setHinhThucThanhToan(4); // 4: VNPAY
             HoaDon savedHoaDon = hoaDonRepository.save(hoaDon);
             hoaDonChiTietRepository.saveAll(chiTietList);
