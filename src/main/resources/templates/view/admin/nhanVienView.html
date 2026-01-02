@@ -218,9 +218,13 @@
                                     <label class="form-label fw-bold small">ĐỊA CHỈ</label>
                                     <input id="diaChi" class="form-control" placeholder="Địa chỉ chi tiết"/>
                                 </div>
+
                                 <div class="col-md-6">
                                     <label class="form-label fw-bold small">VAI TRÒ</label>
-                                    <input id="vaiTro" class="form-control" placeholder="VD: Quản lý, Nhân viên..."/>
+                                    <select id="vaiTro" class="form-select">
+                                        <option value="Nhân viên bán hàng">Nhân viên bán hàng</option>
+                                        <option value="Nhân viên giao hàng">Nhân viên giao hàng</option>
+                                    </select>
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label fw-bold small">TRẠNG THÁI</label>
@@ -441,6 +445,10 @@
         document.getElementById('nvForm').reset();
         document.getElementById('nvId').value='';
         document.getElementById('trangThai').value='1';
+
+        // MODIFIED: Mặc định chọn Nhân viên bán hàng
+        document.getElementById('vaiTro').value='Nhân viên bán hàng';
+
         nvModal.show();
     }
 
@@ -502,8 +510,11 @@
             document.getElementById('cccd').value=nv.cccd??'';
             document.getElementById('gioiTinh').value=nv.gioiTinh===null?'':String(nv.gioiTinh);
             document.getElementById('diaChi').value=nv.diaChi??'';
-            document.getElementById('vaiTro').value=nv.vaiTro??'';
             document.getElementById('trangThai').value=nv.trangThai===1?'1':'0';
+
+            // MODIFIED: Set giá trị cho Select Box Vai Trò
+            // Lưu ý: Nếu database lưu giá trị khác 2 option trên, nó sẽ không hiển thị đúng.
+            document.getElementById('vaiTro').value=nv.vaiTro??'Nhân viên bán hàng';
 
             // Clear mật khẩu khi sửa để tránh lộ, nếu muốn đổi thì nhập mới
             document.getElementById('password').value = '';

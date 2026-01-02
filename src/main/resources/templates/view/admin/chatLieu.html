@@ -11,21 +11,43 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" />
     <link rel="stylesheet" th:href="@{/css/styles.css}" />
     <link rel="stylesheet" th:href="@{/css/navbar.css}" />
-    <link rel="stylesheet" th:href="@{/css/admin-layout.css}" />
 
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; color: #374151; }
-        .card-box { background: #ffffff; border-radius: 12px; border: none; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); margin-bottom: 1.5rem; }
-        .table-custom thead th { background-color: #f9fafb; color: #6b7280; font-size: 0.75rem; text-transform: uppercase; padding: 1rem 0.75rem; border-bottom: 2px solid #e5e7eb; }
-        .table-custom tbody td { vertical-align: middle; padding: 1rem 0.75rem; border-bottom: 1px solid #f3f4f6; font-size: 0.875rem; }
-        .badge-status { padding: 0.35em 0.8em; font-size: 0.75rem; font-weight: 600; border-radius: 9999px; }
-        .badge-active { background-color: #d1fae5; color: #065f46; }
-        .badge-inactive { background-color: #fee2e2; color: #991b1b; }
-        .btn-action { width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 6px; transition: all 0.2s; }
-        .btn-action:hover { transform: translateY(-2px); }
+        .card-box { background: #fff; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 1.5rem; }
+        .table-custom th { background-color: #f9fafb; font-size: 0.75rem; text-transform: uppercase; color: #6b7280; padding: 1rem; }
+        .table-custom td { vertical-align: middle; padding: 1rem; font-size: 0.875rem; }
+        .badge-active { background: #d1fae5; color: #065f46; padding: 5px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+        .badge-inactive { background: #fee2e2; color: #991b1b; padding: 5px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+        .btn-action { width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; border-radius: 6px; }
+        /* --- SỬA LỖI LAYOUT --- */
+        .page-wrapper {
+            display: flex; /* QUAN TRỌNG: Giúp Sidebar và Main nằm ngang hàng */
+            align-items: stretch; /* Kéo giãn chiều cao bằng nhau */
+            min-height: 100vh; /* Chiều cao tối thiểu bằng màn hình */
+            width: 100%;
+        }
+
+        /* Định dạng cho Sidebar (Giả sử sidebar là phần tử con đầu tiên) */
+        /* Nếu sidebar của bạn có class cụ thể (vd: .sidebar), hãy thay thế selector bên dưới */
+        .page-wrapper > div:first-child,
+        .page-wrapper > nav:first-child {
+            min-width: 260px; /* Chiều rộng cố định của Sidebar */
+            max-width: 260px;
+            background: #1e293b; /* Màu nền tối (giống ảnh mẫu) */
+            color: #fff;
+            flex-shrink: 0; /* Không cho phép sidebar bị co lại khi màn hình nhỏ */
+            transition: all 0.3s;
+        }
+
+        /* Định dạng cho Nội dung chính */
+        .main-content {
+            flex-grow: 1; /* Chiếm toàn bộ khoảng trống còn lại */
+            width: calc(100% - 260px); /* Trừ đi chiều rộng sidebar */
+            overflow-x: hidden; /* Ẩn thanh cuộn ngang nếu nội dung quá dài */
+        }
     </style>
 </head>
-
 <body>
 <nav th:replace="~{library/navbar :: admin-navbar}"></nav>
 <div class="page-wrapper">
