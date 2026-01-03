@@ -263,90 +263,90 @@
   </section>
 
   <!-- 5. SẢN PHẨM MỚI NHẤT (Card đẹp hơn) -->
-  <section class="section-padding bg-light" data-aos="fade-up">
-    <div class="container">
-      <div class="d-flex justify-content-between align-items-end mb-5">
-        <div>
-          <h2 style="font-family: 'Oswald'; font-weight: 700;">NEW ARRIVALS</h2>
-          <p class="mb-0 text-muted">Sản phẩm mới lên kệ tuần này</p>
-        </div>
-        <a th:href="@{/san-pham}" class="btn btn-outline-dark rounded-pill px-4">Xem tất cả</a>
-      </div>
+<!--  <section class="section-padding bg-light" data-aos="fade-up">-->
+<!--    <div class="container">-->
+<!--      <div class="d-flex justify-content-between align-items-end mb-5">-->
+<!--        <div>-->
+<!--          <h2 style="font-family: 'Oswald'; font-weight: 700;">NEW ARRIVALS</h2>-->
+<!--          <p class="mb-0 text-muted">Sản phẩm mới lên kệ tuần này</p>-->
+<!--        </div>-->
+<!--        <a th:href="@{/san-pham}" class="btn btn-outline-dark rounded-pill px-4">Xem tất cả</a>-->
+<!--      </div>-->
 
-      <div class="row row-cols-1 row-cols-sm-2 row-cols-md-4 g-4">
-        <!-- Product 1 -->
-        <div class="col">
-          <div class="product-card">
-            <div class="product-img-wrap">
-              <img src="https://vinsport.vn/my_uploads/2023/12/Bo-quan-ao-khoac-ni-thu-dong-xuan-Suvec-Wika-chinh-hang-nhieu-mau-kieu-dang-the-thao-moi-2024-1.jpg" alt="SP">
-              <div class="product-actions">
-                <a th:href="@{/san-pham(category='phu-kien')}" class="action-btn" title="Thêm vào giỏ"><i class="fa-solid fa-cart-plus"></i></a>
-                <a th:href="@{/san-pham(category='phu-kien')}" class="action-btn" title="Xem nhanh"><i class="fa-regular fa-eye"></i></a>
-              </div>
-            </div>
-            <div class="product-info">
-              <span class="product-tag">WIKA</span>
-              <h3 class="product-name"><a th:href="@{/san-pham(category='phu-kien')}">Bộ gió thể thao Wika phối màu</a></h3>
-              <div class="product-price">499.000đ</div>
-            </div>
-          </div>
-        </div>
-        <!-- Product 2 -->
-        <div class="col">
-          <div class="product-card">
-            <div class="product-img-wrap">
-              <img src="https://bizweb.dktcdn.net/100/481/348/products/z4147260213030-0bc9a3e8796f400a2e44729000478a01-1677660244570.jpg?v=1680768222003" alt="SP">
-              <div class="product-actions">
-                <a th:href="@{/san-pham(category='phu-kien')}" class="action-btn"><i class="fa-solid fa-cart-plus"></i></a>
+<!--      <div class="row row-cols-1 row-cols-sm-2 row-cols-md-4 g-4">-->
+<!--        &lt;!&ndash; Product 1 &ndash;&gt;-->
+<!--        <div class="col">-->
+<!--          <div class="product-card">-->
+<!--            <div class="product-img-wrap">-->
+<!--              <img src="https://vinsport.vn/my_uploads/2023/12/Bo-quan-ao-khoac-ni-thu-dong-xuan-Suvec-Wika-chinh-hang-nhieu-mau-kieu-dang-the-thao-moi-2024-1.jpg" alt="SP">-->
+<!--              <div class="product-actions">-->
+<!--                <a th:href="@{/san-pham(category='phu-kien')}" class="action-btn" title="Thêm vào giỏ"><i class="fa-solid fa-cart-plus"></i></a>-->
+<!--                <a th:href="@{/san-pham(category='phu-kien')}" class="action-btn" title="Xem nhanh"><i class="fa-regular fa-eye"></i></a>-->
+<!--              </div>-->
+<!--            </div>-->
+<!--            <div class="product-info">-->
+<!--              <span class="product-tag">WIKA</span>-->
+<!--              <h3 class="product-name"><a th:href="@{/san-pham(category='phu-kien')}">Bộ gió thể thao Wika phối màu</a></h3>-->
+<!--              <div class="product-price">499.000đ</div>-->
+<!--            </div>-->
+<!--          </div>-->
+<!--        </div>-->
+<!--        &lt;!&ndash; Product 2 &ndash;&gt;-->
+<!--        <div class="col">-->
+<!--          <div class="product-card">-->
+<!--            <div class="product-img-wrap">-->
+<!--              <img src="https://bizweb.dktcdn.net/100/481/348/products/z4147260213030-0bc9a3e8796f400a2e44729000478a01-1677660244570.jpg?v=1680768222003" alt="SP">-->
+<!--              <div class="product-actions">-->
+<!--                <a th:href="@{/san-pham(category='phu-kien')}" class="action-btn"><i class="fa-solid fa-cart-plus"></i></a>-->
 
-                <a th:href="@{/san-pham(category='phu-kien')}" class="action-btn"><i class="fa-regular fa-eye"></i></a>
-              </div>
-            </div>
-            <div class="product-info">
-              <span class="product-tag">EXR</span>
-              <h3 class="product-name"><a th:href="@{/san-pham(category='phu-kien')}">Quần Jogger Thể Thao Nỉ</a></h3>
-              <div class="product-price">250.000đ</div>
-            </div>
-          </div>
-        </div>
-        <!-- Product 3 -->
-        <div class="col">
-          <div class="product-card">
-            <div class="product-img-wrap">
-              <img src="https://namfashion.com/home/wp-content/uploads/2024/07/Bo-quan-ao-the-thao-exr-cao-cap-xuat-khau-ha-noi-12.jpg" alt="SP">
-              <div class="product-actions">
-                <a th:href="@{/san-pham(category='phu-kien')}" class="action-btn"><i class="fa-solid fa-cart-plus"></i></a>
+<!--                <a th:href="@{/san-pham(category='phu-kien')}" class="action-btn"><i class="fa-regular fa-eye"></i></a>-->
+<!--              </div>-->
+<!--            </div>-->
+<!--            <div class="product-info">-->
+<!--              <span class="product-tag">EXR</span>-->
+<!--              <h3 class="product-name"><a th:href="@{/san-pham(category='phu-kien')}">Quần Jogger Thể Thao Nỉ</a></h3>-->
+<!--              <div class="product-price">250.000đ</div>-->
+<!--            </div>-->
+<!--          </div>-->
+<!--        </div>-->
+<!--        &lt;!&ndash; Product 3 &ndash;&gt;-->
+<!--        <div class="col">-->
+<!--          <div class="product-card">-->
+<!--            <div class="product-img-wrap">-->
+<!--              <img src="https://namfashion.com/home/wp-content/uploads/2024/07/Bo-quan-ao-the-thao-exr-cao-cap-xuat-khau-ha-noi-12.jpg" alt="SP">-->
+<!--              <div class="product-actions">-->
+<!--                <a th:href="@{/san-pham(category='phu-kien')}" class="action-btn"><i class="fa-solid fa-cart-plus"></i></a>-->
 
-                <a th:href="@{/san-pham(category='phu-kien')}" class="action-btn"><i class="fa-regular fa-eye"></i></a>
-              </div>
-            </div>
-            <div class="product-info">
-              <span class="product-tag">PREMIUM</span>
-              <h3 class="product-name"><a th:href="@{/san-pham(category='phu-kien')}">Bộ nỉ nam cao cấp EXR</a></h3>
-              <div class="product-price">650.000đ</div>
-            </div>
-          </div>
-        </div>
-        <!-- Product 4 -->
-        <div class="col">
-          <div class="product-card">
-            <div class="product-img-wrap">
-              <img src="https://product.hstatic.net/1000312752/product/dsc05677_8e359d557e824b608c69ee5717fe76fc_master.jpg" alt="SP">
-              <div class="product-actions">
-                <a href="#" class="action-btn"><i class="fa-solid fa-cart-plus"></i></a>
-                <a th:href="@{/san-pham(category='phu-kien')}" class="action-btn"><i class="fa-regular fa-eye"></i></a>
-              </div>
-            </div>
-            <div class="product-info">
-              <span class="product-tag">WOMEN</span>
-              <h3 class="product-name"><a th:href="@{/san-pham(category='phu-kien')}">Set thể thao nữ phối màu</a></h3>
-              <div class="product-price">320.000đ</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
+<!--                <a th:href="@{/san-pham(category='phu-kien')}" class="action-btn"><i class="fa-regular fa-eye"></i></a>-->
+<!--              </div>-->
+<!--            </div>-->
+<!--            <div class="product-info">-->
+<!--              <span class="product-tag">PREMIUM</span>-->
+<!--              <h3 class="product-name"><a th:href="@{/san-pham(category='phu-kien')}">Bộ nỉ nam cao cấp EXR</a></h3>-->
+<!--              <div class="product-price">650.000đ</div>-->
+<!--            </div>-->
+<!--          </div>-->
+<!--        </div>-->
+<!--        &lt;!&ndash; Product 4 &ndash;&gt;-->
+<!--        <div class="col">-->
+<!--          <div class="product-card">-->
+<!--            <div class="product-img-wrap">-->
+<!--              <img src="https://product.hstatic.net/1000312752/product/dsc05677_8e359d557e824b608c69ee5717fe76fc_master.jpg" alt="SP">-->
+<!--              <div class="product-actions">-->
+<!--                <a href="#" class="action-btn"><i class="fa-solid fa-cart-plus"></i></a>-->
+<!--                <a th:href="@{/san-pham(category='phu-kien')}" class="action-btn"><i class="fa-regular fa-eye"></i></a>-->
+<!--              </div>-->
+<!--            </div>-->
+<!--            <div class="product-info">-->
+<!--              <span class="product-tag">WOMEN</span>-->
+<!--              <h3 class="product-name"><a th:href="@{/san-pham(category='phu-kien')}">Set thể thao nữ phối màu</a></h3>-->
+<!--              <div class="product-price">320.000đ</div>-->
+<!--            </div>-->
+<!--          </div>-->
+<!--        </div>-->
+<!--      </div>-->
+<!--    </div>-->
+<!--  </section>-->
 
   <!-- 6. VIDEO PARALLAX -->
   <section class="section-padding bg-dark text-white text-center" style="background: url('https://images.pexels.com/photos/1552242/pexels-photo-1552242.jpeg') fixed center/cover; position: relative;">
