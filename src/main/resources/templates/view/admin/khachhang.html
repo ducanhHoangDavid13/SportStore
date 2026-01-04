@@ -15,282 +15,128 @@
     <link rel="stylesheet" th:href="@{/css/navbar.css}" />
 
     <style>
-        /* --- General Layout --- */
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #f8f9fa;
+            --accent-color: #4cc9f0;
+            --text-dark: #2b2d42;
+            --text-muted: #8d99ae;
+            --bg-body: #f1f5f9;
+            --transition: all 0.3s ease;
+        }
+
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: #f3f4f6;
-            color: #374151;
-            overflow-x: hidden;
+            background-color: var(--bg-body);
+            color: var(--text-dark);
         }
 
-        /* Navbar cố định trên cùng */
-        nav {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 1030; /* Cao hơn sidebar một chút */
-        }
-
-        .page-wrapper {
-            display: flex;
-            min-height: 100vh;
-            padding-top: 70px; /* Khoảng trống cho Navbar cố định */
-        }
-
-        /* Sidebar cố định bên trái (giả sử navbar.css đã set width 260px) */
-        .admin-sidebar {
-            width: 260px;
-            position: fixed;
-            top: 70px; /* Bắt đầu dưới Navbar */
-            bottom: 0;
-            left: 0;
-            z-index: 1020;
-            overflow-y: auto;
-            transition: all 0.3s ease;
-            background: #fff; /* Đảm bảo có màu nền */
-            border-right: 1px solid #e5e7eb;
-        }
-
-        /* Main Content: Đẩy sang phải bằng width của Sidebar */
+        /* Tinh chỉnh Main Content */
         .main-content {
-            flex: 1;
-            padding: 2rem;
-            margin-left: 260px; /* Quan trọng: Tránh bị sidebar che */
-            width: calc(100% - 260px); /* Đảm bảo width chính xác */
-            transition: all 0.3s ease;
+            padding: 30px;
+            transition: var(--transition);
         }
 
-        /* Responsive Layout (Mobile/Tablet) */
-        @media (max-width: 991.98px) {
-            .admin-sidebar {
-                left: -260px; /* Ẩn sidebar */
-            }
-            .admin-sidebar.show {
-                left: 0; /* Hiện khi toggle */
-            }
-            .main-content {
-                margin-left: 0; /* Full width trên mobile */
-                width: 100%;
-                padding: 1rem;
-            }
-        }
-
-        /* --- Cards & Boxes --- */
-        .card-box {
+        /* Card Styling */
+        .card-box, .custom-card {
             background: #ffffff;
+            border: none;
             border-radius: 16px;
-            border: 1px solid rgba(0, 0, 0, 0.05);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
-            margin-bottom: 1.5rem;
-            padding: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+            margin-bottom: 25px;
+            padding: 24px;
         }
 
-        .custom-card {
-            background: #ffffff;
-            border-radius: 16px;
-            border: 1px solid rgba(0, 0, 0, 0.05);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.03), 0 4px 6px -2px rgba(0, 0, 0, 0.01);
-            overflow: hidden;
-        }
-
-        /* --- Form Elements --- */
+        /* Form Inputs */
         .form-control, .form-select {
-            border-radius: 8px;
-            border: 1px solid #d1d5db;
-            padding: 0.625rem 1rem;
-            font-size: 0.95rem;
-            transition: all 0.2s;
-        }
-
-        .form-control:focus, .form-select:focus {
-            border-color: #6366f1;
-            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
-            outline: none;
-        }
-
-        .input-group-text {
-            border-radius: 8px 0 0 8px;
-            border: 1px solid #d1d5db;
-            border-right: none;
-        }
-
-        .input-group .form-control {
-            border-radius: 0 8px 8px 0;
-        }
-
-        /* --- Buttons --- */
-        .btn {
+            border: 1px solid #e2e8f0;
             border-radius: 10px;
-            padding: 0.625rem 1.25rem;
-            font-weight: 600;
-            letter-spacing: 0.025em;
-            transition: all 0.2s ease;
+            padding: 10px 15px;
+            font-size: 0.95rem;
+            transition: var(--transition);
         }
 
-        .btn-primary {
-            background-color: #4f46e5;
-            border-color: #4f46e5;
-            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px rgba(67, 97, 238, 0.1);
         }
 
-        .btn-primary:hover {
-            background-color: #4338ca;
-            border-color: #4338ca;
-            transform: translateY(-1px);
-        }
-
-        .btn-light {
-            background-color: #ffffff;
-            border-color: #e5e7eb;
-            color: #4b5563;
-        }
-
-        .btn-light:hover {
-            background-color: #f9fafb;
-            border-color: #d1d5db;
-        }
-
-        /* --- Table Styling --- */
+        /* Table Styling */
         .table-custom {
-            margin-bottom: 0;
             border-collapse: separate;
-            border-spacing: 0;
-            width: 100%;
+            border-spacing: 0 8px;
         }
 
         .table-custom thead th {
-            background-color: #f8fafc;
-            color: #64748b;
-            font-weight: 700;
+            background-color: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-weight: 600;
             text-transform: uppercase;
             font-size: 0.75rem;
-            letter-spacing: 0.05em;
-            padding: 1rem 1.5rem;
-            border-bottom: 1px solid #e2e8f0;
-            white-space: nowrap;
-        }
-
-        .table-custom tbody td {
-            padding: 1rem 1.5rem;
-            border-bottom: 1px solid #f1f5f9;
-            color: #334155;
-            font-size: 0.9rem;
-            vertical-align: middle;
-        }
-
-        .table-custom tbody tr:last-child td {
-            border-bottom: none;
+            letter-spacing: 0.5px;
+            padding-bottom: 15px;
         }
 
         .table-custom tbody tr {
-            transition: background-color 0.2s;
+            background-color: #ffffff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            transition: var(--transition);
         }
 
         .table-custom tbody tr:hover {
-            background-color: #f8fafc;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            background-color: #fcfdff;
         }
 
-        /* --- Badges --- */
-        .badge {
-            font-weight: 600;
-            padding: 0.4em 0.8em;
-            border-radius: 6px;
-            font-size: 0.75rem;
-        }
-
-        .badge-primary-subtle { background-color: #e0e7ff; color: #4338ca; }
-        .badge-danger-subtle { background-color: #fee2e2; color: #991b1b; }
-        .badge-success-subtle { background-color: #dcfce7; color: #166534; }
-
-        /* --- Pagination --- */
-        .pagination .page-link {
+        .table-custom td {
             border: none;
-            border-radius: 8px;
-            margin: 0 0.25rem;
-            color: #6b7280;
-            padding: 0.5rem 0.75rem;
-            font-size: 0.875rem;
-            transition: all 0.2s;
+            padding: 16px 12px;
+            vertical-align: middle;
         }
 
-        .pagination .page-link:hover {
-            background-color: #f3f4f6;
-            color: #111827;
+        .table-custom td:first-child { border-radius: 12px 0 0 12px; }
+        .table-custom td:last-child { border-radius: 0 12px 12px 0; }
+
+        /* Buttons */
+        .btn-primary {
+            background-color: var(--primary-color);
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            padding: 10px 24px;
+            transition: var(--transition);
         }
 
-        .pagination .page-item.active .page-link {
-            background-color: #4f46e5;
-            color: #fff;
-            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.3);
+        .btn-primary:hover {
+            background-color: #3046c9;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
         }
 
-        .pagination .page-item.disabled .page-link {
-            color: #d1d5db;
-            background-color: transparent;
-        }
-
-        /* --- Modals --- */
+        /* Modal Styling */
         .modal-content {
             border-radius: 20px;
-            border: none;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
             overflow: hidden;
         }
 
-        .modal-header {
-            padding: 1.5rem 2rem;
-            border-bottom: 1px solid #f3f4f6;
-        }
-
         .modal-header-gradient {
-            background: linear-gradient(135deg, #4f46e5 0%, #818cf8 100%);
-            padding-bottom: 3rem; /* Space for avatar overlap */
-            position: relative;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            height: 120px;
         }
 
-        .modal-body {
-            padding: 2rem;
-        }
-
-        .modal-footer {
-            padding: 1.5rem 2rem;
-            border-top: 1px solid #f3f4f6;
-            background-color: #f9fafb;
-        }
-
-        /* --- Detail Modal Specifics --- */
-        #detailAvatar {
-            border: 4px solid #ffffff;
-            margin-top: 3rem; /* Push down to overlap header */
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-        }
-
-        /* Action Buttons in Table */
-        .btn-sm {
-            padding: 0.35rem 0.65rem;
+        /* Status Badges */
+        .badge {
+            padding: 6px 12px;
+            font-weight: 600;
             border-radius: 8px;
-            font-size: 0.8rem;
         }
 
-        .text-gray { color: #6b7280; }
-        .text-primary { color: #4f46e5 !important; }
-
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #c7c7c7;
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #a8a8a8;
-        }
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
     </style>
 </head>
 <body>
@@ -299,10 +145,9 @@
 <div class="page-wrapper">
     <div th:replace="~{library/navbar :: admin-sidebar}"></div>
 
-    <main class="main-content" style="margin-top: 100px ;margin-left: 20px">
+    <main class="main-content" style="margin-top: 50px ;margin-left: 20px">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
-                    <h6 class="text-muted text-uppercase mb-1" style="font-size: 0.75rem; letter-spacing: 1px;">Quản trị</h6>
                     <h3 class="fw-bold text-dark m-0">Khách Hàng</h3>
                 </div>
                 <button class="btn btn-primary fw-bold shadow-lg text-white" data-bs-toggle="modal" data-bs-target="#addKhachHangModal" style="border-radius: 12px; padding: 10px 20px;">
@@ -354,7 +199,7 @@
                             <table class="table table-custom table-hover mb-0">
                                 <thead class="bg-light">
                                 <tr>
-                                    <th class="ps-4">Mã KH</th>
+                                    <th class="ps-4">Mã</th>
                                     <th>Họ và Tên</th>
                                     <th>SĐT</th>
                                     <th>Email</th>
