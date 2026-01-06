@@ -9,6 +9,7 @@ import sd_04.datn_fstore.config.VnPayConfig;
 import sd_04.datn_fstore.dto.CreateOrderRequest;
 import sd_04.datn_fstore.model.HoaDon;
 import sd_04.datn_fstore.model.HoaDonChiTiet;
+import sd_04.datn_fstore.model.SanPhamChiTiet;
 import sd_04.datn_fstore.repository.HoaDonChiTietRepository;
 import sd_04.datn_fstore.repository.HoaDonRepository;
 import sd_04.datn_fstore.service.BanHangService;
@@ -19,6 +20,9 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import sd_04.datn_fstore.repository.SanPhamCTRepository; // <-- THÊM
+import sd_04.datn_fstore.service.SanPhamService;        // <-- THÊM
+import sd_04.datn_fstore.service.PhieuGiamgiaService;
 
 @Service
 @RequiredArgsConstructor
@@ -29,7 +33,9 @@ public class VnPayServiceImpl implements VnPayService {
 
     private final HoaDonRepository hoaDonRepository;
     private final HoaDonChiTietRepository hoaDonChiTietRepository;
-
+    private final SanPhamCTRepository sanPhamCTRepository;
+    private final SanPhamService sanPhamService;
+    private final PhieuGiamgiaService phieuGiamgiaService;
     @Override
     public String createOrder(long amount, String orderInfo, String orderCode, String ipAddress)
             throws UnsupportedEncodingException {
@@ -114,47 +120,65 @@ public class VnPayServiceImpl implements VnPayService {
         String vnp_ResponseCode = vnpParams.get("vnp_ResponseCode");
 
         try {
+            // 1. Kiểm tra chữ ký bảo mật
             if (!validateHash(vnpParams)) {
                 return -1;
             }
 
+            // 2. Tìm hóa đơn
             HoaDon hoaDon = hoaDonRepository.findByMaHoaDon(vnp_TxnRef)
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy Hóa đơn: " + vnp_TxnRef));
 
-            if (hoaDon.getTrangThai() != 5) {
-                return (hoaDon.getTrangThai() == 1) ? 1 : -1;
+            // 3. Kiểm tra trạng thái để tránh xử lý lặp lại
+            // Chỉ xử lý nếu đơn đang "Chờ thanh toán" (6)
+            if (hoaDon.getTrangThai() != 6) {
+                return (hoaDon.getTrangThai() == 1) ? 1 : 0;
             }
 
+            // =================================================================
+            // TRƯỜNG HỢP 1: THANH TOÁN THÀNH CÔNG (Code == "00")
+            // =================================================================
             if ("00".equals(vnp_ResponseCode)) {
-                List<HoaDonChiTiet> items = hoaDonChiTietRepository.findByHoaDonId(hoaDon.getId());
-
-                // SỬA: List<Item> -> List<SanPhamItem>
-                List<CreateOrderRequest.SanPhamItem> itemsToDecrement = new ArrayList<>();
-                for (HoaDonChiTiet hdct : items) {
-                    // SỬA: new SanPhamItem(...)
-                    itemsToDecrement.add(new CreateOrderRequest.SanPhamItem(
-                            hdct.getSanPhamChiTiet().getId(),
-                            hdct.getSoLuong(),
-                            hdct.getDonGia()
-                    ));
-                }
-
-                BanHangService banHangService = banHangServiceProvider.getIfAvailable();
-                if (banHangService == null) {
-                    throw new RuntimeException("BanHangService is not available");
-                }
-
-                banHangService.decrementInventory(itemsToDecrement);
-                banHangService.decrementVoucher(hoaDon.getPhieuGiamGia());
-
-                hoaDon.setTrangThai(1);
+                // Đã trừ kho lúc đặt hàng rồi -> Chỉ cần update trạng thái đơn
+                hoaDon.setTrangThai(1); // 1: Đã xác nhận/Chờ đóng gói
+                hoaDon.setNgayTao(java.time.LocalDateTime.now());
+                hoaDon.setHinhThucThanhToan(2); // VNPAY
                 hoaDonRepository.save(hoaDon);
-
                 return 1;
+            }
 
-            } else {
-                hoaDon.setTrangThai(3);
+            // =================================================================
+            // TRƯỜNG HỢP 2: KHÁCH HỦY / THẤT BẠI (Code != "00")
+            // =================================================================
+            else {
+                // 1. Đổi trạng thái đơn sang Hủy (5)
+                hoaDon.setTrangThai(5);
                 hoaDonRepository.save(hoaDon);
+
+                // 2. ▼▼▼ LOGIC HOÀN LẠI KHO (CỰC KỲ QUAN TRỌNG) ▼▼▼
+                List<HoaDonChiTiet> listItems = hoaDonChiTietRepository.findByHoaDonId(hoaDon.getId());
+
+                for (HoaDonChiTiet item : listItems) {
+                    SanPhamChiTiet spct = item.getSanPhamChiTiet();
+
+                    // Lấy tồn kho cũ + Số lượng khách đã đặt nhưng hủy
+                    int soLuongMoi = spct.getSoLuong() + item.getSoLuong();
+                    spct.setSoLuong(soLuongMoi);
+
+                    // Nếu sản phẩm đang bị ẩn (trạng thái 0) do hết hàng, giờ có hàng lại thì MỞ BÁN LẠI (1)
+                    if (spct.getTrangThai() == 0 && soLuongMoi > 0) {
+                        spct.setTrangThai(1);
+                    }
+
+                    sanPhamCTRepository.save(spct); // Lưu lại vào DB
+                }
+
+                // 3. Cập nhật lại tổng số lượng cho sản phẩm cha (Optional nhưng nên có)
+                if (!listItems.isEmpty()) {
+                    sanPhamService.updateTotalQuantity(listItems.get(0).getSanPhamChiTiet().getSanPham().getId());
+                }
+
+                System.out.println("Đã hoàn kho cho đơn hủy: " + vnp_TxnRef);
                 return 0;
             }
 
