@@ -490,7 +490,7 @@
                         body: JSON.stringify(cartIdsToDelete)
                     });
                 }
-                Swal.fire("Thành công", "Đơn hàng đang chuyến hướng tới VNPAY!", "success").then(() => {
+                Swal.fire("Thành công", "Đơn hàng đã thanh toán thành công!", "success").then(() => {
                     window.location.href = result.redirectUrl;
                 });
             } else {
