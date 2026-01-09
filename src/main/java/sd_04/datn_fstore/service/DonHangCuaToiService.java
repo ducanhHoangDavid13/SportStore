@@ -12,24 +12,23 @@ import org.springframework.web.server.ResponseStatusException;
 import sd_04.datn_fstore.model.HoaDon;
 import sd_04.datn_fstore.repository.HoaDonRepository;
 
+import java.util.List;
+
 @Service
 public class DonHangCuaToiService {
 
     @Autowired
     private HoaDonRepository hoaDonRepository;
 
-    public Page<HoaDon> getHoaDonByKhachHang(Integer idKhachHang, Integer trangThai, int page, int size) {
-        // Sắp xếp theo 'ngayTao' (ngày tạo) giảm dần (DESC)
+    public Page<HoaDon> getHoaDonByKhachHang(Integer idKhachHang, List<Integer> trangThai, int page, int size) {
         Sort sort = Sort.by(Sort.Direction.DESC, "ngayTao");
-
-        // Tạo đối tượng Pageable
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        if (trangThai != null) {
-            // Có lọc theo trạng thái
-            return hoaDonRepository.findByKhachHang_IdAndTrangThai(idKhachHang, trangThai, pageable);
+        // Kiểm tra nếu danh sách trangThai không rỗng
+        if (trangThai != null && !trangThai.isEmpty()) {
+            // Sử dụng phương thức tìm kiếm theo danh sách (IN)
+            return hoaDonRepository.findByKhachHang_IdAndTrangThaiIn(idKhachHang, trangThai, pageable);
         } else {
-            // Không lọc theo trạng thái (lấy tất cả)
             return hoaDonRepository.findByKhachHang_Id(idKhachHang, pageable);
         }
     }
