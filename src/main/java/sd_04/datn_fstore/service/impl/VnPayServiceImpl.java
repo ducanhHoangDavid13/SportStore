@@ -128,12 +128,19 @@ public class VnPayServiceImpl implements VnPayService {
             // =================================================================
             // TRƯỜNG HỢP 1: THANH TOÁN THÀNH CÔNG (Code == "00")
             // =================================================================
+            // TRƯỜNG HỢP 1: THANH TOÁN THÀNH CÔNG (Code == "00")
+            // =================================================================
             if ("00".equals(vnp_ResponseCode)) {
-                // Cập nhật trạng thái sang: Đã thanh toán / Chờ đóng gói (2)
+                // 1. Cập nhật trạng thái: Đã thanh toán -> Chuyển sang "Đang chuẩn bị" (2)
+                // Hoặc bạn có thể để là 1 (Đã xác nhận) nếu muốn quy trình đi từ đầu.
                 hoaDon.setTrangThai(2);
 
-                hoaDon.setNgayTao(LocalDateTime.now()); // Lưu thời gian thanh toán thực tế
-                hoaDon.setHinhThucThanhToan(2); // Xác nhận lại là VNPAY
+                // 2. Cập nhật thời gian thực tế
+                hoaDon.setNgayTao(LocalDateTime.now());
+
+                // 3. QUAN TRỌNG: Giữ nguyên hoặc set lại là 4 (VNPay)
+                // Code cũ set là 2 (Transfer) khiến hiển thị sai loại thanh toán.
+                hoaDon.setHinhThucThanhToan(4);
 
                 hoaDonRepository.save(hoaDon);
 
@@ -158,6 +165,10 @@ public class VnPayServiceImpl implements VnPayService {
 
     @Override
     public boolean validateHash(Map<String, String> vnpParams) {
+        if (vnpParams == null || !vnpParams.containsKey("vnp_SecureHash")) {
+            return false;
+        }
+
         String receivedHash = vnpParams.get("vnp_SecureHash");
 
         Map<String, String> fields = new HashMap<>(vnpParams);
@@ -171,6 +182,15 @@ public class VnPayServiceImpl implements VnPayService {
         for (String key : fieldNames) {
             String value = fields.get(key);
             if (value != null && value.length() > 0) {
+                // --- SỬA LỖI Ở ĐÂY ---
+                try {
+                    // Phải encode lại giá trị giống hệt lúc createOrder thì hash mới khớp
+                    value = URLEncoder.encode(value, StandardCharsets.UTF_8.toString());
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                }
+                // ---------------------
+
                 if (hashData.length() > 0) {
                     hashData.append('&');
                 }

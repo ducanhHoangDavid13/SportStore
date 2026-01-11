@@ -26,8 +26,9 @@ public class HoaDonServiceImpl implements HoaDonService {
     private final HoaDonChiTietRepository hoaDonChiTietRepository;
     private final KhoService khoService;
 
-    private static final int TT_HOAN_THANH = 5;
-    private static final int TT_DA_HUY = 6;
+    private static final int TT_HOAN_THANH = 4;
+    private static final int TT_DA_HUY = 5;
+    private static final int TT_GIAO_THAT_BAI = 7;
 
     @Override
     public Page<HoaDon> search(Pageable pageable, List<Integer> trangThaiList,
@@ -59,9 +60,13 @@ public class HoaDonServiceImpl implements HoaDonService {
         HoaDon hoaDon = hoaDonRepository.findById(hoaDonId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy HĐ ID: " + hoaDonId));
 
-        if (newTrangThai == TT_DA_HUY && hoaDon.getTrangThai() < TT_HOAN_THANH) {
+        boolean isHuyOrThatBai = (newTrangThai == TT_DA_HUY || newTrangThai == TT_GIAO_THAT_BAI);
+        boolean isChuaHoanThanh = (hoaDon.getTrangThai() < TT_HOAN_THANH);
+        // Logic này đảm bảo: Nếu chuyển sang HỦY (5) thì mới hoàn kho
+        if (isHuyOrThatBai && isChuaHoanThanh) {
             List<HoaDonChiTiet> items = hoaDonChiTietRepository.findByHoaDonId(hoaDonId);
             for (HoaDonChiTiet item : items) {
+                // Gọi service trả hàng về kho
                 khoService.hoanTonKho(
                         item.getSanPhamChiTiet().getId(),
                         item.getSoLuong()

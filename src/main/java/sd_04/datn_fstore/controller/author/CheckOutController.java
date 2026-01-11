@@ -1,5 +1,6 @@
 package sd_04.datn_fstore.controller.author;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +16,7 @@ import sd_04.datn_fstore.model.KhachHang;
 import sd_04.datn_fstore.repository.GioHangRepository;
 import sd_04.datn_fstore.repository.KhachHangRepo;
 import sd_04.datn_fstore.repository.SanPhamCTRepository;
+import sd_04.datn_fstore.service.VnPayService;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -27,6 +29,7 @@ public class CheckOutController {
     private final GioHangRepository gioHangRepository;
     private final SanPhamCTRepository sanPhamCTRepository;
     private final KhachHangRepo khachHangRepository; // Thêm để tìm khách hàng
+    private final VnPayService vnPayService;
 
     /**
      * LẤY ID KHÁCH HÀNG THỰC TẾ TỪ SPRING SECURITY
@@ -120,5 +123,32 @@ public class CheckOutController {
                 .soLuong(qty)
                 .tenHinhAnh(spct.getSanPham().getHinhAnh().isEmpty() ? "no-image.png" : spct.getSanPham().getHinhAnh().get(0).getTenHinhAnh())
                 .build();
+    }
+    @GetMapping("/vnpay-return")
+    public String vnpayReturn(HttpServletRequest request, Model model) {
+        // 1. Lấy toàn bộ tham số từ VNPay trả về
+        Map<String, String> vnpParams = new HashMap<>();
+        for (Enumeration<String> params = request.getParameterNames(); params.hasMoreElements(); ) {
+            String fieldName = params.nextElement();
+            String fieldValue = request.getParameter(fieldName);
+            if (fieldValue != null && fieldValue.length() > 0) {
+                vnpParams.put(fieldName, fieldValue);
+            }
+        }
+
+        // 2. Gọi Service để xử lý (Validate hash + Update trạng thái + Hoàn kho nếu lỗi)
+        // Hàm này sẽ trả về: 1 (Thành công), 0 (Lỗi/Hủy), -1 (Sai checksum)
+        int result = vnPayService.orderReturn(vnpParams);
+
+        String orderId = request.getParameter("vnp_TxnRef");
+
+        // 3. Điều hướng kết quả
+        if (result == 1) {
+            // Thành công -> Trang cảm ơn
+            return "redirect:/checkout/success?id=" + orderId; // Hoặc trang success của bạn
+        } else {
+            // Thất bại/Hủy -> Trang lỗi
+            return "redirect:/checkout/fail?id=" + orderId;    // Hoặc về trang chủ/giỏ hàng
+        }
     }
 }
