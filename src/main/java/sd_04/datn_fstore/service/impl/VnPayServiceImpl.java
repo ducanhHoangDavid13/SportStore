@@ -1,41 +1,39 @@
 package sd_04.datn_fstore.service.impl;
 
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import sd_04.datn_fstore.config.VnPayConfig;
-import sd_04.datn_fstore.dto.CreateOrderRequest;
 import sd_04.datn_fstore.model.HoaDon;
 import sd_04.datn_fstore.model.HoaDonChiTiet;
 import sd_04.datn_fstore.model.SanPhamChiTiet;
 import sd_04.datn_fstore.repository.HoaDonChiTietRepository;
 import sd_04.datn_fstore.repository.HoaDonRepository;
-import sd_04.datn_fstore.service.BanHangService;
+import sd_04.datn_fstore.repository.SanPhamCTRepository;
+import sd_04.datn_fstore.service.CheckoutService;
+import sd_04.datn_fstore.service.PhieuGiamgiaService;
+import sd_04.datn_fstore.service.SanPhamService;
 import sd_04.datn_fstore.service.VnPayService;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.*;
-import sd_04.datn_fstore.repository.SanPhamCTRepository; // <-- THÊM
-import sd_04.datn_fstore.service.SanPhamService;        // <-- THÊM
-import sd_04.datn_fstore.service.PhieuGiamgiaService;
 
 @Service
 @RequiredArgsConstructor
 public class VnPayServiceImpl implements VnPayService {
-
-    // Use ObjectProvider to lazily obtain BanHangService when needed (breaks constructor-time cycle)
-    private final ObjectProvider<BanHangService> banHangServiceProvider;
 
     private final HoaDonRepository hoaDonRepository;
     private final HoaDonChiTietRepository hoaDonChiTietRepository;
     private final SanPhamCTRepository sanPhamCTRepository;
     private final SanPhamService sanPhamService;
     private final PhieuGiamgiaService phieuGiamgiaService;
+    private final ObjectProvider<CheckoutService> checkoutServiceProvider;
+
     @Override
     public String createOrder(long amount, String orderInfo, String orderCode, String ipAddress)
             throws UnsupportedEncodingException {
@@ -51,9 +49,7 @@ public class VnPayServiceImpl implements VnPayService {
         String vnp_Locale = "vn";
         String vnp_ReturnUrl = VnPayConfig.vnp_ReturnUrl;
         String vnp_TmnCode = VnPayConfig.vnp_TmnCode;
-
-        // 🚀 THÊM Mã BankCode (NCB)
-        String vnp_BankCode = "NCB";
+        String vnp_BankCode = "NCB"; // Mã ngân hàng demo
 
         Map<String, String> vnp_Params = new HashMap<>();
         vnp_Params.put("vnp_Version", vnp_Version);
@@ -67,8 +63,6 @@ public class VnPayServiceImpl implements VnPayService {
         vnp_Params.put("vnp_Locale", vnp_Locale);
         vnp_Params.put("vnp_ReturnUrl", vnp_ReturnUrl);
         vnp_Params.put("vnp_IpAddr", vnp_IpAddr);
-
-        // 🚀 THÊM tham số BankCode
         vnp_Params.put("vnp_BankCode", vnp_BankCode);
 
         Calendar cld = Calendar.getInstance(TimeZone.getTimeZone("Etc/GMT+7"));
@@ -80,7 +74,6 @@ public class VnPayServiceImpl implements VnPayService {
         String vnp_ExpireDate = formatter.format(cld.getTime());
         vnp_Params.put("vnp_ExpireDate", vnp_ExpireDate);
 
-        // Build hashData and query string (sorted by key)
         List<String> fieldNames = new ArrayList<>(vnp_Params.keySet());
         Collections.sort(fieldNames);
         StringBuilder hashData = new StringBuilder();
@@ -109,10 +102,6 @@ public class VnPayServiceImpl implements VnPayService {
         return VnPayConfig.vnp_PayUrl + "?" + queryUrl;
     }
 
-    // ... (Các import giữ nguyên)
-
-    // ... (Hàm createOrder giữ nguyên) ...
-
     @Override
     @Transactional(rollbackFor = Exception.class)
     public int orderReturn(Map<String, String> vnpParams) {
@@ -120,66 +109,45 @@ public class VnPayServiceImpl implements VnPayService {
         String vnp_ResponseCode = vnpParams.get("vnp_ResponseCode");
 
         try {
-            // 1. Kiểm tra chữ ký bảo mật
+            // 1. Kiểm tra Checksum (Chống giả mạo)
             if (!validateHash(vnpParams)) {
-                return -1;
+                return -1; // Sai chữ ký
             }
 
-            // 2. Tìm hóa đơn
+            // 2. Tìm hóa đơn trong DB
             HoaDon hoaDon = hoaDonRepository.findByMaHoaDon(vnp_TxnRef)
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy Hóa đơn: " + vnp_TxnRef));
 
-            // 3. Kiểm tra trạng thái để tránh xử lý lặp lại
-            // Chỉ xử lý nếu đơn đang "Chờ thanh toán" (6)
+            // 3. Kiểm tra trạng thái đơn hàng
+            // Chỉ xử lý khi đơn hàng đang ở trạng thái 'Chờ thanh toán' (6)
             if (hoaDon.getTrangThai() != 6) {
-                return (hoaDon.getTrangThai() == 1) ? 1 : 0;
+                // Nếu đơn đã thành công (2) thì trả về 1
+                return (hoaDon.getTrangThai() == 2) ? 1 : 0;
             }
 
             // =================================================================
             // TRƯỜNG HỢP 1: THANH TOÁN THÀNH CÔNG (Code == "00")
             // =================================================================
             if ("00".equals(vnp_ResponseCode)) {
-                // Đã trừ kho lúc đặt hàng rồi -> Chỉ cần update trạng thái đơn
-                hoaDon.setTrangThai(1); // 1: Đã xác nhận/Chờ đóng gói
-                hoaDon.setNgayTao(java.time.LocalDateTime.now());
-                hoaDon.setHinhThucThanhToan(2); // VNPAY
+                // Cập nhật trạng thái sang: Đã thanh toán / Chờ đóng gói (2)
+                hoaDon.setTrangThai(2);
+
+                hoaDon.setNgayTao(LocalDateTime.now()); // Lưu thời gian thanh toán thực tế
+                hoaDon.setHinhThucThanhToan(2); // Xác nhận lại là VNPAY
+
                 hoaDonRepository.save(hoaDon);
+
+                // Lưu ý: KHÔNG trừ kho ở đây nữa vì đã trừ ở CheckoutService lúc đặt hàng
                 return 1;
             }
 
             // =================================================================
-            // TRƯỜNG HỢP 2: KHÁCH HỦY / THẤT BẠI (Code != "00")
+            // TRƯỜNG HỢP 2: KHÁCH HỦY HOẶC LỖI (Code != "00")
             // =================================================================
             else {
-                // 1. Đổi trạng thái đơn sang Hủy (5)
-                hoaDon.setTrangThai(5);
-                hoaDonRepository.save(hoaDon);
+                checkoutServiceProvider.getIfAvailable().cancelOrder(vnp_TxnRef);
 
-                // 2. ▼▼▼ LOGIC HOÀN LẠI KHO (CỰC KỲ QUAN TRỌNG) ▼▼▼
-                List<HoaDonChiTiet> listItems = hoaDonChiTietRepository.findByHoaDonId(hoaDon.getId());
-
-                for (HoaDonChiTiet item : listItems) {
-                    SanPhamChiTiet spct = item.getSanPhamChiTiet();
-
-                    // Lấy tồn kho cũ + Số lượng khách đã đặt nhưng hủy
-                    int soLuongMoi = spct.getSoLuong() + item.getSoLuong();
-                    spct.setSoLuong(soLuongMoi);
-
-                    // Nếu sản phẩm đang bị ẩn (trạng thái 0) do hết hàng, giờ có hàng lại thì MỞ BÁN LẠI (1)
-                    if (spct.getTrangThai() == 0 && soLuongMoi > 0) {
-                        spct.setTrangThai(1);
-                    }
-
-                    sanPhamCTRepository.save(spct); // Lưu lại vào DB
-                }
-
-                // 3. Cập nhật lại tổng số lượng cho sản phẩm cha (Optional nhưng nên có)
-                if (!listItems.isEmpty()) {
-                    sanPhamService.updateTotalQuantity(listItems.get(0).getSanPhamChiTiet().getSanPham().getId());
-                }
-
-                System.out.println("Đã hoàn kho cho đơn hủy: " + vnp_TxnRef);
-                return 0;
+                return 0; // Trả về 0 báo hiệu thất bại
             }
 
         } catch (Exception e) {
@@ -188,6 +156,7 @@ public class VnPayServiceImpl implements VnPayService {
         }
     }
 
+    @Override
     public boolean validateHash(Map<String, String> vnpParams) {
         String receivedHash = vnpParams.get("vnp_SecureHash");
 
@@ -218,4 +187,5 @@ public class VnPayServiceImpl implements VnPayService {
 
         return generatedHash.equals(receivedHash);
     }
+
 }

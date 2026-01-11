@@ -260,9 +260,10 @@ public class CheckoutServiceImpl implements CheckoutService {
         // Chỉ xử lý nếu đang ở trạng thái Chờ thanh toán (6)
         if (hoaDon.getTrangThai() == 6) {
             if (isSuccess) {
-                // 1. Thanh toán thành công -> Chuyển sang Đã xác nhận/Chờ đóng gói
-                // Vì đã trừ kho rồi, nên chỉ cần đổi trạng thái
-                hoaDon.setTrangThai(1); // 1: Đã xác nhận (hoặc 2: Chờ đóng gói tùy quy trình)
+                // ▼▼▼ SỬA Ở ĐÂY: Đổi từ 1 thành 2 ▼▼▼
+                hoaDon.setTrangThai(2); // 2: Đã thanh toán / Chờ đóng gói
+                // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+
                 hoaDon.setNgayTao(LocalDateTime.now());
                 hoaDonRepository.save(hoaDon);
 
@@ -270,7 +271,7 @@ public class CheckoutServiceImpl implements CheckoutService {
                 thongBaoService.createNotification("Thanh toán thành công #" + maHoaDon,
                         "Đơn hàng " + maHoaDon + " đã thanh toán qua VNPAY.", "ORDER", "/admin/hoa-don/detail/" + hoaDon.getId());
             } else {
-                // 2. Thanh toán thất bại/Hủy -> HOÀN LẠI KHO
+                // Thanh toán thất bại -> Hủy đơn & Hoàn kho
                 log.info("VNPAY Failed/Cancelled for Order: {}", maHoaDon);
                 cancelOrder(maHoaDon);
             }
@@ -288,13 +289,24 @@ public class CheckoutServiceImpl implements CheckoutService {
         hoaDon.setTrangThai(5); // 5: Đã Hủy
         hoaDonRepository.save(hoaDon);
 
-        // HOÀN LẠI KHO
+        // 1. HOÀN LẠI KHO (Logic này của bạn đã OK)
         List<HoaDonChiTiet> chiTietList = hoaDonChiTietRepository.findByHoaDon(hoaDon);
         for (HoaDonChiTiet cthd : chiTietList) {
             SanPhamChiTiet spct = cthd.getSanPhamChiTiet();
             spct.setSoLuong(spct.getSoLuong() + cthd.getSoLuong());
+
+            // Nếu sản phẩm đang ẩn (hết hàng) -> Mở bán lại
+            if (spct.getTrangThai() == 0 && spct.getSoLuong() > 0) {
+                spct.setTrangThai(1);
+            }
+
             sanPhamCTRepository.save(spct);
             sanPhamService.updateTotalQuantity(spct.getSanPham().getId());
+        }
+
+        // 2. [BỔ SUNG] HOÀN LẠI VOUCHER (Nếu có dùng)
+        if (hoaDon.getPhieuGiamGia() != null) {
+            phieuGiamgiaService.incrementVoucher(hoaDon.getPhieuGiamGia());
         }
     }
 
