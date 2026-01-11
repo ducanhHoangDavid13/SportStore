@@ -7,6 +7,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 public class RedirectController {
 
+    @GetMapping("/")
+    public String index() {
+        return "view/author/index";
+    }
+
     @GetMapping("/redirect")
     public String redirectAfterLogin(Authentication authentication) {
         if (authentication == null) {

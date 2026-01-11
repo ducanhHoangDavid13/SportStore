@@ -21,4 +21,6 @@ public interface TheLoaiService {
     List<TheLoai> searchAndFilter(String ten, Integer trangThai);
     // ... các hàm cũ
     TheLoai updateTrangThai(Integer id, Integer newStatus);
+
+    List<TheLoai> getAllActive();
 }

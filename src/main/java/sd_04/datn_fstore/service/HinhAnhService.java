@@ -19,4 +19,8 @@ public interface HinhAnhService {
     void deleteById(Integer id); // <-- SỬA TÊN PHƯƠNG THỨC Ở ĐÂY
 
     void deleteBySanPham(SanPham sanPham);
+
+    void deleteAvatarBySanPhamId(Integer sanPhamId); // Giữ nguyên tên nếu logic bên trong đã được cập nhật để dùng 'trangThai'
+    // HOẶC đổi tên rõ ràng hơn nếu bạn muốn:
+    // void deleteTrangThai1BySanPhamId(Integer sanPhamId);
 }

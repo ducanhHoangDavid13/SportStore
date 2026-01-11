@@ -25,4 +25,6 @@ public interface MauSacService {
     // Phương thức tìm kiếm chính xác (Nếu còn tồn tại trong Repo, hoặc được triển khai qua findPaginated)
     Optional<MauSac> findByMaMau(String maMau);
     MauSac updateTrangThai(Integer id, Integer newStatus);
+
+    List<MauSac> getAllActive();
 }

@@ -18,10 +18,25 @@ public class PhanLoaiServiceImpl implements PhanLoaiService {
     private final PhanLoaiRepository phanLoaiRepository;
 
     // ... (CRUD cơ bản) ...
-    @Override public List<PhanLoai> getAll() { return phanLoaiRepository.findAll(); }
-    @Override public Optional<PhanLoai> getById(Integer id) { return phanLoaiRepository.findById(id); }
-    @Override public PhanLoai save(PhanLoai phanLoai) { return phanLoaiRepository.save(phanLoai); }
-    @Override public void delete(Integer id) { phanLoaiRepository.deleteById(id); }
+    @Override
+    public List<PhanLoai> getAll() {
+        return phanLoaiRepository.findAll();
+    }
+
+    @Override
+    public Optional<PhanLoai> getById(Integer id) {
+        return phanLoaiRepository.findById(id);
+    }
+
+    @Override
+    public PhanLoai save(PhanLoai phanLoai) {
+        return phanLoaiRepository.save(phanLoai);
+    }
+
+    @Override
+    public void delete(Integer id) {
+        phanLoaiRepository.deleteById(id);
+    }
 
     // Triển khai Phân trang (Sử dụng findPaginated)
     @Override
@@ -30,15 +45,21 @@ public class PhanLoaiServiceImpl implements PhanLoaiService {
     }
 
     // Phương thức tìm kiếm/lọc không phân trang
-    @Override public List<PhanLoai> searchByTen(String ten) {
+    @Override
+    public List<PhanLoai> searchByTen(String ten) {
         return phanLoaiRepository.findPaginated(Pageable.unpaged(), ten, null).getContent();
     }
-    @Override public List<PhanLoai> filterByTrangThai(Integer trangThai) {
+
+    @Override
+    public List<PhanLoai> filterByTrangThai(Integer trangThai) {
         return phanLoaiRepository.findPaginated(Pageable.unpaged(), null, trangThai).getContent();
     }
-    @Override public List<PhanLoai> searchAndFilter(String ten, Integer trangThai) {
+
+    @Override
+    public List<PhanLoai> searchAndFilter(String ten, Integer trangThai) {
         return phanLoaiRepository.findPaginated(Pageable.unpaged(), ten, trangThai).getContent();
     }
+
     @Override
     public PhanLoai updateTrangThai(Integer id, Integer newStatus) {
         Optional<PhanLoai> optional = phanLoaiRepository.findById(id);
@@ -49,5 +70,12 @@ public class PhanLoaiServiceImpl implements PhanLoaiService {
         } else {
             throw new RuntimeException("Không tìm thấy phân loại ID: " + id);
         }
+    }
+
+    @Override
+    public List<PhanLoai> getAllActive() {
+        // Giả định trạng thái hoạt động được lưu là true hoặc số 1
+        // Nếu Model có trường 'trangThai' kiểu boolean (true = active)
+        return phanLoaiRepository.findByTrangThai(1);
     }
 }

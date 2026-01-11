@@ -1,53 +1,69 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
 <body>
 
-<!-- NAVBAR FRAGMENT -->
 <nav th:fragment="admin-navbar" class="navbar-admin navbar navbar-expand-lg fixed-top">
     <div class="container-fluid p-0">
-        <!-- Toggle Button (Mobile) -->
         <button class="btn border-0 d-lg-none me-2" id="sidebarToggleBtn">
             <i class="fas fa-bars text-dark"></i>
         </button>
 
-        <!-- Search Bar (Chỉ hiện trên Desktop) -->
-        <div class="d-none d-md-block position-relative search-box ms-2">
-            <i class="fas fa-search search-icon"></i>
-            <input type="text" class="form-control shadow-none" placeholder="Tìm kiếm..." style="width: 250px;">
-        </div>
-
         <ul class="navbar-nav ms-auto align-items-center">
-            <!-- Notification -->
-            <li class="nav-item me-4">
-                <a class="nav-link position-relative text-secondary" href="#">
+
+            <li class="nav-item dropdown me-3">
+                <a class="nav-link position-relative text-secondary" href="#" id="notificationDropdown" role="button"
+                   data-bs-toggle="dropdown" aria-expanded="false">
                     <i class="far fa-bell fs-5"></i>
-                    <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle"></span>
+                    <span id="notif-badge"
+                          class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-light"
+                          style="display: none; font-size: 0.6rem;">
+                        0
+                    </span>
                 </a>
+
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-3 p-0 animated--fade-in"
+                    aria-labelledby="notificationDropdown" style="width: 320px; max-height: 400px; overflow-y: auto;">
+
+                    <li class="p-3 border-bottom bg-light d-flex justify-content-between align-items-center sticky-top">
+                        <h6 class="m-0 fw-bold text-primary">Thông báo</h6>
+                        <a href="javascript:void(0)" onclick="markAllAsRead()" class="text-primary text-decoration-none fw-bold" style="font-size: 0.75rem; cursor: pointer;">
+                            <i class="bi bi-check-all"></i> Đánh dấu đã đọc hết
+                        </a>
+                    </li>
+
+                    <div id="notif-list">
+                        <li class="text-center text-muted small py-4">Đang tải...</li>
+                    </div>
+                </ul>
             </li>
 
-            <!-- User Profile -->
             <li class="nav-item dropdown">
-                <a class="nav-link d-flex align-items-center gap-2 dropdown-toggle hide-arrow" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                <a class="nav-link d-flex align-items-center gap-2 dropdown-toggle hide-arrow" href="#"
+                   id="userDropdown" role="button" data-bs-toggle="dropdown">
                     <div class="text-end d-none d-sm-block line-height-1">
                         <span class="d-block text-dark fw-bold" style="font-size: 0.9rem;">Admin User</span>
                         <span class="d-block text-muted" style="font-size: 0.75rem;">Quản trị viên</span>
                     </div>
-                    <!-- Avatar với trạng thái Online -->
                     <div class="position-relative">
                         <img src="https://ui-avatars.com/api/?name=Admin&background=6366f1&color=fff"
-                             class="rounded-circle border border-2 border-white shadow-sm" width="40" height="40" alt="Avatar">
+                             class="rounded-circle border border-2 border-white shadow-sm" width="40" height="40"
+                             alt="Avatar">
                         <span class="position-absolute bottom-0 end-0 p-1 bg-success border border-light rounded-circle"></span>
                     </div>
                 </a>
 
-                <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg mt-3 animated--fade-in" style="min-width: 200px;">
+                <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg mt-3 animated--fade-in"
+                    style="min-width: 200px;">
                     <div class="px-3 py-2">
                         <span class="text-muted small text-uppercase fw-bold">Tài khoản</span>
                     </div>
-                    <li><a class="dropdown-item py-2" th:href="@{/admin/profile}"><i class="far fa-user-circle me-2 text-primary"></i> Hồ sơ của tôi</a></li>
-                    <li><a class="dropdown-item py-2" th:href="@{/admin/settings}"><i class="fas fa-cog me-2 text-info"></i> Cài đặt</a></li>
-                    <li><hr class="dropdown-divider my-2"></li>
+                    <li><a class="dropdown-item py-2" th:href="@{/admin/settings}"><i
+                            class="fas fa-cog me-2 text-info"></i> Cài đặt</a></li>
+                    <li>
+                        <hr class="dropdown-divider my-2">
+                    </li>
                     <li>
                         <form th:action="@{/logout}" method="post">
                             <button type="submit" class="dropdown-item py-2 text-danger fw-bold">
@@ -59,11 +75,151 @@
             </li>
         </ul>
     </div>
+
+    <script>
+        let lastNotifCount = 0; // Biến lưu số lượng thông báo cũ
+
+        // 1. Hàm gọi API lấy thông báo chưa đọc
+        function fetchNotifications() {
+            if (typeof $ === 'undefined') return;
+
+            $.ajax({
+                url: '/api/notifications/unread',
+                method: 'GET',
+                success: function (data) {
+                    const badge = $('#notif-badge');
+                    const list = $('#notif-list');
+
+                    // Xử lý Badge
+                    if (data && data.length > 0) {
+                        badge.text(data.length > 99 ? '99+' : data.length);
+                        badge.show();
+
+                        // Toastr thông báo mới
+                        if (data.length > lastNotifCount) {
+                            const latest = data[0];
+                            if (typeof toastr !== 'undefined') {
+                                toastr.info(latest.noiDung, latest.tieuDe, {
+                                    timeOut: 5000,
+                                    positionClass: "toast-bottom-right",
+                                    closeButton: true,
+                                    progressBar: true
+                                });
+                            }
+                        }
+                        lastNotifCount = data.length;
+                    } else {
+                        badge.hide();
+                        lastNotifCount = 0;
+                    }
+
+                    // Render danh sách
+                    if (!data || data.length === 0) {
+                        list.html('<li class="text-center text-muted small py-4">Không có thông báo mới</li>');
+                    } else {
+                        let html = '';
+                        data.forEach(item => {
+                            let iconClass = 'bi-info-circle text-primary';
+                            let bgIcon = 'bg-primary-subtle';
+
+                            if (item.loaiThongBao === 'STOCK') {
+                                iconClass = 'bi-exclamation-triangle-fill text-danger';
+                                bgIcon = 'bg-danger-subtle';
+                            } else if (item.loaiThongBao === 'ORDER') {
+                                iconClass = 'bi-bag-check-fill text-success';
+                                bgIcon = 'bg-success-subtle';
+                            }
+
+                            let timeAgoStr = getTimeAgo(item.ngayTao);
+
+                            html += `
+                            <li>
+                                <a class="dropdown-item d-flex align-items-start gap-3 py-3 border-bottom ${item.trangThai === 0 ? 'bg-light' : ''}"
+                                   href="${item.urlLienKet || '#'}"
+                                   onclick="markAsRead(${item.id})">
+
+                                    <div class="rounded-circle p-2 d-flex align-items-center justify-content-center ${bgIcon}" style="width: 35px; height: 35px; flex-shrink: 0;">
+                                        <i class="bi ${iconClass}"></i>
+                                    </div>
+
+                                    <div class="w-100 overflow-hidden">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <strong class="small text-dark text-truncate" style="max-width: 150px;">${item.tieuDe}</strong>
+                                            <span class="text-muted" style="font-size: 0.65rem;">${timeAgoStr}</span>
+                                        </div>
+                                        <div class="text-secondary small text-wrap" style="line-height: 1.4; font-size: 0.8rem;">${item.noiDung}</div>
+                                    </div>
+                                </a>
+                            </li>`;
+                        });
+                        list.html(html);
+                    }
+                },
+                error: function (err) {
+                    console.log("Lỗi tải thông báo: ", err);
+                }
+            });
+        }
+
+        // 2. Hàm gọi API đánh dấu 1 cái đã đọc
+        function markAsRead(id) {
+            if (typeof $ === 'undefined') return;
+            $.post(`/api/notifications/read/${id}`, function () {
+                fetchNotifications();
+            });
+        }
+
+        // 3. HÀM MỚI: Đánh dấu TẤT CẢ đã đọc
+        function markAllAsRead() {
+            if (typeof $ === 'undefined') return;
+
+            // Hiệu ứng UX: Ẩn badge và hiện loading ngay lập tức cho mượt
+            $('#notif-badge').hide();
+            $('#notif-list').html('<li class="text-center text-muted small py-4">Đang xử lý...</li>');
+
+            // Gọi API Backend (Bạn cần đảm bảo API này tồn tại trong Controller)
+            $.post('/api/notifications/read-all', function () {
+                // Thành công: Load lại danh sách (lúc này sẽ rỗng)
+                fetchNotifications();
+
+                if (typeof toastr !== 'undefined') {
+                    toastr.success("Đã đánh dấu tất cả là đã đọc");
+                }
+            }).fail(function() {
+                // Thất bại: Load lại danh sách cũ
+                fetchNotifications();
+                if (typeof toastr !== 'undefined') {
+                    toastr.error("Có lỗi xảy ra");
+                }
+            });
+        }
+
+        // 4. Hàm tiện ích tính thời gian
+        function getTimeAgo(dateString) {
+            if (!dateString) return "";
+            const date = new Date(dateString);
+            const now = new Date();
+            const seconds = Math.floor((now - date) / 1000);
+
+            if (seconds < 60) return "Vừa xong";
+            const minutes = Math.floor(seconds / 60);
+            if (minutes < 60) return `${minutes} phút trước`;
+            const hours = Math.floor(minutes / 60);
+            if (hours < 24) return `${hours} giờ trước`;
+            return date.toLocaleDateString('vi-VN');
+        }
+
+        // 5. Document Ready
+        document.addEventListener('DOMContentLoaded', function () {
+            setTimeout(function () {
+                fetchNotifications();
+                setInterval(fetchNotifications, 10000);
+            }, 1000);
+        });
+    </script>
 </nav>
 
-<!-- SIDEBAR FRAGMENT -->
 <div th:fragment="admin-sidebar" class="sidebar-wrapper">
-    <!-- Logo Area -->
     <div class="sidebar-header d-flex align-items-center gap-3">
         <div class="bg-primary bg-gradient text-white rounded-3 d-flex align-items-center justify-content-center shadow"
              style="width: 40px; height: 40px; font-size: 1.2rem;">
@@ -77,12 +233,10 @@
         </div>
     </div>
 
-    <!-- Menu List -->
     <ul class="nav flex-column">
 
         <ul class="nav flex-column">
 
-            <!-- Dashboard (Admin only) -->
             <li class="nav-item" sec:authorize="hasRole('ADMIN')">
                 <a class="nav-link active-tab" th:href="@{/admin/dashboard}">
                     <i class="fas fa-th-large"></i>
@@ -90,24 +244,20 @@
                 </a>
             </li>
 
-            <!-- Kinh doanh -->
             <div class="sidebar-heading">Kinh doanh</div>
 
-            <!-- Bán hàng -->
             <li class="nav-item" sec:authorize="hasAnyRole('ADMIN','EMPLOYEE')">
                 <a class="nav-link" th:href="@{/admin/ban-hang}">
                     <i class="fas fa-cash-register"></i> <span>Bán hàng tại quầy</span>
                 </a>
             </li>
 
-            <!-- Quản lý hóa đơn -->
             <li class="nav-item" sec:authorize="hasAnyRole('ADMIN','EMPLOYEE')">
                 <a class="nav-link" th:href="@{/admin/hoa-don}">
                     <i class="fas fa-receipt"></i> <span>Quản lý hóa đơn</span>
                 </a>
             </li>
 
-            <!-- Kho hàng (Admin only) -->
             <div class="sidebar-heading" sec:authorize="hasRole('ADMIN')">Kho hàng</div>
             <li class="nav-item" sec:authorize="hasRole('ADMIN')">
                 <a class="nav-link collapsed d-flex justify-content-between align-items-center"
@@ -119,51 +269,79 @@
                 </a>
                 <div class="collapse" id="productSubmenu">
                     <ul class="nav flex-column mt-1">
-                        <li class="nav-item"><a class="nav-link" th:href="@{/admin/san-pham}">Danh sách SP</a></li>
-                        <li class="nav-item"><a class="nav-link" th:href="@{/admin/san-pham-chi-tiet}">Chi tiết SP</a></li>
-                        <li class="nav-item"><a class="nav-link" th:href="@{/admin/phan-loai}">Phân loại</a></li>
-                        <li class="nav-item"><a class="nav-link" th:href="@{/admin/the-loai}">Thể loại</a></li>
-                        <li class="nav-item"><a class="nav-link" th:href="@{/admin/xuat-xu}">Xuất xứ</a></li>
-                        <li class="nav-item"><a class="nav-link" th:href="@{/admin/mau-sac}">Màu sắc</a></li>
-                        <li class="nav-item"><a class="nav-link" th:href="@{/admin/kich-thuoc}">Kích thước</a></li>
+                        <li class="nav-item">
+                            <a class="nav-link" th:href="@{/admin/san-pham}">
+                                <i class="fas fa-boxes-stacked fa-fw me-2"></i> Danh sách SP
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" th:href="@{/admin/san-pham-chi-tiet}">
+                                <i class="fas fa-box-open fa-fw me-2"></i> Chi tiết SP
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" th:href="@{/admin/phan-loai}">
+                                <i class="fas fa-sitemap fa-fw me-2"></i> Phân loại
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" th:href="@{/admin/the-loai}">
+                                <i class="fas fa-tags fa-fw me-2"></i> Thể loại
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" th:href="@{/admin/xuat-xu}">
+                                <i class="fas fa-flag fa-fw me-2"></i> Xuất xứ
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" th:href="@{/admin/mau-sac}">
+                                <i class="fas fa-palette fa-fw me-2"></i> Màu sắc
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" th:href="@{/admin/kich-thuoc}">
+                                <i class="fas fa-ruler-combined fa-fw me-2"></i> Kích thước
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" th:href="@{/admin/chat-lieu}">
+                                <i class="fas fa-layer-group fa-fw me-2"></i> Chất liệu
+                            </a>
+                        </li>
                     </ul>
                 </div>
             </li>
 
-            <!-- Hệ thống -->
             <div class="sidebar-heading">Hệ thống</div>
 
-            <!-- Nhân viên (Admin only) -->
             <li class="nav-item" sec:authorize="hasRole('ADMIN')">
                 <a class="nav-link" th:href="@{/nhanvien/view}">
                     <i class="fas fa-id-card-alt"></i> <span>Nhân viên</span>
                 </a>
             </li>
 
-            <!-- Khách hàng (Admin & Nhân viên) -->
             <li class="nav-item" sec:authorize="hasAnyRole('ADMIN','EMPLOYEE')">
                 <a class="nav-link" th:href="@{/admin/khach-hang/hien-thi}">
                     <i class="fas fa-user-friends"></i> <span>Khách hàng</span>
                 </a>
             </li>
 
-            <!-- Voucher & Giảm giá (Admin only) -->
             <li class="nav-item" sec:authorize="hasAnyRole('ADMIN','EMPLOYEE')">
                 <a class="nav-link" th:href="@{/admin/phieu-giam-gia/hien-thi}">
-                    <i class="fas fa-percent"></i> <span>Voucher & Giảm giá</span>
+                    <i class="fas fa-percent"></i> <span>Phiếu giảm giá</span>
                 </a>
             </li>
 
         </ul>
 
 
-        <!-- Sidebar Footer Promo -->
-    <div class="mt-5 mx-3 p-3 rounded-3 bg-gradient text-center"
-         style="background: linear-gradient(45deg, #4f46e5, #818cf8);">
-        <i class="fas fa-rocket fa-2x mb-2 text-white-50"></i>
-        <p class="text-white small mb-2 fw-bold">FStore Pro</p>
-        <button class="btn btn-sm btn-light text-primary fw-bold w-100 shadow-sm">Nâng cấp</button>
-    </div>
+        <div class="mt-5 mx-3 p-3 rounded-3 bg-gradient text-center"
+             style="background: linear-gradient(45deg, #4f46e5, #818cf8);">
+            <i class="fas fa-rocket fa-2x mb-2 text-white-50"></i>
+            <p class="text-white small mb-2 fw-bold">FStore Pro</p>
+        </div>
+    </ul>
 </div>
 
 </body>

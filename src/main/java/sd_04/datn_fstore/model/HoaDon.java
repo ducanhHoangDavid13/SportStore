@@ -3,15 +3,13 @@ package sd_04.datn_fstore.model;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Data
+@Data // @Data đã bao gồm Getter, Setter, ToString, HashCode...
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
@@ -50,6 +48,15 @@ public class HoaDon {
     @Column(name = "tong_tien_sau_giam")
     private BigDecimal tongTienSauGiam;
 
+    // --- QUAN TRỌNG: Đã khai báo đúng ---
+    @Column(name = "tien_khach_dua")
+    private BigDecimal tienKhachDua;
+
+    @Column(name = "phi_van_chuyen")
+    private BigDecimal phiVanChuyen;
+
+    // --- CÁC MỐI QUAN HỆ (RELATIONSHIPS) ---
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "idNhanVien")
     @JsonIgnoreProperties({"hoaDons", "hibernateLazyInitializer", "handler"})
@@ -65,15 +72,23 @@ public class HoaDon {
     @JsonIgnoreProperties({"hoaDons", "hibernateLazyInitializer", "handler"})
     private PhieuGiamGia phieuGiamGia;
 
-    @OneToMany(mappedBy = "hoaDon", fetch = FetchType.LAZY)
-    @JsonManagedReference
-    private List<HoaDonChiTiet> hoaDonChiTiets;
-    @Column(name = "phi_van_chuyen")
-    private BigDecimal phiVanChuyen;
-
-    // 2. Thêm liên kết đến bảng Địa Chỉ
-    // (Lưu ý: Đây là object DiaChi, không phải String)
+    // SỬA 1: Bỏ @JsonIgnore để API trả về thông tin địa chỉ cho JS hiển thị
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_dia_chi_giao_hang")
+    @JsonIgnoreProperties({"hoaDons", "khachHang", "hibernateLazyInitializer", "handler"})
     private DiaChi diaChiGiaoHang;
+
+    // SỬA 2: Giữ lại list này (có @JsonManagedReference là tốt nhất cho API)
+    @OneToMany(mappedBy = "hoaDon", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JsonManagedReference
+    private List<HoaDonChiTiet> hoaDonChiTiets;
+
+    public BigDecimal getTienKhachDua() {
+        return this.tienKhachDua;
+    }
+
+    public void setTienKhachDua(BigDecimal tienKhachDua) {
+        this.tienKhachDua = tienKhachDua;
+    }
+    // ĐÃ XÓA: List "chiTietHoaDon" bị thừa (duplicate) gây lỗi.
 }
