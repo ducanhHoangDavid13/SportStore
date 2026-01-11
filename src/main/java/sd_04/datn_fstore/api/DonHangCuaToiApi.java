@@ -14,6 +14,7 @@ import sd_04.datn_fstore.service.DonHangCuaToiService;
 import sd_04.datn_fstore.service.KhachhangService;
 
 import java.nio.file.AccessDeniedException;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/don-hang-cua-toi")
@@ -50,28 +51,23 @@ public class DonHangCuaToiApi {
 
     }
 
-    @GetMapping // 3. Cập nhật mapping, không cần @PathVariable nữa
+    @GetMapping
     public ResponseEntity<Page<HoaDon>> getHoaDonByKhachHang(
-            @RequestParam(required = false) Integer trangThai,
+            @RequestParam(required = false) List<Integer> trangThai, // Đổi từ Integer sang List<Integer>
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
 
         try {
-            // Lấy ID khách hàng đang đăng nhập
             Integer idKhachHang = getLoggedInCustomerId();
 
-            // Xử lý logic nghiệp vụ
+            // Truyền List xuống service
             Page<HoaDon> hoaDons = donHangCuaToiService.getHoaDonByKhachHang(idKhachHang, trangThai, page, size);
 
             return new ResponseEntity<>(hoaDons, HttpStatus.OK);
         } catch (UsernameNotFoundException e) {
-            // Dù đã đăng nhập nhưng không tìm thấy trong DB (lỗi dữ liệu)
-            System.err.println("Lỗi dữ liệu: " + e.getMessage());
-            return new ResponseEntity<>(HttpStatus.FORBIDDEN); // 403 hoặc 404
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         } catch (Exception e) {
-            // Log lỗi
-            System.err.println("Lỗi khi lấy hóa đơn: " + e.getMessage());
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR); // 500
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

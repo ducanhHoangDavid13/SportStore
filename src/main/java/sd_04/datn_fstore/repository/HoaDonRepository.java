@@ -125,6 +125,6 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Integer> {
     List<HoaDon> findAllByMaHoaDon(String maHoaDon);
     Optional<HoaDon> findTopByMaHoaDonOrderByNgayTaoDesc(String maHoaDon);
 
-    Page<HoaDon> findByKhachHang_IdAndTrangThai(Integer idKhachHang, Integer trangThai, Pageable pageable);
+    Page<HoaDon> findByKhachHang_IdAndTrangThaiIn(Integer idKhachHang, List<Integer> trangThai, Pageable pageable);
     Page<HoaDon> findByKhachHang_Id(Integer idKhachHang, Pageable pageable);
 }
