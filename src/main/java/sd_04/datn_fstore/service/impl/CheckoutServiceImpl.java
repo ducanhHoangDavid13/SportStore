@@ -12,9 +12,7 @@ import sd_04.datn_fstore.service.*;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -257,22 +255,19 @@ public class CheckoutServiceImpl implements CheckoutService {
         HoaDon hoaDon = hoaDonRepository.findByMaHoaDon(maHoaDon)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn: " + maHoaDon));
 
-        // Chỉ xử lý nếu đang ở trạng thái Chờ thanh toán (6)
-        if (hoaDon.getTrangThai() == 6) {
+        // Mở rộng điều kiện: Chấp nhận cả trạng thái 0 và 6
+        if (hoaDon.getTrangThai() == 6 || hoaDon.getTrangThai() == 0) {
             if (isSuccess) {
-                // ▼▼▼ SỬA Ở ĐÂY: Đổi từ 1 thành 2 ▼▼▼
-                hoaDon.setTrangThai(2); // 2: Đã thanh toán / Chờ đóng gói
-                // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
-
+                hoaDon.setTrangThai(2); // 2: Đã thanh toán / Đang chuẩn bị
+                hoaDon.setHinhThucThanhToan(4); // VNPAY
                 hoaDon.setNgayTao(LocalDateTime.now());
                 hoaDonRepository.save(hoaDon);
 
-                // Gửi thông báo Admin
+                // Gửi thông báo
                 thongBaoService.createNotification("Thanh toán thành công #" + maHoaDon,
                         "Đơn hàng " + maHoaDon + " đã thanh toán qua VNPAY.", "ORDER", "/admin/hoa-don/detail/" + hoaDon.getId());
             } else {
-                // Thanh toán thất bại -> Hủy đơn & Hoàn kho
-                log.info("VNPAY Failed/Cancelled for Order: {}", maHoaDon);
+                log.info("VNPAY Failed for Order: {}", maHoaDon);
                 cancelOrder(maHoaDon);
             }
         }
@@ -289,10 +284,13 @@ public class CheckoutServiceImpl implements CheckoutService {
         hoaDon.setTrangThai(5); // 5: Đã Hủy
         hoaDonRepository.save(hoaDon);
 
-        // 1. HOÀN LẠI KHO (Logic này của bạn đã OK)
+        Set<Integer> listIdCha = new HashSet<>();
+
         List<HoaDonChiTiet> chiTietList = hoaDonChiTietRepository.findByHoaDon(hoaDon);
         for (HoaDonChiTiet cthd : chiTietList) {
             SanPhamChiTiet spct = cthd.getSanPhamChiTiet();
+
+            // 1. Cộng lại kho con
             spct.setSoLuong(spct.getSoLuong() + cthd.getSoLuong());
 
             // Nếu sản phẩm đang ẩn (hết hàng) -> Mở bán lại
@@ -300,11 +298,19 @@ public class CheckoutServiceImpl implements CheckoutService {
                 spct.setTrangThai(1);
             }
 
-            sanPhamCTRepository.save(spct);
-            sanPhamService.updateTotalQuantity(spct.getSanPham().getId());
+            // Lưu ngay lập tức để DB cập nhật số lượng con
+            sanPhamCTRepository.saveAndFlush(spct);
+
+            // Lưu ID cha để cập nhật sau
+            listIdCha.add(spct.getSanPham().getId());
         }
 
-        // 2. [BỔ SUNG] HOÀN LẠI VOUCHER (Nếu có dùng)
+        // 2. Cập nhật lại tổng số lượng Cha (Fix lỗi lệch tồn kho hiển thị)
+        for (Integer idCha : listIdCha) {
+            sanPhamService.updateTotalQuantity(idCha);
+        }
+
+        // 3. Hoàn lại voucher
         if (hoaDon.getPhieuGiamGia() != null) {
             phieuGiamgiaService.incrementVoucher(hoaDon.getPhieuGiamGia());
         }

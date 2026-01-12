@@ -6,14 +6,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import sd_04.datn_fstore.config.VnPayConfig;
 import sd_04.datn_fstore.model.HoaDon;
-import sd_04.datn_fstore.model.HoaDonChiTiet;
-import sd_04.datn_fstore.model.SanPhamChiTiet;
-import sd_04.datn_fstore.repository.HoaDonChiTietRepository;
 import sd_04.datn_fstore.repository.HoaDonRepository;
-import sd_04.datn_fstore.repository.SanPhamCTRepository;
 import sd_04.datn_fstore.service.CheckoutService;
-import sd_04.datn_fstore.service.PhieuGiamgiaService;
-import sd_04.datn_fstore.service.SanPhamService;
 import sd_04.datn_fstore.service.VnPayService;
 
 import java.io.UnsupportedEncodingException;
@@ -28,51 +22,34 @@ import java.util.*;
 public class VnPayServiceImpl implements VnPayService {
 
     private final HoaDonRepository hoaDonRepository;
-    private final HoaDonChiTietRepository hoaDonChiTietRepository;
-    private final SanPhamCTRepository sanPhamCTRepository;
-    private final SanPhamService sanPhamService;
-    private final PhieuGiamgiaService phieuGiamgiaService;
     private final ObjectProvider<CheckoutService> checkoutServiceProvider;
 
     @Override
-    public String createOrder(long amount, String orderInfo, String orderCode, String ipAddress)
-            throws UnsupportedEncodingException {
-
-        String vnp_TxnRef = orderCode;
-        long amountToVnPay = amount;
-        String vnp_IpAddr = ipAddress;
-        String vnp_OrderInfo = orderInfo;
-
+    public String createOrder(long amount, String orderInfo, String orderCode, String ipAddress) throws UnsupportedEncodingException {
         String vnp_Version = "2.1.0";
         String vnp_Command = "pay";
         String vnp_OrderType = "other";
-        String vnp_Locale = "vn";
-        String vnp_ReturnUrl = VnPayConfig.vnp_ReturnUrl;
         String vnp_TmnCode = VnPayConfig.vnp_TmnCode;
-        String vnp_BankCode = "NCB"; // Mã ngân hàng demo
 
         Map<String, String> vnp_Params = new HashMap<>();
         vnp_Params.put("vnp_Version", vnp_Version);
         vnp_Params.put("vnp_Command", vnp_Command);
         vnp_Params.put("vnp_TmnCode", vnp_TmnCode);
-        vnp_Params.put("vnp_Amount", String.valueOf(amountToVnPay));
+        vnp_Params.put("vnp_Amount", String.valueOf(amount));
         vnp_Params.put("vnp_CurrCode", "VND");
-        vnp_Params.put("vnp_TxnRef", vnp_TxnRef);
-        vnp_Params.put("vnp_OrderInfo", vnp_OrderInfo);
+        vnp_Params.put("vnp_TxnRef", orderCode);
+        vnp_Params.put("vnp_OrderInfo", orderInfo);
         vnp_Params.put("vnp_OrderType", vnp_OrderType);
-        vnp_Params.put("vnp_Locale", vnp_Locale);
-        vnp_Params.put("vnp_ReturnUrl", vnp_ReturnUrl);
-        vnp_Params.put("vnp_IpAddr", vnp_IpAddr);
-        vnp_Params.put("vnp_BankCode", vnp_BankCode);
+        vnp_Params.put("vnp_Locale", "vn");
+        vnp_Params.put("vnp_ReturnUrl", VnPayConfig.vnp_ReturnUrl);
+        vnp_Params.put("vnp_IpAddr", ipAddress);
 
         Calendar cld = Calendar.getInstance(TimeZone.getTimeZone("Etc/GMT+7"));
         SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
-        String vnp_CreateDate = formatter.format(cld.getTime());
-        vnp_Params.put("vnp_CreateDate", vnp_CreateDate);
+        vnp_Params.put("vnp_CreateDate", formatter.format(cld.getTime()));
 
         cld.add(Calendar.MINUTE, 15);
-        String vnp_ExpireDate = formatter.format(cld.getTime());
-        vnp_Params.put("vnp_ExpireDate", vnp_ExpireDate);
+        vnp_Params.put("vnp_ExpireDate", formatter.format(cld.getTime()));
 
         List<String> fieldNames = new ArrayList<>(vnp_Params.keySet());
         Collections.sort(fieldNames);
@@ -82,23 +59,24 @@ public class VnPayServiceImpl implements VnPayService {
         while (itr.hasNext()) {
             String fieldName = itr.next();
             String fieldValue = vnp_Params.get(fieldName);
-            if (fieldValue != null && fieldValue.length() > 0) {
-                String encodedValue = URLEncoder.encode(fieldValue, StandardCharsets.UTF_8.toString());
-                hashData.append(fieldName).append('=').append(encodedValue);
-                query.append(URLEncoder.encode(fieldName, StandardCharsets.UTF_8.toString()))
-                        .append('=')
-                        .append(encodedValue);
+            if ((fieldValue != null) && (fieldValue.length() > 0)) {
+                // Build hash data
+                hashData.append(fieldName);
+                hashData.append('=');
+                hashData.append(URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII.toString()));
+                // Build query
+                query.append(URLEncoder.encode(fieldName, StandardCharsets.US_ASCII.toString()));
+                query.append('=');
+                query.append(URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII.toString()));
                 if (itr.hasNext()) {
                     query.append('&');
                     hashData.append('&');
                 }
             }
         }
-
         String queryUrl = query.toString();
         String vnp_SecureHash = VnPayConfig.hmacSHA512(VnPayConfig.secretKey, hashData.toString());
         queryUrl += "&vnp_SecureHash=" + vnp_SecureHash;
-
         return VnPayConfig.vnp_PayUrl + "?" + queryUrl;
     }
 
@@ -109,52 +87,34 @@ public class VnPayServiceImpl implements VnPayService {
         String vnp_ResponseCode = vnpParams.get("vnp_ResponseCode");
 
         try {
-            // 1. Kiểm tra Checksum (Chống giả mạo)
+            // 1. Kiểm tra Checksum
             if (!validateHash(vnpParams)) {
-                return -1; // Sai chữ ký
+                System.out.println("VNPAY ERROR: Sai chữ ký (Checksum failed) cho đơn: " + vnp_TxnRef);
+                return -1;
             }
 
-            // 2. Tìm hóa đơn trong DB
             HoaDon hoaDon = hoaDonRepository.findByMaHoaDon(vnp_TxnRef)
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy Hóa đơn: " + vnp_TxnRef));
 
-            // 3. Kiểm tra trạng thái đơn hàng
-            // Chỉ xử lý khi đơn hàng đang ở trạng thái 'Chờ thanh toán' (6)
-            if (hoaDon.getTrangThai() != 6) {
-                // Nếu đơn đã thành công (2) thì trả về 1
-                return (hoaDon.getTrangThai() == 2) ? 1 : 0;
+            // 2. MỞ RỘNG ĐIỀU KIỆN CHECK TRẠNG THÁI
+            // Cho phép cập nhật nếu đang là 0 (Chờ xác nhận) hoặc 6 (Chờ thanh toán)
+            if (hoaDon.getTrangThai() != 0 && hoaDon.getTrangThai() != 6) {
+                // Nếu đã thanh toán rồi (1, 2...) thì coi như thành công
+                return (hoaDon.getTrangThai() >= 1 && hoaDon.getTrangThai() <= 4) ? 1 : 0;
             }
 
-            // =================================================================
-            // TRƯỜNG HỢP 1: THANH TOÁN THÀNH CÔNG (Code == "00")
-            // =================================================================
-            // TRƯỜNG HỢP 1: THANH TOÁN THÀNH CÔNG (Code == "00")
-            // =================================================================
+            // 3. Xử lý kết quả
             if ("00".equals(vnp_ResponseCode)) {
-                // 1. Cập nhật trạng thái: Đã thanh toán -> Chuyển sang "Đang chuẩn bị" (2)
-                // Hoặc bạn có thể để là 1 (Đã xác nhận) nếu muốn quy trình đi từ đầu.
-                hoaDon.setTrangThai(2);
-
-                // 2. Cập nhật thời gian thực tế
+                hoaDon.setTrangThai(2); // 2: Đã thanh toán / Đang chuẩn bị
+                hoaDon.setHinhThucThanhToan(4); // 4: VNPAY
                 hoaDon.setNgayTao(LocalDateTime.now());
 
-                // 3. QUAN TRỌNG: Giữ nguyên hoặc set lại là 4 (VNPay)
-                // Code cũ set là 2 (Transfer) khiến hiển thị sai loại thanh toán.
-                hoaDon.setHinhThucThanhToan(4);
-
                 hoaDonRepository.save(hoaDon);
-
-                // Lưu ý: KHÔNG trừ kho ở đây nữa vì đã trừ ở CheckoutService lúc đặt hàng
                 return 1;
-            }
-
-            // =================================================================
-            // TRƯỜNG HỢP 2: KHÁCH HỦY HOẶC LỖI (Code != "00")
-            // =================================================================
-            else {
+            } else {
+                // Thanh toán thất bại -> Hủy đơn & Hoàn kho
                 checkoutServiceProvider.getIfAvailable().cancelOrder(vnp_TxnRef);
-
-                return 0; // Trả về 0 báo hiệu thất bại
+                return 0;
             }
 
         } catch (Exception e) {
@@ -165,12 +125,9 @@ public class VnPayServiceImpl implements VnPayService {
 
     @Override
     public boolean validateHash(Map<String, String> vnpParams) {
-        if (vnpParams == null || !vnpParams.containsKey("vnp_SecureHash")) {
-            return false;
-        }
+        if (vnpParams == null || !vnpParams.containsKey("vnp_SecureHash")) return false;
 
         String receivedHash = vnpParams.get("vnp_SecureHash");
-
         Map<String, String> fields = new HashMap<>(vnpParams);
         fields.remove("vnp_SecureHash");
         fields.remove("vnp_SecureHashType");
@@ -179,33 +136,26 @@ public class VnPayServiceImpl implements VnPayService {
         Collections.sort(fieldNames);
 
         StringBuilder hashData = new StringBuilder();
-        for (String key : fieldNames) {
-            String value = fields.get(key);
-            if (value != null && value.length() > 0) {
-                // --- SỬA LỖI Ở ĐÂY ---
+        for (String fieldName : fieldNames) {
+            String fieldValue = fields.get(fieldName);
+            if ((fieldValue != null) && (fieldValue.length() > 0)) {
+                // Build hash data
+                hashData.append(fieldName);
+                hashData.append('=');
+                // QUAN TRỌNG: Dùng US_ASCII để khớp thuật toán của VNPay
                 try {
-                    // Phải encode lại giá trị giống hệt lúc createOrder thì hash mới khớp
-                    value = URLEncoder.encode(value, StandardCharsets.UTF_8.toString());
+                    hashData.append(URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII.toString()));
                 } catch (UnsupportedEncodingException e) {
                     e.printStackTrace();
                 }
-                // ---------------------
 
-                if (hashData.length() > 0) {
+                if (fieldNames.indexOf(fieldName) < fieldNames.size() - 1) {
                     hashData.append('&');
                 }
-                hashData.append(key);
-                hashData.append('=');
-                hashData.append(value);
             }
         }
 
-        String generatedHash = VnPayConfig.hmacSHA512(
-                VnPayConfig.secretKey,
-                hashData.toString()
-        );
-
+        String generatedHash = VnPayConfig.hmacSHA512(VnPayConfig.secretKey, hashData.toString());
         return generatedHash.equals(receivedHash);
     }
-
 }
