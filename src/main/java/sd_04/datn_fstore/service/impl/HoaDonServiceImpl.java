@@ -12,6 +12,7 @@ import sd_04.datn_fstore.repository.HoaDonRepository;
 import sd_04.datn_fstore.repository.HoaDonChiTietRepository;
 import sd_04.datn_fstore.service.HoaDonService;
 import sd_04.datn_fstore.service.KhoService;
+import sd_04.datn_fstore.service.PhieuGiamgiaService;
 import sd_04.datn_fstore.service.SanPhamService;
 
 import java.math.BigDecimal;
@@ -29,6 +30,7 @@ public class HoaDonServiceImpl implements HoaDonService {
     private final HoaDonChiTietRepository hoaDonChiTietRepository;
     private final KhoService khoService;
     private final SanPhamService sanPhamService;
+    private final PhieuGiamgiaService phieuGiamgiaService;
 
     private static final int TT_HOAN_THANH = 4;
     private static final int TT_DA_HUY = 5;
@@ -64,38 +66,39 @@ public class HoaDonServiceImpl implements HoaDonService {
         HoaDon hoaDon = hoaDonRepository.findById(hoaDonId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy HĐ ID: " + hoaDonId));
 
-        // Logic hoàn kho khi HỦY hoặc GIAO THẤT BẠI
-        boolean isHuyOrThatBai = (newTrangThai == 5 || newTrangThai == 7);
-        boolean isChuaHoanThanh = (hoaDon.getTrangThai() < 4);
+        // Logic hoàn kho: Nếu chuyển sang HỦY (5) hoặc GIAO THẤT BẠI (7)
+        // Và đơn hàng cũ chưa hoàn thành (< 4)
+        boolean isHuyOrThatBai = (newTrangThai == TT_DA_HUY || newTrangThai == TT_GIAO_THAT_BAI);
+        boolean isChuaHoanThanh = (hoaDon.getTrangThai() < TT_HOAN_THANH);
 
         if (isHuyOrThatBai && isChuaHoanThanh) {
             List<HoaDonChiTiet> items = hoaDonChiTietRepository.findByHoaDonId(hoaDonId);
 
-            // Dùng Set để lưu danh sách ID sản phẩm cha cần cập nhật (tránh trùng lặp)
-            Set<Integer> sanPhamChaIds = new HashSet<>();
+            // Dùng Set để lưu ID sản phẩm cha (tránh tính lại nhiều lần nếu 1 đơn mua nhiều size của cùng 1 áo)
+            Set<Integer> listIdCha = new HashSet<>();
 
             for (HoaDonChiTiet item : items) {
-                // 1. Hoàn kho cho sản phẩm con (Size/Màu)
-                khoService.hoanTonKho(
-                        item.getSanPhamChiTiet().getId(),
-                        item.getSoLuong()
-                );
+                // 1. Hoàn kho cho biến thể con
+                khoService.hoanTonKho(item.getSanPhamChiTiet().getId(), item.getSoLuong());
 
-                // 2. Lưu ID cha lại để tí nữa tính tổng 1 thể
-                sanPhamChaIds.add(item.getSanPhamChiTiet().getSanPham().getId());
+                // 2. Lưu ID cha vào danh sách cần cập nhật
+                listIdCha.add(item.getSanPhamChiTiet().getSanPham().getId());
             }
 
             // 3. --- QUAN TRỌNG: CẬP NHẬT LẠI TỔNG SỐ LƯỢNG CHA ---
-            // Bước này sẽ sửa lỗi hiển thị 90 vs 98 của bạn
-            for (Integer idCha : sanPhamChaIds) {
+            for (Integer idCha : listIdCha) {
                 sanPhamService.updateTotalQuantity(idCha);
+            }
+
+            // 4. Hoàn lại Voucher (nếu có)
+            if (hoaDon.getPhieuGiamGia() != null) {
+                phieuGiamgiaService.incrementVoucher(hoaDon.getPhieuGiamGia());
             }
         }
 
         hoaDon.setTrangThai(newTrangThai);
         hoaDonRepository.save(hoaDon);
     }
-
     // --- THÊM CÁC HÀM MỚI TỪ INTERFACE ---
 
     @Override
@@ -133,5 +136,46 @@ public class HoaDonServiceImpl implements HoaDonService {
         // Nếu không cấu hình Cascade, bạn phải xóa chi tiết trước:
         // hoaDonChiTietRepository.deleteByHoaDonId(hoaDon.getId());
         // hoaDonRepository.delete(hoaDon);
+    }
+    @Override
+    public List<HoaDon> getHoaDonChoTaiQuay() {
+        // Tham số 1: trangThai = 0 (Trạng thái hóa đơn chờ/treo)
+        // Tham số 2: hinhThucBanHang = 1 (Bắt buộc là TẠI QUẦY)
+        // -> Điều này giúp loại bỏ đơn Online (hinhThucBanHang = 0) dù nó cũng đang trạng thái 0.
+        return hoaDonRepository.findByTrangThaiAndHinhThucBanHangOrderByNgayTaoDesc(0, 1);
+    }
+
+
+    @Override
+    @Transactional
+    public void updatePaymentStatus(Long orderId, Integer newStatus) {
+        Integer id = orderId.intValue(); // Chuyển đổi ID
+
+        HoaDon hoaDon = hoaDonRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn ID: " + id));
+
+        // Nếu trạng thái hiện tại đã là Hoàn thành (4) hoặc Giao thất bại (7) thì không sửa nữa
+        // Để tránh xung đột logic
+        int currentStatus = hoaDon.getTrangThai();
+        if (currentStatus == 4 || currentStatus == 5 || currentStatus == 7) {
+            return;
+        }
+
+        // 1. Nếu trạng thái mới là ĐÃ XÁC NHẬN (Thành công)
+        if (newStatus == 1) {
+            hoaDon.setTrangThai(1);
+            hoaDon.setNgayTao(LocalDateTime.now());
+            hoaDonRepository.save(hoaDon);
+        }
+        // 2. Nếu trạng thái mới là ĐÃ HỦY (Khách bấm hủy)
+        else if (newStatus == 5) {
+            // Gọi hàm updateTrangThai cũ của bạn để nó TỰ ĐỘNG HOÀN KHO
+            this.updateTrangThai(id, 5);
+        }
+        // 3. Nếu là CHỜ THANH TOÁN (Lỗi hoặc chưa xong)
+        else {
+            hoaDon.setTrangThai(6); // Hoặc trạng thái chờ của bạn
+            hoaDonRepository.save(hoaDon);
+        }
     }
 }

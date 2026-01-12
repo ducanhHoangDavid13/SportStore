@@ -127,4 +127,8 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Integer> {
 
     Page<HoaDon> findByKhachHang_IdAndTrangThaiIn(Integer idKhachHang, List<Integer> trangThai, Pageable pageable);
     Page<HoaDon> findByKhachHang_Id(Integer idKhachHang, Pageable pageable);
+    List<HoaDon> findByTrangThaiAndHinhThucBanHang(Integer trangThai, Integer hinhThucBanHang);
+
+    // Nếu muốn sắp xếp mới nhất lên đầu
+    List<HoaDon> findByTrangThaiAndHinhThucBanHangOrderByNgayTaoDesc(Integer trangThai, Integer hinhThucBanHang);
 }

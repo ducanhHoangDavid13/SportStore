@@ -30,6 +30,7 @@ public class BanHangApiController {
 
     private final BanHangService banHangService;
     private final HoaDonService hoaDonService;
+
     @Lazy
     private final VnPayService vnPayService;
 
@@ -83,29 +84,45 @@ public class BanHangApiController {
     @GetMapping("/hoa-don-tam")
     public ResponseEntity<?> getHoaDonTam() {
         try {
-            List<HoaDon> drafts = banHangService.getDraftOrders();
-            if (drafts == null) {
-                return ResponseEntity.ok(Collections.emptyList()); // Trả về mảng rỗng [] thay vì null
+            // --- SỬA Ở ĐÂY ---
+            // Code cũ: List<HoaDon> drafts = banHangService.getDraftOrders();
+            // Code mới: Gọi hàm chuyên biệt cho POS (đã lọc bỏ đơn Online)
+            List<HoaDon> drafts = hoaDonService.getHoaDonChoTaiQuay();
+            // -----------------
+
+            if (drafts == null || drafts.isEmpty()) {
+                return ResponseEntity.ok(Collections.emptyList());
             }
             return ResponseEntity.ok(drafts);
         } catch (Exception e) {
-            log.error("Lỗi lấy danh sách hóa đơn chờ: ", e);
+            // log.error... giữ nguyên
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("message", "Lỗi server: " + e.getMessage()));
         }
     }
 
-    @GetMapping("/hoa-don-tam/{id}")
-    public ResponseEntity<?> getChiTietHoaDonTam(@PathVariable String id) { // ⬅️ Sửa từ 'maHoaDon' thành 'id'
+    @GetMapping("/hoa-don-tam/{maHoaDon}") // Nên để là maHoaDon cho rõ nghĩa
+    public ResponseEntity<?> getChiTietHoaDonTam(@PathVariable("maHoaDon") String maHoaDon) {
         try {
-            HoaDon hoaDon = banHangService.getDraftOrderByCode(id); // ⬅️ Dùng 'id' để gọi service
+            // Hàm này lấy chi tiết theo Mã Hóa Đơn (String)
+            // Bạn có thể giữ nguyên banHangService nếu nó chỉ đơn thuần là findByMaHoaDon
+            HoaDon hoaDon = banHangService.getDraftOrderByCode(maHoaDon);
+
+            // Hoặc an toàn hơn, dùng hoaDonRepository.findByMaHoaDon(maHoaDon)
+
             if (hoaDon == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(Map.of("message", "Không tìm thấy hóa đơn có ID: " + id));
+                        .body(Map.of("message", "Không tìm thấy hóa đơn: " + maHoaDon));
             }
+
+            // [TÙY CHỌN] Nếu muốn chặn tuyệt đối không cho xem đơn Online ở màn hình POS
+            if (hoaDon.getHinhThucBanHang() != 1) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("message", "Đây là đơn Online, không thể xử lý tại quầy!"));
+            }
+
             return ResponseEntity.ok(hoaDon);
         } catch (Exception e) {
-            log.error("Lỗi lấy chi tiết hóa đơn " + id, e);
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
     }

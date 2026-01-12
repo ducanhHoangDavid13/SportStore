@@ -258,7 +258,7 @@ public class CheckoutServiceImpl implements CheckoutService {
         // Mở rộng điều kiện: Chấp nhận cả trạng thái 0 và 6
         if (hoaDon.getTrangThai() == 6 || hoaDon.getTrangThai() == 0) {
             if (isSuccess) {
-                hoaDon.setTrangThai(2); // 2: Đã thanh toán / Đang chuẩn bị
+                hoaDon.setTrangThai(1); // 2: Đã thanh toán / Đang chuẩn bị
                 hoaDon.setHinhThucThanhToan(4); // VNPAY
                 hoaDon.setNgayTao(LocalDateTime.now());
                 hoaDonRepository.save(hoaDon);
@@ -279,38 +279,42 @@ public class CheckoutServiceImpl implements CheckoutService {
         HoaDon hoaDon = hoaDonRepository.findByMaHoaDon(maHoaDon)
                 .orElseThrow(() -> new RuntimeException("Hóa đơn không tồn tại!"));
 
-        if (hoaDon.getTrangThai() == 5) return; // Đã hủy rồi thì thôi
+        // Nếu đơn đã hủy rồi thì không làm gì thêm để tránh cộng dồn sai
+        if (hoaDon.getTrangThai() == 5) return;
 
+        // 1. Cập nhật trạng thái Hóa đơn
         hoaDon.setTrangThai(5); // 5: Đã Hủy
         hoaDonRepository.save(hoaDon);
 
-        Set<Integer> listIdCha = new HashSet<>();
+        // 2. Hoàn kho Chi tiết & Tổng cha
+        Set<Integer> listIdCha = new HashSet<>(); // Dùng Set để tránh trùng lặp ID cha
 
         List<HoaDonChiTiet> chiTietList = hoaDonChiTietRepository.findByHoaDon(hoaDon);
         for (HoaDonChiTiet cthd : chiTietList) {
             SanPhamChiTiet spct = cthd.getSanPhamChiTiet();
 
-            // 1. Cộng lại kho con
+            // Cộng lại số lượng chi tiết
             spct.setSoLuong(spct.getSoLuong() + cthd.getSoLuong());
 
-            // Nếu sản phẩm đang ẩn (hết hàng) -> Mở bán lại
+            // Nếu sản phẩm con đang bị ẩn (hết hàng) -> Mở bán lại (Trạng thái 1)
             if (spct.getTrangThai() == 0 && spct.getSoLuong() > 0) {
                 spct.setTrangThai(1);
             }
 
-            // Lưu ngay lập tức để DB cập nhật số lượng con
+            // Lưu ngay xuống DB (Flush) để đảm bảo dữ liệu mới nhất
             sanPhamCTRepository.saveAndFlush(spct);
 
-            // Lưu ID cha để cập nhật sau
+            // Thêm ID cha vào danh sách cần cập nhật
             listIdCha.add(spct.getSanPham().getId());
         }
 
-        // 2. Cập nhật lại tổng số lượng Cha (Fix lỗi lệch tồn kho hiển thị)
+        // 3. --- BƯỚC QUAN TRỌNG: CẬP NHẬT LẠI SỐ LƯỢNG TỔNG CỦA CHA ---
+        // Đây là bước VNPay đang thiếu, khiến số lượng hiển thị bên ngoài bị sai
         for (Integer idCha : listIdCha) {
             sanPhamService.updateTotalQuantity(idCha);
         }
 
-        // 3. Hoàn lại voucher
+        // 4. Hoàn lại voucher (nếu có dùng)
         if (hoaDon.getPhieuGiamGia() != null) {
             phieuGiamgiaService.incrementVoucher(hoaDon.getPhieuGiamGia());
         }
