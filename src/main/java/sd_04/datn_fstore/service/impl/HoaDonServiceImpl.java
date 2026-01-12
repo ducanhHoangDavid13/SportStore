@@ -12,11 +12,14 @@ import sd_04.datn_fstore.repository.HoaDonRepository;
 import sd_04.datn_fstore.repository.HoaDonChiTietRepository;
 import sd_04.datn_fstore.service.HoaDonService;
 import sd_04.datn_fstore.service.KhoService;
+import sd_04.datn_fstore.service.SanPhamService;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +28,7 @@ public class HoaDonServiceImpl implements HoaDonService {
     private final HoaDonRepository hoaDonRepository;
     private final HoaDonChiTietRepository hoaDonChiTietRepository;
     private final KhoService khoService;
+    private final SanPhamService sanPhamService;
 
     private static final int TT_HOAN_THANH = 4;
     private static final int TT_DA_HUY = 5;
@@ -60,17 +64,31 @@ public class HoaDonServiceImpl implements HoaDonService {
         HoaDon hoaDon = hoaDonRepository.findById(hoaDonId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy HĐ ID: " + hoaDonId));
 
-        boolean isHuyOrThatBai = (newTrangThai == TT_DA_HUY || newTrangThai == TT_GIAO_THAT_BAI);
-        boolean isChuaHoanThanh = (hoaDon.getTrangThai() < TT_HOAN_THANH);
-        // Logic này đảm bảo: Nếu chuyển sang HỦY (5) thì mới hoàn kho
+        // Logic hoàn kho khi HỦY hoặc GIAO THẤT BẠI
+        boolean isHuyOrThatBai = (newTrangThai == 5 || newTrangThai == 7);
+        boolean isChuaHoanThanh = (hoaDon.getTrangThai() < 4);
+
         if (isHuyOrThatBai && isChuaHoanThanh) {
             List<HoaDonChiTiet> items = hoaDonChiTietRepository.findByHoaDonId(hoaDonId);
+
+            // Dùng Set để lưu danh sách ID sản phẩm cha cần cập nhật (tránh trùng lặp)
+            Set<Integer> sanPhamChaIds = new HashSet<>();
+
             for (HoaDonChiTiet item : items) {
-                // Gọi service trả hàng về kho
+                // 1. Hoàn kho cho sản phẩm con (Size/Màu)
                 khoService.hoanTonKho(
                         item.getSanPhamChiTiet().getId(),
                         item.getSoLuong()
                 );
+
+                // 2. Lưu ID cha lại để tí nữa tính tổng 1 thể
+                sanPhamChaIds.add(item.getSanPhamChiTiet().getSanPham().getId());
+            }
+
+            // 3. --- QUAN TRỌNG: CẬP NHẬT LẠI TỔNG SỐ LƯỢNG CHA ---
+            // Bước này sẽ sửa lỗi hiển thị 90 vs 98 của bạn
+            for (Integer idCha : sanPhamChaIds) {
+                sanPhamService.updateTotalQuantity(idCha);
             }
         }
 
