@@ -87,6 +87,8 @@
 </div>
 
 <footer th:replace="~{/library/footer :: footer}"></footer>
+<div th:replace="~{/library/footer :: scripts}"></div>
+
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script th:inline="javascript">
@@ -247,7 +249,10 @@
         $("#orderTabs button").click(function() {
             $("#orderTabs button").removeClass('active');
             $(this).addClass('active');
-            fetchOrders($(this).data('status') || null, 0);
+
+            // Lấy trực tiếp giá trị từ attribute để tránh lỗi tự động ép kiểu của .data()
+            const status = $(this).attr('data-status');
+            fetchOrders(status, 0);
         });
     });
     /*]]>*/
