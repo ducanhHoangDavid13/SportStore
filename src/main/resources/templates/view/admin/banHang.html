@@ -832,15 +832,12 @@
                 // 2. TÌM GIÁ TRỊ GIẢM TỐI ĐA (QUAN TRỌNG NHẤT)
                 // Backend có thể trả về một trong các tên sau, ta bắt tất cả:
                 let maxDiscount = 0;
-                if (c.soTienGiamToiDa !== undefined && c.soTienGiamToiDa !== null) {
-                    maxDiscount = c.soTienGiamToiDa;
-                } else if (c.giamToiDa !== undefined && c.giamToiDa !== null) {
-                    maxDiscount = c.giamToiDa;
-                } else if (c.maxGiam !== undefined && c.maxGiam !== null) {
-                    maxDiscount = c.maxGiam;
+                if (c.hinhThucGiam === 2 && c.soTienGiam != null) {
+                    maxDiscount = c.soTienGiam;
+                }else {
+                    maxDiscount = c.giaTriGiam;
                 }
                 // --------------------------------------------------------
-
                 html += `<option value="${c.id}"
                         data-code="${c.maPhieuGiamGia}"
                         data-type="${c.hinhThucGiam}"
