@@ -69,4 +69,8 @@ public class MauSacServiceImpl implements MauSacService {
         // SỬA LỖI GÕ: Gọi phương thức chính xác đã khai báo trong Repository
         return Optional.ofNullable(mauSacRepository.findByMaMau(maMau));
     }
+    @Override
+    public List<MauSac> getAllActive() {
+        return mauSacRepository.findByTrangThai(1);
+    }
 }

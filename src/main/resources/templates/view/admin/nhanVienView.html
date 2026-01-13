@@ -5,15 +5,14 @@
     <title>Quản lý Nhân viên</title>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
 
-    <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
-    <!-- Bootstrap 5 & Libs -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css"/>
 
-    <!-- Custom CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+
     <link rel="stylesheet" th:href="@{/css/styles.css}" />
     <link rel="stylesheet" th:href="@{/css/navbar.css}" />
 
@@ -77,10 +76,28 @@
         .modal-content { border-radius: 16px; border: none; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
         .modal-header { border-bottom: 1px solid #f3f4f6; padding: 1.5rem; }
         .modal-header.bg-primary { background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%) !important; }
+        .modal-header.bg-info { background: linear-gradient(135deg, #0ea5e9 0%, #38bdf8 100%) !important; } /* Màu mới cho View Detail */
         .modal-body { padding: 1.5rem; }
 
         .form-control:focus, .form-select:focus {
             border-color: #6366f1; box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        }
+
+        /* Detail Row Style */
+        .detail-row {
+            margin-bottom: 1rem;
+            border-bottom: 1px dashed #e5e7eb;
+            padding-bottom: 0.5rem;
+        }
+        .detail-label {
+            font-weight: 600;
+            color: #6b7280;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+        }
+        .detail-value {
+            font-weight: 500;
+            color: #111827;
         }
     </style>
 </head>
@@ -92,18 +109,13 @@
     <main class="main-content pt-4 px-4">
 
         <div class="container-fluid">
-            <!-- Header -->
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h3 class="fw-bold text-dark mb-0">Quản lý Nhân viên</h3>
                 <nav aria-label="breadcrumb">
-                    <ol class="breadcrumb mb-0">
-                        <li class="breadcrumb-item"><a href="#" class="text-decoration-none">Admin</a></li>
-                        <li class="breadcrumb-item active">Nhân viên</li>
-                    </ol>
+
                 </nav>
             </div>
 
-            <!-- 1. Filter Card -->
             <div class="card-box p-4">
                 <div class="row g-3 align-items-end">
                     <div class="col-md-6">
@@ -122,7 +134,6 @@
                 </div>
             </div>
 
-            <!-- 2. Table Card -->
             <div class="card-box">
                 <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
                     <h5 class="mb-0 fw-bold text-dark">Danh sách Nhân viên</h5>
@@ -135,7 +146,7 @@
                     <table class="table table-custom table-hover mb-0">
                         <thead>
                         <tr>
-                            <th>Mã NV</th>
+                            <th>Mã nhân viên</th>
                             <th>Họ và Tên</th>
                             <th>Liên hệ</th>
                             <th>CCCD</th>
@@ -143,16 +154,13 @@
                             <th>Địa chỉ</th>
                             <th>Vai trò</th>
                             <th class="text-center">Trạng thái</th>
-                            <th class="text-center" style="width: 100px;">Thao tác</th>
-                        </tr>
+                            <th class="text-center" style="width: 140px;">Thao tác</th> </tr>
                         </thead>
                         <tbody id="tableBody">
-                        <!-- Data Render Here -->
                         </tbody>
                     </table>
                 </div>
 
-                <!-- Pagination -->
                 <div class="p-3 border-top bg-light bg-opacity-25 d-flex justify-content-between align-items-center">
                     <div id="pageInfo" class="text-muted small"></div>
                     <div id="paginationContainer"></div>
@@ -160,7 +168,6 @@
             </div>
         </div>
 
-        <!-- Modal Thêm/Sửa -->
         <div class="modal fade" id="nvModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-lg modal-dialog-centered">
                 <div class="modal-content">
@@ -186,7 +193,7 @@
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label fw-bold small">Mật khẩu</label>
-                                    <input id="password" type="email" class="form-control" placeholder="Mật khẩu"/>
+                                    <input id="password" type="password" class="form-control" placeholder="Mật khẩu"/>
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label fw-bold small">SỐ ĐIỆN THOẠI</label>
@@ -208,9 +215,13 @@
                                     <label class="form-label fw-bold small">ĐỊA CHỈ</label>
                                     <input id="diaChi" class="form-control" placeholder="Địa chỉ chi tiết"/>
                                 </div>
+
                                 <div class="col-md-6">
                                     <label class="form-label fw-bold small">VAI TRÒ</label>
-                                    <input id="vaiTro" class="form-control" placeholder="VD: Quản lý, Nhân viên..."/>
+                                    <select id="vaiTro" class="form-select">
+                                        <option value="Nhân viên bán hàng">Nhân viên bán hàng</option>
+                                        <option value="Nhân viên giao hàng">Nhân viên giao hàng</option>
+                                    </select>
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label fw-bold small">TRẠNG THÁI</label>
@@ -230,24 +241,80 @@
             </div>
         </div>
 
-        <!-- Toasts Container -->
+        <div class="modal fade" id="detailModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content overflow-hidden">
+                    <div class="modal-header bg-info text-white border-0">
+                        <h5 class="modal-title fw-bold"><i class="fas fa-id-card me-2"></i> THÔNG TIN NHÂN VIÊN</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body p-4">
+                        <div class="text-center mb-4">
+                            <img id="detailAvatar" src="" class="rounded-circle shadow-lg mb-3" width="100" height="100" style="border: 4px solid white;">
+                            <h4 id="detailName" class="fw-bold text-dark mb-1">...</h4>
+                            <span id="detailRole" class="badge bg-light text-dark border">...</span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="detail-row d-flex justify-content-between">
+                                    <span class="detail-label">Mã Nhân Viên</span>
+                                    <span id="detailCode" class="detail-value text-primary">...</span>
+                                </div>
+                                <div class="detail-row d-flex justify-content-between">
+                                    <span class="detail-label">Giới tính</span>
+                                    <span id="detailGender" class="detail-value">...</span>
+                                </div>
+                                <div class="detail-row d-flex justify-content-between">
+                                    <span class="detail-label">Số điện thoại</span>
+                                    <span id="detailPhone" class="detail-value">...</span>
+                                </div>
+                                <div class="detail-row d-flex justify-content-between">
+                                    <span class="detail-label">Email</span>
+                                    <span id="detailEmail" class="detail-value">...</span>
+                                </div>
+                                <div class="detail-row d-flex justify-content-between">
+                                    <span class="detail-label">CCCD</span>
+                                    <span id="detailCCCD" class="detail-value">...</span>
+                                </div>
+                                <div class="detail-row d-flex justify-content-between">
+                                    <span class="detail-label">Trạng thái</span>
+                                    <span id="detailStatus" class="detail-value">...</span>
+                                </div>
+                                <div class="mt-3">
+                                    <span class="detail-label d-block mb-1">Địa chỉ</span>
+                                    <p id="detailAddress" class="detail-value text-muted small bg-light p-2 rounded">...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 bg-light justify-content-center">
+                        <button type="button" class="btn btn-secondary px-5" data-bs-dismiss="modal">Đóng</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="toast-container position-fixed top-0 end-0 p-3" id="toastContainer"></div>
 
     </main>
 </div>
 
-<!-- Scripts -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
-<script th:src="@{/js/my-custom-scripts.js}"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script th:src="@{/js/main.js}"></script>
 
-<script>
+<script >
+    // File: nhanVienView.html (Phần <script>)
+
     // Cấu hình Toastr
     toastr.options = { "closeButton": true, "progressBar": true, "positionClass": "toast-bottom-right", "timeOut": "3000" };
 
     const apiBase = "/api/nhanvien";
-    let nvModal; // Khởi tạo sau khi DOM ready
+    let nvModal;
+    let detailModal; // Modal chi tiết
 
     let currentPage = 1;
     const pageSize = 10;
@@ -269,7 +336,7 @@
     function parseTrangThai(v){ return Number(v)===1?1:0; }
     function parseGioiTinh(v){ if(v==='true')return true; if(v==='false')return false; return null; }
 
-    // --- MAIN LOGIC ---
+    // --- MAIN LOGIC (LOAD, RENDER, SEARCH) ---
     async function loadNhanVien(){
         $('#tableBody').html('<tr><td colspan="9" class="text-center py-5"><div class="spinner-border text-primary" role="status"></div><div class="mt-2 text-muted">Đang tải dữ liệu...</div></td></tr>');
 
@@ -299,23 +366,24 @@
         const pageData = allNhanVien.slice(start,end);
 
         body.innerHTML = pageData.map(nv => `
-            <tr>
-                <td class="fw-bold text-primary">#${nv.maNhanVien??'N/A'}</td>
-                <td class="fw-semibold text-dark">${nv.tenNhanVien??'N/A'}</td>
-                <td>
-                    <div class="small">${nv.email || '-'}</div>
-                    <div class="small text-muted">${nv.soDienThoai || '-'}</div>
-                </td>
-                <td>${nv.cccd??'-'}</td>
-                <td class="text-center">${gioiTinhToBadge(nv.gioiTinh)}</td>
-                <td class="small text-muted text-truncate" style="max-width: 150px;" title="${nv.diaChi||''}">${nv.diaChi||'-'}</td>
-                <td><span class="badge bg-light text-dark border">${nv.vaiTro||'NV'}</span></td>
-                <td class="text-center">${trangThaiToBadge(nv.trangThai)}</td>
-                <td class="text-center">
-                    <button class="btn btn-action btn-light text-warning border me-1" onclick="openEdit(${nv.id})" title="Sửa"><i class="fas fa-pen"></i></button>
-                    <button class="btn btn-action btn-light text-danger border" onclick="deleteNhanVien(${nv.id})" title="Xóa"><i class="fas fa-trash-alt"></i></button>
-                </td>
-            </tr>`).join('');
+        <tr>
+            <td class="fw-bold text-primary">#${nv.maNhanVien??'N/A'}</td>
+            <td class="fw-semibold text-dark">${nv.tenNhanVien??'N/A'}</td>
+            <td>
+                <div class="small">${nv.email || '-'}</div>
+                <div class="small text-muted">${nv.soDienThoai || '-'}</div>
+            </td>
+            <td>${nv.cccd??'-'}</td>
+            <td class="text-center">${gioiTinhToBadge(nv.gioiTinh)}</td>
+            <td class="small text-muted text-truncate" style="max-width: 150px;" title="${nv.diaChi||''}">${nv.diaChi||'-'}</td>
+            <td><span class="badge bg-light text-dark border">${nv.vaiTro||'NV'}</span></td>
+            <td class="text-center">${trangThaiToBadge(nv.trangThai)}</td>
+            <td class="text-center">
+                <button class="btn btn-action btn-light text-info border me-1" onclick="viewDetail(${nv.id})" title="Xem chi tiết"><i class="fas fa-eye"></i></button>
+                <button class="btn btn-action btn-light text-warning border me-1" onclick="openEdit(${nv.id})" title="Sửa"><i class="fas fa-pen"></i></button>
+                <button class="btn btn-action btn-light text-danger border" onclick="deleteNhanVien(${nv.id})" title="Xóa"><i class="fas fa-trash-alt"></i></button>
+            </td>
+        </tr>`).join('');
     }
 
     function renderPagination(){
@@ -361,6 +429,11 @@
             );
             currentPage = 1;
             renderTable(); renderPagination(); updatePageInfo();
+            if(allNhanVien.length > 0) {
+                toastr.success(`Tìm thấy ${allNhanVien.length} kết quả`);
+            } else {
+                toastr.warning('Không tìm thấy kết quả nào');
+            }
         } catch(e){ toastr.error('Lỗi tìm kiếm'); }
     }
 
@@ -369,7 +442,54 @@
         document.getElementById('nvForm').reset();
         document.getElementById('nvId').value='';
         document.getElementById('trangThai').value='1';
+
+        // MODIFIED: Mặc định chọn Nhân viên bán hàng
+        document.getElementById('vaiTro').value='Nhân viên bán hàng';
+
         nvModal.show();
+    }
+
+    async function viewDetail(id){
+        // [Giữ nguyên logic xem chi tiết]
+        $('#detailName').text('Đang tải...');
+
+        try {
+            const res = await fetch(`${apiBase}/${id}`);
+            if(!res.ok){
+                toastr.error('Không tìm thấy thông tin nhân viên');
+                return;
+            }
+            const nv = await res.json();
+
+            $('#detailCode').text(nv.maNhanVien || 'Chưa cập nhật');
+            $('#detailName').text(nv.tenNhanVien || 'Không có tên');
+            $('#detailRole').text(nv.vaiTro || 'Nhân viên');
+
+            let genderText = 'Chưa xác định';
+            if(nv.gioiTinh === true) genderText = 'Nam';
+            else if(nv.gioiTinh === false) genderText = 'Nữ';
+            $('#detailGender').text(genderText);
+
+            $('#detailPhone').text(nv.soDienThoai || '---');
+            $('#detailEmail').text(nv.email || '---');
+            $('#detailCCCD').text(nv.cccd || '---');
+            $('#detailAddress').text(nv.diaChi || 'Chưa cập nhật địa chỉ');
+
+            const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(nv.tenNhanVien)}&background=random&size=128`;
+            $('#detailAvatar').attr('src', avatarUrl);
+
+            const statusHtml = nv.trangThai === 1
+                ? '<span class="badge bg-success">Đang làm việc</span>'
+                : '<span class="badge bg-danger">Đã nghỉ việc</span>';
+            $('#detailStatus').html(statusHtml);
+
+            detailModal.show();
+            toastr.info('Đang xem chi tiết: ' + nv.tenNhanVien);
+
+        } catch(e) {
+            console.error(e);
+            toastr.error('Lỗi khi tải chi tiết nhân viên');
+        }
     }
 
     async function openEdit(id){
@@ -387,8 +507,14 @@
             document.getElementById('cccd').value=nv.cccd??'';
             document.getElementById('gioiTinh').value=nv.gioiTinh===null?'':String(nv.gioiTinh);
             document.getElementById('diaChi').value=nv.diaChi??'';
-            document.getElementById('vaiTro').value=nv.vaiTro??'';
             document.getElementById('trangThai').value=nv.trangThai===1?'1':'0';
+
+            // MODIFIED: Set giá trị cho Select Box Vai Trò
+            // Lưu ý: Nếu database lưu giá trị khác 2 option trên, nó sẽ không hiển thị đúng.
+            document.getElementById('vaiTro').value=nv.vaiTro??'Nhân viên bán hàng';
+
+            // Clear mật khẩu khi sửa để tránh lộ, nếu muốn đổi thì nhập mới
+            document.getElementById('password').value = '';
 
             nvModal.show();
         } catch(e){ toastr.error('Lỗi khi tải dữ liệu'); }
@@ -398,53 +524,111 @@
         const id = document.getElementById('nvId').value;
         const ma = document.getElementById('maNhanVien').value.trim();
         const ten = document.getElementById('tenNhanVien').value.trim();
+        const action = id ? 'Cập nhật' : 'Thêm mới';
 
         if(!ma || !ten){ toastr.warning('Vui lòng nhập Mã và Tên nhân viên'); return; }
 
-        let payload = {
-            maNhanVien: ma, tenNhanVien: ten,
-            email: document.getElementById('email').value.trim()||null,
-            password: document.getElementById('password').value.trim()||null,
-            soDienThoai: document.getElementById('soDienThoai').value.trim()||null,
-            cccd: document.getElementById('cccd').value.trim()||null,
-            gioiTinh: parseGioiTinh(document.getElementById('gioiTinh').value),
-            diaChi: document.getElementById('diaChi').value.trim()||null,
-            vaiTro: document.getElementById('vaiTro').value.trim()||null,
-            trangThai: parseTrangThai(document.getElementById('trangThai').value)
-        };
+        // --- BỔ SUNG CONFIRM CHO LƯU/CẬP NHẬT (UX-001) ---
+        Swal.fire({
+            title: `Xác nhận ${action}?`,
+            text: `Bạn có muốn ${action} thông tin nhân viên này?`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#4f46e5',
+            confirmButtonText: action,
+            cancelButtonText: 'Hủy'
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                let payload = {
+                    maNhanVien: ma, tenNhanVien: ten,
+                    email: document.getElementById('email').value.trim()||null,
+                    soDienThoai: document.getElementById('soDienThoai').value.trim()||null,
+                    cccd: document.getElementById('cccd').value.trim()||null,
+                    gioiTinh: parseGioiTinh(document.getElementById('gioiTinh').value),
+                    diaChi: document.getElementById('diaChi').value.trim()||null,
+                    vaiTro: document.getElementById('vaiTro').value.trim()||null,
+                    trangThai: parseTrangThai(document.getElementById('trangThai').value)
+                };
 
-        try{
-            const method = id ? 'PUT' : 'POST';
-            if(method == 'POST') {
-                payload = { ...payload, password: document.getElementById('password').value.trim()||null};
+                const pass = document.getElementById('password').value.trim();
+                if(pass) {
+                    payload.password = pass;
+                }
+
+                try{
+                    const method = id ? 'PUT' : 'POST';
+                    const url = id ? `${apiBase}/update/${id}` : `${apiBase}/add`;
+                    const res = await fetch(url, {
+                        method, headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload)
+                    });
+
+                    if(!res.ok) {
+                        const errorData = await res.json().catch(() => ({ message: res.statusText }));
+                        toastr.error(`Lưu thất bại: ${errorData.message}`);
+                        return;
+                    }
+
+                    nvModal.hide();
+                    toastr.success(`${action} thành công`);
+                    loadNhanVien();
+                } catch(e){ toastr.error('Lỗi kết nối server'); }
             }
-
-            const url = id ? `${apiBase}/update/${id}` : `${apiBase}/add`;
-            const res = await fetch(url, {
-                method, headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload)
-            });
-
-            if(!res.ok) { toastr.error('Lưu thất bại'); return; }
-
-            nvModal.hide();
-            toastr.success(id ? 'Cập nhật thành công' : 'Thêm mới thành công');
-            loadNhanVien();
-        } catch(e){ toastr.error('Lỗi kết nối server'); }
+        });
+        // --- KẾT THÚC CONFIRM ---
     }
 
     async function deleteNhanVien(id){
-        if(!confirm('Bạn có chắc chắn muốn xóa nhân viên này?')) return;
-        try{
-            const res = await fetch(`${apiBase}/delete/${id}`, {method:'DELETE'});
-            if(!res.ok) { toastr.error('Xóa thất bại'); return; }
-            toastr.success('Đã xóa nhân viên');
-            loadNhanVien();
-        } catch(e){ toastr.error('Lỗi khi xóa'); }
+        // --- BỔ SUNG CONFIRM CHO XÓA (UX-001) ---
+        Swal.fire({
+            title: 'Xác nhận xóa?',
+            // Thêm cảnh báo về lỗi tham chiếu
+            text: "Bạn có chắc chắn muốn xóa nhân viên này? Lưu ý: Nếu nhân viên đã có hóa đơn, thao tác này có thể bị lỗi do ràng buộc dữ liệu!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            confirmButtonText: 'Xóa',
+            cancelButtonText: 'Hủy'
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try{
+                    const res = await fetch(`${apiBase}/delete/${id}`, {method:'DELETE'});
+
+                    if(!res.ok) {
+                        const errorText = await res.text();
+
+                        // Xử lý lỗi tham chiếu (Foreign Key Constraint) từ Backend
+                        if (errorText.includes("REFERENCE constraint")) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Xóa thất bại!',
+                                text: 'Không thể xóa nhân viên này vì họ đã tham gia vào các giao dịch (có Hóa đơn) trong hệ thống. Vui lòng chuyển trạng thái thành "Đã nghỉ việc" thay vì xóa cứng.',
+                                footer: 'Bạn có thể sửa lại trạng thái của nhân viên.'
+                            });
+                        } else {
+                            toastr.error(`Lỗi xóa: ${errorText}`);
+                        }
+                        return;
+                    }
+
+                    toastr.success('Đã xóa nhân viên');
+                    loadNhanVien();
+                } catch(e){
+                    toastr.error('Lỗi kết nối server khi xóa');
+                }
+            }
+        });
+        // --- KẾT THÚC CONFIRM ---
     }
 
     // Init
     $(document).ready(function() {
+        // Để Swal.fire hoạt động, cần đảm bảo SweetAlert2 JS được load trước
+        if (typeof Swal === 'undefined') {
+            console.error("SweetAlert2 (Swal) is not loaded. Please ensure the CDN link is correct.");
+        }
+
         nvModal = new bootstrap.Modal(document.getElementById('nvModal'));
+        detailModal = new bootstrap.Modal(document.getElementById('detailModal')); // Init Detail Modal
         loadNhanVien();
 
         // Sidebar toggle

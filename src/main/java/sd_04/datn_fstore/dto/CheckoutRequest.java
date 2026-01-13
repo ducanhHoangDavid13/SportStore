@@ -1,6 +1,7 @@
 package sd_04.datn_fstore.dto;
 
 import lombok.Data;
+
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -10,7 +11,8 @@ public class CheckoutRequest {
     private String fullName;
     private String phone;
     private String email;
-
+    private Integer khachHangId;
+    private Integer addressId;
     // Địa chỉ
     private String city;
     private String district;
@@ -24,6 +26,7 @@ public class CheckoutRequest {
     private BigDecimal shippingFee;
 
     private List<CartItem> items;
+    private Boolean isBuyNow;
 
     @Data
     public static class CartItem {

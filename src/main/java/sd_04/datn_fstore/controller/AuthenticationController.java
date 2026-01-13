@@ -36,7 +36,7 @@ public class AuthenticationController {
         try {
             khachHangService.save(dto);
             redirectAttributes.addAttribute("success", true);
-            return "redirect:/registration-view";
+            return "redirect:/login";
         } catch (RuntimeException ex) {
             redirectAttributes.addAttribute("error", ex.getMessage());
             return "redirect:/registration-view";

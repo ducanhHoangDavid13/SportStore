@@ -50,4 +50,8 @@ public class XuatXuServiceImpl implements XuatXuService {
             throw new RuntimeException("Không tìm thấy xuất xứ ID: " + id);
         }
     }
+    @Override
+    public List<XuatXu> getAllActive() {
+        return xuatXuRepository.findByTrangThai(1);
+    }
 }

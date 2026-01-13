@@ -15,4 +15,5 @@ public class ProductVariantDTO {
     private BigDecimal giaTien;  // Giá tiền riêng của biến thể (nếu có)
     private Integer soLuongTon;  // Số lượng trong kho
     private String anh;          // Tên ảnh của biến thể (nếu có)
+    private Integer trangThai;
 }

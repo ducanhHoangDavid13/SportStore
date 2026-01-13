@@ -2,6 +2,7 @@ package sd_04.datn_fstore.service;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.transaction.annotation.Transactional;
 import sd_04.datn_fstore.model.HoaDon;
 
 import java.math.BigDecimal; // <-- THÊM IMPORT NÀY
@@ -44,5 +45,9 @@ public interface HoaDonService {
      * THÊM MỚI: Dùng cho API /api/hoadon/date
      */
     List<HoaDon> getByDateRange(LocalDateTime startTime, LocalDateTime endTime);
+    void deleteByMaHoaDon(String maHoaDon);
+    List<HoaDon> getHoaDonChoTaiQuay();
+@Transactional
+    void updatePaymentStatus(Long orderId, Integer newStatus);
 
 }

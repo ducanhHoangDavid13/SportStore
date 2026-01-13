@@ -50,4 +50,9 @@ public class KichThuocServiceImpl implements KichThuocService {
             throw new RuntimeException("Không tìm thấy kích thước ID: " + id);
         }
     }
+
+    @Override
+    public List<KichThuoc> getAllActive() {
+        return kichThuocRepository.findByTrangThai(1);
+    }
 }

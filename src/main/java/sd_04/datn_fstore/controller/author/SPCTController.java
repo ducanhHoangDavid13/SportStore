@@ -60,7 +60,9 @@ public class SPCTController {
                         spct.getGiaTien(),
                         spct.getSoLuong(),
                         // 🛠️ SỬA LỖI: Lấy ảnh từ sản phẩm cha (sp) thay vì spct
-                        sp.getTenHinhAnhChinh()
+                        sp.getTenHinhAnhChinh(),
+                        spct.getTrangThai()
+
                 ))
                 .collect(Collectors.toList());
 

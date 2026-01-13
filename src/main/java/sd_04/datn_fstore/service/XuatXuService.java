@@ -21,4 +21,6 @@ public interface XuatXuService {
     List<XuatXu> searchAndFilter(String ten, Integer trangThai);
     // ... các hàm cũ
     XuatXu updateTrangThai(Integer id, Integer newStatus);
+
+    List<XuatXu> getAllActive();
 }

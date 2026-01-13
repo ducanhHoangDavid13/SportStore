@@ -21,4 +21,5 @@ public interface PhanLoaiService {
     List<PhanLoai> searchAndFilter(String ten, Integer trangThai);
     // ... các hàm cũ
     PhanLoai updateTrangThai(Integer id, Integer newStatus);
+    List<PhanLoai> getAllActive();
 }

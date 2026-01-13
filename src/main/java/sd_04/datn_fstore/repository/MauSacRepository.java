@@ -8,6 +8,8 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import sd_04.datn_fstore.model.MauSac;
 
+import java.util.List;
+
 @Repository
 public interface MauSacRepository extends JpaRepository<MauSac, Integer> {
 
@@ -30,4 +32,5 @@ public interface MauSacRepository extends JpaRepository<MauSac, Integer> {
 
     MauSac findByMaMau(String maMau);
 
+    List<MauSac> findByTrangThai(Integer trangThai);
 }

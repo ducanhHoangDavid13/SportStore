@@ -4,44 +4,43 @@ import lombok.Data;
 import java.math.BigDecimal;
 import java.util.List;
 
-/**
- * Lớp này dùng để hứng dữ liệu
- * khi JavaScript gọi API thanh toán hoặc lưu tạm.
- */
-@Data // Tự động tạo getter/setter
+@Data
 public class CreateOrderRequest {
 
     // 1. Thông tin đơn hàng
     private Integer nhanVienId;
-    private Integer khachHangId;    // Có thể là null (khách lẻ)
-    private Integer phieuGiamGiaId; // Có thể là null (không dùng)
+    private Integer khachHangId;
+    private Integer phieuGiamGiaId;
 
-    private String maHoaDon;            // (Trước là orderCode)
-    private String phuongThucThanhToan; // (Trước là paymentMethod: COD, VNPAY...)
+    private String maHoaDon;
 
-    // 2. Thông tin tiền (tạm tính từ client)
-    private BigDecimal tongTien;    // (Trước là totalAmount) - Tổng tiền cuối cùng
-    private BigDecimal tienGiamGia; // (Trước là discountAmount)
+    // JS gửi lên: phuongThucThanhToan (String/Int) HOẶC hinhThucThanhToan (Int)
+    private String phuongThucThanhToan;
 
-    // 3. Danh sách sản phẩm trong giỏ hàng
-    private List<SanPhamItem> danhSachSanPham; // (Trước là itemsList)
+    // ✅ THÊM: Hứng số 1 (Tiền mặt) hoặc 2 (CK) từ JS gửi lên để lưu vào DB chuẩn hơn
+    private Integer hinhThucThanhToan;
 
-    /**
-     * Lớp con đại diện cho 1 sản phẩm trong giỏ hàng
-     */
-    @Data // Tự động tạo getter/setter
-    public static class SanPhamItem { // (Trước là Item)
+    // 2. Thông tin tiền
+    private BigDecimal tongTien;
+    private BigDecimal tienGiamGia;
+
+    private BigDecimal tienKhachDua;
+
+    // 3. Danh sách sản phẩm
+    private List<SanPhamItem> danhSachSanPham;
+
+    @Data
+    public static class SanPhamItem {
         private Integer sanPhamChiTietId;
         private Integer soLuong;
         private BigDecimal donGia;
 
-        // Constructor để code VNPAY dễ dùng
         public SanPhamItem(Integer sanPhamChiTietId, Integer soLuong, BigDecimal donGia) {
             this.sanPhamChiTietId = sanPhamChiTietId;
             this.soLuong = soLuong;
             this.donGia = donGia;
         }
 
-        private BigDecimal tienKhachDua; // (Trước là customerPaidAmount - Dùng cho bán tại quầy)
+        // ❌ XÓA: private BigDecimal tienKhachDua; (Sai vị trí)
     }
 }
